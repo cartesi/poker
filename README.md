@@ -39,11 +39,18 @@ $ docker-compose down -v
 ```
 
 
-### Installing, compiling and deploying
+## Deploying and running
 
-We use `Yarn` to download dependncies, and then `Truffle` to compile and deploy the contracts to the configured network:
+We use `Yarn` to download dependencies, and then `Truffle` to compile and deploy the contracts to the configured network:
 
 ```bash
 $ yarn
 $ truffle migrate
+```
+
+You can then interact with the application by using `truffle console`, or by executing Truffle scripts. For instance:
+
+```bash
+$ truffle exec startGame.js
+$ truffle exec getGameContext.js -i 0
 ```
