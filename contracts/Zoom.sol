@@ -80,4 +80,21 @@ contract Zoom {
             return game;
         }
     }
+
+    // @notice to get user details
+    function getUserDetails() returns (user memory) {
+        returns users[msg.sender]
+    }
+
+    // @notice to get game details with waiting players
+    function getGameDetails() returns (gameDetails memory){
+        require(queue!=0);
+        returns allGames[queue];
+    }
+
+    // @notice get queue details
+    function getQueueDetails() returns (uint256){
+        return queue;
+    }
+
 }
