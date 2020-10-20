@@ -83,11 +83,12 @@ contract TurnBasedGame is Instantiator {
         // creates new context
         GameContext storage context = instances[currentIndex];
         context.templateHash = _templateHash;
+        // TODO: check/lock funds, preferrably use a token and not ether
         context.players = _players;
         context.playerFunds = _playerFunds;
         context.metadata = _metadata;
 
-        // // emits event for new game        
+        // emits event for new game        
         emit GameReady(currentIndex, context);
 
         active[currentIndex] = true;

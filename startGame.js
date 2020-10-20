@@ -12,9 +12,11 @@ module.exports = async (callback) => {
         let players = accounts;
         let playerFunds = [10, 10];
         let metadata = "0x0";
+        let gameReadyABI = game.abi.filter(o => o.name == 'GameReady')[0];
 
         ret = await game.startGame(templateHash, players, playerFunds, metadata, { from: accounts[0] });
-        console.log("Game started (tx: " + ret.tx + " ; blocknumber: " + ret.receipt.blockNumber + ")\n");
+        index = web3.eth.abi.decodeLog(gameReadyABI.inputs, ret.receipt.rawLogs[0].data, '0x0')['0'];
+        console.log("Game started with index '" + index + "' (tx: " + ret.tx + " ; blocknumber: " + ret.receipt.blockNumber + ")\n");
         callback();
     } catch (e) {
         callback(e);
