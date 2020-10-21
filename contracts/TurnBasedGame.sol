@@ -23,28 +23,34 @@ pragma solidity >=0.4.25 <0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "@cartesi/descartes-sdk/contracts/DescartesInterface.sol";
+import "@cartesi/logger/contracts/Logger.sol";
 import "@cartesi/util/contracts/Instantiator.sol";
 
 contract TurnBasedGame is Instantiator {
 
     // Descartes instance used for triggering verified computations
     DescartesInterface descartes;
+    // Logger instance used for storing data in the event history
+    Logger logger;
+
+    // turn data chunk size fixed as 4K
+    uint64 constant turnDataLog2Size = 12;
 
     /// @param descartesAddress address of the Descartes contract
-    constructor(address descartesAddress) public {
+    /// @param loggerAddress address of the Logger contract
+    constructor(address descartesAddress, address loggerAddress) public {
         descartes = DescartesInterface(descartesAddress);
+        logger = Logger(loggerAddress);
     }
 
-    // records a player's move
-    struct Move {
-        // game state for which the move applies
-        bytes32 stateHash;
-        // player making the move
+    // records a player's turn
+    struct Turn {
+        // player that submitted the turn
         address player;
-        // move data (if given directly)
-        bytes dataDirect;
-        // logger hash for move data (if given through the logger)
-        bytes dataLoggerRootHash;
+        // game state for which the turn applies
+        bytes32 stateHash;
+        // index that identifies the turn's data stored in the Logger
+        uint256 dataLogIndex;
     }
 
     // records information for an instantiated game
@@ -57,9 +63,9 @@ contract TurnBasedGame is Instantiator {
         uint[] playerFunds;
         // game-specific initial metadata/parameters
         bytes metadata;
-        // game-specific moves submitted each turn (including initial state)
-        Move[] moves;
-        // associated descartes computation
+        // game-specific turns submitted by each user (including initial state)
+        Turn[] turns;
+        // associated descartes computation index
         uint256 descartesIndex;
     }
 
@@ -68,7 +74,7 @@ contract TurnBasedGame is Instantiator {
 
     // events emitted    
     event GameReady(uint256 _index, GameContext _context);
-    event TurnOver(uint256 _index, address player, Move[] _moves);
+    event TurnOver(uint256 _index, Turn _turn);
     event GameEndClaimed(uint256 _index, uint256 _descartesIndex);
     event GameOver(uint256 _index, uint[] _potShare);
 
@@ -96,27 +102,34 @@ contract TurnBasedGame is Instantiator {
     }
 
 
-    /// @notice submits a new game turn's moves
+    /// @notice submits a new game turn
     /// @param _index index identifying the game
-    /// @param _moves player's moves for the turn
-    function submitTurn(uint256 _index, Move[] memory _moves) public
+    /// @param _stateHash game state for which the turn applies
+    /// @param _data game-specific turn data (array of 64-bit words)
+    function submitTurn(uint256 _index, bytes32 _stateHash, bytes8[] memory _data) public
         onlyActive(_index)
     {
         GameContext storage context = instances[_index];
 
-        // FIXME: assert turn was submitted by the player making the moves
+        // ensures sender is actually a player participating in the game
+        require(isConcerned(_index, msg.sender));
 
-        require(_moves.length > 0, "Turn submission requires at least one move.");
-        address player = _moves[0].player;
+        // stores submitted turn data in the logger and retrieves its index
+        bytes32 logHash = logger.calculateMerkleRootFromData(turnDataLog2Size, _data);
+        uint256 logIndex = logger.getLogIndex(logHash);
 
-        // records new moves
-        for (uint i = 0; i < _moves.length; i++) {
-            require(_moves[i].player == player, "Turn moves must belong to the player submitting the turn.");
-            context.moves.push(_moves[i]);
-        }
+        // instantiates new turn
+        Turn memory turn = Turn({
+            player: msg.sender,
+            stateHash: _stateHash,
+            dataLogIndex: logIndex
+        });
+
+        // records new turn in the game context
+        context.turns.push(turn);
         
-        // emits event for next turn
-        emit TurnOver(_index, player, _moves);
+        // emits event for new turn
+        emit TurnOver(_index, turn);
     }
 
 
@@ -134,7 +147,7 @@ contract TurnBasedGame is Instantiator {
         // - templateHash from context
         // - claimer/challengers from context.players
         // - input drive with initial state: players, playerFunds, metadata
-        // - input drive with moves data
+        // - input drive with turns data
         // context.descartesIndex = descartes.instantiate(...);
 
         // emits event announcing game end has been claimed and that Descartes verification is underway
@@ -166,7 +179,7 @@ contract TurnBasedGame is Instantiator {
         // deactivates game to prevent further interaction with it
         delete context.players;
         delete context.playerFunds;
-        delete context.moves;
+        delete context.turns;
         deactivate(_index);
 
         // emit event for end of game
