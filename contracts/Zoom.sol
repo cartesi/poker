@@ -1,7 +1,8 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
+import "./TurnBasedGame.sol";
 
-contract Zoom {
+contract Zoom is TurnBasedGame {
     // The queue for waiting area
     uint256 queue = 0;
     uint256 number = 1;
@@ -76,24 +77,30 @@ contract Zoom {
             game.players.push(users[msg.sender]);
             game.metadata.push(_metaData);
             game.playerFunds.push(_playerFund);
-
+            
+            address [] add;
+            for (uint256 i = 0; i<game.players.length; i++){
+                add.push(game.players[i].owner);
+            }
+            
+            startGame(_templateHash, add, game.playerFunds, game.metadata);
             return game;
         }
     }
 
     // @notice to get user details
-    function getUserDetails() returns (user memory) {
-        returns users[msg.sender]
+    function getUserDetails() public view returns (user memory) {
+        return users[msg.sender];
     }
 
     // @notice to get game details with waiting players
-    function getGameDetails() returns (gameDetails memory){
+    function getGameDetails() public view returns (gameDetails memory){
         require(queue!=0);
-        returns allGames[queue];
+        return allGames[queue];
     }
 
     // @notice get queue details
-    function getQueueDetails() returns (uint256){
+    function getQueueDetails() public view returns (uint256){
         return queue;
     }
 
