@@ -1,4 +1,4 @@
-pragma solidity ^0.6.12;
+pragma solidity >=0.5.16 <0.7.0;
 pragma experimental ABIEncoderV2;
 import "./TurnBasedGame.sol";
 
@@ -7,14 +7,17 @@ contract Zoom is TurnBasedGame {
     uint256 queue = 0;
     uint256 number = 1;
 
+    // holds the template hash for the Cartesi Machine computation that runs the Texas Holdem poker game
+    bytes32 constant texasHoldemTemplateHash = '0x123';
+
     // Records details of users waiting to play
     struct gameDetails {
         // details of both players
         user[] players;
-        // metadata for both players
-        uint256[] metadata;
         // funds for both playes
         uint256[] playerFunds;
+        // metadata for the game
+        bytes metadata;
     }
 
     // Records information of a user
@@ -45,7 +48,7 @@ contract Zoom is TurnBasedGame {
     // @notice players coming to play game
     // @params _metaData stores the encrypted data for card
     // @params _playerFund stores the amount which player is staking
-    function playUser(uint256 _metaData, uint256 _playerFund)
+    function playUser(bytes calldata _metaData, uint256 _playerFund)
         external
         returns (gameDetails memory)
     {
@@ -54,8 +57,8 @@ contract Zoom is TurnBasedGame {
             // creates new game
             gameDetails storage game = allGames[number];
             game.players.push(users[msg.sender]);
-            game.metadata.push(_metaData);
             game.playerFunds.push(_playerFund);
+            game.metadata = _metaData;
 
             // to record that queue is not empty
             // number is the game instance to which user is waiting
@@ -75,15 +78,15 @@ contract Zoom is TurnBasedGame {
             // Records the second user details
             gameDetails storage game = allGames[temp];
             game.players.push(users[msg.sender]);
-            game.metadata.push(_metaData);
             game.playerFunds.push(_playerFund);
+            game.metadata = _metaData;
             
-            address [] add;
+            address [] memory add = new address[](game.players.length);
             for (uint256 i = 0; i<game.players.length; i++){
-                add.push(game.players[i].owner);
+                add[i] = game.players[i].owner;
             }
             
-            startGame(_templateHash, add, game.playerFunds, game.metadata);
+            startGame(texasHoldemTemplateHash, add, game.playerFunds, game.metadata);
             return game;
         }
     }

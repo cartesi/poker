@@ -19,7 +19,7 @@
 // be used independently under the Apache v2 license. After this component is
 // rewritten, the entire component will be released under the Apache v2 license.
 
-pragma solidity >=0.4.25 <0.7.0;
+pragma solidity >=0.5.16 <0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "@cartesi/descartes-sdk/contracts/DescartesInterface.sol";
