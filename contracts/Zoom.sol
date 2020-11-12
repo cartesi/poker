@@ -1,14 +1,16 @@
 pragma solidity >=0.5.16 <0.7.0;
 pragma experimental ABIEncoderV2;
-import "./TurnBasedGame.sol";
 
-contract Zoom is TurnBasedGame {
+//import "./TurnBasedGame.sol";
+
+contract Zoom {
     // The queue for waiting area
     uint256 queue = 0;
     uint256 number = 1;
 
     // holds the template hash for the Cartesi Machine computation that runs the Texas Holdem poker game
-    bytes32 constant texasHoldemTemplateHash = '0x123';
+    bytes32 constant texasHoldemTemplateHash = "0x123";
+    address addr = 0x7d69e8F44e01c5Da91F9F2D5813A6Ab2CcB4F9cf;
 
     // Records details of users waiting to play
     struct gameDetails {
@@ -80,13 +82,19 @@ contract Zoom is TurnBasedGame {
             game.players.push(users[msg.sender]);
             game.playerFunds.push(_playerFund);
             game.metadata = _metaData;
-            
-            address [] memory add = new address[](game.players.length);
-            for (uint256 i = 0; i<game.players.length; i++){
+
+            address[] memory add = new address[](game.players.length);
+            for (uint256 i = 0; i < game.players.length; i++) {
                 add[i] = game.players[i].owner;
             }
-            
-            startGame(texasHoldemTemplateHash, add, game.playerFunds, game.metadata);
+
+            TurnBasedGame c = TurnBasedGame(addr);
+            c.startGame(
+                texasHoldemTemplateHash,
+                add,
+                game.playerFunds,
+                game.metadata
+            );
             return game;
         }
     }
@@ -97,14 +105,67 @@ contract Zoom is TurnBasedGame {
     }
 
     // @notice to get game details with waiting players
-    function getGameDetails() public view returns (gameDetails memory){
-        require(queue!=0);
+    function getGameDetails() public view returns (gameDetails memory) {
+        require(queue != 0);
         return allGames[queue];
     }
 
     // @notice get queue details
-    function getQueueDetails() public view returns (uint256){
+    function getQueueDetails() public view returns (uint256) {
         return queue;
     }
+}
 
+interface TurnBasedGame {
+    struct Turn {
+        address player;
+        bytes32 stateHash;
+        uint256 dataLogIndex;
+    }
+
+    struct GameContext {
+        bytes32 templateHash;
+        address[] players;
+        uint256[] playerFunds;
+        bytes metadata;
+        Turn[] turns;
+        uint256 descartesIndex;
+    }
+
+    event GameReady(uint256 _index, GameContext _context);
+    event TurnOver(uint256 _index, Turn _turn);
+    event GameEndClaimed(uint256 _index, uint256 _descartesIndex);
+    event GameOver(uint256 _index, uint256[] _potShare);
+
+    function startGame(
+        bytes32 _templateHash,
+        address[] calldata _players,
+        uint256[] calldata _playerFunds,
+        bytes calldata _metadata
+    ) external returns (uint256);
+
+    function submitTurn(
+        uint256 _index,
+        bytes32 _stateHash,
+        bytes8[] calldata _data
+    ) external;
+
+    function claimGameEnd(uint256 _index) external;
+
+    function applyResult(uint256 _index) external;
+
+    function getContext(uint256 _index)
+        external
+        view
+        returns (GameContext memory);
+
+    function isConcerned(uint256 _index, address _player)
+        external
+        view
+        returns (bool);
+
+    function getSubInstances(uint256 _index, address)
+        external
+        view
+        returns (address[] memory _addresses, uint256[] memory _indices);
 }
