@@ -19,14 +19,12 @@
 // be used independently under the Apache v2 license. After this component is
 // rewritten, the entire component will be released under the Apache v2 license.
 
-
-pragma solidity >=0.5.0;
+pragma solidity >=0.5.16 <0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "@cartesi/descartes-sdk/contracts/DescartesInterface.sol";
 import "@cartesi/logger/contracts/Logger.sol";
 import "@cartesi/util/contracts/Instantiator.sol";
-import "@cartesi/util/contracts/Merkle.sol";
 
 contract TurnBasedGame is Instantiator {
 
@@ -40,7 +38,7 @@ contract TurnBasedGame is Instantiator {
     // turn data log2size fixed as 9
     // - data is given as 64-bit (8-byte) words
     // - total turn data size is thus fixed at 8 * 2^9 = 4K 
-    uint64 constant turnDataLog2Size = 9;
+    uint8 constant turnDataLog2Size = 9;
 
     /// @param descartesAddress address of the Descartes contract
     /// @param loggerAddress address of the Logger contract
@@ -76,6 +74,8 @@ contract TurnBasedGame is Instantiator {
         bytes metadata;
         // game-specific turns submitted by each user (including initial state)
         Turn[] turns;
+        // indicates whether a descartes computation has been instantiated
+        bool isDescartesInstantiated;
         // associated descartes computation index
         uint256 descartesIndex;
     }
@@ -95,6 +95,7 @@ contract TurnBasedGame is Instantiator {
     /// @param _players addresses of the players involved
     /// @param _playerFunds funds/balances that each player is bringing into the game
     /// @param _metadata game-specific metadata
+    /// @return index of the game instance
     function startGame(bytes32 _templateHash, address[] memory _players, uint[] memory _playerFunds, bytes memory _metadata) public returns (uint256) {
 
         // creates new context
@@ -123,7 +124,10 @@ contract TurnBasedGame is Instantiator {
         GameContext storage context = instances[_index];
 
         // ensures sender is actually a player participating in the game
-        require(isConcerned(_index, msg.sender));
+        require(isConcerned(_index, msg.sender), "Player is not participating in the game.");
+
+        // ensures no turn is submitted while a GameEnd claim is being verified
+        require(!context.isDescartesInstantiated || !descartes.isActive(context.descartesIndex), "GameEnd claim verification in progress.");
 
         // stores submitted turn data in the logger and retrieves its index
         bytes32 logHash = logger.calculateMerkleRootFromData(turnDataLog2Size, _data);
@@ -146,37 +150,51 @@ contract TurnBasedGame is Instantiator {
 
     /// @notice claims game has ended; game results will be given by a Descartes computation
     /// @param _index index identifying the game
+    /// @return index of the Descartes computation
     function claimGameEnd(uint256 _index) public
         onlyActive(_index)
+        returns (uint256)
     {
         GameContext storage context = instances[_index];
 
         // ensures there is not already a Descartes computation verifying the game
-        require(!descartes.isActive(context.descartesIndex), "GameEnd claim already in progress.");
+        require(!context.isDescartesInstantiated || !descartes.isActive(context.descartesIndex), "GameEnd claim verification already in progress.");
 
-        // builds logger entry to be used as an input drive with turn data
-        // - number of composing entries must be a power of 2
-        // - each entry will correspond to one turn
-        // - padding is done by adding "empty" entries (repeats log index pointing to empty data)
-        uint64 logIndicesLength = uint64(1) << (Merkle.getLog2Floor(context.turns.length) + 1);
-        uint256[] memory logIndices = new uint256[](logIndicesLength);
-        for (uint i = 0; i < context.turns.length; i++) {
-            logIndices[i] = context.turns[i].dataLogIndex;
-        }
-        for (uint i = context.turns.length; i < logIndicesLength; i++) {
-            logIndices[i] = emptyDataLogIndex;
-        }
-        bytes32 logRoot = logger.calculateMerkleRootFromHistory(turnDataLog2Size, logIndices);
+        // builds input drives for the descartes computation
+        DescartesInterface.Drive[] memory drives = new DescartesInterface.Drive[](4);
 
-        // FIXME: instantiate Descartes
-        // - templateHash from context
-        // - claimer/challengers from context.players
-        // - input drive with initial state: players, playerFunds, metadata
-        // - input drive with turns data
-        // context.descartesIndex = descartes.instantiate(...);
+        // 1st input drive: players data
+        bytes memory players = abi.encodePacked(context.players);
+        drives[0] = buildDirectDrive(context, players, 0x9000000000000000);
+
+        // 2nd input drive: player funds data
+        bytes memory playerFunds = abi.encodePacked(context.playerFunds);
+        drives[1] = buildDirectDrive(context, playerFunds, 0xa000000000000000);
+
+        // 3rd input drive: metadata
+        drives[2] = buildDirectDrive(context, context.metadata, 0xb000000000000000);
+
+        // 4th input drive: turns data stored in the Logger
+        drives[3] = buildTurnsDrive(context, 0xc000000000000000);
+
+        // instantiates the computation
+        context.descartesIndex = descartes.instantiate(
+            1e13,                  // max cycles allowed
+            context.templateHash,  // hash identifying the computation template
+            0xd000000000000000,    // output drive position: 6th drive position
+            10,                    // output drive size: 1K (should hold awarded amounts for up to 4 players)
+            45,                    // round duration
+            context.players[0],    // claimer
+            context.players[1],    // challenger
+            drives
+        );
+
+        context.isDescartesInstantiated = true;
 
         // emits event announcing game end has been claimed and that Descartes verification is underway
         emit GameEndClaimed(_index, context.descartesIndex);
+
+        return context.descartesIndex;
     }
 
 
@@ -187,8 +205,8 @@ contract TurnBasedGame is Instantiator {
     {
         GameContext storage context = instances[_index];
 
-        // ensures Descartes computation is available
-        require(descartes.isActive(context.descartesIndex), "GameEnd has not been claimed yet.");
+        // ensures Descartes computation has been instantiated
+        require(context.isDescartesInstantiated, "GameEnd has not been claimed yet.");
 
         // queries Descartes result
         (bool isResultReady, , , bytes memory result) = descartes.getResult(context.descartesIndex);
@@ -252,4 +270,91 @@ contract TurnBasedGame is Instantiator {
         // always empty (no sub-instances for the game)
         return (new address[](0), new uint256[](0));
     }    
+
+
+    /// @notice Builds a Descartes Drive using directly provided data
+    /// @param _context game context
+    /// @param _data drive data
+    /// @param _drivePosition drive position in a 64-bit address space
+    /// @return the Descartes drive
+    function buildDirectDrive(GameContext memory _context, bytes memory _data, uint64 _drivePosition) internal
+        returns (DescartesInterface.Drive memory _drive)
+    {
+        uint8 driveLog2Size = getLog2Ceil(_data.length);
+        return DescartesInterface.Drive(
+            _drivePosition,        // drive position
+            driveLog2Size,         // driveLog2Size
+            _data,                 // directValue
+            0x00,                  // loggerRootHash
+            _context.players[0],   // provider
+            false,                 // waitsProvider
+            false                  // needsLogger
+        );
+    }
+
+
+    /// @notice Builds a Descartes input drive with the data from the turns of a given game
+    /// @param _context game context
+    /// @param _drivePosition drive position in a 64-bit address space
+    /// @return the Descartes drive
+    function buildTurnsDrive(GameContext memory _context, uint64 _drivePosition) internal
+        returns (DescartesInterface.Drive memory _drive)
+    {
+        // builds "logRoot" logger entry to be used as an input drive with turn data
+        // - number of composing entries must be a power of 2
+        // - each entry will correspond to one turn
+        // - padding is done by adding "empty" entries (repeats log index pointing to empty data)
+        uint8 logIndicesLengthLog2 = getLog2Ceil(_context.turns.length);
+        uint64 logIndicesLength = uint64(1) << logIndicesLengthLog2;
+        uint256[] memory logIndices = new uint256[](logIndicesLength);
+        for (uint i = 0; i < _context.turns.length; i++) {
+            logIndices[i] = _context.turns[i].dataLogIndex;
+        }
+        for (uint i = _context.turns.length; i < logIndicesLength; i++) {
+            logIndices[i] = emptyDataLogIndex;
+        }
+        bytes32 logRoot = logger.calculateMerkleRootFromHistory(turnDataLog2Size, logIndices);
+
+        // total size of the data under logRoot, expressed in bytes, is given by:
+        // - size of each data chunk/entry: 8 bytes * 2^turnDataLog2Size = 2^(3 + turnDataLog2Size)
+        // - number of chunks/entries: logIndicesLength = 2^(logIndicesLengthLog2)
+        uint8 rootLog2Size = 3 + turnDataLog2Size + logIndicesLengthLog2;
+
+        return DescartesInterface.Drive(
+            _drivePosition,        // drive position
+            rootLog2Size,          // driveLog2Size
+            "",                    // directValue (empty)
+            logRoot,               // loggerRootHash
+            _context.players[0],   // provider
+            false,                 // waitsProvider
+            true                   // needsLogger
+        );
+    }
+
+
+    /// @notice Calculates the ceiling of the log2 of the provided number
+    /// @param _number input number to use for the calculation
+    /// @return the log2 ceiling result, where getLog2Ceil(0) = 0, getLog2Ceil(1) = 1, getLog2Ceil(2) = 1, etc.
+    function getLog2Ceil(uint256 _number) internal pure
+        returns (uint8)
+    {
+        uint8 result = 0;
+        
+        uint256 checkNumber = _number;
+        bool notPowerOf2 = ((checkNumber & 1) == 1);
+
+        checkNumber = checkNumber >> 1;
+        while (checkNumber > 0) {
+            ++result;
+            if (checkNumber != 1 && (checkNumber & 1) == 1) {
+                notPowerOf2 = true;
+            }
+            checkNumber = checkNumber >> 1;
+        }
+
+        if (notPowerOf2) {
+            ++result;
+        }
+        return result;
+    }   
 }

@@ -5,16 +5,11 @@ const Logger = contract(require("../descartes-env/blockchain/node_modules/@carte
 
 const Zoom = artifacts.require("Zoom");
 
-const TurnBasedGame = artifacts.require("Zoom");
+const TurnBasedGame = artifacts.require("TurnBasedGame");
 
 module.exports = function(deployer) {
-  // Descartes.setNetwork(deployer.network_id);
-  // Logger.setNetwork(deployer.network_id);
+  Descartes.setNetwork(deployer.network_id);	  // Descartes.setNetwork(deployer.network_id);
+  Logger.setNetwork(deployer.network_id);	  // Logger.setNetwork(deployer.network_id);
+  deployer.deploy(TurnBasedGame, Descartes.address, Logger.address);
   deployer.deploy(Zoom);
 };
-
-// const Zoom = artifacts.require("Zoom");
-
-// module.exports = function(deployer) {
-//   deployer.deploy(Zoom);
-// };
