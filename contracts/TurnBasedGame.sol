@@ -19,6 +19,7 @@
 // be used independently under the Apache v2 license. After this component is
 // rewritten, the entire component will be released under the Apache v2 license.
 
+
 pragma solidity >=0.5.0;
 pragma experimental ABIEncoderV2;
 

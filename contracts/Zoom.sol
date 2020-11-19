@@ -1,16 +1,16 @@
-pragma solidity >=0.5.0;
+pragma solidity >=0.5.16;
 pragma experimental ABIEncoderV2;
 
+//import "./TurnBasedGame.sol";
 
 contract Zoom {
     // The queue for waiting area
     uint256 queue = 0;
     uint256 number = 1;
-    uint256 noofusers = 0;
 
     // holds the template hash for the Cartesi Machine computation that runs the Texas Holdem poker game
     bytes32 constant texasHoldemTemplateHash = "0x123";
-    address addr = 0x2c5F6486e67d7Cd11E7ca3e17A92559D0d959b44;
+    address addr = 0xe23dfa6993eAA1a8a9a14EA703FD38cC0B049823;
 
     // Records details of users waiting to play
     struct gameDetails {
@@ -44,7 +44,7 @@ contract Zoom {
     }
 
     // @notice to get details about queue
-    function queueDetails() public view returns (uint256) {
+    function queueDetails() public view returns (uint256) { 
         //get queue status
         return queue;
     }
@@ -68,7 +68,6 @@ contract Zoom {
             // number is the game instance to which user is waiting
             queue = number;
             number++;
-            noofusers++;
             
             emit GameWaitArea(game);
             return game;
@@ -82,7 +81,7 @@ contract Zoom {
 
             // stores the number in which game instance user is waiting
             uint256 temp = queue;
-            noofusers++;
+        
             queue = 0;
 
             // Records the second user details
@@ -104,7 +103,7 @@ contract Zoom {
                 game.metadata
             );
             
-                emit GameWaitArea(game);
+
             return game;
         }
     }
@@ -123,10 +122,7 @@ contract Zoom {
     function getQueueDetails() public view returns (uint256) {
         return queue;
     }
-    
-    function noofuser() public view returns (uint256) {
-        return noofusers;
-    }
+
 }
 
 interface TurnBasedGame {
@@ -182,6 +178,3 @@ interface TurnBasedGame {
         view
         returns (address[] memory _addresses, uint256[] memory _indices);
 }
-
-
-//zoom -> 0x50261e0e8b63CF22E3CBE41D9c2FDc4B80788b35
