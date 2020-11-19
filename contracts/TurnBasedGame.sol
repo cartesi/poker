@@ -19,12 +19,13 @@
 // be used independently under the Apache v2 license. After this component is
 // rewritten, the entire component will be released under the Apache v2 license.
 
-pragma solidity >=0.4.25 <0.7.0;
+pragma solidity >=0.5.0;
 pragma experimental ABIEncoderV2;
 
 import "@cartesi/descartes-sdk/contracts/DescartesInterface.sol";
 import "@cartesi/logger/contracts/Logger.sol";
 import "@cartesi/util/contracts/Instantiator.sol";
+import "@cartesi/util/contracts/Merkle.sol";
 
 contract TurnBasedGame is Instantiator {
 
@@ -32,15 +33,24 @@ contract TurnBasedGame is Instantiator {
     DescartesInterface descartes;
     // Logger instance used for storing data in the event history
     Logger logger;
+    // index of an empty chunk of data stored in the logger
+    uint256 emptyDataLogIndex;
 
-    // turn data chunk size fixed as 4K
-    uint64 constant turnDataLog2Size = 12;
+    // turn data log2size fixed as 9
+    // - data is given as 64-bit (8-byte) words
+    // - total turn data size is thus fixed at 8 * 2^9 = 4K 
+    uint64 constant turnDataLog2Size = 9;
 
     /// @param descartesAddress address of the Descartes contract
     /// @param loggerAddress address of the Logger contract
     constructor(address descartesAddress, address loggerAddress) public {
         descartes = DescartesInterface(descartesAddress);
         logger = Logger(loggerAddress);
+
+        // stores an empty chunk of data in the logger and records its index
+        bytes8[] memory emptyData = new bytes8[](1);
+        bytes32 logHash = logger.calculateMerkleRootFromData(turnDataLog2Size, emptyData);
+        emptyDataLogIndex = logger.getLogIndex(logHash);
     }
 
     // records a player's turn
@@ -142,6 +152,20 @@ contract TurnBasedGame is Instantiator {
 
         // ensures there is not already a Descartes computation verifying the game
         require(!descartes.isActive(context.descartesIndex), "GameEnd claim already in progress.");
+
+        // builds logger entry to be used as an input drive with turn data
+        // - number of composing entries must be a power of 2
+        // - each entry will correspond to one turn
+        // - padding is done by adding "empty" entries (repeats log index pointing to empty data)
+        uint64 logIndicesLength = uint64(1) << (Merkle.getLog2Floor(context.turns.length) + 1);
+        uint256[] memory logIndices = new uint256[](logIndicesLength);
+        for (uint i = 0; i < context.turns.length; i++) {
+            logIndices[i] = context.turns[i].dataLogIndex;
+        }
+        for (uint i = context.turns.length; i < logIndicesLength; i++) {
+            logIndices[i] = emptyDataLogIndex;
+        }
+        bytes32 logRoot = logger.calculateMerkleRootFromHistory(turnDataLog2Size, logIndices);
 
         // FIXME: instantiate Descartes
         // - templateHash from context
