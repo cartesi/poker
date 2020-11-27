@@ -11,7 +11,11 @@ contract Zoom {
 
     // holds the template hash for the Cartesi Machine computation that runs the Texas Holdem poker game
     bytes32 constant texasHoldemTemplateHash = "0x123";
-    address addr = 0x3e4096134cfF4A984397BE7111CFFa99E676572D;
+    address addr;
+
+    constructor(address turnBaseGameAddr) public {
+        addr = turnBaseGameAddr;
+    }
 
     // Records details of users waiting to play
     struct gameDetails {
