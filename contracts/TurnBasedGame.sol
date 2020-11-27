@@ -19,7 +19,7 @@
 // be used independently under the Apache v2 license. After this component is
 // rewritten, the entire component will be released under the Apache v2 license.
 
-pragma solidity >=0.5.16 <0.7.0;
+pragma solidity >=0.5.16;
 pragma experimental ABIEncoderV2;
 
 import "@cartesi/descartes-sdk/contracts/DescartesInterface.sol";
@@ -69,6 +69,8 @@ contract TurnBasedGame is Instantiator {
         // players involved
         address[] players;
         // player funds locked for the game
+
+
         uint[] playerFunds;
         // game-specific initial metadata/parameters
         bytes metadata;

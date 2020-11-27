@@ -7,10 +7,11 @@ contract Zoom {
     // The queue for waiting area
     uint256 queue = 0;
     uint256 number = 1;
+    uint256 temp = 0;
 
     // holds the template hash for the Cartesi Machine computation that runs the Texas Holdem poker game
     bytes32 constant texasHoldemTemplateHash = "0x123";
-    address addr = 0xe23dfa6993eAA1a8a9a14EA703FD38cC0B049823;
+    address addr = 0x3e4096134cfF4A984397BE7111CFFa99E676572D;
 
     // Records details of users waiting to play
     struct gameDetails {
@@ -80,8 +81,8 @@ contract Zoom {
             //second user registers and play game
 
             // stores the number in which game instance user is waiting
-            uint256 temp = queue;
-        
+            temp = queue;
+            
             queue = 0;
 
             // Records the second user details
@@ -91,8 +92,10 @@ contract Zoom {
             game.metadata = _metaData;
 
             address[] memory add = new address[](game.players.length);
+            
             for (uint256 i = 0; i < game.players.length; i++) {
                 add[i] = game.players[i].owner;
+                
             }
 
             TurnBasedGame c = TurnBasedGame(addr);
@@ -111,6 +114,16 @@ contract Zoom {
     // @notice to get user details
     function getUserDetails() public view returns (user memory) {
         return users[msg.sender];
+    }
+    
+    
+    function getplayerslength() public view returns (uint256) {
+        return temp;
+    }
+    
+    // @notice to get user details
+    function getUserDetailsbyaddress(address _address) public view returns (user memory) {
+        return users[_address];
     }
 
     // @notice to get game details with waiting players
