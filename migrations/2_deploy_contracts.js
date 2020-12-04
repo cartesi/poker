@@ -10,9 +10,9 @@ const Zoom = artifacts.require("Zoom");
 
 const TurnBasedGame = artifacts.require("TurnBasedGame");
 
-module.exports = function (deployer) {
+module.exports = async function (deployer) {
   Descartes.setNetwork(deployer.network_id);
   Logger.setNetwork(deployer.network_id);
-  deployer.deploy(TurnBasedGame, Descartes.address, Logger.address);
-  deployer.deploy(Zoom, TurnBasedGame.address);
+  await deployer.deploy(TurnBasedGame, Descartes.address, Logger.address);
+  await deployer.deploy(Zoom, TurnBasedGame.address);
 };
