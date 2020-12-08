@@ -53,6 +53,7 @@ export class BootScene extends Phaser.Scene {
                 document.getElementById("orientation").style.display = "block";
                 document.getElementById("content").style.display = "none";
             } else {
+                
                 GameManager.init();
             }
         }
