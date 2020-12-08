@@ -3630,11 +3630,16 @@ var BootScene = /** @class */ (function (_super) {
         //
     };
     BootScene.prototype.create = function () {
-        var alice_tx = new Transport();
-        var bob_tx = new Transport();
-        var alice = new Game(0, 1000, 1000, "", alice_tx, function () { }, function () { }, function (msg) { console.log(msg); });
-        console.log(alice);
-        console.log(alice_tx);
+        // const alice_tx = new Transport();
+        // const bob_tx = new Transport();    
+        // const alice = new Game(
+        //     0, 1000, 1000, "", alice_tx,
+        //     () => {},
+        //     () => {},
+        //     (msg) => {console.log(msg)}
+        // );
+        // console.log(alice);
+        // console.log(alice_tx);
         BootScene.currentInstance = this;
         GameManager_1.GameManager.setCurrentScene(this);
         this.scene.setVisible(false);
