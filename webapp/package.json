@@ -14,7 +14,8 @@
     "typescript": "4.0.2",
     "webpack": "4.44.1",
     "webpack-cli": "3.3.12",
-    "webpack-dev-server": "3.11.0"
+    "webpack-dev-server": "3.11.0",
+    "npm-run-all": "^4.1.5"
   },
   "dependencies": {
     "@types/howler": "^2.2.1",
@@ -23,7 +24,7 @@
     "web3": "1.0.0-beta.55"
   },
   "scripts": {
-    "start": "webpack --mode development && webpack-dev-server --mode development",
+    "start": "run-s contracts:migrate contracts:copy engine:copy && webpack --mode development && webpack-dev-server --mode development",
     "build": "webpack --mode production",
     "contracts:migrate": "cd ../blockchain && npx truffle migrate",
     "contracts:copy": "mkdir -p src/abis && cp ../blockchain/build/contracts/Zoom.json ./src/abis/ && cp ../blockchain/build/contracts/TurnBasedGame.json ./src/abis/",
