@@ -8,40 +8,26 @@
     "url": "https://github.com/cartesi-corp/poker-webapp/issues"
   },
   "homepage": "https://github.com/cartesi-corp/poker-webapp",
+  "devDependencies": {
+    "expose-loader": "1.0.0",
+    "ts-loader": "7.0.5",
+    "typescript": "4.0.2",
+    "webpack": "4.44.1",
+    "webpack-cli": "3.3.12",
+    "webpack-dev-server": "3.11.0"
+  },
   "dependencies": {
-    "babel-polyfill": "6.26.0",
-    "babel-preset-env": "1.7.0",
-    "babel-preset-es2015": "6.24.1",
-    "babel-preset-stage-2": "6.24.1",
-    "babel-preset-stage-3": "6.24.1",
-    "babel-register": "6.26.0",
-    "bootstrap": "4.3.1",
-    "chai": "4.2.0",
-    "chai-as-promised": "7.1.1",
-    "chai-bignumber": "3.0.0",
-    "react": "16.8.4",
-    "react-bootstrap": "1.0.0-beta.5",
-    "react-dom": "16.8.4",
-    "react-router": "^5.2.0",
-    "react-router-dom": "^5.2.0",
-    "react-scripts": "^2.1.3",
-    "semantic-ui-react": "^1.3.1",
+    "@types/howler": "^2.2.1",
+    "howler": "^2.2.0",
+    "phaser": "3.24.1",
     "web3": "1.0.0-beta.55"
   },
-  "devDependencies": {
-    "npm-run-all": "^4.1.5"
-  },
   "scripts": {
-    "start": "run-s contracts:migrate contracts:copy engine:copy && react-scripts start",
+    "start": "webpack --mode development && webpack-dev-server --mode development",
+    "build": "webpack --mode production",
     "contracts:migrate": "cd ../blockchain && npx truffle migrate",
     "contracts:copy": "mkdir -p src/abis && cp ../blockchain/build/contracts/Zoom.json ./src/abis/ && cp ../blockchain/build/contracts/TurnBasedGame.json ./src/abis/",
-    "engine:copy": "mkdir -p src/engine && cp ../engine/mock/poker-api.js ./src/engine/",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
+    "engine:copy": "cp ../engine/mock/poker-api.js ./dist/"
   },
   "browserslist": [
     ">0.2%",
