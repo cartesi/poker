@@ -9,25 +9,29 @@ export class GameManager {
 
     public static async init(): Promise<void> {
 
-        await this.loadWeb3();
+        // await this.loadWeb3();
 
-        if (GameVars.currentScene.sys.game.device.os.desktop) {
+        GameVars.currentScene.game.scale.displaySize = GameVars.currentScene.game.scale.parentSize;
+        GameVars.currentScene.game.scale.refresh();
 
+        if (window.innerHeight < window.innerWidth) {
+            let aspectRatio = window.innerWidth / window.innerHeight;
+            GameVars.scaleX = (GameConstants.GAME_WIDTH / GameConstants.GAME_HEIGHT) / aspectRatio;
             GameVars.scaleY = 1;
-
+            GameVars.landscape = true;
         } else {
-
-            GameVars.currentScene.game.scale.displaySize = GameVars.currentScene.game.scale.parentSize;
-            GameVars.currentScene.game.scale.refresh();
-
-            const aspectRatio = window.innerHeight / window.innerWidth;
+            let aspectRatio = window.innerHeight / window.innerWidth;
             GameVars.scaleY = (GameConstants.GAME_HEIGHT / GameConstants.GAME_WIDTH) / aspectRatio;
+            GameVars.scaleX = 1;
+            GameVars.landscape = false;
         }
 
         GameManager.readGameData();
     }
 
     public static async loadWeb3(): Promise<void> {
+
+        // TODO: init connections with contracts
 
         GameVars.appState = {
             web3: {},
@@ -74,50 +78,49 @@ export class GameManager {
         let temp =  await GameVars.appState.zoom.methods.getplayerslength().call({from: GameVars.appState.account});
         console.log(temp); 
 
-        if (temp.toNumber() === 0) {
+        // if (temp.toNumber() === 0) {
     
-            let queuedetails =  await GameVars.appState.zoom.methods.getGameDetails().call({from: GameVars.appState.account});
+        //     let queuedetails =  await GameVars.appState.zoom.methods.getGameDetails().call({from: GameVars.appState.account});
             
-            if (queuedetails.playerFunds.length) {
-                console.log(queuedetails[0][0][0]);
-                console.log(queuedetails[0][0][1]);
-                GameVars.appState.user1 = queuedetails[0][0][0];
-                GameVars.appState.address1 = queuedetails[0][0][1];
-                GameVars.appState.user2 = "";
-                GameVars.appState.address1 = "";
-            }
-        } else if (temp.toNumber() === 1) {
+        //     if (queuedetails.playerFunds.length) {
+        //         console.log(queuedetails[0][0][0]);
+        //         console.log(queuedetails[0][0][1]);
+        //         GameVars.appState.user1 = queuedetails[0][0][0];
+        //         GameVars.appState.address1 = queuedetails[0][0][1];
+        //         GameVars.appState.user2 = "";
+        //         GameVars.appState.address1 = "";
+        //     }
+        // } else if (temp.toNumber() === 1) {
   
-            // console.log(this.state.err.receipt.logs[0].data);
-            // console.log(TurnBasedGame.abi);
-            // console.log(TurnBasedGame.abi.filter(o => o.name === "GameReady")[0]);
-            // let gameReadyABI = TurnBasedGame.abi.filter(o => o.name === "GameReady")[0];
-            // let data = this.state.err.receipt.logs[0].data;
-            // let index;
-            // index = this.state.web3.eth.abi.decodeLog(gameReadyABI.inputs, data);
-            // console.log(index[1]);
-            // console.log(index[1][1][0]);
-            // console.log(index[1][1][1]);
-        
-            // let getuserdetails =  await this.state.zoom.methods.getUserDetailsbyaddress(index[1][1][0]).call({from: this.state.account});
-            // let getuserdetails1 =  await this.state.zoom.methods.getUserDetailsbyaddress(index[1][1][1]).call({from: this.state.account});
-            //     await this.setState({
-            //     user1:getuserdetails[0],
-            //     address1:getuserdetails[1],
-            //     user2:getuserdetails1[0],
-            //     address2:getuserdetails1[1]
-            // });
-            // console.log(getuserdetails1);
-            // console.log(getuserdetails1[0]);
-            // console.log(getuserdetails1[1]);
-        
-        
-            // console.log(getuserdetails);
-            // console.log(getuserdetails[0]);
-            // console.log(getuserdetails[1]);
-            
-            
-        }
+        // console.log(this.state.err.receipt.logs[0].data);
+        // console.log(TurnBasedGame.abi);
+        // console.log(TurnBasedGame.abi.filter(o => o.name === "GameReady")[0]);
+        // let gameReadyABI = TurnBasedGame.abi.filter(o => o.name === "GameReady")[0];
+        // let data = this.state.err.receipt.logs[0].data;
+        // let index;
+        // index = this.state.web3.eth.abi.decodeLog(gameReadyABI.inputs, data);
+        // console.log(index[1]);
+        // console.log(index[1][1][0]);
+        // console.log(index[1][1][1]);
+    
+        // let getuserdetails =  await this.state.zoom.methods.getUserDetailsbyaddress(index[1][1][0]).call({from: this.state.account});
+        // let getuserdetails1 =  await this.state.zoom.methods.getUserDetailsbyaddress(index[1][1][1]).call({from: this.state.account});
+        //     await this.setState({
+        //     user1:getuserdetails[0],
+        //     address1:getuserdetails[1],
+        //     user2:getuserdetails1[0],
+        //     address2:getuserdetails1[1]
+        // });
+        // console.log(getuserdetails1);
+        // console.log(getuserdetails1[0]);
+        // console.log(getuserdetails1[1]);
+    
+    
+        // console.log(getuserdetails);
+        // console.log(getuserdetails[0]);
+        // console.log(getuserdetails[1]);
+               
+        // }
             
         // if (GameVars.appState.user1){
         //     alert("User"+this.state.user1+
@@ -128,7 +131,6 @@ export class GameManager {
     
     
         //     if (GameVars.appState.address2){
-        //         // TODO: que hay que hacer aqui? Iniciar juego?
         //         // this.props.history.push("/game");
         //     }
         // }
@@ -155,12 +157,12 @@ export class GameManager {
 
     public static onGameAssetsLoaded(): void {
 
-        GameManager.enterSplashScene();
+        GameManager.enterRoomScene();
     }
 
-    public static enterSplashScene(): void {
+    public static enterRoomScene(): void {
 
-        // GameVars.currentScene.scene.start("SplashScene");
+        GameVars.currentScene.scene.start("RoomScene");
     }
 
     public static writeGameData(): void {

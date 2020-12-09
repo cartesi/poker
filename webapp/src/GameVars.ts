@@ -3,7 +3,8 @@ export class GameVars {
     public static gameData: GameData;
     public static appState: AppState;
     public static scaleY: number;
-    public static isDesktop: boolean;
+    public static scaleX: number;
+    public static landscape: boolean;
     public static aspectRatio: number;
     public static currentScene: Phaser.Scene;
   

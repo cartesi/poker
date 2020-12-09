@@ -1,0 +1,167 @@
+{
+	"textures": [
+		{
+			"image": "texture_atlas_1.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 1024,
+				"h": 1024
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "table_border",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 386,
+						"h": 434
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 386,
+						"h": 434
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 386,
+						"h": 434
+					}
+				},
+				{
+					"filename": "table_tile",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 100,
+						"h": 434
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 100,
+						"h": 434
+					},
+					"frame": {
+						"x": 1,
+						"y": 437,
+						"w": 100,
+						"h": 434
+					}
+				},
+				{
+					"filename": "btn_blue",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 140,
+						"h": 88
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 140,
+						"h": 88
+					},
+					"frame": {
+						"x": 1,
+						"y": 873,
+						"w": 140,
+						"h": 88
+					}
+				},
+				{
+					"filename": "chip_dealer",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 36,
+						"h": 36
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 36,
+						"h": 36
+					},
+					"frame": {
+						"x": 1,
+						"y": 963,
+						"w": 36,
+						"h": 36
+					}
+				},
+				{
+					"filename": "chip",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 33,
+						"h": 33
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 33,
+						"h": 33
+					},
+					"frame": {
+						"x": 39,
+						"y": 963,
+						"w": 33,
+						"h": 33
+					}
+				},
+				{
+					"filename": "btn_red",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 140,
+						"h": 88
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 140,
+						"h": 88
+					},
+					"frame": {
+						"x": 103,
+						"y": 437,
+						"w": 140,
+						"h": 88
+					}
+				},
+				{
+					"filename": "btn_yellow",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 140,
+						"h": 88
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 140,
+						"h": 88
+					},
+					"frame": {
+						"x": 103,
+						"y": 527,
+						"w": 140,
+						"h": 88
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:9537a77f6781973449b718d8608cc45b:c93d53c88c5b21dd1789d4f41a306f6d:1bd3fbbbdaf54e41cf80e3e904578de4$"
+	}
+}
