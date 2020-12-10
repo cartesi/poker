@@ -52,6 +52,48 @@
 					}
 				},
 				{
+					"filename": "avatar_opponent",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 120,
+						"h": 132
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 120,
+						"h": 132
+					},
+					"frame": {
+						"x": 1,
+						"y": 873,
+						"w": 120,
+						"h": 132
+					}
+				},
+				{
+					"filename": "avatar_player",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 120,
+						"h": 132
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 120,
+						"h": 132
+					},
+					"frame": {
+						"x": 103,
+						"y": 437,
+						"w": 120,
+						"h": 132
+					}
+				},
+				{
 					"filename": "btn_blue",
 					"rotated": false,
 					"trimmed": false,
@@ -66,8 +108,29 @@
 						"h": 88
 					},
 					"frame": {
-						"x": 1,
-						"y": 873,
+						"x": 103,
+						"y": 571,
+						"w": 140,
+						"h": 88
+					}
+				},
+				{
+					"filename": "btn_red",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 140,
+						"h": 88
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 140,
+						"h": 88
+					},
+					"frame": {
+						"x": 225,
+						"y": 437,
 						"w": 140,
 						"h": 88
 					}
@@ -87,52 +150,10 @@
 						"h": 36
 					},
 					"frame": {
-						"x": 1,
-						"y": 963,
+						"x": 225,
+						"y": 527,
 						"w": 36,
 						"h": 36
-					}
-				},
-				{
-					"filename": "chip",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 33,
-						"h": 33
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 33,
-						"h": 33
-					},
-					"frame": {
-						"x": 39,
-						"y": 963,
-						"w": 33,
-						"h": 33
-					}
-				},
-				{
-					"filename": "btn_red",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 140,
-						"h": 88
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 140,
-						"h": 88
-					},
-					"frame": {
-						"x": 103,
-						"y": 437,
-						"w": 140,
-						"h": 88
 					}
 				},
 				{
@@ -151,9 +172,30 @@
 					},
 					"frame": {
 						"x": 103,
-						"y": 527,
+						"y": 661,
 						"w": 140,
 						"h": 88
+					}
+				},
+				{
+					"filename": "chip",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 33,
+						"h": 33
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 33,
+						"h": 33
+					},
+					"frame": {
+						"x": 103,
+						"y": 751,
+						"w": 33,
+						"h": 33
 					}
 				}
 			]
@@ -162,6 +204,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:9537a77f6781973449b718d8608cc45b:c93d53c88c5b21dd1789d4f41a306f6d:1bd3fbbbdaf54e41cf80e3e904578de4$"
+		"smartupdate": "$TexturePacker:SmartUpdate:18c1e15b26608da7c9a3141421c47558:3b49921fc494cea06398eae7c991590e:1bd3fbbbdaf54e41cf80e3e904578de4$"
 	}
 }

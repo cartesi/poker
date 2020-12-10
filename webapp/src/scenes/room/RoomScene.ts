@@ -1,9 +1,16 @@
+import { TableContainer } from "./table-container/TableContainer";
 import { RoomManager } from "./RoomManager";
-import { Table } from "./Table";
+import { Background } from "./Background";
+import { GUI } from "./GUI";
+import { HUD } from "./HUD";
 
 export class RoomScene extends Phaser.Scene {
 
     public static currentInstance: RoomScene;
+
+    public tableContainer: TableContainer;
+    public gui: GUI;
+    public hud: HUD;
 
     constructor() {
 
@@ -16,7 +23,22 @@ export class RoomScene extends Phaser.Scene {
 
         RoomManager.init();
 
-        const table = new Table(this);
-        this.add.existing(table);
+        const background = new Background(this);
+        this.add.existing(background);
+
+        this.tableContainer = new TableContainer(this);
+        this.add.existing(this.tableContainer);
+
+        this.gui = new GUI(this);
+        this.add.existing(this.gui);
+
+        this.hud = new HUD(this);
+        this.add.existing(this.hud);
+    }
+
+    public startRound(): void {
+
+        this.tableContainer.startRound();
+        this.gui.setStateText();
     }
 }

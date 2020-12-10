@@ -20,6 +20,8 @@ export class BootScene extends Phaser.Scene {
 
     public create(): void {
 
+        this.add.text(-200, -200, "ABCDEFG", {fontFamily: "Oswald-Medium", fontSize: "14px", color: "#FFFFFF"});
+
         BootScene.currentInstance = this;
         GameManager.setCurrentScene(this);
 

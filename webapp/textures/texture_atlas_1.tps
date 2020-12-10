@@ -132,7 +132,7 @@
             <key>json</key>
             <struct type="DataFile">
                 <key>name</key>
-                <filename></filename>
+                <filename>../assets/texture_atlas_1.json</filename>
             </struct>
         </map>
         <key>multiPack</key>
@@ -181,6 +181,20 @@
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
+            <key type="filename">texture_atlas_1/avatar_opponent.png</key>
+            <key type="filename">texture_atlas_1/avatar_player.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>30,33,60,66</rect>
+                <key>scale9Paddings</key>
+                <rect>30,33,60,66</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">texture_atlas_1/btn_blue.png</key>
             <key type="filename">texture_atlas_1/btn_red.png</key>
             <key type="filename">texture_atlas_1/btn_yellow.png</key>
