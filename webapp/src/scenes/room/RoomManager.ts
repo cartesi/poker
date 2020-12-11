@@ -1,3 +1,4 @@
+import { GameVars } from './../../GameVars';
 import { RoomScene } from "./RoomScene";
 
 export class RoomManager {
@@ -6,15 +7,16 @@ export class RoomManager {
 
     public static init(): void {
 
-        // 
+        GameVars.playerFunds = 100;
+        GameVars.opponentFunds = 100;
     }
 
     public static startRound(): void {
 
         const alice_tx = new Transport();
         const bob_tx = new Transport();  
-        const alice_funds = 100;
-        const bob_funds = 100;
+        const alice_funds = GameVars.playerFunds;
+        const bob_funds = GameVars.opponentFunds;
         const metadata = "";  
 
         const alice = new Game(
@@ -22,9 +24,11 @@ export class RoomManager {
             () => {
                 RoomManager.onBetRequested();
             },
-            () => RoomManager.onEnd,
+            () => {
+                RoomManager.onEnd();
+            },
             (msg) => {
-                console.log(msg);
+                // console.log(msg);
             }
         );
 
@@ -44,7 +48,7 @@ export class RoomManager {
         alice.start();
         bob.start();
 
-        RoomScene.currentInstance.startRound();
+        RoomScene.currentInstance.updateBoard();
     }
 
     public static getPlayerFunds(): number {
@@ -83,14 +87,79 @@ export class RoomManager {
         return RoomManager.games[ALICE].getState();
     }
 
+    public static getPlayerBets(): number {
+
+        return  RoomManager.games[ALICE].getPlayerBets();
+    }
+
+    public static getOpponentBets(): number {
+
+        return  RoomManager.games[ALICE].getOpponentBets();
+    }
+
+    public static playerCall(): void {
+
+        RoomManager.games[ALICE].call();
+
+        RoomManager.updateBoard();
+        RoomManager.removeBetButtons();
+    }
+
+    public static playerCheck(): void {
+
+        RoomManager.games[ALICE].check();
+
+        RoomManager.updateBoard();
+        RoomManager.removeBetButtons();
+    }
+
+    public static playerFold(): void {
+
+        RoomManager.games[ALICE].fold();
+
+        RoomManager.updateBoard();
+        RoomManager.removeBetButtons();
+    }
+
+    public static playerRaise(value): void {
+
+        RoomManager.games[ALICE].raise(value);
+
+        RoomManager.updateBoard();
+        RoomManager.removeBetButtons();
+    }
+
+    public static updateBoard(): void {
+
+        RoomScene.currentInstance.updateBoard();
+    }
+
+    public static removeBetButtons(): void {
+
+        RoomScene.currentInstance.removeBetButtons();
+    }
+
+    public static showBetButtons(): void {
+
+        RoomScene.currentInstance.showBetButtons();
+    }
+
     private static onBetRequested(): void {
         
-        console.log("BET REQUESTED");
+        RoomManager.showBetButtons();
     }
 
     private static onEnd(): void {
+
+        let endData = RoomManager.games[ALICE].getResult();
+        console.log(endData);
+
+        GameVars.playerFunds = endData.fundsShare[ALICE];
+        GameVars.opponentFunds = endData.fundsShare[BOB];
         
-        // 
+        setTimeout(() => {
+            RoomManager.startRound();
+        }, 2000);
     }
 
     private static onAutomaticBet(player): void {
@@ -119,6 +188,8 @@ export class RoomManager {
                     }
                 }
             }
+
+            RoomManager.updateBoard();
         }, 1000);
     }
 

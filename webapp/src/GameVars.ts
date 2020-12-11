@@ -7,6 +7,9 @@ export class GameVars {
     public static landscape: boolean;
     public static aspectRatio: number;
     public static currentScene: Phaser.Scene;
+
+    public static playerFunds: number;
+    public static opponentFunds: number;
   
     public static formatNumber(value: number): string {
 

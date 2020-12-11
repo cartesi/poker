@@ -27,11 +27,11 @@ export class TableContainer extends Phaser.GameObjects.Container {
         this.add(this.opponent);
     }
 
-    public startRound(): void {
+    public updateBoard(): void {
 
-        this.player.initPlayer();
-        this.opponent.initPlayer();
-        
+        this.player.updatePlayer();
+        this.opponent.updatePlayer();
+
         this.communityCards.setCards();
     }
 }

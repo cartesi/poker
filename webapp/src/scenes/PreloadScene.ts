@@ -32,6 +32,8 @@ export class PreloadScene extends Phaser.Scene {
 
     public loadAssets(): void {
 
+        this.load.html("raiseform", "assets/raiseform.html");
+
         this.load.atlas("texture_atlas_1", "assets/texture_atlas_1.png", "assets/texture_atlas_1.json");
         this.load.atlas("texture_atlas_2", "assets/texture_atlas_2.png", "assets/texture_atlas_2.json");
 

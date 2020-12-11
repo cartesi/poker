@@ -1,8 +1,8 @@
 import { TableContainer } from "./table-container/TableContainer";
 import { RoomManager } from "./RoomManager";
 import { Background } from "./Background";
-import { GUI } from "./GUI";
-import { HUD } from "./HUD";
+import { GUI } from "./gui/GUI";
+import { HUD } from "./hud/HUD";
 
 export class RoomScene extends Phaser.Scene {
 
@@ -36,9 +36,19 @@ export class RoomScene extends Phaser.Scene {
         this.add.existing(this.hud);
     }
 
-    public startRound(): void {
+    public updateBoard(): void {
 
-        this.tableContainer.startRound();
+        this.tableContainer.updateBoard();
         this.gui.setStateText();
+    }
+
+    public removeBetButtons(): void {
+
+        this.hud.removeBetButtons();
+    }
+
+    public showBetButtons(): void {
+
+        this.hud.showBetButtons();
     }
 }
