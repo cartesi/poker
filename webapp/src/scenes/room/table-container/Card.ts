@@ -18,7 +18,27 @@ export class Card extends Phaser.GameObjects.Container {
         if (!card) {
             this.image.setFrame("card-back");
         } else {
-            this.image.setFrame(card.suit + "_" + (card.value + 1));
+
+            if (this.image.frame.name === (card.suit + "_" + (card.value + 1))) {
+                return;
+            }
+
+            this.scene.tweens.add({
+                targets: this,
+                scaleX: 0,
+                ease: Phaser.Math.Easing.Linear,
+                duration: 100,
+                onComplete: () => {
+                    this.image.setFrame(card.suit + "_" + (card.value + 1));
+                    this.scene.tweens.add({
+                        targets: this,
+                        scaleX: 1,
+                        ease: Phaser.Math.Easing.Linear,
+                        duration: 100
+                    });
+                },
+                onCompleteScope: this
+            });
         }
     }
 }

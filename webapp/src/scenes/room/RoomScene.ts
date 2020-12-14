@@ -51,4 +51,14 @@ export class RoomScene extends Phaser.Scene {
 
         this.hud.showBetButtons();
     }
+
+    public onEnd(endData: any): void {
+
+        this.gui.onEnd(endData);
+    }
+
+    public showBet(value: string, player: number): void {
+
+        this.gui.showBet(value, player);
+    }
 }

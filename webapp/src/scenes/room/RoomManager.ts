@@ -1,4 +1,5 @@
-import { GameVars } from './../../GameVars';
+import { GameConstants } from "./../../GameConstants";
+import { GameVars } from "./../../GameVars";
 import { RoomScene } from "./RoomScene";
 
 export class RoomManager {
@@ -11,7 +12,20 @@ export class RoomManager {
         GameVars.opponentFunds = 100;
     }
 
-    public static startRound(): void {
+    public static startRound(reset?: boolean): void {
+
+        if (reset) {
+            GameVars.playerFunds = 100;
+            GameVars.opponentFunds = 100;
+        }
+
+        if (GameVars.playerFunds < 2) {
+            console.log("GAME OVER, OPPONENT WON");  
+            return;
+        } else if (GameVars.opponentFunds < 2) {
+            console.log("GAME OVER, PLAYER WON");  
+            return;
+        }
 
         const alice_tx = new Transport();
         const bob_tx = new Transport();  
@@ -101,6 +115,8 @@ export class RoomManager {
 
         RoomManager.games[ALICE].call();
 
+        RoomManager.showBet(GameConstants.ACTION_CALL, ALICE);
+
         RoomManager.updateBoard();
         RoomManager.removeBetButtons();
     }
@@ -108,6 +124,8 @@ export class RoomManager {
     public static playerCheck(): void {
 
         RoomManager.games[ALICE].check();
+
+        RoomManager.showBet(GameConstants.ACTION_CHECK, ALICE);
 
         RoomManager.updateBoard();
         RoomManager.removeBetButtons();
@@ -117,6 +135,8 @@ export class RoomManager {
 
         RoomManager.games[ALICE].fold();
 
+        RoomManager.showBet(GameConstants.ACTION_FOLD, ALICE);
+
         RoomManager.updateBoard();
         RoomManager.removeBetButtons();
     }
@@ -124,6 +144,8 @@ export class RoomManager {
     public static playerRaise(value): void {
 
         RoomManager.games[ALICE].raise(value);
+
+        RoomManager.showBet(GameConstants.ACTION_RAISE, ALICE);
 
         RoomManager.updateBoard();
         RoomManager.removeBetButtons();
@@ -144,6 +166,11 @@ export class RoomManager {
         RoomScene.currentInstance.showBetButtons();
     }
 
+    public static showBet(value: string, player: number): void {
+
+        RoomScene.currentInstance.showBet(value, player);
+    }
+
     private static onBetRequested(): void {
         
         RoomManager.showBetButtons();
@@ -152,7 +179,8 @@ export class RoomManager {
     private static onEnd(): void {
 
         let endData = RoomManager.games[ALICE].getResult();
-        console.log(endData);
+
+        RoomScene.currentInstance.onEnd(endData);
 
         GameVars.playerFunds = endData.fundsShare[ALICE];
         GameVars.opponentFunds = endData.fundsShare[BOB];
@@ -173,13 +201,17 @@ export class RoomManager {
                     try {
                         if (choice === 0) {
                             RoomManager.games[player].call();
+                            RoomManager.showBet(GameConstants.ACTION_CALL, player);
                         } else if (choice === 1) {
                             RoomManager.games[player].check();
+                            RoomManager.showBet(GameConstants.ACTION_CHECK, player);
                         } else if (choice === 2) {
                             RoomManager.games[player].fold();
+                            RoomManager.showBet(GameConstants.ACTION_FOLD, player);
                         } else if (choice === 3) {
                             let amount = Math.floor(Math.random() * 5);
                             RoomManager.games[player].raise(amount);
+                            RoomManager.showBet(GameConstants.ACTION_RAISE, player);
                         }
                         break;
                     } catch (e) {
@@ -190,7 +222,7 @@ export class RoomManager {
             }
 
             RoomManager.updateBoard();
-        }, 1000);
+        }, 2000);
     }
 
     private static getCardSuitValue(card: string): {value: number, suit: number} {

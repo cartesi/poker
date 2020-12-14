@@ -22,7 +22,9 @@ export class HUD extends Phaser.GameObjects.Container {
         topContainer.scaleX = GameVars.scaleX;
         this.add(topContainer);
 
-        this.startButton = new Button(this.scene, 80, 55, "btn_blue", "START", RoomManager.startRound);
+        this.startButton = new Button(this.scene, 80, 55, "btn_blue", "START", () => {
+            RoomManager.startRound(true);
+        });
         topContainer.add(this.startButton);
 
         this.betsContainer = new Phaser.GameObjects.Container(this.scene);
@@ -66,5 +68,6 @@ export class HUD extends Phaser.GameObjects.Container {
         this.call.activate(RoomManager.getPlayerBets() < RoomManager.getOpponentBets());
         this.check.activate(RoomManager.getPlayerBets() === RoomManager.getOpponentBets());
         this.fold.activate(RoomManager.getPlayerBets() !== RoomManager.getOpponentBets());
-    }
+        this.fold.activate(RoomManager.getPlayerFunds() > RoomManager.getOpponentBets());
+    } 
 }
