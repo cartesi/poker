@@ -2,8 +2,8 @@ import { GameConstants } from "./GameConstants";
 import { GameVars } from "./GameVars";
 
 import Web3 from "web3";
-import Zoom from "./abis/Zoom.json";
-import TurnBasedGame from "./abis/TurnBasedGame.json";
+// import Zoom from "./abis/Zoom.json";
+// import TurnBasedGame from "./abis/TurnBasedGame.json";
 
 export class GameManager {
 
@@ -33,50 +33,50 @@ export class GameManager {
 
         // TODO: init connections with contracts
 
-        GameVars.appState = {
-            web3: {},
-            account: "",
-            ethBalance: "",
-            zoom: {},
-            user1: "",
-            address1: "",
-            user2: "",
-            address2: ""
-        };
+        // GameVars.appState = {
+        //     web3: {},
+        //     account: "",
+        //     ethBalance: "",
+        //     zoom: {},
+        //     user1: "",
+        //     address1: "",
+        //     user2: "",
+        //     address2: ""
+        // };
 
-        let w: any = window;
+        // let w: any = window;
         
-        if (w.ethereum) {
-            w.web3 = new Web3(w.ethereum);
-            await w.ethereum.enable();
-        } else if (w.web3) {
-            w.web3 = new Web3(w.web3.currentProvider);
-        } else {
-            window.alert("Non-Ethereum browser detected. You should consider trying MetaMask!")
-        }
-        const web3 = w.web3;
+        // if (w.ethereum) {
+        //     w.web3 = new Web3(w.ethereum);
+        //     await w.ethereum.enable();
+        // } else if (w.web3) {
+        //     w.web3 = new Web3(w.web3.currentProvider);
+        // } else {
+        //     window.alert("Non-Ethereum browser detected. You should consider trying MetaMask!")
+        // }
+        // const web3 = w.web3;
 
-        const accounts = await web3.eth.getAccounts();
+        // const accounts = await web3.eth.getAccounts();
 
-        GameVars.appState.account = accounts[0];
-        GameVars.appState.web3 = web3;
+        // GameVars.appState.account = accounts[0];
+        // GameVars.appState.web3 = web3;
 
-        // Network ID
-        const networkId = await web3.eth.net.getId();
-        console.log(networkId);
+        // // Network ID
+        // const networkId = await web3.eth.net.getId();
+        // console.log(networkId);
 
-        GameVars.appState.ethBalance = await web3.eth.getBalance(GameVars.appState.account);
-        console.log(GameVars.appState.ethBalance);
+        // GameVars.appState.ethBalance = await web3.eth.getBalance(GameVars.appState.account);
+        // console.log(GameVars.appState.ethBalance);
 
-        console.log(Zoom.networks[networkId].address);
-        console.log(Zoom.abi);
+        // console.log(Zoom.networks[networkId].address);
+        // console.log(Zoom.abi);
         
-        const zoom = new web3.eth.Contract(Zoom.abi, Zoom.networks["7777"].address);
-        GameVars.appState.zoom = zoom;
-        console.log(GameVars.appState.zoom);
+        // const zoom = new web3.eth.Contract(Zoom.abi, Zoom.networks["7777"].address);
+        // GameVars.appState.zoom = zoom;
+        // console.log(GameVars.appState.zoom);
 
-        let temp =  await GameVars.appState.zoom.methods.getplayerslength().call({from: GameVars.appState.account});
-        console.log(temp); 
+        // let temp =  await GameVars.appState.zoom.methods.getplayerslength().call({from: GameVars.appState.account});
+        // console.log(temp); 
 
         // if (temp.toNumber() === 0) {
     

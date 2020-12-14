@@ -25,7 +25,7 @@
   },
   "scripts": {
     "start": "run-s contracts:migrate contracts:copy engine:copy && webpack --mode development && webpack-dev-server --mode development",
-    "dev": "webpack --mode development && webpack-dev-server --mode development",
+    "dev": "run-s engine:copy && webpack --mode development && webpack-dev-server --mode development",
     "build": "webpack --mode production",
     "contracts:migrate": "cd ../blockchain && npx truffle migrate",
     "contracts:copy": "mkdir -p src/abis && cp ../blockchain/build/contracts/Zoom.json ./src/abis/ && cp ../blockchain/build/contracts/TurnBasedGame.json ./src/abis/",
