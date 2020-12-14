@@ -29,7 +29,7 @@
     "build": "webpack --mode production",
     "contracts:migrate": "cd ../blockchain && npx truffle migrate",
     "contracts:copy": "mkdir -p src/abis && cp ../blockchain/build/contracts/Zoom.json ./src/abis/ && cp ../blockchain/build/contracts/TurnBasedGame.json ./src/abis/",
-    "engine:copy": "cp ../engine/mock/poker-api.js ./dist/"
+    "engine:copy": "mkdir -p dist && cp ../engine/mock/poker-api.js ./dist/"
   },
   "browserslist": [
     ">0.2%",
