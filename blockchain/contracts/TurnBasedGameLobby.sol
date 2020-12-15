@@ -29,75 +29,72 @@ contract TurnBasedGameLobby {
     // TurnBasedGame contract used for starting games
     TurnBasedGame turnBasedGame;
 
-    // holds the template hash for the Cartesi Machine computation that runs the Texas Holdem poker game
-    bytes32 constant texasHoldemTemplateHash = "0x123";
-    // holds the metadata used when starting a Texas Holdem game (empty for now)
-    bytes constant texasHoldemMetadata = "";
-
-
-    // records player information
-    struct PlayerInfo {
-        string name;
-    }
-    mapping(address => PlayerInfo) public playersInfo;
-
     // records queue information
     struct QueuedPlayer {
         address addr;
         uint256 funds;
+        bytes info;
     }
-    QueuedPlayer queuedPlayer;
+    mapping(bytes32 => QueuedPlayer[]) internal queues;
 
 
-    /// @param turnBasedGameAddress address of the TurnBasedGame contract
+    /// @notice constructor
+    /// @param turnBasedGameAddress address of the TurnBasedGame contract used for starting games
     constructor(address turnBasedGameAddress) public {
         turnBasedGame = TurnBasedGame(turnBasedGameAddress);
     }
 
 
-    /// @notice registers a new player in the lobby
-    /// @param _name player's name
-    function register(string memory _name) public {
-        playersInfo[msg.sender].name = _name;
-    }
+    /// @notice joins a game in "zoom" mode, meaning that people are matched as they join and the game starts when enough people are available
+    /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
+    /// @param _gameMetadata game-specific initial metadata/parameters
+    /// @param _numPlayers number of players needed to start the game
+    /// @param _playerFunds amount being staked by the player joining the game
+    /// @param _playerFunds game-specific information for the player joining the game
+    function joinZoomGame(
+        bytes32 _gameTemplateHash,
+        bytes memory _gameMetadata,
+        uint8 _numPlayers,
+        uint256 _playerFunds,
+        bytes memory _playerInfo
+    ) public {
 
+        // builds hash for game specification
+        bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _numPlayers));
+        // retrieves queued players for given game specification
+        QueuedPlayer[] storage queuedPlayers = queues[queueHash];
 
-    /// @notice returns registered player information
-    /// @param _address player's address
-    function getPlayerInfo(address _address) public view
-        returns (PlayerInfo memory)
-    {
-        return playersInfo[_address];
-    }
-
-
-    /// @notice joins a game
-    /// @param _funds amount that player is bringing to the game
-    function joinGame(uint256 _funds) public {
-        // ensures sender is actually a registered player
-        require(bytes(playersInfo[msg.sender].name).length != 0, "Player must register before joining a game.");
-
-        if (queuedPlayer.addr == address(0)) {
-            // no player queued yet, so we must queue this one
+        if (queuedPlayers.length < _numPlayers - 1) {
+            // not enough players queued, so we must queue this one
+            QueuedPlayer storage queuedPlayer = queuedPlayers[queuedPlayers.length];
             queuedPlayer.addr = msg.sender;
-            queuedPlayer.funds = _funds;
+            queuedPlayer.funds = _playerFunds;
+            queuedPlayer.info = _playerInfo;
         } else {
-            // starts a game with the previously queued player
-            address[] memory players = new address[](2);
-            players[0] = queuedPlayer.addr;
-            players[1] = msg.sender;
-            uint256[] memory playerFunds = new uint256[](2);
-            playerFunds[0] = queuedPlayer.funds;
-            playerFunds[1] = _funds;
+            // enough players are queued: we can start a game
+            // - collects previously queued players
+            address[] memory players = new address[](_numPlayers);
+            uint256[] memory playerFunds = new uint256[](_numPlayers);
+            bytes[] memory playerInfos = new bytes[](_numPlayers);
+            for (uint i = 0; i < _numPlayers - 1; i++) {
+                players[i] = queuedPlayers[i].addr;
+                playerFunds[i] = queuedPlayers[i].funds;
+                playerInfos[i] = queuedPlayers[i].info;
+            }
+            // - adds new player
+            players[_numPlayers-1] = msg.sender;
+            playerFunds[_numPlayers-1] = _playerFunds;
+            playerInfos[_numPlayers-1] = _playerInfo;
+            // - starts game
             turnBasedGame.startGame(
-                texasHoldemTemplateHash,
+                _gameTemplateHash,
+                _gameMetadata,
                 players,
                 playerFunds,
-                texasHoldemMetadata
+                playerInfos
             );
             // clears up queue
-            queuedPlayer.addr = address(0);
-            queuedPlayer.funds = 0;
+            delete queues[queueHash];
         }
     }
 }

@@ -23,15 +23,16 @@ module.exports = async (callback) => {
 
         ret = await game.getContext(index);
 
-        console.log("templateHash: " + ret[0]);
-        console.log("players: " + ret[1]);
-        console.log("playerFunds: " + ret[2]);
-        console.log("metadata: " + ret[3]);
-        console.log("descartesIndex: " + ret[5]);
+        console.log("gameTemplateHash: " + ret[0]);
+        console.log("gameMetadata: " + ret[1]);
+        console.log("players: " + ret[2]);
+        console.log("playerFunds: " + ret[3]);
+        console.log("playerInfos: " + ret[4]);
+        console.log("descartesIndex: " + ret[7]);
 
         // displays turn info: data is retrieved from the corresponding logger events ("MerkleRootCalculatedFromData")
         logEvents = await logger.getPastEvents();
-        turns = ret[4];
+        turns = ret[5];
         if (turns && turns.length) {
             for (i = 0; i < turns.length; i++) {
                 turn = turns[i];

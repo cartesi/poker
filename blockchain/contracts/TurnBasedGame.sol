@@ -64,16 +64,16 @@ contract TurnBasedGame is Instantiator {
 
     // records information for an instantiated game
     struct GameContext {
-        // identifies the type of game/computation
-        bytes32 templateHash;
+        // template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
+        bytes32 gameTemplateHash;
+        // game-specific initial metadata/parameters
+        bytes gameMetadata;
         // players involved
         address[] players;
         // player funds locked for the game
-
-
         uint[] playerFunds;
-        // game-specific initial metadata/parameters
-        bytes metadata;
+        // game-specific information per player
+        bytes[] playerInfos;
         // game-specific turns submitted by each user (including initial state)
         Turn[] turns;
         // indicates whether a descartes computation has been instantiated
@@ -93,20 +93,30 @@ contract TurnBasedGame is Instantiator {
 
 
     /// @notice starts a new game
-    /// @param _templateHash hash that identifies the game computation/logic
+    /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
+    /// @param _gameMetadata game-specific initial metadata/parameters
     /// @param _players addresses of the players involved
     /// @param _playerFunds funds/balances that each player is bringing into the game
-    /// @param _metadata game-specific metadata
+    /// @param _playerInfos game-specific information for each player
     /// @return index of the game instance
-    function startGame(bytes32 _templateHash, address[] memory _players, uint[] memory _playerFunds, bytes memory _metadata) public returns (uint256) {
+    function startGame(
+        bytes32 _gameTemplateHash,
+        bytes memory _gameMetadata,
+        address[] memory _players,
+        uint[] memory _playerFunds,
+        bytes[] memory _playerInfos
+    ) public
+        returns (uint256)
+    {
 
         // creates new context
         GameContext storage context = instances[currentIndex];
-        context.templateHash = _templateHash;
+        context.gameTemplateHash = _gameTemplateHash;
+        context.gameMetadata = _gameMetadata;
         // TODO: check/lock funds, preferrably use a token and not ether
         context.players = _players;
         context.playerFunds = _playerFunds;
-        context.metadata = _metadata;
+        context.playerInfos = _playerInfos;
 
         // emits event for new game        
         emit GameReady(currentIndex, context);
@@ -165,16 +175,16 @@ contract TurnBasedGame is Instantiator {
         // builds input drives for the descartes computation
         DescartesInterface.Drive[] memory drives = new DescartesInterface.Drive[](4);
 
-        // 1st input drive: players data
+        // 1st input drive: game metadata
+        drives[0] = buildDirectDrive(context, context.gameMetadata, 0xb000000000000000);
+
+        // 2nd input drive: players data
         bytes memory players = abi.encodePacked(context.players);
-        drives[0] = buildDirectDrive(context, players, 0x9000000000000000);
+        drives[1] = buildDirectDrive(context, players, 0x9000000000000000);
 
-        // 2nd input drive: player funds data
+        // 3rd input drive: player funds data
         bytes memory playerFunds = abi.encodePacked(context.playerFunds);
-        drives[1] = buildDirectDrive(context, playerFunds, 0xa000000000000000);
-
-        // 3rd input drive: metadata
-        drives[2] = buildDirectDrive(context, context.metadata, 0xb000000000000000);
+        drives[2] = buildDirectDrive(context, playerFunds, 0xa000000000000000);
 
         // 4th input drive: turns data stored in the Logger
         drives[3] = buildTurnsDrive(context, 0xc000000000000000);
@@ -182,7 +192,7 @@ contract TurnBasedGame is Instantiator {
         // instantiates the computation
         context.descartesIndex = descartes.instantiate(
             1e13,                  // max cycles allowed
-            context.templateHash,  // hash identifying the computation template
+            context.gameTemplateHash,  // hash identifying the computation template
             0xd000000000000000,    // output drive position: 6th drive position
             10,                    // output drive size: 1K (should hold awarded amounts for up to 4 players)
             45,                    // round duration

@@ -8,13 +8,14 @@ module.exports = async (callback) => {
         let game = await TurnBasedGame.deployed();
 
         let accounts = await web3.eth.getAccounts();
-        let templateHash = "0x88040f919276854d14efb58967e5c0cb2fa637ae58539a1c71c7b98b4f959baa";
+        let gameTemplateHash = "0x88040f919276854d14efb58967e5c0cb2fa637ae58539a1c71c7b98b4f959baa";
+        let gameMetadata = "0x0";
         let players = accounts;
         let playerFunds = [10, 10];
-        let metadata = "0x0";
+        let playerInfos = [web3.utils.asciiToHex("Alice"), web3.utils.asciiToHex("Bob")];
         let gameReadyABI = game.abi.filter(o => o.name == 'GameReady')[0];
 
-        ret = await game.startGame(templateHash, players, playerFunds, metadata, { from: accounts[0] });
+        ret = await game.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos, { from: accounts[0] });
         index = web3.eth.abi.decodeLog(gameReadyABI.inputs, ret.receipt.rawLogs[0].data, '0x0')['0'];
         console.log("Game started with index '" + index + "' (tx: " + ret.tx + " ; blocknumber: " + ret.receipt.blockNumber + ")\n");
         callback();
