@@ -11,7 +11,7 @@ module.exports = async (callback) => {
         let gameTemplateHash = "0x88040f919276854d14efb58967e5c0cb2fa637ae58539a1c71c7b98b4f959baa";
         let gameMetadata = "0x0";
         let players = accounts;
-        let playerFunds = [10, 10];
+        let playerFunds = [100, 100];
         let playerInfos = [web3.utils.asciiToHex("Alice"), web3.utils.asciiToHex("Bob")];
         let gameReadyABI = game.abi.filter(o => o.name == 'GameReady')[0];
 

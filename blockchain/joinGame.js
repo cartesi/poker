@@ -7,8 +7,9 @@ program
     .option('-h, --hash <hash>', 'Specify the game template hash to use (optional, default is "0x88040f919276854d14efb58967e5c0cb2fa637ae58539a1c71c7b98b4f959baa")', "0x88040f919276854d14efb58967e5c0cb2fa637ae58539a1c71c7b98b4f959baa")
     .option('-m, --metadata <bytes>', 'Specify the metadata of the game (optional, default is "0x0")', "0x0")
     .option('-n, --numPlayers <n>', 'Specify the number of players in the game (optional, default is 2)', 2)
+    .option('-F, --minFunds <amount>', 'Specify the minimum amount that needs to be stake in order to joini the game (optional, default is 10)', 10)
     .option('-p, --player <player>', 'Specify the index of the account joining the game (optional, default is 0)', 0)
-    .option('-f, --playerFunds <amount>', 'Specify the amount being staked by the player joining the game (optional, default is 10)', 10)
+    .option('-f, --playerFunds <amount>', 'Specify the amount being staked by the player joining the game (optional, default is 100)', 100)
     .option('-i, --playerInfo <info>', 'Specify additional information for the player joining the game (optional, default is "0x0")', "0x0")
 
 module.exports = async (callback) => {
@@ -25,14 +26,15 @@ module.exports = async (callback) => {
         let accounts = await web3.eth.getAccounts();
         let gameTemplateHash = program.hash;
         let gameMetadata = program.metadata;
-        let numPlayers = program.numPlayers;
+        let gameNumPlayers = program.numPlayers;
+        let gameMinFunds = program.minFunds;
         let playerIndex = program.player;
         let playerFunds = program.playerFunds;
         let playerInfo = program.playerInfo;
 
         let gameReadyABI = game.abi.filter(o => o.name == 'GameReady')[0];
 
-        ret = await lobby.joinGame(gameTemplateHash, gameMetadata, numPlayers, playerFunds, playerInfo, { from: accounts[playerIndex] });
+        ret = await lobby.joinGame(gameTemplateHash, gameMetadata, gameNumPlayers, gameMinFunds, playerFunds, playerInfo, { from: accounts[playerIndex] });
 
         if (ret.receipt.rawLogs.length) {
             // an event log happens if a game starts
@@ -40,7 +42,7 @@ module.exports = async (callback) => {
             console.log("Game started with index '" + index + "' (tx: " + ret.tx + " ; blocknumber: " + ret.receipt.blockNumber + ")\n");
         } else {
             // show current queue
-            queue = await lobby.getQueue(gameTemplateHash, gameMetadata, numPlayers, { from: accounts[playerIndex] });
+            queue = await lobby.getQueue(gameTemplateHash, gameMetadata, gameNumPlayers, gameMinFunds, { from: accounts[playerIndex] });
             console.log("Player enqueued. Current queue is:");
             if (queue && queue.length) {
                 for (i = 0; i < queue.length; i++) {
