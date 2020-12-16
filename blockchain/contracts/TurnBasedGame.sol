@@ -26,6 +26,8 @@ import "@cartesi/descartes-sdk/contracts/DescartesInterface.sol";
 import "@cartesi/logger/contracts/Logger.sol";
 import "@cartesi/util/contracts/Instantiator.sol";
 
+/// @title TurnBasedGame
+/// @notice Generic contract for handling turn-based games validated by Descartes computations
 contract TurnBasedGame is Instantiator {
 
     // Descartes instance used for triggering verified computations
@@ -39,18 +41,6 @@ contract TurnBasedGame is Instantiator {
     // - data is given as 64-bit (8-byte) words
     // - total turn data size is thus fixed at 8 * 2^9 = 4K 
     uint8 constant turnDataLog2Size = 9;
-
-    /// @param descartesAddress address of the Descartes contract
-    /// @param loggerAddress address of the Logger contract
-    constructor(address descartesAddress, address loggerAddress) public {
-        descartes = DescartesInterface(descartesAddress);
-        logger = Logger(loggerAddress);
-
-        // stores an empty chunk of data in the logger and records its index
-        bytes8[] memory emptyData = new bytes8[](1);
-        bytes32 logHash = logger.calculateMerkleRootFromData(turnDataLog2Size, emptyData);
-        emptyDataLogIndex = logger.getLogIndex(logHash);
-    }
 
     // records a player's turn
     struct Turn {
@@ -92,7 +82,21 @@ contract TurnBasedGame is Instantiator {
     event GameOver(uint256 _index, uint[] _potShare);
 
 
-    /// @notice starts a new game
+    /// @notice Constructor
+    /// @param descartesAddress address of the Descartes contract
+    /// @param loggerAddress address of the Logger contract
+    constructor(address descartesAddress, address loggerAddress) public {
+        descartes = DescartesInterface(descartesAddress);
+        logger = Logger(loggerAddress);
+
+        // stores an empty chunk of data in the logger and records its index
+        bytes8[] memory emptyData = new bytes8[](1);
+        bytes32 logHash = logger.calculateMerkleRootFromData(turnDataLog2Size, emptyData);
+        emptyDataLogIndex = logger.getLogIndex(logHash);
+    }
+
+
+    /// @notice Starts a new game
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
     /// @param _gameMetadata game-specific initial metadata/parameters
     /// @param _players addresses of the players involved
@@ -126,7 +130,7 @@ contract TurnBasedGame is Instantiator {
     }
 
 
-    /// @notice submits a new game turn
+    /// @notice Submits a new turn for a given game
     /// @param _index index identifying the game
     /// @param _stateHash game state for which the turn applies
     /// @param _data game-specific turn data (array of 64-bit words)
@@ -160,7 +164,7 @@ contract TurnBasedGame is Instantiator {
     }
 
 
-    /// @notice claims game has ended; game results will be given by a Descartes computation
+    /// @notice Claims game has ended; game results will be given by a Descartes computation
     /// @param _index index identifying the game
     /// @return index of the Descartes computation
     function claimGameEnd(uint256 _index) public
@@ -210,7 +214,7 @@ contract TurnBasedGame is Instantiator {
     }
 
 
-    /// @notice applies the results of a game, transferring funds according to the results given by its final Descartes computation
+    /// @notice Applies the results of a game, transferring funds according to the results given by its final Descartes computation
     /// @param _index index identifying the game
     function applyResult(uint256 _index) public
         onlyActive(_index)
@@ -242,8 +246,9 @@ contract TurnBasedGame is Instantiator {
     }
 
 
-    /// @notice returns game context
+    /// @notice Returns game context
     /// @param _index index identifying the game
+    /// @return GameContext struct for the specified game
     function getContext(uint256 _index) public view
         onlyInstantiated(_index)
         returns(GameContext memory)
@@ -255,6 +260,7 @@ contract TurnBasedGame is Instantiator {
     /// @notice Indicates whether a given player is concerned about a game
     /// @param _index index identifying the game
     /// @param _player a player's address
+    /// @return true if the player is concerned about the game, false otherwise
     function isConcerned(uint256 _index, address _player) public view
         onlyInstantiated(_index)
         returns (bool)

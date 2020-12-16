@@ -24,6 +24,8 @@ pragma experimental ABIEncoderV2;
 
 import "./TurnBasedGame.sol";
 
+/// @title TurnBasedGameLobby
+/// @notice Entry point for players to join games handled by the TurnBasedGame contract
 contract TurnBasedGameLobby {
 
     // TurnBasedGame contract used for starting games
@@ -38,12 +40,18 @@ contract TurnBasedGameLobby {
     mapping(bytes32 => QueuedPlayer[]) internal queues;
 
 
-    /// @notice constructor
+    /// @notice Constructor
     /// @param turnBasedGameAddress address of the TurnBasedGame contract used for starting games
     constructor(address turnBasedGameAddress) public {
         turnBasedGame = TurnBasedGame(turnBasedGameAddress);
     }
 
+
+    /// @notice Retrieves the current queue for a given game (specified by its template hash, metadata and number of players)
+    /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
+    /// @param _gameMetadata game-specific initial metadata/parameters
+    /// @param _gameNumPlayers number of players needed to start the game
+    /// @return array of QueuedPlayer structs representing the currently enqueued players for the specified game
     function getQueue(
         bytes32 _gameTemplateHash,
         bytes memory _gameMetadata,
@@ -57,7 +65,8 @@ contract TurnBasedGameLobby {
         return queues[queueHash];
     }
 
-    /// @notice joins a game; people are queued as they join and the game starts when enough people are available
+
+    /// @notice Allows a player to join a game. People are queued up as they join and the game starts when enough people are available.
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
     /// @param _gameMetadata game-specific initial metadata/parameters
     /// @param _gameNumPlayers number of players needed to start the game
