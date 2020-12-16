@@ -44,47 +44,60 @@ contract TurnBasedGameLobby {
         turnBasedGame = TurnBasedGame(turnBasedGameAddress);
     }
 
-
-    /// @notice joins a game in "zoom" mode, meaning that people are matched as they join and the game starts when enough people are available
-    /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
-    /// @param _gameMetadata game-specific initial metadata/parameters
-    /// @param _numPlayers number of players needed to start the game
-    /// @param _playerFunds amount being staked by the player joining the game
-    /// @param _playerFunds game-specific information for the player joining the game
-    function joinZoomGame(
+    function getQueue(
         bytes32 _gameTemplateHash,
         bytes memory _gameMetadata,
-        uint8 _numPlayers,
+        uint8 _gameNumPlayers
+    ) public view
+        returns (QueuedPlayer[] memory)
+    {
+        // builds hash for game specification
+        bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameNumPlayers));
+        // retrieves queued players for given game specification
+        return queues[queueHash];
+    }
+
+    /// @notice joins a game; people are queued as they join and the game starts when enough people are available
+    /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
+    /// @param _gameMetadata game-specific initial metadata/parameters
+    /// @param _gameNumPlayers number of players needed to start the game
+    /// @param _playerFunds amount being staked by the player joining the game
+    /// @param _playerInfo game-specific information for the player joining the game
+    function joinGame(
+        bytes32 _gameTemplateHash,
+        bytes memory _gameMetadata,
+        uint8 _gameNumPlayers,
         uint256 _playerFunds,
         bytes memory _playerInfo
     ) public {
 
         // builds hash for game specification
-        bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _numPlayers));
+        bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameNumPlayers));
         // retrieves queued players for given game specification
         QueuedPlayer[] storage queuedPlayers = queues[queueHash];
 
-        if (queuedPlayers.length < _numPlayers - 1) {
+        if (queuedPlayers.length < _gameNumPlayers - 1) {
             // not enough players queued, so we must queue this one
-            QueuedPlayer storage queuedPlayer = queuedPlayers[queuedPlayers.length];
-            queuedPlayer.addr = msg.sender;
-            queuedPlayer.funds = _playerFunds;
-            queuedPlayer.info = _playerInfo;
+            QueuedPlayer memory newPlayer;
+            newPlayer.addr = msg.sender;
+            newPlayer.funds = _playerFunds;
+            newPlayer.info = _playerInfo;
+            queuedPlayers.push(newPlayer);
         } else {
-            // enough players are queued: we can start a game
+            // enough players are already queued: we can start a game
             // - collects previously queued players
-            address[] memory players = new address[](_numPlayers);
-            uint256[] memory playerFunds = new uint256[](_numPlayers);
-            bytes[] memory playerInfos = new bytes[](_numPlayers);
-            for (uint i = 0; i < _numPlayers - 1; i++) {
+            address[] memory players = new address[](_gameNumPlayers);
+            uint256[] memory playerFunds = new uint256[](_gameNumPlayers);
+            bytes[] memory playerInfos = new bytes[](_gameNumPlayers);
+            for (uint i = 0; i < _gameNumPlayers - 1; i++) {
                 players[i] = queuedPlayers[i].addr;
                 playerFunds[i] = queuedPlayers[i].funds;
                 playerInfos[i] = queuedPlayers[i].info;
             }
             // - adds new player
-            players[_numPlayers-1] = msg.sender;
-            playerFunds[_numPlayers-1] = _playerFunds;
-            playerInfos[_numPlayers-1] = _playerInfo;
+            players[_gameNumPlayers-1] = msg.sender;
+            playerFunds[_gameNumPlayers-1] = _playerFunds;
+            playerInfos[_gameNumPlayers-1] = _playerInfo;
             // - starts game
             turnBasedGame.startGame(
                 _gameTemplateHash,

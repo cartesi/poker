@@ -1,3 +1,4 @@
 node_modules/
 descartes-env*
 build/
+contracts/artifacts
