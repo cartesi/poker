@@ -1,4 +1,4 @@
-import { GameConstants } from './../../../GameConstants';
+import { GameConstants } from "./../../../GameConstants";
 import { GameVars } from "../../../GameVars";
 import { RoomManager } from "../RoomManager";
 import { Button } from "./Button";
@@ -8,6 +8,7 @@ export class HUD extends Phaser.GameObjects.Container {
     private startButton: Button;
 
     private betsContainer: Phaser.GameObjects.Container;
+    private topContainer: Phaser.GameObjects.Container;
     private call: Button;
     private check: Button;
     private fold: Button;
@@ -18,18 +19,16 @@ export class HUD extends Phaser.GameObjects.Container {
 
         super(scene);
 
-        let topContainer = new Phaser.GameObjects.Container(this.scene);
-        topContainer.scaleX = GameVars.scaleX;
-        this.add(topContainer);
+        this.topContainer = new Phaser.GameObjects.Container(this.scene);
+        this.add(this.topContainer);
 
         this.startButton = new Button(this.scene, 80, 55, "btn_blue", "START", () => {
             RoomManager.startRound(true);
         });
-        topContainer.add(this.startButton);
+        this.topContainer.add(this.startButton);
 
         this.betsContainer = new Phaser.GameObjects.Container(this.scene);
         this.betsContainer.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT);
-        this.betsContainer.scaleX = GameVars.scaleX;
         this.add(this.betsContainer);
 
         this.call = new Button(this.scene, -300, -52, "btn_blue", "CALL", RoomManager.playerCall);
@@ -48,12 +47,31 @@ export class HUD extends Phaser.GameObjects.Container {
         });
         this.betsContainer.add(this.raise);
         
-        // this.raiseInput = this.scene.add.dom(100, 100).createFromCache("raiseform");
         this.raiseInput = this.scene.add.dom(300, -52);
         this.raiseInput.createFromCache("raiseform");
         this.betsContainer.add(this.raiseInput);
 
         this.removeBetButtons();
+
+        this.setScalesAndPostions();
+        
+    }
+
+    public setScalesAndPostions(): void {
+        
+        if (GameVars.landscape) {
+            if (GameVars.scaleX > 1.2) {
+                this.topContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+                this.betsContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+            } else {
+                this.topContainer.setScale(GameVars.scaleX, 1);
+                this.betsContainer.setScale(GameVars.scaleX, 1);
+            }
+        } else {
+            this.topContainer.setScale(1.2, GameVars.scaleY * 1.2);
+            this.betsContainer.setScale(1.2, GameVars.scaleY * 1.2);
+        }
+
     }
 
     public removeBetButtons(): void {

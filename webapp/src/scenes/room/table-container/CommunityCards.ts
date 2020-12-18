@@ -10,19 +10,25 @@ export class CommunityCards extends Phaser.GameObjects.Container {
 
         super(scene);
 
-        if (GameVars.landscape) {
-            this.scaleX = GameVars.scaleX;
-            this.y = -50;
-        } else {
-            // TODO: position and scale for portrait
-        }
-
         this.cards = [];
 
         for (let i = 0; i < 5; i++) {
             let card = new Card(this.scene, -180 + 90 * i, 0);
             this.add(card);
             this.cards.push(card);
+        }
+
+        this.setScalesAndPostions();
+    }
+
+    public setScalesAndPostions(): void {
+
+        if (GameVars.landscape) {
+            this.setScale(GameVars.scaleX, 1);
+            this.y = -50;
+        } else {
+            this.setScale(1, GameVars.scaleY);
+            this.y = 0;
         }
     }
 

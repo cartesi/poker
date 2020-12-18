@@ -1,8 +1,8 @@
 import { TableContainer } from "./table-container/TableContainer";
 import { RoomManager } from "./RoomManager";
-import { Background } from "./Background";
 import { GUI } from "./gui/GUI";
 import { HUD } from "./hud/HUD";
+import { GameManager } from "../../GameManager";
 
 export class RoomScene extends Phaser.Scene {
 
@@ -21,10 +21,9 @@ export class RoomScene extends Phaser.Scene {
 
     public create(): void {
 
-        RoomManager.init();
+        GameManager.setCurrentScene(this);
 
-        const background = new Background(this);
-        this.add.existing(background);
+        RoomManager.init();
 
         this.tableContainer = new TableContainer(this);
         this.add.existing(this.tableContainer);
@@ -34,6 +33,13 @@ export class RoomScene extends Phaser.Scene {
 
         this.hud = new HUD(this);
         this.add.existing(this.hud);
+    }
+
+    public onOrientationChange(): void {
+
+        this.tableContainer.setScalesAndPostions();
+        this.gui.setScalesAndPostions();
+        this.hud.setScalesAndPostions();
     }
 
     public updateBoard(): void {

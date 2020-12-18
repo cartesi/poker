@@ -36,25 +36,27 @@ window.onload = () => {
 
     game = new Game(gameConfig);
 
-    // window.addEventListener("resize", resize, false);
-    window.addEventListener("orientationchange", checkOriention, false);
+    window.addEventListener("resize", onOrientationChange, false);
+    window.addEventListener("orientationchange", onOrientationChange, false);
 
-    function checkOriention(): void {
-
-        if (Game.currentInstance.device.os.desktop) {
-            return;
-        }
+    function onOrientationChange(): void {
     
-        GameVars.currentScene.time.addEvent({delay: 200, callback: () => {
+        GameVars.currentScene.time.addEvent({delay: 100, callback: () => {
     
             if (window.innerHeight < window.innerWidth) {
                 let aspectRatio = window.innerWidth / window.innerHeight;
                 GameVars.scaleX = (GameConstants.GAME_WIDTH / GameConstants.GAME_HEIGHT) / aspectRatio;
                 GameVars.scaleY = 1;
+                GameVars.landscape = true;
             } else {
                 let aspectRatio = window.innerHeight / window.innerWidth;
                 GameVars.scaleY = (GameConstants.GAME_HEIGHT / GameConstants.GAME_WIDTH) / aspectRatio;
                 GameVars.scaleX = 1;
+                GameVars.landscape = false;
+            }
+            
+            if (GameVars.currentScene === RoomScene.currentInstance) {
+                RoomScene.currentInstance.onOrientationChange();
             }
             
         }, callbackScope: GameVars.currentScene});

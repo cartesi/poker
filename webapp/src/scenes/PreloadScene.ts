@@ -27,6 +27,8 @@ export class PreloadScene extends Phaser.Scene {
 
     public create(): void {
 
+        GameManager.setCurrentScene(this);
+
         this.loadHowl();
     }
 

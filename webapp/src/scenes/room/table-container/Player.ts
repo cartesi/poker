@@ -20,12 +20,7 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.isPlayer = isPlayer; 
 
-        if (GameVars.landscape) {
-            this.scaleX = GameVars.scaleX;
-            this.x = isPlayer ? -300 * GameVars.scaleX : 300 * GameVars.scaleX;
-        } else {
-            // TODO: position and scale for portrait
-        }
+        this.setScalesAndPostions();
 
         this.nickname = new Phaser.GameObjects.Text(this.scene, 0, -120, isPlayer ? "PLAYER" : "OPPONENT", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
         this.nickname.setOrigin(.5);
@@ -52,6 +47,19 @@ export class Player extends Phaser.GameObjects.Container {
         card = new Card(this.scene, 45, 120);
         this.add(card);
         this.cards.push(card);
+    }
+
+    public setScalesAndPostions(): void {
+
+        if (GameVars.landscape) {
+            this.setScale(GameVars.scaleX, 1);
+            this.x = this.isPlayer ? -300 * GameVars.scaleX : 300 * GameVars.scaleX;
+            this.y = 0;
+        } else {
+            this.setScale(1, GameVars.scaleY);
+            this.x = 0;
+            this.y = this.isPlayer ? 200 * GameVars.scaleY : -250 * GameVars.scaleY;
+        }
     }
 
     public updatePlayer(): void {

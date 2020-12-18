@@ -12,23 +12,43 @@ export class GUI extends Phaser.GameObjects.Container {
 
         super(scene);
 
-        this.stateText = new Phaser.GameObjects.Text(this.scene, GameConstants.GAME_WIDTH / 2, 80, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
+        this.x = GameConstants.GAME_WIDTH / 2;
+        this.y = GameConstants.GAME_HEIGHT / 2;
+
+        this.stateText = new Phaser.GameObjects.Text(this.scene, 0, -240, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
         this.stateText.setOrigin(.5);
         this.stateText.setStroke("#000000", 4);
         this.add(this.stateText);
 
-        this.winnerText = new Phaser.GameObjects.Text(this.scene, GameConstants.GAME_WIDTH / 2, 180, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
+        this.winnerText = new Phaser.GameObjects.Text(this.scene, 0, -140, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
         this.winnerText.setOrigin(.5);
         this.winnerText.setStroke("#000000", 4);
         this.add(this.winnerText);
 
-        this.betText = new Phaser.GameObjects.Text(this.scene, GameConstants.GAME_WIDTH / 2, 360, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
+        this.betText = new Phaser.GameObjects.Text(this.scene, 0, 40, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
         this.betText.setOrigin(.5);
         this.betText.setStroke("#000000", 4);
         this.add(this.betText);
 
+        this.setScalesAndPostions();
+    }
+
+    public setScalesAndPostions(): void {
+        
         if (GameVars.landscape) {
-            this.stateText.scaleX = GameVars.scaleX;
+            if (GameVars.scaleX > 1.2) {
+                this.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+            } else {
+                this.setScale(GameVars.scaleY, 1);
+            }
+            this.stateText.setPosition(0, -240);
+            this.betText.setPosition(0, 40);
+            this.winnerText.setPosition(0, -140);
+        } else {
+            this.setScale(1.3 + (0.55 - GameVars.scaleY), (1.3 + (0.55 - GameVars.scaleY)) * GameVars.scaleY);
+            this.stateText.setPosition(200, -270);
+            this.betText.setPosition(200, -230);
+            this.winnerText.setPosition(200, -190);
         }
     }
 
