@@ -4,31 +4,40 @@ import { RoomManager } from "../RoomManager";
 
 export class GUI extends Phaser.GameObjects.Container {
 
+    private topContainer: Phaser.GameObjects.Container;
+    private topBackground: Phaser.GameObjects.Graphics;
     private stateText: Phaser.GameObjects.Text;
     private winnerText: Phaser.GameObjects.Text;
-    private betText: Phaser.GameObjects.Text;
+
+    private midContainer: Phaser.GameObjects.Container; 
+    private potText: Phaser.GameObjects.Text;
 
     constructor(scene: Phaser.Scene) {
 
         super(scene);
 
-        this.x = GameConstants.GAME_WIDTH / 2;
-        this.y = GameConstants.GAME_HEIGHT / 2;
+        this.topBackground = new Phaser.GameObjects.Graphics(this.scene);
+        this.topBackground.fillStyle(0x000000, .75);
+        this.topBackground.fillRect(0, 0, GameConstants.GAME_WIDTH, 50);
+        this.add(this.topBackground);
 
-        this.stateText = new Phaser.GameObjects.Text(this.scene, 0, -240, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
+        this.topContainer = new Phaser.GameObjects.Container(this.scene, GameConstants.GAME_WIDTH / 2, 0);
+        this.add(this.topContainer);
+
+        this.stateText = new Phaser.GameObjects.Text(this.scene, 0, 25, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
         this.stateText.setOrigin(.5);
-        this.stateText.setStroke("#000000", 4);
-        this.add(this.stateText);
+        this.topContainer.add(this.stateText);
 
-        this.winnerText = new Phaser.GameObjects.Text(this.scene, 0, -140, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
+        this.winnerText = new Phaser.GameObjects.Text(this.scene, 200, 25, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
         this.winnerText.setOrigin(.5);
-        this.winnerText.setStroke("#000000", 4);
-        this.add(this.winnerText);
+        this.topContainer.add(this.winnerText);
 
-        this.betText = new Phaser.GameObjects.Text(this.scene, 0, 40, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
-        this.betText.setOrigin(.5);
-        this.betText.setStroke("#000000", 4);
-        this.add(this.betText);
+        this.midContainer = new Phaser.GameObjects.Container(this.scene, GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT / 2);
+        this.add(this.midContainer);
+
+        this.potText = new Phaser.GameObjects.Text(this.scene, 0, -60, "POT: ???", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
+        this.potText.setOrigin(.5);
+        this.midContainer.add(this.potText);
 
         this.setScalesAndPostions();
     }
@@ -37,24 +46,38 @@ export class GUI extends Phaser.GameObjects.Container {
         
         if (GameVars.landscape) {
             if (GameVars.scaleX > 1.2) {
-                this.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+                this.midContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
             } else {
-                this.setScale(GameVars.scaleY, 1);
+                this.midContainer.setScale(GameVars.scaleX, 1);
             }
-            this.stateText.setPosition(0, -240);
-            this.betText.setPosition(0, 40);
-            this.winnerText.setPosition(0, -140);
+            this.midContainer.y = GameConstants.GAME_HEIGHT / 2;
+
+            this.topContainer.setScale(GameVars.scaleX, 1);
+            this.topBackground.setScale(1);
         } else {
-            this.setScale(1.3 + (0.55 - GameVars.scaleY), (1.3 + (0.55 - GameVars.scaleY)) * GameVars.scaleY);
-            this.stateText.setPosition(200, -270);
-            this.betText.setPosition(200, -230);
-            this.winnerText.setPosition(200, -190);
+
+            this.midContainer.y = GameConstants.GAME_HEIGHT / 2 - 30;
+            this.midContainer.setScale(1.3 + (0.55 - GameVars.scaleY) * 3);
+
+            this.topContainer.setScale(1, GameVars.scaleY);
+            this.topBackground.setScale(1, GameVars.scaleY);
         }
+    }
+
+    public updateBoard(): void {
+
+        this.setStateText();
+        this.setPotText();
     }
 
     public setStateText(): void {
 
         this.stateText.text = GameConstants.STATES[RoomManager.getState()];
+    }
+
+    public setPotText(): void {
+
+        this.potText.text = "POT: " + (RoomManager.getPlayerBets() + RoomManager.getOpponentBets());
     }
 
     public setWinnerText(endData: any): void {
@@ -73,20 +96,11 @@ export class GUI extends Phaser.GameObjects.Container {
 
         setTimeout(() => {
             this.winnerText.text = "";
-        }, 2000);
+        }, 4000);
     }
 
     public onEnd(endData: any): void {
 
         this.setWinnerText(endData);
-    }
-
-    public showBet(value: string, number: number): void {
-
-        this.betText.text = (number === ALICE ? "PLAYER " : "OPPONENT ") + value;
-
-        setTimeout(() => {
-            this.betText.text = "";
-        }, 1000);
     }
 }

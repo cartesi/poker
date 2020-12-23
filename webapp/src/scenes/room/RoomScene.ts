@@ -33,6 +33,10 @@ export class RoomScene extends Phaser.Scene {
 
         this.hud = new HUD(this);
         this.add.existing(this.hud);
+
+        setTimeout(() => {
+            RoomManager.startRound(true);
+        }, 2000);
     }
 
     public onOrientationChange(): void {
@@ -45,7 +49,7 @@ export class RoomScene extends Phaser.Scene {
     public updateBoard(): void {
 
         this.tableContainer.updateBoard();
-        this.gui.setStateText();
+        this.gui.updateBoard();
     }
 
     public removeBetButtons(): void {
@@ -65,6 +69,6 @@ export class RoomScene extends Phaser.Scene {
 
     public showBet(value: string, player: number): void {
 
-        this.gui.showBet(value, player);
+        this.tableContainer.showBet(value, player);
     }
 }

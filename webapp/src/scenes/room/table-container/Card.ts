@@ -19,9 +19,13 @@ export class Card extends Phaser.GameObjects.Container {
             this.image.setFrame("card-back");
         } else {
 
+            this.visible = true;
+
             if (this.image.frame.name === (card.suit + "_" + (card.value + 1))) {
                 return;
             }
+
+            let initScale = this.scaleX;
 
             this.scene.tweens.add({
                 targets: this,
@@ -32,7 +36,7 @@ export class Card extends Phaser.GameObjects.Container {
                     this.image.setFrame(card.suit + "_" + (card.value + 1));
                     this.scene.tweens.add({
                         targets: this,
-                        scaleX: 1,
+                        scaleX: initScale,
                         ease: Phaser.Math.Easing.Linear,
                         duration: 100
                     });

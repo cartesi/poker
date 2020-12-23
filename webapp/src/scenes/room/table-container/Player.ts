@@ -13,6 +13,7 @@ export class Player extends Phaser.GameObjects.Container {
     private bet: Phaser.GameObjects.Text;
 
     private isPlayer: boolean;
+    private showingBet: boolean;
 
     constructor(scene: Phaser.Scene, isPlayer: boolean) {
 
@@ -22,39 +23,45 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.setScalesAndPostions();
 
-        this.nickname = new Phaser.GameObjects.Text(this.scene, 0, -120, isPlayer ? "PLAYER" : "OPPONENT", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        this.nickname = new Phaser.GameObjects.Text(this.scene, -100, 50, isPlayer ? "PLAYER" : "OPPONENT", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
         this.nickname.setOrigin(.5);
         this.nickname.setStroke("#000000", 4);
         this.add(this.nickname);
 
-        this.image = new Phaser.GameObjects.Image(this.scene, 0, -40, "texture_atlas_1", isPlayer ? "avatar_player" : "avatar_opponent");
+        this.image = new Phaser.GameObjects.Image(this.scene, -100, -20, "texture_atlas_1", isPlayer ? "avatar_player" : "avatar_opponent");
+        this.image.setScale(.9);
         this.add(this.image);
 
-        this.funds = new Phaser.GameObjects.Text(this.scene, 0, 50, "FUNDS: ???", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
-        this.funds.setOrigin(.5);
-        this.add(this.funds);
-
-        this.bet = new Phaser.GameObjects.Text(this.scene,  isPlayer ? 150 : -150, 120, "BET: ???", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        this.bet = new Phaser.GameObjects.Text(this.scene,  150, isPlayer ? -80 : 80, "BET: ???", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
         this.bet.setOrigin(.5);
         this.add(this.bet);
 
         this.cards = [];
 
-        let card = new Card(this.scene, -45, 120);
+        let card = new Card(this.scene, -40 + 90, -20);
+        card.setScale(.8);
         this.add(card);
         this.cards.push(card);
 
-        card = new Card(this.scene, 45, 120);
+        card = new Card(this.scene, 40 + 90, -20);
+        card.setScale(.8);
         this.add(card);
         this.cards.push(card);
+
+        let capsule = new Phaser.GameObjects.Image(this.scene, 90, 40, "texture_atlas_1", "capsule");
+        this.add(capsule);
+
+        this.funds = new Phaser.GameObjects.Text(this.scene, 90, 48, "???", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#000000"});
+        this.funds.setOrigin(.5);
+        this.add(this.funds);
     }
 
     public setScalesAndPostions(): void {
 
         if (GameVars.landscape) {
             this.setScale(GameVars.scaleX, 1);
-            this.x = this.isPlayer ? -300 * GameVars.scaleX : 300 * GameVars.scaleX;
-            this.y = 0;
+            this.x = 0;
+            this.y = this.isPlayer ? 150 : -160;
         } else {
             this.setScale(1, GameVars.scaleY);
             this.x = 0;
@@ -75,7 +82,22 @@ export class Player extends Phaser.GameObjects.Container {
 
     public setFunds(): void {
 
-        this.funds.text = "FUNDS: " + (this.isPlayer ? RoomManager.getPlayerFunds().toString() : RoomManager.getOpponentFunds().toString());
+        if (this.showingBet) {
+            return;
+        }
+
+        this.funds.text = (this.isPlayer ? RoomManager.getPlayerFunds().toString() : RoomManager.getOpponentFunds().toString());
+    }
+
+    public showBet(value: string): void {
+
+        this.funds.text = value;
+        this.showingBet = true;
+
+        setTimeout(() => {
+            this.showingBet = false;
+            this.setFunds();
+        }, 1000);
     }
 
     public setBet(): void {

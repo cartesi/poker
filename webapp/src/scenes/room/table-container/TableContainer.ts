@@ -55,6 +55,15 @@ export class TableContainer extends Phaser.GameObjects.Container {
         this.opponent.setScalesAndPostions();
     }
 
+    public showBet(value: string, player: number): void {
+
+        if (player === ALICE) {
+            this.player.showBet(value);
+        } else {
+            this.opponent.showBet(value);
+        }
+    }
+
     public updateBoard(): void {
 
         this.player.updatePlayer();

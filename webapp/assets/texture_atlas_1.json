@@ -94,6 +94,27 @@
 					}
 				},
 				{
+					"filename": "mark_card",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 67,
+						"h": 91
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 67,
+						"h": 91
+					},
+					"frame": {
+						"x": 103,
+						"y": 571,
+						"w": 67,
+						"h": 91
+					}
+				},
+				{
 					"filename": "btn_blue",
 					"rotated": false,
 					"trimmed": false,
@@ -109,7 +130,7 @@
 					},
 					"frame": {
 						"x": 103,
-						"y": 571,
+						"y": 664,
 						"w": 140,
 						"h": 88
 					}
@@ -129,31 +150,10 @@
 						"h": 88
 					},
 					"frame": {
-						"x": 225,
-						"y": 437,
+						"x": 172,
+						"y": 571,
 						"w": 140,
 						"h": 88
-					}
-				},
-				{
-					"filename": "chip_dealer",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 36,
-						"h": 36
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 36,
-						"h": 36
-					},
-					"frame": {
-						"x": 225,
-						"y": 527,
-						"w": 36,
-						"h": 36
 					}
 				},
 				{
@@ -172,9 +172,51 @@
 					},
 					"frame": {
 						"x": 103,
-						"y": 661,
+						"y": 754,
 						"w": 140,
 						"h": 88
+					}
+				},
+				{
+					"filename": "capsule",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 256,
+						"h": 78
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 256,
+						"h": 78
+					},
+					"frame": {
+						"x": 225,
+						"y": 437,
+						"w": 256,
+						"h": 78
+					}
+				},
+				{
+					"filename": "chip_dealer",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 36,
+						"h": 36
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 36,
+						"h": 36
+					},
+					"frame": {
+						"x": 225,
+						"y": 517,
+						"w": 36,
+						"h": 36
 					}
 				},
 				{
@@ -192,8 +234,8 @@
 						"h": 33
 					},
 					"frame": {
-						"x": 103,
-						"y": 751,
+						"x": 263,
+						"y": 517,
 						"w": 33,
 						"h": 33
 					}
@@ -204,6 +246,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:18c1e15b26608da7c9a3141421c47558:3b49921fc494cea06398eae7c991590e:1bd3fbbbdaf54e41cf80e3e904578de4$"
+		"smartupdate": "$TexturePacker:SmartUpdate:013798475047a1c69de809d4a0bf0c63:1641de7f9fb2c35f20a10bc2989ae5f8:1bd3fbbbdaf54e41cf80e3e904578de4$"
 	}
 }

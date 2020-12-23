@@ -20,11 +20,13 @@ export class Table extends Phaser.GameObjects.Container {
 
     public setScalesAndPostions(): void {
 
+        let reducedScale = .8;
+
         if (GameVars.landscape) {
-            this.scaleX = GameVars.scaleX;
+            this.setScale(reducedScale * GameVars.scaleX, reducedScale);
             this.setAngle(0);
         } else {
-            this.scaleX = GameVars.scaleY;
+            this.setScale(GameVars.scaleY, 1);
             this.setAngle(90);
         }
     }

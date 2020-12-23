@@ -22,11 +22,6 @@ export class HUD extends Phaser.GameObjects.Container {
         this.topContainer = new Phaser.GameObjects.Container(this.scene);
         this.add(this.topContainer);
 
-        this.startButton = new Button(this.scene, 80, 55, "btn_blue", "START", () => {
-            RoomManager.startRound(true);
-        });
-        this.topContainer.add(this.startButton);
-
         this.betsContainer = new Phaser.GameObjects.Container(this.scene);
         this.betsContainer.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT);
         this.add(this.betsContainer);
