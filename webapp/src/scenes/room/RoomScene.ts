@@ -46,6 +46,11 @@ export class RoomScene extends Phaser.Scene {
         this.hud.setScalesAndPostions();
     }
 
+    public distributeFirstCards(): void {
+
+        this.tableContainer.distributeFirstCards();
+    }
+
     public updateBoard(): void {
 
         this.tableContainer.updateBoard();
@@ -65,6 +70,7 @@ export class RoomScene extends Phaser.Scene {
     public onEnd(endData: any): void {
 
         this.gui.onEnd(endData);
+        this.tableContainer.onEnd(endData);
     }
 
     public showBet(value: string, player: number): void {

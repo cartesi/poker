@@ -32,19 +32,27 @@ export class Player extends Phaser.GameObjects.Container {
         this.image.setScale(.9);
         this.add(this.image);
 
-        this.bet = new Phaser.GameObjects.Text(this.scene,  150, isPlayer ? -80 : 80, "BET: ???", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
-        this.bet.setOrigin(.5);
+        let chip = new Phaser.GameObjects.Image(this.scene, 140, isPlayer ? -85 : 85, "texture_atlas_1", "chip");
+        chip.setOrigin(1, .5);
+        this.add(chip);
+
+        this.bet = new Phaser.GameObjects.Text(this.scene,  145, isPlayer ? -85 : 85, "???", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        this.bet.setOrigin(0, .5);
         this.add(this.bet);
 
         this.cards = [];
 
         let card = new Card(this.scene, -40 + 90, -20);
         card.setScale(.8);
+        card.visible = false;
+        card.alpha = 0;
         this.add(card);
         this.cards.push(card);
 
         card = new Card(this.scene, 40 + 90, -20);
         card.setScale(.8);
+        card.visible = false;
+        card.alpha = 0;
         this.add(card);
         this.cards.push(card);
 
@@ -69,12 +77,49 @@ export class Player extends Phaser.GameObjects.Container {
         }
     }
 
-    public updatePlayer(): void {
+    public distributeFirstCards(): void {
 
         let cards = this.isPlayer ? RoomManager.getPlayerCards() : RoomManager.getOpponentCards();
 
         this.cards[0].setValue(cards[0]);
         this.cards[1].setValue(cards[1]);
+
+        this.cards[0].visible = true;
+        this.cards[1].visible = true;
+
+        this.cards[0].setPosition(0, -this.y);
+        this.cards[1].setPosition(0, -this.y);
+
+        this.scene.tweens.add({
+            targets: this.cards[0],
+            alpha: 1,
+            x: -40 + 90,
+            y: -20,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 250,
+            delay: this.isPlayer ? 250 : 0
+        });
+
+        this.scene.tweens.add({
+            targets: this.cards[1],
+            x: 40 + 90,
+            y: -20,
+            alpha: 1,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 250,
+            delay: 100 + (this.isPlayer ? 250 : 0)
+        });
+    }
+
+    public showCards(): void {
+
+        let cards = this.isPlayer ? RoomManager.getPlayerCards() : RoomManager.getOpponentCards();
+
+        this.cards[0].showCard(cards[0], 0);
+        this.cards[1].showCard(cards[1], 0);
+    }
+
+    public updatePlayer(): void {
 
         this.setFunds();
         this.setBet();
@@ -102,6 +147,6 @@ export class Player extends Phaser.GameObjects.Container {
 
     public setBet(): void {
 
-        this.bet.text = "BET: " + (this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString());
+        this.bet.text = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
     }
 }

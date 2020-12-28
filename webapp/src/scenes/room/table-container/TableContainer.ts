@@ -55,6 +55,12 @@ export class TableContainer extends Phaser.GameObjects.Container {
         this.opponent.setScalesAndPostions();
     }
 
+    public distributeFirstCards(): void {
+
+        this.player.distributeFirstCards();
+        this.opponent.distributeFirstCards();
+    }
+
     public showBet(value: string, player: number): void {
 
         if (player === ALICE) {
@@ -70,5 +76,10 @@ export class TableContainer extends Phaser.GameObjects.Container {
         this.opponent.updatePlayer();
 
         this.communityCards.setCards();
+    }
+
+    public onEnd(endData: any): void {
+
+        this.opponent.showCards();
     }
 }

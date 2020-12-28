@@ -62,6 +62,7 @@ export class RoomManager {
         alice.start();
         bob.start();
 
+        RoomScene.currentInstance.distributeFirstCards();
         RoomScene.currentInstance.updateBoard();
     }
 

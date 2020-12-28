@@ -45,7 +45,7 @@ export class CommunityCards extends Phaser.GameObjects.Container {
         let cards = RoomManager.getCommunityCards();
 
         for (let i = 0; i < 5; i++) {
-            this.cards[i].setValue(cards[i]);
+            this.cards[i].showCard(cards[i], i * 100);
         }
     }
 }
