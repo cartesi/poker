@@ -1,6 +1,7 @@
 import { GameVars } from "../../../GameVars";
 import { RoomManager } from "../RoomManager";
 import { Card } from "./Card";
+import {Hand} from "pokersolver";
 
 export class Player extends Phaser.GameObjects.Container {
 
@@ -11,6 +12,7 @@ export class Player extends Phaser.GameObjects.Container {
     private cards: Card[];
     private funds: Phaser.GameObjects.Text;
     private bet: Phaser.GameObjects.Text;
+    private hand: Phaser.GameObjects.Text;
 
     private isPlayer: boolean;
     private showingBet: boolean;
@@ -19,7 +21,7 @@ export class Player extends Phaser.GameObjects.Container {
 
         super(scene);
 
-        this.isPlayer = isPlayer; 
+        this.isPlayer = isPlayer;
 
         this.setScalesAndPostions();
 
@@ -62,6 +64,10 @@ export class Player extends Phaser.GameObjects.Container {
         this.funds = new Phaser.GameObjects.Text(this.scene, 90, 48, "???", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#000000"});
         this.funds.setOrigin(.5);
         this.add(this.funds);
+
+        this.hand = new Phaser.GameObjects.Text(this.scene,  90, 18, "", {fontFamily: "Oswald-Medium", fontSize: "16px", color: "#000000"});
+        this.hand.setOrigin(.5);
+        this.add(this.hand);
     }
 
     public setScalesAndPostions(): void {
@@ -123,6 +129,7 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.setFunds();
         this.setBet();
+        this.setHand();
     }
 
     public setFunds(): void {
@@ -132,6 +139,24 @@ export class Player extends Phaser.GameObjects.Container {
         }
 
         this.funds.text = (this.isPlayer ? RoomManager.getPlayerFunds().toString() : RoomManager.getOpponentFunds().toString());
+    }
+
+    public setHand(): void {
+
+        let auxCards = (this.isPlayer ? RoomManager.getPlayerCards() : RoomManager.getOpponentCards()).concat(RoomManager.getCommunityCards());
+        let cards = [];
+        for (let i = 0; i < auxCards.length; i++) {
+            if (auxCards[i]) {
+                cards.push(this.getCardString(auxCards[i]));
+            }
+        }
+
+        if (cards.length) {
+            var hand = Hand.solve(cards);
+            this.hand.setText(hand.descr);
+        } else {
+            this.hand.setText("");
+        }
     }
 
     public showBet(value: string): void {
@@ -148,5 +173,50 @@ export class Player extends Phaser.GameObjects.Container {
     public setBet(): void {
 
         this.bet.text = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
+    }
+
+    private getCardString(card: {value: number, suit: number}) {
+
+        let str = "";
+
+        switch (card.value) {
+            case 0:
+                str += "A";
+                break;
+            case 9:
+                str += "T";
+                break;
+            case 10:
+                str += "J";
+                break;
+            case 11:
+                str += "Q";
+                break;
+            case 12:
+                str += "K";
+                break;
+            default:
+                str += (card.value + 1);
+                break;
+        }
+
+        switch (card.suit) {
+            case 0:
+                str += "c";
+                break;
+            case 1:
+                str += "d";
+                break;
+            case 2:
+                str += "h";
+                break;
+            case 3:
+                str += "s";
+                break;
+            default:
+                break;
+        }
+
+        return str;
     }
 }

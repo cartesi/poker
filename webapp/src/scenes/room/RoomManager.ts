@@ -188,7 +188,7 @@ export class RoomManager {
         
         setTimeout(() => {
             RoomManager.startRound();
-        }, 2000);
+        }, 5000);
     }
 
     private static onAutomaticBet(player): void {

@@ -60,7 +60,7 @@ export class GUI extends Phaser.GameObjects.Container {
             this.midContainer.setScale(1.3 + (0.55 - GameVars.scaleY) * 3, (1.3 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
 
             this.topContainer.setScale(1, GameVars.scaleY);
-            this.topBackground.setScale(1, GameVars.scaleY);
+            this.topBackground.setScale(1, .75);
         }
     }
 
