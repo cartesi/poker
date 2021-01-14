@@ -16,7 +16,7 @@ window.onload = () => {
 
         version: GameConstants.VERSION,
         type: Phaser.AUTO,
-        backgroundColor: "003300",
+        backgroundColor: "041A49",
         dom: {
             createContainer: true
         },

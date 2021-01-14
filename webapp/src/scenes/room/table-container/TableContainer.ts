@@ -2,11 +2,11 @@ import { GameVars } from "./../../../GameVars";
 import { CommunityCards } from "./CommunityCards";
 import { Player } from "./Player";
 import { GameConstants } from "../../../GameConstants";
-import { Table } from "./Table";
 
 export class TableContainer extends Phaser.GameObjects.Container {
 
-    private table: Table;
+    private gradient: Phaser.GameObjects.Image;
+    private table: Phaser.GameObjects.Image;
 
     private player: Player;
     private opponent: Player;
@@ -20,7 +20,11 @@ export class TableContainer extends Phaser.GameObjects.Container {
         this.x = GameConstants.GAME_WIDTH / 2;
         this.y = GameConstants.GAME_HEIGHT / 2;
 
-        this.table = new Table(this.scene);
+        this.gradient = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "bg_gradient");
+        this.gradient.setScale(2);
+        this.add(this.gradient);
+
+        this.table = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "table");
         this.add(this.table);
 
         this.communityCards = new CommunityCards(this.scene);
@@ -49,7 +53,16 @@ export class TableContainer extends Phaser.GameObjects.Container {
             this.setScale(1.3 + (0.55 - GameVars.scaleY) * 3);
         }
 
-        this.table.setScalesAndPostions();
+        let reducedScale = .8;
+
+        if (GameVars.landscape) {
+            this.table.setScale(reducedScale * GameVars.scaleX, reducedScale);
+            this.table.setAngle(0);
+        } else {
+            this.table.setScale(GameVars.scaleY, 1);
+            this.table.setAngle(90);
+        }
+
         this.communityCards.setScalesAndPostions();
         this.player.setScalesAndPostions();
         this.opponent.setScalesAndPostions();

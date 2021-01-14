@@ -1,19 +1,14 @@
+import { BetsButtonsContainer } from "./BetsButtonsContainer";
 import { GameConstants } from "./../../../GameConstants";
 import { GameVars } from "../../../GameVars";
 import { RoomManager } from "../RoomManager";
-import { Button } from "./Button";
 
 export class HUD extends Phaser.GameObjects.Container {
 
-    private startButton: Button;
+    private menuButton: Phaser.GameObjects.Image;
 
-    private betsContainer: Phaser.GameObjects.Container;
+    private betsButtonsContainer: BetsButtonsContainer;
     private topContainer: Phaser.GameObjects.Container;
-    private call: Button;
-    private check: Button;
-    private fold: Button;
-    private raise: Button;
-    private raiseInput: Phaser.GameObjects.DOMElement;
 
     constructor(scene: Phaser.Scene) {
 
@@ -22,31 +17,20 @@ export class HUD extends Phaser.GameObjects.Container {
         this.topContainer = new Phaser.GameObjects.Container(this.scene);
         this.add(this.topContainer);
 
-        this.betsContainer = new Phaser.GameObjects.Container(this.scene);
-        this.betsContainer.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT);
-        this.add(this.betsContainer);
+        this.menuButton = new Phaser.GameObjects.Image(this.scene, 50, 50, "texture_atlas_1", "btn_menu");
+        this.menuButton.setInteractive();
+        this.menuButton.on("pointerover", () => {
+            this.menuButton.setScale(1.05);
+        }, this);
+        this.menuButton.on("pointerout", () => {
+            this.menuButton.setScale(1);
+        }, this);
+        this.topContainer.add(this.menuButton);
 
-        this.call = new Button(this.scene, -300, -52, "btn_blue", "CALL", RoomManager.playerCall);
-        this.betsContainer.add(this.call);
-
-        this.check = new Button(this.scene, -150, -52, "btn_blue", "CHECK", RoomManager.playerCheck);
-        this.betsContainer.add(this.check);
-
-        this.fold = new Button(this.scene, 0, -52, "btn_red", "FOLD", RoomManager.playerFold);
-        this.betsContainer.add(this.fold);
-
-        this.raise = new Button(this.scene, 150, -52, "btn_blue", "RAISE", () => {
-            const inputText = <any> this.raiseInput.getChildByName("raiseField");
-            let value = parseInt(inputText.value);
-            RoomManager.playerRaise(value);
-        });
-        this.betsContainer.add(this.raise);
-        
-        this.raiseInput = this.scene.add.dom(300, -52);
-        this.raiseInput.createFromCache("raiseform");
-        this.betsContainer.add(this.raiseInput);
-
-        this.removeBetButtons();
+        this.betsButtonsContainer = new BetsButtonsContainer(this.scene);
+        this.betsButtonsContainer.visible = false;
+        this.betsButtonsContainer.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT);
+        this.add(this.betsButtonsContainer);
 
         this.setScalesAndPostions();
         
@@ -57,30 +41,28 @@ export class HUD extends Phaser.GameObjects.Container {
         if (GameVars.landscape) {
             if (GameVars.scaleX > 1.2) {
                 this.topContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
-                this.betsContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+                this.betsButtonsContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
             } else {
                 this.topContainer.setScale(GameVars.scaleX, 1);
-                this.betsContainer.setScale(GameVars.scaleX, 1);
+                this.betsButtonsContainer.setScale(GameVars.scaleX, 1);
             }
         } else {
             this.topContainer.setScale(1.2, GameVars.scaleY * 1.2);
-            this.betsContainer.setScale(1.2, GameVars.scaleY * 1.2);
+            this.betsButtonsContainer.setScale(1.2, GameVars.scaleY * 1.2);
         }
 
+        if (this.betsButtonsContainer.visible) {
+            this.betsButtonsContainer.setButtons();
+        }
     }
 
     public removeBetButtons(): void {
 
-        this.betsContainer.visible = false;
+        this.betsButtonsContainer.visible = false;
     }
 
     public showBetButtons(): void {
 
-        this.betsContainer.visible = true;
-
-        this.call.activate(RoomManager.getPlayerBets() < RoomManager.getOpponentBets());
-        this.check.activate(RoomManager.getPlayerBets() === RoomManager.getOpponentBets());
-        this.fold.activate(RoomManager.getPlayerBets() !== RoomManager.getOpponentBets());
-        this.fold.activate(RoomManager.getPlayerFunds() > RoomManager.getOpponentBets());
+        this.betsButtonsContainer.show();
     } 
 }

@@ -5,7 +5,6 @@ import { RoomManager } from "../RoomManager";
 export class GUI extends Phaser.GameObjects.Container {
 
     private topContainer: Phaser.GameObjects.Container;
-    private topBackground: Phaser.GameObjects.Graphics;
     private stateText: Phaser.GameObjects.Text;
     private winnerText: Phaser.GameObjects.Text;
 
@@ -15,11 +14,6 @@ export class GUI extends Phaser.GameObjects.Container {
     constructor(scene: Phaser.Scene) {
 
         super(scene);
-
-        this.topBackground = new Phaser.GameObjects.Graphics(this.scene);
-        this.topBackground.fillStyle(0x000000, .75);
-        this.topBackground.fillRect(0, 0, GameConstants.GAME_WIDTH, 50);
-        this.add(this.topBackground);
 
         this.topContainer = new Phaser.GameObjects.Container(this.scene, GameConstants.GAME_WIDTH / 2, 0);
         this.add(this.topContainer);
@@ -53,14 +47,12 @@ export class GUI extends Phaser.GameObjects.Container {
             this.midContainer.y = GameConstants.GAME_HEIGHT / 2;
 
             this.topContainer.setScale(GameVars.scaleX, 1);
-            this.topBackground.setScale(1);
         } else {
 
             this.midContainer.y = GameConstants.GAME_HEIGHT / 2 - 30;
             this.midContainer.setScale(1.3 + (0.55 - GameVars.scaleY) * 3, (1.3 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
 
             this.topContainer.setScale(1, GameVars.scaleY);
-            this.topBackground.setScale(1, .75);
         }
     }
 
