@@ -195,6 +195,19 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">texture_atlas_1/bg_gradient.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>137,111,273,221</rect>
+                <key>scale9Paddings</key>
+                <rect>137,111,273,221</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">texture_atlas_1/btn_blue.png</key>
             <key type="filename">texture_atlas_1/btn_red.png</key>
             <key type="filename">texture_atlas_1/btn_yellow.png</key>
@@ -207,6 +220,77 @@
                 <rect>35,22,70,44</rect>
                 <key>scale9Paddings</key>
                 <rect>35,22,70,44</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/btn_call.png</key>
+            <key type="filename">texture_atlas_1/btn_check.png</key>
+            <key type="filename">texture_atlas_1/btn_fold.png</key>
+            <key type="filename">texture_atlas_1/btn_raise.png</key>
+            <key type="filename">texture_atlas_1/btn_raise_slide.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>3,18,5,35</rect>
+                <key>scale9Paddings</key>
+                <rect>3,18,5,35</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/btn_divider.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>3,20,5,40</rect>
+                <key>scale9Paddings</key>
+                <rect>3,20,5,40</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/btn_menu.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>18,18,35,35</rect>
+                <key>scale9Paddings</key>
+                <rect>18,18,35,35</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/btn_minus.png</key>
+            <key type="filename">texture_atlas_1/btn_plus.png</key>
+            <key type="filename">texture_atlas_1/btn_slide_marker.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>11,11,23,23</rect>
+                <key>scale9Paddings</key>
+                <rect>11,11,23,23</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/capsule.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>64,20,128,39</rect>
+                <key>scale9Paddings</key>
+                <rect>64,20,128,39</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
@@ -236,29 +320,107 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">texture_atlas_1/table_border.png</key>
+            <key type="filename">texture_atlas_1/mark_card.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>97,109,193,217</rect>
+                <rect>17,23,33,45</rect>
                 <key>scale9Paddings</key>
-                <rect>97,109,193,217</rect>
+                <rect>17,23,33,45</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">texture_atlas_1/table_tile.png</key>
+            <key type="filename">texture_atlas_1/slide_bar.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>25,109,50,217</rect>
+                <rect>64,18,127,35</rect>
                 <key>scale9Paddings</key>
-                <rect>25,109,50,217</rect>
+                <rect>64,18,127,35</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/table.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>211,109,421,217</rect>
+                <key>scale9Paddings</key>
+                <rect>211,109,421,217</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/txt_call.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>32,10,64,19</rect>
+                <key>scale9Paddings</key>
+                <rect>32,10,64,19</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/txt_check.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>38,10,75,19</rect>
+                <key>scale9Paddings</key>
+                <rect>38,10,75,19</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/txt_fold.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>32,12,64,24</rect>
+                <key>scale9Paddings</key>
+                <rect>32,12,64,24</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/txt_raise.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>30,10,60,19</rect>
+                <key>scale9Paddings</key>
+                <rect>30,10,60,19</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/txtbox_raise.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>27,15,55,30</rect>
+                <key>scale9Paddings</key>
+                <rect>27,15,55,30</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>

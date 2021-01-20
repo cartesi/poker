@@ -10,6 +10,8 @@ export class GameVars {
 
     public static playerFunds: number;
     public static opponentFunds: number;
+
+    public static raiseValue: number;
   
     public static formatNumber(value: number): string {
 

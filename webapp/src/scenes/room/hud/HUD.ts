@@ -39,13 +39,15 @@ export class HUD extends Phaser.GameObjects.Container {
     public setScalesAndPostions(): void {
         
         if (GameVars.landscape) {
-            if (GameVars.scaleX > 1.2) {
-                this.topContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
-                this.betsButtonsContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
-            } else {
-                this.topContainer.setScale(GameVars.scaleX, 1);
-                this.betsButtonsContainer.setScale(GameVars.scaleX, 1);
-            }
+            // if (GameVars.scaleX > 1.2) {
+            //     this.topContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+            //     this.betsButtonsContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+            // } else {
+            //     this.topContainer.setScale(GameVars.scaleX, 1);
+            //     this.betsButtonsContainer.setScale(GameVars.scaleX, 1);
+            // }
+            this.topContainer.setScale(GameVars.scaleX, 1);
+            this.betsButtonsContainer.setScale(GameVars.scaleX, 1);
         } else {
             this.topContainer.setScale(1.2, GameVars.scaleY * 1.2);
             this.betsButtonsContainer.setScale(1.2, GameVars.scaleY * 1.2);
@@ -63,6 +65,8 @@ export class HUD extends Phaser.GameObjects.Container {
 
     public showBetButtons(): void {
 
+        GameVars.raiseValue = 1;
+        
         this.betsButtonsContainer.show();
     } 
 }

@@ -10,6 +10,7 @@ export class RoomManager {
 
         GameVars.playerFunds = 100;
         GameVars.opponentFunds = 100;
+        GameVars.raiseValue = 1;
     }
 
     public static startRound(reset?: boolean): void {
@@ -17,6 +18,7 @@ export class RoomManager {
         if (reset) {
             GameVars.playerFunds = 100;
             GameVars.opponentFunds = 100;
+            GameVars.raiseValue = 1;
         }
 
         if (GameVars.playerFunds < 2) {
@@ -95,6 +97,11 @@ export class RoomManager {
         let cards: string[] = RoomManager.games[ALICE].getCommunityCards();
 
         return cards.map(RoomManager.getCardSuitValue);
+    }
+
+    public static getMaxRaise(): number {
+
+        return RoomManager.getPlayerFunds() - RoomManager.getOpponentBets();
     }
 
     public static getState(): number {
