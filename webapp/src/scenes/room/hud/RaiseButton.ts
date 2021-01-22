@@ -20,11 +20,15 @@ export class RaiseButton extends Phaser.GameObjects.Container {
         bckImage.on("pointerdown", this.onDown, this);
         this.add(bckImage);
 
-        let textImage = new Phaser.GameObjects.Image(this.scene, - (bckImage.width * bckImage.scaleX) / 2 + 5, -32, "texture_atlas_1", "txt_raise");
-        textImage.setOrigin(0, .5);
-        this.add(textImage);
+        let text = new Phaser.GameObjects.Image(this.scene, - (bckImage.width * bckImage.scaleX) / 2 + 2, -30, "texture_atlas_1", "txt_raise");
+        text.setOrigin(.0, .5);
+        this.add(text);
 
-        let boxImage = new Phaser.GameObjects.Image(this.scene, textImage.x + textImage.width + 2, -35, "texture_atlas_1", "txtbox_raise");
+        let icon = new Phaser.GameObjects.Image(this.scene, text.x + text.width, -32, "texture_atlas_1", "icon_raise");
+        icon.setOrigin(0, .5);
+        this.add(icon);
+
+        let boxImage = new Phaser.GameObjects.Image(this.scene, icon.x + icon.width, -35, "texture_atlas_1", "txtbox_raise");
         boxImage.setOrigin(0, .5);
         this.add(boxImage);
 

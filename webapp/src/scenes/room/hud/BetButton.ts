@@ -20,45 +20,31 @@ export class BetButton extends Phaser.GameObjects.Container {
         bckImage.on("pointerdown", this.onDown, this);
         this.add(bckImage);
 
-        let textImage = new Phaser.GameObjects.Image(this.scene, 0, -30, "texture_atlas_1", "txt_" + betType.toLowerCase());
-        this.add(textImage);
+        let text = new Phaser.GameObjects.Image(this.scene, -15, -30, "texture_atlas_1", "txt_" + betType.toLowerCase());
+        this.add(text);
 
-        // TODO: añadir texto con valor de call
-        // if (betType === GameConstants.ACTION_CALL) {
+        let icon = new Phaser.GameObjects.Image(this.scene, text.x + text.width / 2, -30, "texture_atlas_1", "icon_" + betType.toLowerCase());
+        icon.setOrigin(0, .5);
+        this.add(icon);
 
-        //     let betValue = (RoomManager.getOpponentBets() - RoomManager.getPlayerBets());
+        switch (betType) {
+            case GameConstants.ACTION_CALL:
 
-        //     let textValue = new Phaser.GameObjects.Text(this.scene, 33, -32, " " + betValue + "000 ", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
-        //     textValue.setOrigin(0, .5);
-        //     textValue.setShadow(2, 2, "#000000", 5);
-        //     this.add(textValue);
-
-        //     textImage.x = 30;
-        //     textImage.setOrigin(1, .5);
-
-        //     console.log(textValue.text.length);
-
-        //     switch (textValue.text.length) {
-        //         case 3:
-        //             textImage.x = 42 * GameVars.scaleX;
-        //             textValue.x = 42 * GameVars.scaleX;
-        //             break;
-        //         case 4:
-        //             textImage.x = 37 * GameVars.scaleX;
-        //             textValue.x = 47 * GameVars.scaleX; 
-        //             break;
-        //         case 5:
-        //             textImage.x = 30 * GameVars.scaleX;
-        //             textValue.x = 30 * GameVars.scaleX;
-        //             break;
-        //         case 6: 
-        //             textImage.x = 28 * GameVars.scaleX;
-        //             textValue.x = 28 * GameVars.scaleX;
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        // }
+                text.x = -50;
+                icon.x = text.x + text.width / 2;
+                let betValue = (RoomManager.getOpponentBets() - RoomManager.getPlayerBets());
+                let textValue = new Phaser.GameObjects.Text(this.scene, icon.x + icon.width / 2 + 15, -32, " " + betValue + " ", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
+                textValue.setOrigin(0, .5);
+                textValue.setShadow(2, 2, "#000000", 5);
+                this.add(textValue);
+                break;
+            case GameConstants.ACTION_CHECK:
+                break;
+            case GameConstants.ACTION_FOLD:
+                break;
+            default:
+                break;
+        }
 
     }
 

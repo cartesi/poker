@@ -24,37 +24,43 @@ export class BetsButtonsContainer extends Phaser.GameObjects.Container {
 
         let scaleX = Math.min(GameVars.scaleX, 1.2);
 
+        if (GameVars.landscape) {
+            if (GameVars.scaleX > 1.2) {
+                scaleX = 1;
+            }
+        }
+
         if (RoomManager.getPlayerBets() < RoomManager.getOpponentBets()) {
 
             if (GameVars.landscape) {
-                let foldButton = new BetButton(this.scene, GameConstants.ACTION_FOLD, -402 / scaleX, 16 / scaleX);
+                let foldButton = new BetButton(this.scene, GameConstants.ACTION_FOLD, -414 / scaleX, 14 / scaleX);
                 this.add(foldButton);
     
-                let callButton = new BetButton(this.scene, GameConstants.ACTION_CALL, -207 / scaleX, 23 / scaleX);
+                let callButton = new BetButton(this.scene, GameConstants.ACTION_CALL, -237 / scaleX, 21.5 / scaleX);
                 this.add(callButton);
     
-                let raiseButton = new RaiseButton(this.scene, 195 / scaleX, 57.4 / scaleX);
+                let raiseButton = new RaiseButton(this.scene, 175 / scaleX, 61 / scaleX);
                 this.add(raiseButton);
     
-                let btn_divider = new Phaser.GameObjects.Image(this.scene, foldButton.x + 80 / scaleX, -35, "texture_atlas_1", "btn_divider");
+                let btn_divider = new Phaser.GameObjects.Image(this.scene, foldButton.x + 69 / scaleX, -35, "texture_atlas_1", "btn_divider");
                 this.add(btn_divider);
     
-                btn_divider = new Phaser.GameObjects.Image(this.scene, callButton.x + 115 / scaleX, -35, "texture_atlas_1", "btn_divider");
+                btn_divider = new Phaser.GameObjects.Image(this.scene, callButton.x + 106 / scaleX, -35, "texture_atlas_1", "btn_divider");
                 this.add(btn_divider);
             } else {
-                let foldButton = new BetButton(this.scene, GameConstants.ACTION_FOLD, -330, 14);
+                let foldButton = new BetButton(this.scene, GameConstants.ACTION_FOLD, -340, 12);
                 this.add(foldButton);
     
-                let callButton = new BetButton(this.scene, GameConstants.ACTION_CALL, -170, 18);
+                let callButton = new BetButton(this.scene, GameConstants.ACTION_CALL, -190, 18);
                 this.add(callButton);
     
-                let raiseButton = new RaiseButton(this.scene, 160, 48);
+                let raiseButton = new RaiseButton(this.scene, 150, 50.2);
                 this.add(raiseButton);
     
-                let btn_divider = new Phaser.GameObjects.Image(this.scene, foldButton.x + 70, -35, "texture_atlas_1", "btn_divider");
+                let btn_divider = new Phaser.GameObjects.Image(this.scene, foldButton.x + 60, -35, "texture_atlas_1", "btn_divider");
                 this.add(btn_divider);
     
-                btn_divider = new Phaser.GameObjects.Image(this.scene, callButton.x + 90, -35, "texture_atlas_1", "btn_divider");
+                btn_divider = new Phaser.GameObjects.Image(this.scene, callButton.x + 88, -35, "texture_atlas_1", "btn_divider");
                 this.add(btn_divider);
             }
         } else {

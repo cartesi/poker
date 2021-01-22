@@ -26,8 +26,7 @@ export class GUI extends Phaser.GameObjects.Container {
         let boxBackground = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "txtbox_info_top");
         this.infoBoxContainer.add(boxBackground);
 
-        let blindText = new Phaser.GameObjects.Text(this.scene, -10, 0, " BLINDS ", {fontFamily: "WhoopAss", fontSize: "30px", color: "#FFFFFF"});
-        blindText.setOrigin(.5);
+        let blindText = new Phaser.GameObjects.Image(this.scene, 10, 0, "texture_atlas_1", "txt_blinds");
         blindText.setOrigin(1, .5);
         this.infoBoxContainer.add(blindText);
 

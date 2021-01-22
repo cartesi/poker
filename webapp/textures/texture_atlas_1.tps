@@ -359,6 +359,19 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">texture_atlas_1/txt_box_names.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>40,9,80,17</rect>
+                <key>scale9Paddings</key>
+                <rect>40,9,80,17</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">texture_atlas_1/txt_call.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -408,6 +421,19 @@
                 <rect>30,10,60,19</rect>
                 <key>scale9Paddings</key>
                 <rect>30,10,60,19</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/txtbox_info_top.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>76,15,151,29</rect>
+                <key>scale9Paddings</key>
+                <rect>76,15,151,29</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
