@@ -13,9 +13,32 @@ export class BetsButtonsContainer extends Phaser.GameObjects.Container {
 
     public show(): void {
 
-        this.visible = true;
-
         this.setButtons();
+
+        this.visible = true;
+        this.y = GameConstants.GAME_HEIGHT + 200;
+
+        this.scene.tweens.add({
+            targets: this,
+            y: GameConstants.GAME_HEIGHT,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 500
+        });
+
+    }
+
+    public hide(): void {
+
+        this.scene.tweens.add({
+            targets: this,
+            y: GameConstants.GAME_HEIGHT + 200,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 500,
+            onComplete: () => {
+                this.visible = false;
+            },
+            onCompleteScope: this
+        });
     }
 
     public setButtons(): void {

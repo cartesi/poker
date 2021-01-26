@@ -58,7 +58,7 @@ export class HUD extends Phaser.GameObjects.Container {
 
     public removeBetButtons(): void {
 
-        this.betsButtonsContainer.visible = false;
+        this.betsButtonsContainer.hide();
     }
 
     public showBetButtons(): void {

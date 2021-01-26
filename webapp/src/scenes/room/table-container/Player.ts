@@ -47,7 +47,7 @@ export class Player extends Phaser.GameObjects.Container {
         chip.setScale(.9);
         this.add(chip);
 
-        this.bet = new Phaser.GameObjects.Text(this.scene, isPlayer ? 122 : -98, isPlayer ? -30 : 85, "???", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        this.bet = new Phaser.GameObjects.Text(this.scene, isPlayer ? 122 : -98, isPlayer ? -30 : 85, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
         this.bet.setOrigin(0, .5);
         this.add(this.bet);
 
@@ -72,7 +72,7 @@ export class Player extends Phaser.GameObjects.Container {
         let capsule = new Phaser.GameObjects.Image(this.scene, 0, 40, "texture_atlas_1", "capsule");
         this.add(capsule);
 
-        this.funds = new Phaser.GameObjects.Text(this.scene, 0, 42, "???", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
+        this.funds = new Phaser.GameObjects.Text(this.scene, 0, 42, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
         this.funds.setOrigin(.5);
         this.add(this.funds);
 
@@ -178,7 +178,7 @@ export class Player extends Phaser.GameObjects.Container {
         setTimeout(() => {
             this.showingBet = false;
             this.setFunds();
-        }, 1000);
+        }, 2000);
     }
 
     public setBet(): void {
@@ -187,6 +187,69 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.betBck.clear();
         this.betBck.fillRoundedRect(this.bet.x - 33, this.bet.y - 16, this.bet.width + 45, 30, 15);
+    }
+
+    public startOpponentTurn(): void {
+
+        this.bringToTop(this.cards[0]);
+        this.bringToTop(this.cards[1]);
+
+        this.scene.tweens.add({
+            targets: this.cards[0],
+            scaleX: .5,
+            scaleY: .5,
+            angle: -5,
+            x: 170 - 15,
+            y: 30,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 150
+        });
+
+        this.scene.tweens.add({
+            targets: this.cards[1],
+            scaleX: .5,
+            scaleY: .5,
+            angle: 5,
+            x: 170 + 15,
+            y: 30,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 150
+        });
+    }
+
+    public endOpponentTurn(): void {
+
+        this.scene.tweens.add({
+            targets: this.cards[0],
+            scaleX: .8,
+            scaleY: .8,
+            angle: 0,
+            x: -40,
+            y: -20,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 150,
+            onComplete: () => {
+                this.sendToBack(this.cards[0]);
+                this.sendToBack(this.cards[1]);
+            },
+            onCompleteScope: this
+        });
+
+        this.scene.tweens.add({
+            targets: this.cards[1],
+            scaleX: .8,
+            scaleY: .8,
+            angle: 0,
+            x: 40,
+            y: -20,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 150,
+            onComplete: () => {
+                this.sendToBack(this.cards[0]);
+                this.sendToBack(this.cards[1]);
+            },
+            onCompleteScope: this
+        });
     }
 
     private getCardString(card: {value: number, suit: number}) {

@@ -9,14 +9,14 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
     private btnMarker: Phaser.GameObjects.Image;
     private btnMinus: Phaser.GameObjects.Image;
     private btnPlus: Phaser.GameObjects.Image;
-    private canMove: boolean;
+    private isDown: boolean;
 
     constructor(scene: Phaser.Scene, raiseButton: RaiseButton, initialX: number, totalWidth: number) {
 
         super(scene);
 
         this.raiseButton = raiseButton;
-        this.canMove = false;
+        this.isDown = false;
         this.x = initialX + 5;
 
         let bckImage = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "btn_raise_slide");
@@ -61,14 +61,14 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
         this.btnMarker = new Phaser.GameObjects.Image(this.scene, this.btnMinus.x + (this.btnPlus.x - this.btnMinus.x) / 2, -34, "texture_atlas_1", "btn_slide_marker");
         this.btnMarker.setInteractive();
         this.btnMarker.on("pointerdown", () => {
-            this.canMove = true;
+            this.isDown = true;
         }, this);
         this.btnMarker.on("pointerup", () => {
-            this.canMove = false;
+            this.isDown = false;
         }, this);
-        this.btnMarker.on("pointerout", () => {
-            this.canMove = false;
-        }, this);
+        // this.btnMarker.on("pointerout", () => {
+        //     this.isDown = false;
+        // }, this);
         this.add(this.btnMarker);
 
         this.updateMarker();
@@ -78,8 +78,19 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
 
     public preUpdate(time: number, delta: number): void {
 
-        if (this.canMove) {
-            let x = (this.scene.input.activePointer.x - this.x * GameVars.scaleX - this.raiseButton.x * GameVars.scaleX - GameConstants.GAME_WIDTH / 2) / GameVars.scaleX;
+        if (this.isDown) {
+
+            let scaleX = Math.min(GameVars.scaleX, 1.2);
+
+            if (GameVars.landscape) {
+                if (GameVars.scaleX > 1.2) {
+                    scaleX = 1;
+                }
+            } else {
+                scaleX = 1.2;
+            }
+
+            let x = (this.scene.input.activePointer.x - this.x * scaleX - this.raiseButton.x * scaleX - GameConstants.GAME_WIDTH / 2) / scaleX;
 
             if (x < this.btnMinus.x + this.btnMinus.width) {
                 x = this.btnMinus.x + this.btnMinus.width;
@@ -100,6 +111,10 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
 
             this.raiseButton.updateRaiseValue(x);
         } 
+
+        if (!this.scene.input.activePointer.isDown) {
+            this.isDown = false;
+        }
     }
 
     public updateMarker(): void {

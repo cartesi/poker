@@ -27,6 +27,7 @@ export class Card extends Phaser.GameObjects.Container {
         if (!card) {
             this.visible = false;
             this.alpha = 0;
+            this.image.setFrame("card-back");
         } else {
             if (this.image.frame.name === (card.suit + "_" + (card.value + 1))) {
                 return;

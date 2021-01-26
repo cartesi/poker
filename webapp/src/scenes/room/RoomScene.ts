@@ -64,7 +64,9 @@ export class RoomScene extends Phaser.Scene {
 
     public showBetButtons(): void {
 
-        this.hud.showBetButtons();
+        setTimeout(() => {
+            this.hud.showBetButtons();
+        }, 2000);
     }
 
     public onEnd(endData: any): void {
@@ -76,5 +78,15 @@ export class RoomScene extends Phaser.Scene {
     public showBet(value: string, player: number): void {
 
         this.tableContainer.showBet(value, player);
+    }
+
+    public startOpponentTurn(): void {
+
+        this.tableContainer.startOpponentTurn();
+    }
+
+    public endOpponentTurn(): void {
+
+        this.tableContainer.endOpponentTurn();
     }
 }

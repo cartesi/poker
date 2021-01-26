@@ -161,7 +161,9 @@ export class RoomManager {
 
     public static updateBoard(): void {
 
-        RoomScene.currentInstance.updateBoard();
+        setTimeout(() => {
+            RoomScene.currentInstance.updateBoard();
+        }, 1000);
     }
 
     public static removeBetButtons(): void {
@@ -188,17 +190,23 @@ export class RoomManager {
 
         let endData = RoomManager.games[ALICE].getResult();
 
-        RoomScene.currentInstance.onEnd(endData);
+        setTimeout(() => {
+            RoomScene.currentInstance.onEnd(endData);
 
-        GameVars.playerFunds = endData.fundsShare[ALICE];
-        GameVars.opponentFunds = endData.fundsShare[BOB];
+            GameVars.playerFunds = endData.fundsShare[ALICE];
+            GameVars.opponentFunds = endData.fundsShare[BOB];
+        }, 2000);
         
         setTimeout(() => {
             RoomManager.startRound();
-        }, 5000);
+        }, 8000);
     }
 
     private static onAutomaticBet(player): void {
+
+        setTimeout(() => {
+            RoomScene.currentInstance.startOpponentTurn();
+        }, 2000);
 
         setTimeout(() => {
             if (RoomManager.games[player]) {
@@ -221,6 +229,7 @@ export class RoomManager {
                             RoomManager.games[player].raise(amount);
                             RoomManager.showBet(GameConstants.ACTION_RAISE, player);
                         }
+                        RoomScene.currentInstance.endOpponentTurn();
                         break;
                     } catch (e) {
                         // bet choice not allowed, remove that possibility and try again
@@ -230,7 +239,7 @@ export class RoomManager {
             }
 
             RoomManager.updateBoard();
-        }, 2000);
+        }, 6000);
     }
 
     private static getCardSuitValue(card: string): {value: number, suit: number} {
