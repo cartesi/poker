@@ -28,11 +28,11 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
         }, this);
         this.add(bckImage);
 
-        let bar = new Phaser.GameObjects.Image(this.scene, 0, -34, "texture_atlas_1", "slide_bar");
+        let bar = new Phaser.GameObjects.Image(this.scene, 0, -44, "texture_atlas_1", "slide_bar");
         bar.setOrigin(0, .5);
         this.add(bar);
 
-        this.btnMinus = new Phaser.GameObjects.Image(this.scene, 30, -34, "texture_atlas_1", "btn_minus");
+        this.btnMinus = new Phaser.GameObjects.Image(this.scene, 40, -44, "texture_atlas_1", "btn_minus");
         this.btnMinus.setInteractive();
         this.btnMinus.on("pointerdown", this.onMinusDown, this);
         this.btnMinus.on("pointerover", () => {
@@ -43,7 +43,7 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
         }, this);
         this.add(this.btnMinus);
 
-        this.btnPlus = new Phaser.GameObjects.Image(this.scene, totalWidth / 2 - this.x, -34, "texture_atlas_1", "btn_plus");
+        this.btnPlus = new Phaser.GameObjects.Image(this.scene, totalWidth / 2 - this.x, -44, "texture_atlas_1", "btn_plus");
         this.btnPlus.x -= this.btnPlus.width / 2 + 10;
         this.btnPlus.setInteractive();
         this.btnPlus.on("pointerdown", this.onPlusDown, this);
@@ -58,7 +58,7 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
         bar.x = this.btnMinus.x;
         bar.scaleX = (this.btnPlus.x - this.btnMinus.x) / bar.width;
 
-        this.btnMarker = new Phaser.GameObjects.Image(this.scene, this.btnMinus.x + (this.btnPlus.x - this.btnMinus.x) / 2, -34, "texture_atlas_1", "btn_slide_marker");
+        this.btnMarker = new Phaser.GameObjects.Image(this.scene, this.btnMinus.x + (this.btnPlus.x - this.btnMinus.x) / 2, -44, "texture_atlas_1", "btn_slide_marker");
         this.btnMarker.setInteractive();
         this.btnMarker.on("pointerdown", () => {
             this.isDown = true;

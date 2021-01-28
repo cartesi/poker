@@ -3,8 +3,8 @@ export class GameConstants {
     public static readonly VERSION = "0.0";
     public static readonly DEVELOPMENT = true;
     public static readonly VERBOSE = false;
-    public static readonly GAME_WIDTH = 960;
-    public static readonly GAME_HEIGHT = 640;
+    public static readonly GAME_WIDTH = 1280;
+    public static readonly GAME_HEIGHT = 853;
 
     public static readonly STATES = ["START", "PREFLOP", "FLOP", "TURN", "RIVER", "SHOWDOWN", "END"];
     

@@ -6,7 +6,6 @@ import { RoomManager } from "../RoomManager";
 export class GUI extends Phaser.GameObjects.Container {
 
     private topContainer: Phaser.GameObjects.Container;
-    private infoBoxContainer: Phaser.GameObjects.Container;
 
     private midContainer: Phaser.GameObjects.Container; 
     private potText: Phaser.GameObjects.Text;
@@ -20,28 +19,14 @@ export class GUI extends Phaser.GameObjects.Container {
         this.topContainer = new Phaser.GameObjects.Container(this.scene, GameConstants.GAME_WIDTH / 2, 0);
         this.add(this.topContainer);
 
-        this.infoBoxContainer = new Phaser.GameObjects.Container(this.scene, 0, 40);
-        this.topContainer.add(this.infoBoxContainer);
-
-        let boxBackground = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "txtbox_info_top");
-        this.infoBoxContainer.add(boxBackground);
-
-        let blindText = new Phaser.GameObjects.Image(this.scene, 35, 0, "texture_atlas_1", "txt_blinds");
-        blindText.setOrigin(1, .5);
-        this.infoBoxContainer.add(blindText);
-
-        let blindValues = new Phaser.GameObjects.Text(this.scene, 50, 0, " 1/2 ", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#ffdf29"});
-        blindValues.setOrigin(0, .5);
-        this.infoBoxContainer.add(blindValues);
-
         this.midContainer = new Phaser.GameObjects.Container(this.scene, GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT / 2);
         this.add(this.midContainer);
 
-        this.potText = new Phaser.GameObjects.Text(this.scene, 0, -60, "POT: 0", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#216652"});
+        this.potText = new Phaser.GameObjects.Text(this.scene, -30, -60, "POT: 0", {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#216652"});
         this.potText.setOrigin(.5);
         this.midContainer.add(this.potText);
 
-        this.potImage = new Phaser.GameObjects.Image(this.scene, this.potText.x + this.potText.width / 2, -58, "texture_atlas_1", "chip");
+        this.potImage = new Phaser.GameObjects.Image(this.scene, this.potText.x + this.potText.width / 2 + 10, -58, "texture_atlas_1", "chip");
         this.potImage.setOrigin(0, .5);
         this.midContainer.add(this.potImage);
 
@@ -64,7 +49,7 @@ export class GUI extends Phaser.GameObjects.Container {
             this.topContainer.setScale(GameVars.scaleX, 1);
         } else {
 
-            this.midContainer.y = GameConstants.GAME_HEIGHT / 2 - 30;
+            this.midContainer.y = GameConstants.GAME_HEIGHT / 2 - 47;
             this.midContainer.setScale(1.3 + (0.55 - GameVars.scaleY) * 3, (1.3 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
 
             this.topContainer.setScale(1, GameVars.scaleY);
@@ -85,7 +70,7 @@ export class GUI extends Phaser.GameObjects.Container {
     public setPotText(): void {
 
         this.potText.text = "POT: " + (RoomManager.getPlayerBets() + RoomManager.getOpponentBets());
-        this.potImage.x = this.potText.x + this.potText.width / 2;
+        this.potImage.x = this.potText.x + this.potText.width / 2 + 10;
     }
 
     public setWinnerText(endData: any): void {

@@ -11,15 +11,14 @@ export class CommunityCards extends Phaser.GameObjects.Container {
         super(scene);
 
         for (let i = 0; i < 5; i++) {
-            let mark = new Phaser.GameObjects.Image(this.scene, -180 + 90 * i, 0, "texture_atlas_1", "mark_card");
-            mark.setScale(1.25);
+            let mark = new Phaser.GameObjects.Image(this.scene, -220 + 110 * i, 0, "texture_atlas_1", "mark_card");
             this.add(mark);
         }
 
         this.cards = [];
 
         for (let i = 0; i < 5; i++) {
-            let card = new Card(this.scene, -180 + 90 * i, 0);
+            let card = new Card(this.scene, -220 + 110 * i, 0);
             card.visible = false;
             this.add(card);
             this.cards.push(card);
@@ -34,6 +33,7 @@ export class CommunityCards extends Phaser.GameObjects.Container {
 
         if (GameVars.landscape) {
             this.setScale(reducedScale * GameVars.scaleX, reducedScale * 1);
+            this.y = 30;
         } else {
             this.setScale(reducedScale * 1, GameVars.scaleY * reducedScale);
             this.y = 0;

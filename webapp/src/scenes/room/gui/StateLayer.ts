@@ -10,13 +10,13 @@ export class StateLayer extends Phaser.GameObjects.Container {
         this.bck = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "phase_shadow");
         this.add(this.bck);
 
-        this.stateText = new Phaser.GameObjects.Text(this.scene, 0, 0, "PRE FLOP", {fontFamily: "Oswald-Medium", fontSize: "50px", color: "#FFFFFF"});
+        this.stateText = new Phaser.GameObjects.Text(this.scene, 0, 0, "PRE FLOP", {fontFamily: "Oswald-Medium", fontSize: "80px", color: "#FFFFFF"});
         this.stateText.setOrigin(.5);
         this.add(this.stateText);
 
         this.alpha = 0;
 
-        this.bck.setScale(this.stateText.width / this.bck.width + 0.5, 1.3);
+        this.bck.setScale(this.stateText.width / this.bck.width + 0.2, 1);
     }
 
     public setText(text: string): void {
@@ -26,7 +26,7 @@ export class StateLayer extends Phaser.GameObjects.Container {
         }
 
         this.stateText.text = text;
-        this.bck.setScale(this.stateText.width / this.bck.width + 0.5, 1.3);
+        this.bck.setScale(this.stateText.width / this.bck.width + 0.2, 1);
 
         this.alpha = 0;
         this.setScale(.75);
@@ -56,7 +56,7 @@ export class StateLayer extends Phaser.GameObjects.Container {
     public setWinnerText(text: string): void {
 
         this.stateText.text = text;
-        this.bck.setScale(this.stateText.width / this.bck.width + 0.5, 1.3);
+        this.bck.setScale(this.stateText.width / this.bck.width + 0.2, 1);
 
         this.alpha = 0;
         this.setScale(.6);

@@ -181,6 +181,11 @@ export class RoomManager {
         RoomScene.currentInstance.showBet(value, player);
     }
 
+    public static showSettingsMenu(): void {
+
+        RoomScene.currentInstance.showSettingsMenu();
+    } 
+
     private static onBetRequested(): void {
         
         RoomManager.showBetButtons();

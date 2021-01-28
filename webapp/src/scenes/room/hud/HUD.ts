@@ -17,13 +17,16 @@ export class HUD extends Phaser.GameObjects.Container {
         this.topContainer = new Phaser.GameObjects.Container(this.scene);
         this.add(this.topContainer);
 
-        this.menuButton = new Phaser.GameObjects.Image(this.scene, 50, 50, "texture_atlas_1", "btn_menu");
+        this.menuButton = new Phaser.GameObjects.Image(this.scene, 60, 60, "texture_atlas_1", "btn_menu");
         this.menuButton.setInteractive();
         this.menuButton.on("pointerover", () => {
             this.menuButton.setScale(1.05);
         }, this);
         this.menuButton.on("pointerout", () => {
             this.menuButton.setScale(1);
+        }, this);
+        this.menuButton.on("pointerup", () => {
+            RoomManager.showSettingsMenu();
         }, this);
         this.topContainer.add(this.menuButton);
 

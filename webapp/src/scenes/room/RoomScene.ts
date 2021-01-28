@@ -1,3 +1,4 @@
+import { SettingsLayer } from './SettingsLayer';
 import { TableContainer } from "./table-container/TableContainer";
 import { RoomManager } from "./RoomManager";
 import { GUI } from "./gui/GUI";
@@ -11,6 +12,7 @@ export class RoomScene extends Phaser.Scene {
     public tableContainer: TableContainer;
     public gui: GUI;
     public hud: HUD;
+    public settingsLayer: SettingsLayer;
 
     constructor() {
 
@@ -34,9 +36,17 @@ export class RoomScene extends Phaser.Scene {
         this.hud = new HUD(this);
         this.add.existing(this.hud);
 
+        this.settingsLayer = new SettingsLayer(this);
+        this.add.existing(this.settingsLayer);
+
         setTimeout(() => {
             RoomManager.startRound(true);
         }, 2000);
+    }
+
+    public showSettingsMenu(): void {
+
+        this.settingsLayer.show();
     }
 
     public onOrientationChange(): void {
@@ -44,6 +54,7 @@ export class RoomScene extends Phaser.Scene {
         this.tableContainer.setScalesAndPostions();
         this.gui.setScalesAndPostions();
         this.hud.setScalesAndPostions();
+        this.settingsLayer.setScalesAndPositions();
     }
 
     public distributeFirstCards(): void {

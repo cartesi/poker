@@ -9,7 +9,7 @@ export class AudioManager {
     public static themeId: number;
     public static themeVolume: number;
     public static themeKey: string;
-    public static loopedSounds: { [key: string]: number;};
+    public static loopedSounds: { [key: string]: number; };
 
     public static init(): void {
 

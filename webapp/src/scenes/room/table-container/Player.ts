@@ -27,14 +27,14 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.setScalesAndPostions();
 
-        let nicknameBck = new Phaser.GameObjects.Image(this.scene, isPlayer ? -200 : 200, 67, "texture_atlas_1", "txt_box_names");
+        let nicknameBck = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, 67, "texture_atlas_1", "txt_box_names");
         this.add(nicknameBck);
 
-        this.nickname = new Phaser.GameObjects.Text(this.scene, isPlayer ? -200 : 200, 67, isPlayer ? "Player" : "Opponent", {fontFamily: "Oswald-Medium", fontSize: "18px", color: "#FFFFFF"});
+        this.nickname = new Phaser.GameObjects.Text(this.scene, isPlayer ? -280 : 280, 67, isPlayer ? "Player" : "Opponent", {fontFamily: "Oswald-Medium", fontSize: "24px", color: "#FFFFFF"});
         this.nickname.setOrigin(.5);
         this.add(this.nickname);
 
-        this.image = new Phaser.GameObjects.Image(this.scene, isPlayer ? -200 : 200, -20, "texture_atlas_1", isPlayer ? "avatar_player" : "avatar_opponent");
+        this.image = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, -40, "texture_atlas_1", isPlayer ? "avatar_player" : "avatar_opponent");
         this.image.scaleX = isPlayer ? 1 : -1;
         this.add(this.image);
 
@@ -42,27 +42,27 @@ export class Player extends Phaser.GameObjects.Container {
         this.betBck.fillStyle(0x000000, .5);
         this.add(this.betBck);
 
-        let chip = new Phaser.GameObjects.Image(this.scene, isPlayer ? 120 : -100, isPlayer ? -30 : 85, "texture_atlas_1", "chip");
+        let chip = new Phaser.GameObjects.Image(this.scene, isPlayer ? 150 : -120, isPlayer ? -40 : 105, "texture_atlas_1", "chip");
         chip.setOrigin(1, .5);
         chip.setScale(.9);
         this.add(chip);
 
-        this.bet = new Phaser.GameObjects.Text(this.scene, isPlayer ? 122 : -98, isPlayer ? -30 : 85, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        this.bet = new Phaser.GameObjects.Text(this.scene, isPlayer ? 155 : -115, isPlayer ? -40 : 105, "", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
         this.bet.setOrigin(0, .5);
         this.add(this.bet);
 
-        this.betBck.fillRoundedRect(this.bet.x - 33, this.bet.y - 16, this.bet.width + 45, 30, 15);
+        this.betBck.fillRoundedRect(this.bet.x - 52, this.bet.y - 25, this.bet.width + 65, 50, 25);
 
         this.cards = [];
 
-        let card = new Card(this.scene, -40, -20);
+        let card = new Card(this.scene, -45, -20);
         card.setScale(.8);
         card.visible = false;
         card.alpha = 0;
         this.add(card);
         this.cards.push(card);
 
-        card = new Card(this.scene, 40, -20);
+        card = new Card(this.scene, 45, -20);
         card.setScale(.8);
         card.visible = false;
         card.alpha = 0;
@@ -72,11 +72,11 @@ export class Player extends Phaser.GameObjects.Container {
         let capsule = new Phaser.GameObjects.Image(this.scene, 0, 40, "texture_atlas_1", "capsule");
         this.add(capsule);
 
-        this.funds = new Phaser.GameObjects.Text(this.scene, 0, 42, "", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
+        this.funds = new Phaser.GameObjects.Text(this.scene, 0, 47, "", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
         this.funds.setOrigin(.5);
         this.add(this.funds);
 
-        this.hand = new Phaser.GameObjects.Text(this.scene,  0, 10, "", {fontFamily: "Oswald-Medium", fontSize: "16px", color: "#FFFFFF"});
+        this.hand = new Phaser.GameObjects.Text(this.scene,  0, 6, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
         this.hand.setOrigin(.5);
         this.add(this.hand);
     }
@@ -86,11 +86,11 @@ export class Player extends Phaser.GameObjects.Container {
         if (GameVars.landscape) {
             this.setScale(GameVars.scaleX, 1);
             this.x = 0;
-            this.y = this.isPlayer ? 160 : -180;
+            this.y = this.isPlayer ? 210 : -240;
         } else {
             this.setScale(1, GameVars.scaleY);
             this.x = 0;
-            this.y = this.isPlayer ? 200 * GameVars.scaleY : -250 * GameVars.scaleY;
+            this.y = this.isPlayer ? 250 * GameVars.scaleY : -300 * GameVars.scaleY;
         }
     }
 
@@ -110,7 +110,7 @@ export class Player extends Phaser.GameObjects.Container {
         this.scene.tweens.add({
             targets: this.cards[0],
             alpha: 1,
-            x: -40,
+            x: -45,
             y: -20,
             ease: Phaser.Math.Easing.Linear,
             duration: 250,
@@ -119,7 +119,7 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.scene.tweens.add({
             targets: this.cards[1],
-            x: 40,
+            x: 45,
             y: -20,
             alpha: 1,
             ease: Phaser.Math.Easing.Linear,
@@ -149,7 +149,7 @@ export class Player extends Phaser.GameObjects.Container {
             return;
         }
 
-        this.funds.text = (this.isPlayer ? RoomManager.getPlayerFunds().toString() : RoomManager.getOpponentFunds().toString());
+        this.funds.text = (this.isPlayer ? (RoomManager.getPlayerFunds() - RoomManager.getPlayerBets()).toString() : (RoomManager.getOpponentFunds() - RoomManager.getOpponentBets()).toString());
     }
 
     public setHand(): void {
@@ -186,7 +186,7 @@ export class Player extends Phaser.GameObjects.Container {
         this.bet.text = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
 
         this.betBck.clear();
-        this.betBck.fillRoundedRect(this.bet.x - 33, this.bet.y - 16, this.bet.width + 45, 30, 15);
+        this.betBck.fillRoundedRect(this.bet.x - 52, this.bet.y - 25, this.bet.width + 65, 50, 25);
     }
 
     public startOpponentTurn(): void {
@@ -199,8 +199,8 @@ export class Player extends Phaser.GameObjects.Container {
             scaleX: .5,
             scaleY: .5,
             angle: -5,
-            x: 170 - 15,
-            y: 30,
+            x: 220 - 15,
+            y: 10,
             ease: Phaser.Math.Easing.Linear,
             duration: 150
         });
@@ -210,8 +210,8 @@ export class Player extends Phaser.GameObjects.Container {
             scaleX: .5,
             scaleY: .5,
             angle: 5,
-            x: 170 + 15,
-            y: 30,
+            x: 220 + 15,
+            y: 10,
             ease: Phaser.Math.Easing.Linear,
             duration: 150
         });
@@ -224,7 +224,7 @@ export class Player extends Phaser.GameObjects.Container {
             scaleX: .8,
             scaleY: .8,
             angle: 0,
-            x: -40,
+            x: -45,
             y: -20,
             ease: Phaser.Math.Easing.Linear,
             duration: 150,
@@ -240,7 +240,7 @@ export class Player extends Phaser.GameObjects.Container {
             scaleX: .8,
             scaleY: .8,
             angle: 0,
-            x: 40,
+            x: 45,
             y: -20,
             ease: Phaser.Math.Easing.Linear,
             duration: 150,

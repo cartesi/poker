@@ -320,6 +320,46 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">texture_atlas_1/icon_call.png</key>
+            <key type="filename">texture_atlas_1/icon_check.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>11,10,21,19</rect>
+                <key>scale9Paddings</key>
+                <rect>11,10,21,19</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/icon_fold.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>9,12,17,25</rect>
+                <key>scale9Paddings</key>
+                <rect>9,12,17,25</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/icon_raise.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>6,10,13,19</rect>
+                <key>scale9Paddings</key>
+                <rect>6,10,13,19</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">texture_atlas_1/mark_card.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -330,6 +370,19 @@
                 <rect>17,23,33,45</rect>
                 <key>scale9Paddings</key>
                 <rect>17,23,33,45</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/phase_shadow.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>54,14,107,27</rect>
+                <key>scale9Paddings</key>
+                <rect>54,14,107,27</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
@@ -356,6 +409,19 @@
                 <rect>211,109,421,217</rect>
                 <key>scale9Paddings</key>
                 <rect>211,109,421,217</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/txt_blinds.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>34,9,67,17</rect>
+                <key>scale9Paddings</key>
+                <rect>34,9,67,17</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
