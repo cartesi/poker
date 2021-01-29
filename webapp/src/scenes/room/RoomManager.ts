@@ -101,7 +101,7 @@ export class RoomManager {
 
     public static getMaxRaise(): number {
 
-        return RoomManager.getPlayerFunds() - RoomManager.getOpponentBets();
+        return Math.min(RoomManager.getPlayerFunds(), RoomManager.getOpponentFunds()) - RoomManager.getOpponentBets();
     }
 
     public static getState(): number {
@@ -186,6 +186,15 @@ export class RoomManager {
         RoomScene.currentInstance.showSettingsMenu();
     } 
 
+    public static getCardSuitValue(card: string): {value: number, suit: number} {
+
+        if (card === "?") {
+            return null;
+        }
+
+        return {value: parseInt(card) % 13, suit: Math.floor(parseInt(card) / 13)};
+    }
+
     private static onBetRequested(): void {
         
         RoomManager.showBetButtons();
@@ -245,14 +254,5 @@ export class RoomManager {
 
             RoomManager.updateBoard();
         }, 6000);
-    }
-
-    private static getCardSuitValue(card: string): {value: number, suit: number} {
-
-        if (card === "?") {
-            return null;
-        }
-
-        return {value: parseInt(card) % 13, suit: Math.floor(parseInt(card) / 13)};
     }
 }

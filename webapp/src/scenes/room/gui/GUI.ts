@@ -72,22 +72,4 @@ export class GUI extends Phaser.GameObjects.Container {
         this.potText.text = "POT: " + (RoomManager.getPlayerBets() + RoomManager.getOpponentBets());
         this.potImage.x = this.potText.x + this.potText.width / 2 + 10;
     }
-
-    public setWinnerText(endData: any): void {
-
-        let text = "DRAW!";
-
-        if (endData.isWinner[ALICE]) {
-            text = "PLAYER WON!";
-        } else if (endData.isWinner[BOB]) {
-            text = "OPPONENT WON!";
-        }
-
-        this.stateLayer.setWinnerText(text);
-    }
-
-    public onEnd(endData: any): void {
-
-        this.setWinnerText(endData);
-    }
 }

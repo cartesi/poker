@@ -7,6 +7,8 @@ export class StateLayer extends Phaser.GameObjects.Container {
 
         super(scene);
 
+        this.y = 30;
+
         this.bck = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "phase_shadow");
         this.add(this.bck);
 

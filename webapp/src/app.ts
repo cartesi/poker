@@ -12,7 +12,7 @@ let game: Game;
 
 window.onload = () => {
 
-    const gameConfig = {
+    const gameConfig: Phaser.Types.Core.GameConfig = {
 
         version: GameConstants.VERSION,
         type: Phaser.AUTO,
@@ -31,7 +31,11 @@ window.onload = () => {
             BootScene,
             PreloadScene,
             RoomScene
-        ]
+        ],
+        render: {
+            antialias: true,
+            pixelArt: false
+        }
     };
 
     game = new Game(gameConfig);

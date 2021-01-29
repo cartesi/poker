@@ -183,10 +183,31 @@ export class Player extends Phaser.GameObjects.Container {
 
     public setBet(): void {
 
-        this.bet.text = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
+        let newBet = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
 
-        this.betBck.clear();
-        this.betBck.fillRoundedRect(this.bet.x - 52, this.bet.y - 25, this.bet.width + 65, 50, 25);
+        if (newBet.toString() !== this.bet.text) {
+            this.scene.tweens.add({
+                targets: this.bet,
+                alpha: 0,
+                ease: Phaser.Math.Easing.Cubic.Out,
+                duration: 100,
+                onComplete: () => {
+                    this.bet.text = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
+    
+                    this.betBck.clear();
+                    this.betBck.fillStyle(0x000000, .5);
+                    this.betBck.fillRoundedRect(this.bet.x - 52, this.bet.y - 25, this.bet.width + 65, 50, 25);
+    
+                    this.scene.tweens.add({
+                        targets: this.bet,
+                        alpha: 1,
+                        ease: Phaser.Math.Easing.Cubic.In,
+                        duration: 100
+                    });
+                },
+                onCompleteScope: this
+            });
+        }
     }
 
     public startOpponentTurn(): void {
