@@ -11,13 +11,14 @@ export class Player extends Phaser.GameObjects.Container {
 
     private cards: Card[];
     private funds: Phaser.GameObjects.Text;
-    private bet: Phaser.GameObjects.Text;
     private hand: Phaser.GameObjects.Text;
 
     private isPlayer: boolean;
     private showingBet: boolean;
 
+    private betContainer: Phaser.GameObjects.Container;
     private betBck: Phaser.GameObjects.Graphics;
+    private bet: Phaser.GameObjects.Text;
 
     constructor(scene: Phaser.Scene, isPlayer: boolean) {
 
@@ -27,29 +28,33 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.setScalesAndPostions();
 
-        let nicknameBck = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, 67, "texture_atlas_1", "txt_box_names");
+        let nicknameBck = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, 49, "texture_atlas_1", "txt_box_names");
         this.add(nicknameBck);
 
-        this.nickname = new Phaser.GameObjects.Text(this.scene, isPlayer ? -280 : 280, 67, isPlayer ? "Player" : "Opponent", {fontFamily: "Oswald-Medium", fontSize: "24px", color: "#FFFFFF"});
+        this.nickname = new Phaser.GameObjects.Text(this.scene, isPlayer ? -280 : 280, 49, isPlayer ? "Player" : "Opponent", {fontFamily: "Oswald-Medium", fontSize: "24px", color: "#FFFFFF"});
         this.nickname.setOrigin(.5);
         this.add(this.nickname);
 
-        this.image = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, -40, "texture_atlas_1", isPlayer ? "avatar_player" : "avatar_opponent");
+        this.image = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, -55, "texture_atlas_1", isPlayer ? "avatar_player" : "avatar_opponent");
         this.image.scaleX = isPlayer ? 1 : -1;
         this.add(this.image);
 
+        this.betContainer = new Phaser.GameObjects.Container(this.scene);
+        this.betContainer.setPosition(isPlayer ? 150 : -120, isPlayer ? -40 : 105);
+        this.add(this.betContainer);
+
         this.betBck = new Phaser.GameObjects.Graphics(this.scene);
         this.betBck.fillStyle(0x000000, .5);
-        this.add(this.betBck);
+        this.betContainer.add(this.betBck);
 
-        let chip = new Phaser.GameObjects.Image(this.scene, isPlayer ? 150 : -120, isPlayer ? -40 : 105, "texture_atlas_1", "chip");
+        let chip = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "chip");
         chip.setOrigin(1, .5);
         chip.setScale(.9);
-        this.add(chip);
+        this.betContainer.add(chip);
 
-        this.bet = new Phaser.GameObjects.Text(this.scene, isPlayer ? 155 : -115, isPlayer ? -40 : 105, "", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
+        this.bet = new Phaser.GameObjects.Text(this.scene, 5, 0, "", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
         this.bet.setOrigin(0, .5);
-        this.add(this.bet);
+        this.betContainer.add(this.bet);
 
         this.betBck.fillRoundedRect(this.bet.x - 52, this.bet.y - 25, this.bet.width + 65, 50, 25);
 
@@ -86,11 +91,38 @@ export class Player extends Phaser.GameObjects.Container {
         if (GameVars.landscape) {
             this.setScale(GameVars.scaleX, 1);
             this.x = 0;
-            this.y = this.isPlayer ? 210 : -240;
+            this.y = this.isPlayer ? 200 : -225;
         } else {
             this.setScale(1, GameVars.scaleY);
             this.x = 0;
             this.y = this.isPlayer ? 250 * GameVars.scaleY : -300 * GameVars.scaleY;
+        }
+    }
+
+    public markCards(endData: any): void {
+
+        let winnerHand = [];
+
+        if (endData.isWinner[ALICE]) {
+            if (endData.hands) {
+                winnerHand = endData.hands[ALICE];
+            } 
+        } else if (endData.isWinner[BOB]) {
+            if (endData.hands) {
+                winnerHand = endData.hands[BOB];
+            }
+        }
+
+        if (winnerHand.length) {
+
+            for (let i = 0; i < winnerHand.length; i++) {
+                let winnerHandCard = RoomManager.getCardSuitValue(winnerHand[i]);
+                for (let j = 0; j < this.cards.length; j++) {
+                    if (winnerHandCard.value === this.cards[j].info.value && winnerHandCard.suit === this.cards[j].info.suit) {
+                        this.cards[j].showMark();
+                    }
+                }
+            }
         }
     }
 
@@ -186,12 +218,34 @@ export class Player extends Phaser.GameObjects.Container {
         let newBet = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
 
         if (newBet.toString() !== this.bet.text) {
+            
+            this.scene.tweens.add({
+                targets: this.betContainer,
+                scaleX: 1.05,
+                scaleY: 1.05,
+                ease: Phaser.Math.Easing.Cubic.In,
+                duration: 200,
+                onComplete: () => {
+    
+                    this.scene.tweens.add({
+                        targets: this.betContainer,
+                        scaleX: 1,
+                        scaleY: 1,
+                        ease: Phaser.Math.Easing.Cubic.Out,
+                        duration: 200,
+                        delay: 200
+                    });
+                },
+                onCompleteScope: this
+            });
+
             this.scene.tweens.add({
                 targets: this.bet,
-                alpha: 0,
-                ease: Phaser.Math.Easing.Cubic.Out,
-                duration: 100,
+                scaleY: 0,
+                ease: Phaser.Math.Easing.Cubic.In,
+                duration: 200,
                 onComplete: () => {
+
                     this.bet.text = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
     
                     this.betBck.clear();
@@ -200,9 +254,10 @@ export class Player extends Phaser.GameObjects.Container {
     
                     this.scene.tweens.add({
                         targets: this.bet,
-                        alpha: 1,
-                        ease: Phaser.Math.Easing.Cubic.In,
-                        duration: 100
+                        scaleY: 1,
+                        ease: Phaser.Math.Easing.Cubic.Out,
+                        duration: 200,
+                        delay: 200
                     });
                 },
                 onCompleteScope: this

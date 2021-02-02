@@ -2,6 +2,7 @@ import { StateLayer } from "./StateLayer";
 import { GameVars } from "../../../GameVars";
 import { GameConstants } from "../../../GameConstants";
 import { RoomManager } from "../RoomManager";
+import { WinnerLayer } from "./WinnerLayer";
 
 export class GUI extends Phaser.GameObjects.Container {
 
@@ -11,6 +12,9 @@ export class GUI extends Phaser.GameObjects.Container {
     private potText: Phaser.GameObjects.Text;
     private potImage: Phaser.GameObjects.Image;
     private stateLayer: StateLayer;
+
+    private botContainer: Phaser.GameObjects.Container; 
+    private winnerLayer: WinnerLayer;
 
     constructor(scene: Phaser.Scene) {
 
@@ -33,6 +37,12 @@ export class GUI extends Phaser.GameObjects.Container {
         this.stateLayer = new StateLayer(this.scene);
         this.midContainer.add(this.stateLayer);
 
+        this.botContainer = new Phaser.GameObjects.Container(this.scene, GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT);
+        this.add(this.botContainer);
+
+        this.winnerLayer = new WinnerLayer(this.scene);
+        this.botContainer.add(this.winnerLayer);
+
         this.setScalesAndPostions();
     }
 
@@ -47,13 +57,20 @@ export class GUI extends Phaser.GameObjects.Container {
             this.midContainer.y = GameConstants.GAME_HEIGHT / 2;
 
             this.topContainer.setScale(GameVars.scaleX, 1);
+            this.botContainer.setScale(GameVars.scaleX, 1);
         } else {
 
             this.midContainer.y = GameConstants.GAME_HEIGHT / 2 - 47;
             this.midContainer.setScale(1.3 + (0.55 - GameVars.scaleY) * 3, (1.3 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
 
             this.topContainer.setScale(1, GameVars.scaleY);
+            this.botContainer.setScale(1.5 + (0.55 - GameVars.scaleY) * 3, (1.5 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
         }
+    }
+
+    public showWinner(endData: any): void {
+
+        this.winnerLayer.showWinner(endData);
     }
 
     public updateBoard(): void {

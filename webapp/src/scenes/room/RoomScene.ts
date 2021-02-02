@@ -1,10 +1,10 @@
-import { SettingsLayer } from "./SettingsLayer";
 import { TableContainer } from "./table-container/TableContainer";
 import { RoomManager } from "./RoomManager";
 import { GUI } from "./gui/GUI";
 import { HUD } from "./hud/HUD";
 import { GameManager } from "../../GameManager";
-import { WinnerLayer } from "./WinnerLayer";
+import { WinnerLayer } from "./gui/WinnerLayer";
+import { SettingsLayer } from "./SettingsLayer";
 
 export class RoomScene extends Phaser.Scene {
 
@@ -14,7 +14,6 @@ export class RoomScene extends Phaser.Scene {
     public gui: GUI;
     public hud: HUD;
     public settingsLayer: SettingsLayer;
-    public winnerLayer: WinnerLayer;
 
     constructor() {
 
@@ -34,9 +33,6 @@ export class RoomScene extends Phaser.Scene {
 
         this.gui = new GUI(this);
         this.add.existing(this.gui);
-        
-        this.winnerLayer = new WinnerLayer(this);
-        this.add.existing(this.winnerLayer);
 
         this.hud = new HUD(this);
         this.add.existing(this.hud);
@@ -60,7 +56,6 @@ export class RoomScene extends Phaser.Scene {
         this.gui.setScalesAndPostions();
         this.hud.setScalesAndPostions();
         this.settingsLayer.setScalesAndPositions();
-        this.winnerLayer.setScalesAndPositions();
     }
 
     public distributeFirstCards(): void {
@@ -89,7 +84,7 @@ export class RoomScene extends Phaser.Scene {
     public onEnd(endData: any): void {
 
         this.tableContainer.onEnd(endData);
-        this.winnerLayer.showWinner(endData);
+        this.gui.showWinner(endData);
 
     }
 

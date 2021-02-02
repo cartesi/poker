@@ -388,87 +388,66 @@
 					}
 				},
 				{
-					"filename": "txt_check",
+					"filename": "frame_winner_hand",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 107,
-						"h": 30
+						"w": 115,
+						"h": 170
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 107,
-						"h": 30
+						"w": 115,
+						"h": 170
 					},
 					"frame": {
 						"x": 1856,
 						"y": 520,
-						"w": 107,
-						"h": 30
+						"w": 115,
+						"h": 170
 					}
 				},
 				{
-					"filename": "txt_fold",
+					"filename": "icon_call",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 82,
-						"h": 30
+						"w": 56,
+						"h": 50
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 82,
-						"h": 30
+						"w": 56,
+						"h": 50
 					},
 					"frame": {
-						"x": 1965,
-						"y": 541,
-						"w": 82,
-						"h": 30
+						"x": 1973,
+						"y": 520,
+						"w": 56,
+						"h": 50
 					}
 				},
 				{
-					"filename": "txtbox_raise",
-					"rotated": false,
-					"trimmed": true,
-					"sourceSize": {
-						"w": 109,
-						"h": 60
-					},
-					"spriteSourceSize": {
-						"x": 2,
-						"y": 4,
-						"w": 105,
-						"h": 56
-					},
-					"frame": {
-						"x": 1856,
-						"y": 552,
-						"w": 105,
-						"h": 56
-					}
-				},
-				{
-					"filename": "txt_call",
+					"filename": "icon_check",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 79,
-						"h": 30
+						"w": 56,
+						"h": 50
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 79,
-						"h": 30
+						"w": 56,
+						"h": 50
 					},
 					"frame": {
-						"x": 1963,
-						"y": 573,
-						"w": 79,
-						"h": 30
+						"x": 1973,
+						"y": 520,
+						"w": 56,
+						"h": 50
 					}
 				},
 				{
@@ -486,8 +465,29 @@
 						"h": 60
 					},
 					"frame": {
-						"x": 1963,
-						"y": 605,
+						"x": 1973,
+						"y": 572,
+						"w": 60,
+						"h": 60
+					}
+				},
+				{
+					"filename": "btn_plus",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 60,
+						"h": 60
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 60,
+						"h": 60
+					},
+					"frame": {
+						"x": 1973,
+						"y": 634,
 						"w": 60,
 						"h": 60
 					}
@@ -598,6 +598,48 @@
 					}
 				},
 				{
+					"filename": "txt_check",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 107,
+						"h": 30
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 107,
+						"h": 30
+					},
+					"frame": {
+						"x": 217,
+						"y": 727,
+						"w": 107,
+						"h": 30
+					}
+				},
+				{
+					"filename": "txtbox_raise",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 109,
+						"h": 60
+					},
+					"spriteSourceSize": {
+						"x": 2,
+						"y": 4,
+						"w": 105,
+						"h": 56
+					},
+					"frame": {
+						"x": 326,
+						"y": 727,
+						"w": 105,
+						"h": 56
+					}
+				},
+				{
 					"filename": "mark_card",
 					"rotated": false,
 					"trimmed": false,
@@ -613,7 +655,7 @@
 					},
 					"frame": {
 						"x": 217,
-						"y": 727,
+						"y": 759,
 						"w": 104,
 						"h": 156
 					}
@@ -633,8 +675,8 @@
 						"h": 93
 					},
 					"frame": {
-						"x": 1,
-						"y": 775,
+						"x": 433,
+						"y": 727,
 						"w": 94,
 						"h": 93
 					}
@@ -654,73 +696,52 @@
 						"h": 29
 					},
 					"frame": {
-						"x": 97,
-						"y": 775,
+						"x": 323,
+						"y": 785,
 						"w": 93,
 						"h": 29
 					}
 				},
 				{
-					"filename": "btn_plus",
+					"filename": "txt_fold",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 60,
-						"h": 60
+						"w": 82,
+						"h": 30
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 60,
-						"h": 60
+						"w": 82,
+						"h": 30
 					},
 					"frame": {
-						"x": 97,
-						"y": 806,
-						"w": 60,
-						"h": 60
+						"x": 323,
+						"y": 816,
+						"w": 82,
+						"h": 30
 					}
 				},
 				{
-					"filename": "icon_call",
+					"filename": "txt_call",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 56,
-						"h": 50
+						"w": 79,
+						"h": 30
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 56,
-						"h": 50
+						"w": 79,
+						"h": 30
 					},
 					"frame": {
-						"x": 159,
-						"y": 806,
-						"w": 56,
-						"h": 50
-					}
-				},
-				{
-					"filename": "icon_check",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 56,
-						"h": 50
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 56,
-						"h": 50
-					},
-					"frame": {
-						"x": 159,
-						"y": 806,
-						"w": 56,
-						"h": 50
+						"x": 1,
+						"y": 775,
+						"w": 79,
+						"h": 30
 					}
 				},
 				{
@@ -738,8 +759,8 @@
 						"h": 60
 					},
 					"frame": {
-						"x": 97,
-						"y": 868,
+						"x": 82,
+						"y": 775,
 						"w": 60,
 						"h": 60
 					}
@@ -750,6 +771,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:220f02d06cd55f8efaa7332c5d2f9cc7:96a8530b134f0358aac44ab97d763bfe:1bd3fbbbdaf54e41cf80e3e904578de4$"
+		"smartupdate": "$TexturePacker:SmartUpdate:0f75e18852fbc82f0a347b6484c5da9e:0eb91f968150eaeb8502ebac7a97bf1f:1bd3fbbbdaf54e41cf80e3e904578de4$"
 	}
 }

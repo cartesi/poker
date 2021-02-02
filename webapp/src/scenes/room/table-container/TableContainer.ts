@@ -94,6 +94,10 @@ export class TableContainer extends Phaser.GameObjects.Container {
     public onEnd(endData: any): void {
 
         this.opponent.showCards();
+
+        this.communityCards.markCards(endData);
+        this.player.markCards(endData);
+        this.opponent.markCards(endData);
     }
 
     public startOpponentTurn(): void {

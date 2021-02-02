@@ -40,6 +40,33 @@ export class CommunityCards extends Phaser.GameObjects.Container {
         }
     }
 
+    public markCards(endData: any): void {
+
+        let winnerHand = [];
+
+        if (endData.isWinner[ALICE]) {
+            if (endData.hands) {
+                winnerHand = endData.hands[ALICE];
+            } 
+        } else if (endData.isWinner[BOB]) {
+            if (endData.hands) {
+                winnerHand = endData.hands[BOB];
+            }
+        }
+
+        if (winnerHand.length) {
+
+            for (let i = 0; i < winnerHand.length; i++) {
+                let winnerHandCard = RoomManager.getCardSuitValue(winnerHand[i]);
+                for (let j = 0; j < this.cards.length; j++) {
+                    if (winnerHandCard.value === this.cards[j].info.value && winnerHandCard.suit === this.cards[j].info.suit) {
+                        this.cards[j].showMark();
+                    }
+                }
+            }
+        }
+    }
+
     public setCards(): void {
 
         let cards = RoomManager.getCommunityCards();
