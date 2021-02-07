@@ -1,0 +1,271 @@
+<html>
+<head>
+    <title>ZK Poker</title>
+<style>
+    .done {
+        background-color: black;
+        color: white;
+    }
+    .active {
+        color: gray;
+        background-color: silver;
+    }
+    .player, .middle {
+        float: left;
+        margin-right: 40px;
+    }
+    body, div, span { 
+        margin: 6px;
+    }
+    div {
+        text-align: center
+    }
+    .card {
+        margin: 6px;
+        width: 70px;
+        border: 1px solid #aaaaaa;
+        box-shadow: 1px 1px #888;
+        border-radius: 4px;
+        background: white;
+    }
+    #log {
+        text-align: left;
+        border: 1px solid #eee;
+        background-color: #ddd;
+        font-family: "Courier New";
+    }
+</style>
+</head>
+<body>
+<!-- ALICE -->
+<div class=player>
+<h2>Alice</h2>
+<div class=flop>
+    <img id=flop-0-0 src=cards/back_light.png class=card />
+    <img id=flop-0-1 src=cards/back_light.png class=card />
+    <img id=flop-0-2 src=cards/back_light.png class=card />
+    <p>
+    <button id=wf00 class=workflow >1-Init</button>
+    <button id=wf01 class=workflow >2-Send Key</button>
+    <button id=wf02 class=workflow >3-Read Key</button>    
+    <button id=wf03 class=workflow >4-Begin Shuffle</button>        
+    <button id=wf04 class=workflow >5-End Shuffle</button>
+    <button id=wf05 class=workflow >6-Send flop proofs</button>        
+    <button id=wf06 class=workflow >7-Read flop proofs</button>
+    </p>
+</div>
+<div class=priv>
+    <h3>My Cards</h3>
+    <img id="priv-0-0" src=cards/back_light.png class=card />
+    <img id="priv-0-1" src=cards/back_light.png class=card />
+    <p>
+    <button id=wf07>8-Allow Open their 1st</button>
+    <button id=wf08>9-Open My 1st</button>
+</p>
+
+</div>
+</div>
+
+<!-- BOB -->
+<div class=middle>
+    <p></p><p></p><p></p><p></p>
+    <button onclick="autopilot()">Auto Pilot</button>
+</div>
+<!-- BOB -->
+<div class=player>
+<h2>Bob</h2>
+<div class=flop>
+    <img id=flop-1-0 src=cards/back_light.png class=card />
+    <img id=flop-1-1 src=cards/back_light.png class=card />
+    <img id=flop-1-2 src=cards/back_light.png class=card />
+    <p>
+    <button id=wf10 class=workflow >1-Init</button>
+    <button id=wf11 class=workflow >2-Send Key</button>
+    <button id=wf12 class=workflow >3-Read Key</button>    
+    <button id=wf13 class=workflow >4-Begin Shuffle</button>        
+    <button id=wf14 class=workflow >5-End Shuffle</button>
+    <button id=wf15 class=workflow >6-Send flop proofs</button>        
+    <button id=wf16 class=workflow >7-Read flop proofs</button>
+    </p>
+</div>
+<div class=priv>
+    <h3>My Cards</h3>
+    <img id="priv-1-0" src=cards/back_light.png class=card />
+    <img id="priv-1-1"" src=cards/back_light.png class=card />
+    <p>
+    <button id=wf17>8-Allow Open their 1st</button>
+    <button id=wf17>9-Open My 1st</button>
+</p>
+
+</div>
+</div>
+
+
+</body>
+<script language="javascript" src="cpp-poker.js"></script>
+<script language="javascript">
+const ALICE = 0;
+const BOB = 1;
+const PLAYERS = [];
+
+function showStatus() {
+    console.log('showStatus...')
+}
+
+const WORKFLOW = [
+    ["init",          showStatus],
+    ["publishKey",    showStatus],
+    ["readKeys",      showStatus],
+    ["beginShuffle",  showStatus],
+    ["endShuffle",    showStatus],
+    ["sendFlopProofs",showStatus],
+    ["sendFlopProofs",showStatus],
+    ["readFlopProofs",showFlop],
+    [function (p, o) { PLAYERS[p].sendProof(o, 0)}],
+    [function (p, o) { PLAYERS[o].openCard(o, 0)}],
+    [function (p, o) { showPriv(o, 0) }]
+]
+
+function newgame() {
+    Poker.initLibraries();
+    const data = Poker.makePublicData(2);
+    window.alice = new Poker(ALICE, 2, data);
+    PLAYERS[ALICE] = alice;
+    window.bob = new Poker(BOB, 2, data);
+    PLAYERS[BOB] = bob;
+
+    var btns = document.getElementsByClassName('workflow');
+    for(var i=0; i<btns.length; i++) {
+        var b = btns[i];
+        var player = b.id[2];
+        var step = b.id[3];
+        (function (p, s) {
+            b.onclick = function() { workflow(p, s); }
+        })(player, step);
+    }
+    console.log('Alice and Bob created')
+}
+
+let AUTOPILOT = false;
+
+function workflow(player, step) {
+    console.log('workflow', player, step)
+    if (!WORKFLOW[step]) {
+        AUTOPILOT = false;
+        return;
+    }
+    var opponent = player == ALICE ? BOB : ALICE;
+    var id = `wf${player}${step}`
+    var el = document.getElementById(id);
+    if (el) el.className = 'active';
+    var fn = WORKFLOW[step][0]
+    var ex;
+    var playerObj = PLAYERS[player];
+    if (typeof fn === 'string')
+        ex = playerObj[fn].bind(playerObj);
+    else
+        ex = function() { fn(player, opponent); }
+    var cb = WORKFLOW[step][1]
+    window.setTimeout(function() {
+        ex();
+        if (el) el.className = 'done';
+        var next = function() { }
+        console.log('AUTOPILOT=', AUTOPILOT)
+        if (AUTOPILOT) {
+            next = function() {
+                console.log('next....')
+                if (player == ALICE)
+                    player = BOB;
+                else {
+                    player = ALICE; 
+                    step += 1;
+                }
+                workflow(player, step);
+            }
+        }
+        if (cb) 
+            window.setTimeout(function() { cb(); next(); }, 10)
+        else 
+            window.setTimeout(function() { next(); }, 10)
+    }, 20)
+}
+
+
+function logmsg(msg) {
+    //var n = document.createElement("p")
+    //n.innerText = msg;
+    //document.getElementById('log').appendChild(n);
+}
+
+window.Module = {}
+Module.print = function(text) { 
+    logmsg(text);
+    console.log('stdout: ' + text)
+};
+Module.printErr =function(text) { 
+    logmsg(text)
+    console.log('stderr: ' + text)
+};
+Module['onRuntimeInitialized'] = function() { window.setTimeout(function() { newgame() }, 10);  }  
+
+function showFlop() {
+    for(var i=0; i<2; i++) {
+        var player = PLAYERS[i];
+        for(var j=0; j<3; j++) {
+            var card = player.getFlopCard(j);
+            var img = document.getElementById(`flop-${i}-${j}`);
+            img.src = `cards/${card}.png`;
+        }
+    }
+}
+
+function showPriv(playerIndex, cardIndex) {
+    var player = PLAYERS[playerIndex];    
+    var card = player.getHand(card, playerIndex);
+    var id = `priv-${playerIndex}-${cardIndex}`;
+    var img = document.getElementById(id);
+    img.src = `cards/${card}.png`;
+}
+
+</script>
+
+<script language="javascript" src="poker-lib-thunk.js"></script>
+</html>
+
+<script language="javascript">
+function autopilot() {
+    AUTOPILOT = true;
+    workflow(0,0);
+}
+function manual() {    
+    alice.init();
+    bob.init();
+
+    alice.publishKey();
+    bob.publishKey();
+
+    alice.readKeys();
+    bob.readKeys();
+
+    alice.beginShuffle();
+    bob.beginShuffle();
+
+    alice.endShuffle();
+    bob.endShuffle();
+
+    alice.sendFlopProofs();
+    bob.sendFlopProofs();
+
+    alice.readFlopProofs();
+    bob.readFlopProofs();
+    showFlop();
+    
+    alice.sendProof(BOB, 0);
+    bob.openCard(BOB, 0);
+    showPriv(BOB, 0);
+    bob.sendProof(ALICE, 0);
+    alice.openCard(ALICE, 0);
+    showPriv(ALICE, 0);
+}
+</script>
+
