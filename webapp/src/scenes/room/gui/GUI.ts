@@ -23,6 +23,22 @@ export class GUI extends Phaser.GameObjects.Container {
         this.topContainer = new Phaser.GameObjects.Container(this.scene, GameConstants.GAME_WIDTH / 2, 0);
         this.add(this.topContainer);
 
+        let title = new Phaser.GameObjects.Image(this.scene, 0, 10, "texture_atlas_1", "logo_title");
+        title.setOrigin(.5, 0);
+        title.alpha = 0;
+        title.setScale(.5);
+        this.topContainer.add(title);
+
+        this.scene.tweens.add({
+            targets: title,
+            alpha: 1,
+            scaleX: 1,
+            scaleY: 1,
+            ease: Phaser.Math.Easing.Cubic.Out,
+            duration: 250,
+            delay: 500
+        });
+
         this.midContainer = new Phaser.GameObjects.Container(this.scene, GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT / 2);
         this.add(this.midContainer);
 
@@ -63,7 +79,7 @@ export class GUI extends Phaser.GameObjects.Container {
             this.midContainer.y = GameConstants.GAME_HEIGHT / 2 - 47;
             this.midContainer.setScale(1.3 + (0.55 - GameVars.scaleY) * 3, (1.3 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
 
-            this.topContainer.setScale(1, GameVars.scaleY);
+            this.topContainer.setScale(1.3 + (0.55 - GameVars.scaleY) * 3, (1.3 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
             this.botContainer.setScale(1.5 + (0.55 - GameVars.scaleY) * 3, (1.5 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
         }
     }

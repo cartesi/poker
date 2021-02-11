@@ -28,16 +28,16 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.setScalesAndPostions();
 
+        this.image = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, -45, "texture_atlas_1", isPlayer ? "avatar_player" : "avatar_opponent");
+        this.image.scaleX = isPlayer ? 1 : -1;
+        this.add(this.image);
+
         let nicknameBck = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, 49, "texture_atlas_1", "txt_box_names");
         this.add(nicknameBck);
 
         this.nickname = new Phaser.GameObjects.Text(this.scene, isPlayer ? -280 : 280, 49, isPlayer ? "Player" : "Opponent", {fontFamily: "Oswald-Medium", fontSize: "24px", color: "#FFFFFF"});
         this.nickname.setOrigin(.5);
         this.add(this.nickname);
-
-        this.image = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, -55, "texture_atlas_1", isPlayer ? "avatar_player" : "avatar_opponent");
-        this.image.scaleX = isPlayer ? 1 : -1;
-        this.add(this.image);
 
         this.betContainer = new Phaser.GameObjects.Container(this.scene);
         this.betContainer.setPosition(isPlayer ? 150 : -120, isPlayer ? -40 : 105);

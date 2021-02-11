@@ -320,6 +320,19 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">texture_atlas_1/frame_winner_hand.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>29,43,57,85</rect>
+                <key>scale9Paddings</key>
+                <rect>29,43,57,85</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">texture_atlas_1/icon_call.png</key>
             <key type="filename">texture_atlas_1/icon_check.png</key>
             <struct type="IndividualSpriteSettings">
@@ -357,6 +370,19 @@
                 <rect>6,10,13,19</rect>
                 <key>scale9Paddings</key>
                 <rect>6,10,13,19</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/logo_title.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>51,31,102,61</rect>
+                <key>scale9Paddings</key>
+                <rect>51,31,102,61</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
