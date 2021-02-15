@@ -44,10 +44,12 @@ export class GUI extends Phaser.GameObjects.Container {
 
         this.potText = new Phaser.GameObjects.Text(this.scene, -30, -60, "POT: 0", {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#216652"});
         this.potText.setOrigin(.5);
+        this.potText.visible = false;
         this.midContainer.add(this.potText);
 
         this.potImage = new Phaser.GameObjects.Image(this.scene, this.potText.x + this.potText.width / 2 + 10, -58, "texture_atlas_1", "chip");
         this.potImage.setOrigin(0, .5);
+        this.potImage.visible = false;
         this.midContainer.add(this.potImage);
 
         this.stateLayer = new StateLayer(this.scene);
@@ -84,6 +86,12 @@ export class GUI extends Phaser.GameObjects.Container {
         }
     }
 
+    public resetTable(): void {
+
+        this.potText.visible = false;
+        this.potImage.visible = false;
+    }
+
     public showWinner(endData: any): void {
 
         this.winnerLayer.showWinner(endData);
@@ -101,6 +109,9 @@ export class GUI extends Phaser.GameObjects.Container {
     }
 
     public setPotText(): void {
+
+        this.potText.visible = true;
+        this.potImage.visible = true;
 
         this.potText.text = "POT: " + (RoomManager.getPlayerBets() + RoomManager.getOpponentBets());
         this.potImage.x = this.potText.x + this.potText.width / 2 + 10;

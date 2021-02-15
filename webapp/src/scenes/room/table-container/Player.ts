@@ -40,6 +40,7 @@ export class Player extends Phaser.GameObjects.Container {
         this.add(this.nickname);
 
         this.betContainer = new Phaser.GameObjects.Container(this.scene);
+        this.betContainer.visible = false;
         this.betContainer.setPosition(isPlayer ? 150 : -120, isPlayer ? -40 : 105);
         this.add(this.betContainer);
 
@@ -97,6 +98,16 @@ export class Player extends Phaser.GameObjects.Container {
             this.x = 0;
             this.y = this.isPlayer ? 250 * GameVars.scaleY : -300 * GameVars.scaleY;
         }
+    }
+
+    public resetTable(): void {
+
+        this.cards[0].hideCard();
+        this.cards[1].hideCard();
+
+        this.betContainer.visible = false;
+
+        this.funds.text = (this.isPlayer ? GameVars.playerFunds.toString() : GameVars.opponentFunds.toString());
     }
 
     public markCards(endData: any): void {
@@ -214,6 +225,8 @@ export class Player extends Phaser.GameObjects.Container {
     }
 
     public setBet(): void {
+
+        this.betContainer.visible = true;
 
         let newBet = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
 

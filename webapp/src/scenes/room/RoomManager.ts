@@ -61,11 +61,19 @@ export class RoomManager {
         RoomManager.games.push(alice);
         RoomManager.games.push(bob);
 
-        alice.start();
-        bob.start();
+        // simulate initial delay
+        RoomScene.currentInstance.showWaitingFirstCards();
 
-        RoomScene.currentInstance.distributeFirstCards();
-        RoomScene.currentInstance.updateBoard();
+        setTimeout(() => {
+
+            alice.start();
+            bob.start();
+
+            RoomScene.currentInstance.hideWaitingFirstCards();
+
+            RoomScene.currentInstance.distributeFirstCards();
+            RoomScene.currentInstance.updateBoard();
+        }, 10000);
     }
 
     public static getPlayerFunds(): number {
@@ -212,8 +220,9 @@ export class RoomManager {
         }, 2000);
         
         setTimeout(() => {
+            RoomScene.currentInstance.resetTable();
             RoomManager.startRound();
-        }, 8000);
+        }, 6000);
     }
 
     private static onAutomaticBet(player): void {

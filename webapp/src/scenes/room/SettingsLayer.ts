@@ -65,7 +65,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
         // RESET
 
-        let resetBtn = new Phaser.GameObjects.Image(this.scene, -50, -150, "texture_atlas_1", "btn_reset");
+        let resetBtn = new Phaser.GameObjects.Image(this.scene, -50, -100, "texture_atlas_1", "btn_reset");
         resetBtn.setOrigin(.5);
         resetBtn.setInteractive();
         resetBtn.on("pointerdown", () => {
@@ -82,7 +82,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
         // SOUND 
 
-        let soundBtn = new Phaser.GameObjects.Image(this.scene, 50, -150, "texture_atlas_1", GameVars.gameData.muted ? "btn_sound_off" : "btn_sound_on");
+        let soundBtn = new Phaser.GameObjects.Image(this.scene, 50, -100, "texture_atlas_1", GameVars.gameData.muted ? "btn_sound_off" : "btn_sound_on");
         soundBtn.setOrigin(.5);
         soundBtn.setInteractive();
         soundBtn.on("pointerdown", () => {
@@ -102,10 +102,10 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
         // HOW TO PLAY
 
-        let howText = new Phaser.GameObjects.Text(this.scene, 0, 0, "HOW TO PLAY", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#183D62"});
+        let howText = new Phaser.GameObjects.Text(this.scene, 0, 50, "HOW TO PLAY", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#183D62"});
         howText.setOrigin(.5);
 
-        let howBtn = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "btn_long");
+        let howBtn = new Phaser.GameObjects.Image(this.scene, 0, 50, "texture_atlas_1", "btn_long");
         howBtn.setOrigin(.5);
         howBtn.setInteractive();
         howBtn.on("pointerdown", () => {
@@ -126,10 +126,10 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
         // RANKING 
 
-        let rankingText = new Phaser.GameObjects.Text(this.scene, 0, 100, "POKER HAND RANKING", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#183D62"});
+        let rankingText = new Phaser.GameObjects.Text(this.scene, 0, 150, "POKER HAND RANKING", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#183D62"});
         rankingText.setOrigin(.5);
 
-        let rankingBtn = new Phaser.GameObjects.Image(this.scene, 0, 100, "texture_atlas_1", "btn_long");
+        let rankingBtn = new Phaser.GameObjects.Image(this.scene, 0, 150, "texture_atlas_1", "btn_long");
         rankingBtn.setOrigin(.5);
         rankingBtn.setInteractive();
         rankingBtn.on("pointerdown", () => {

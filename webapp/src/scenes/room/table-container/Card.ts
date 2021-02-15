@@ -29,6 +29,14 @@ export class Card extends Phaser.GameObjects.Container {
         }
     }
 
+    public hideCard(): void {
+        
+        this.visible = false;
+        this.alpha = 0;
+        this.image.setFrame("card-back");
+        this.info = {value: -1, suit : -1};
+    }
+
     public showCard(card: {value: number, suit: number}, delay: number) {
 
         if (!card) {

@@ -68,6 +68,13 @@ export class TableContainer extends Phaser.GameObjects.Container {
         this.opponent.setScalesAndPostions();
     }
 
+    public resetTable(): void {
+
+        this.communityCards.resetTable();
+        this.player.resetTable();
+        this.opponent.resetTable();
+    }
+
     public distributeFirstCards(): void {
 
         this.player.distributeFirstCards();

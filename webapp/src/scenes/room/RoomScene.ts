@@ -5,15 +5,17 @@ import { HUD } from "./hud/HUD";
 import { GameManager } from "../../GameManager";
 import { WinnerLayer } from "./gui/WinnerLayer";
 import { SettingsLayer } from "./SettingsLayer";
+import { SuffleCardsLayer } from "./SuffleCardsLayer";
 
 export class RoomScene extends Phaser.Scene {
 
     public static currentInstance: RoomScene;
 
-    public tableContainer: TableContainer;
     public gui: GUI;
     public hud: HUD;
+    public tableContainer: TableContainer;
     public settingsLayer: SettingsLayer;
+    public shuffleCardsLayer: SuffleCardsLayer;
 
     constructor() {
 
@@ -37,6 +39,9 @@ export class RoomScene extends Phaser.Scene {
         this.hud = new HUD(this);
         this.add.existing(this.hud);
 
+        this.shuffleCardsLayer = new SuffleCardsLayer(this);
+        this.add.existing(this.shuffleCardsLayer);
+
         this.settingsLayer = new SettingsLayer(this);
         this.add.existing(this.settingsLayer);
 
@@ -56,11 +61,29 @@ export class RoomScene extends Phaser.Scene {
         this.gui.setScalesAndPostions();
         this.hud.setScalesAndPostions();
         this.settingsLayer.setScalesAndPositions();
+        this.shuffleCardsLayer.setScalesAndPositions();
+    }
+
+
+    public resetTable(): void {
+
+        this.tableContainer.resetTable();
+        this.gui.resetTable();
     }
 
     public distributeFirstCards(): void {
 
         this.tableContainer.distributeFirstCards();
+    }
+
+    public showWaitingFirstCards(): void {
+
+        this.shuffleCardsLayer.show();
+    }
+
+    public hideWaitingFirstCards(): void {
+
+        this.shuffleCardsLayer.hide();
     }
 
     public updateBoard(): void {
