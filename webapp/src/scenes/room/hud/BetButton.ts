@@ -1,4 +1,4 @@
-import { GameVars } from './../../../GameVars';
+import { AudioManager } from './../../../AudioManager';
 import { RoomManager } from "../RoomManager";
 import { GameConstants } from "./../../../GameConstants";
 
@@ -53,6 +53,8 @@ export class BetButton extends Phaser.GameObjects.Container {
     }
 
     private onDown(): void {
+
+        AudioManager.playSound("btn_click");
 
         switch (this.betType) {
             case GameConstants.ACTION_CALL:

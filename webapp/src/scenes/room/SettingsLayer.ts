@@ -177,16 +177,22 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
         } else {
             this.visible = false;
         }
+
+        AudioManager.playSound("btn_click");
     }
 
     public onClickReset(): void {
 
         GameManager.enterRoomScene(); 
+
+        AudioManager.playSound("btn_click");
     }
 
     public onClickHow(): void {
 
         window.open("https://en.wikipedia.org/wiki/Texas_hold_%27em");
+
+        AudioManager.playSound("btn_click");
     }
 
     public onClickRanking(): void {
@@ -232,6 +238,8 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
             duration: 500,
             delay: 150
         }); 
+
+        AudioManager.playSound("btn_click");
     }
 
     public hideHands(): void {

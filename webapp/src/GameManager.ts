@@ -2,6 +2,7 @@ import { GameConstants } from "./GameConstants";
 import { GameVars } from "./GameVars";
 
 import Web3 from "web3";
+import { AudioManager } from "./AudioManager";
 // import Zoom from "./abis/Zoom.json";
 // import TurnBasedGame from "./abis/TurnBasedGame.json";
 
@@ -156,6 +157,8 @@ export class GameManager {
     }
 
     public static onGameAssetsLoaded(): void {
+
+        AudioManager.init();
 
         GameManager.enterRoomScene();
     }

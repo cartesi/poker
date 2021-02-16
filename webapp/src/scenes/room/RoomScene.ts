@@ -1,3 +1,4 @@
+import { AudioManager } from './../../AudioManager';
 import { TableContainer } from "./table-container/TableContainer";
 import { RoomManager } from "./RoomManager";
 import { GUI } from "./gui/GUI";
@@ -48,6 +49,8 @@ export class RoomScene extends Phaser.Scene {
         setTimeout(() => {
             RoomManager.startRound(true);
         }, 2000);
+
+        AudioManager.playMusic("soundtrack", 0.1);
     }
 
     public showSettingsMenu(): void {

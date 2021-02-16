@@ -2,6 +2,7 @@ import { GameVars } from "../../../GameVars";
 import { RoomManager } from "../RoomManager";
 import { Card } from "./Card";
 import {Hand} from "pokersolver";
+import { AudioManager } from "../../../AudioManager";
 
 export class Player extends Phaser.GameObjects.Container {
 
@@ -157,7 +158,11 @@ export class Player extends Phaser.GameObjects.Container {
             y: -20,
             ease: Phaser.Math.Easing.Linear,
             duration: 250,
-            delay: this.isPlayer ? 250 : 0
+            delay: this.isPlayer ? 250 : 0,
+            onStart: () => {
+                AudioManager.playSound("cards_in");
+            },
+            onStartScope: this
         });
 
         this.scene.tweens.add({
@@ -167,7 +172,11 @@ export class Player extends Phaser.GameObjects.Container {
             alpha: 1,
             ease: Phaser.Math.Easing.Linear,
             duration: 250,
-            delay: 100 + (this.isPlayer ? 250 : 0)
+            delay: 100 + (this.isPlayer ? 250 : 0),
+            onStart: () => {
+                AudioManager.playSound("cards_out");
+            },
+            onStartScope: this
         });
     }
 
@@ -275,6 +284,8 @@ export class Player extends Phaser.GameObjects.Container {
                 },
                 onCompleteScope: this
             });
+
+            AudioManager.playSound("total_pot_fx");
         }
     }
 
@@ -304,6 +315,8 @@ export class Player extends Phaser.GameObjects.Container {
             ease: Phaser.Math.Easing.Linear,
             duration: 150
         });
+
+        AudioManager.playSound("cards_in");
     }
 
     public endOpponentTurn(): void {
@@ -339,6 +352,8 @@ export class Player extends Phaser.GameObjects.Container {
             },
             onCompleteScope: this
         });
+
+        AudioManager.playSound("cards_out");
     }
 
     private getCardString(card: {value: number, suit: number}) {

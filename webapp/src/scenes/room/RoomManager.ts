@@ -1,3 +1,4 @@
+import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "./../../GameConstants";
 import { GameVars } from "./../../GameVars";
 import { RoomScene } from "./RoomScene";
@@ -71,8 +72,11 @@ export class RoomManager {
 
             RoomScene.currentInstance.hideWaitingFirstCards();
 
-            RoomScene.currentInstance.distributeFirstCards();
-            RoomScene.currentInstance.updateBoard();
+            setTimeout(() => {
+                RoomScene.currentInstance.distributeFirstCards();
+                RoomScene.currentInstance.updateBoard();
+            }, 1000);
+
         }, 10000);
     }
 
@@ -192,6 +196,8 @@ export class RoomManager {
     public static showSettingsMenu(): void {
 
         RoomScene.currentInstance.showSettingsMenu();
+
+        AudioManager.playSound("btn_click");
     } 
 
     public static getCardSuitValue(card: string): {value: number, suit: number} {

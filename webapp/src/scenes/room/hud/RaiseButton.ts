@@ -1,6 +1,7 @@
-import { RaiseSlider } from './RaiseSlider';
+import { RaiseSlider } from "./RaiseSlider";
 import { RoomManager } from "./../RoomManager";
-import { GameVars } from '../../../GameVars';
+import { GameVars } from "../../../GameVars";
+import { AudioManager } from "../../../AudioManager";
 
 export class RaiseButton extends Phaser.GameObjects.Container {
 
@@ -40,6 +41,8 @@ export class RaiseButton extends Phaser.GameObjects.Container {
 
     public onMinusDown(): void {
 
+        AudioManager.playSound("btn_click");
+
         GameVars.raiseValue --;
 
         if (GameVars.raiseValue < 1) {
@@ -51,6 +54,8 @@ export class RaiseButton extends Phaser.GameObjects.Container {
     }
 
     public onPlusDown(): void {
+
+        AudioManager.playSound("btn_click");
 
         GameVars.raiseValue ++;
 
@@ -69,6 +74,8 @@ export class RaiseButton extends Phaser.GameObjects.Container {
     }
 
     private onDown(): void {
+
+        AudioManager.playSound("btn_click");
 
         RoomManager.playerRaise(GameVars.raiseValue);
     }

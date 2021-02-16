@@ -1,3 +1,5 @@
+import { AudioManager } from "../../../AudioManager";
+
 export class Card extends Phaser.GameObjects.Container {
 
     public info: {value: number, suit: number};
@@ -71,7 +73,11 @@ export class Card extends Phaser.GameObjects.Container {
                         duration: 100
                     });
                 },
-                onCompleteScope: this
+                onCompleteScope: this,
+                onStart: () => {
+                    AudioManager.playSound("card_reveal_" + (Math.floor(Math.random() * 3) + 1));
+                },
+                onStartScope: this
             });
         }
     }

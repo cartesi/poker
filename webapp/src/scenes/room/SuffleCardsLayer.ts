@@ -1,3 +1,4 @@
+import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameVars } from "../../GameVars";
 
@@ -96,15 +97,21 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
             this.cards.push(img);
         }
 
-        this.timer = setInterval(() => {
+        setTimeout(() => {
             this.startAnimation();
-        }, 800);
+        }, 500);
     }
 
     private startAnimation(): void {
 
         const left = [];
         const right = [];
+
+        AudioManager.playSound("cards_in");
+
+        setTimeout(() => {
+            AudioManager.playSound("cards_out");
+        }, 350);
 
         for (let i = 0; i < this.cards.length; i++) {
             const card = {
@@ -140,7 +147,11 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
                         duration: 250,
                         delay: 100,
                         onComplete: () => {
-                            // 
+                            if (i === this.cards.length - 1 && this.visible) {
+                                setTimeout(() => {
+                                    this.startAnimation();
+                                }, 100);
+                            } 
                         },
                         onCompleteScope: this
                     });
