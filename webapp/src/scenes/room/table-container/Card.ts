@@ -5,6 +5,7 @@ export class Card extends Phaser.GameObjects.Container {
     public info: {value: number, suit: number};
 
     private image: Phaser.GameObjects.Image;
+    private mark: Phaser.GameObjects.Image;
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
 
@@ -15,6 +16,10 @@ export class Card extends Phaser.GameObjects.Container {
 
         this.image = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_2", "card-back");
         this.add(this.image);
+
+        this.mark = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "frame_winner_hand");
+        this.mark.visible = false;
+        this.add(this.mark);
 
         this.info = {value: -1, suit : -1};
         
@@ -35,6 +40,7 @@ export class Card extends Phaser.GameObjects.Container {
         
         this.visible = false;
         this.alpha = 0;
+        this.mark.visible = false;
         this.image.setFrame("card-back");
         this.info = {value: -1, suit : -1};
     }
@@ -84,30 +90,14 @@ export class Card extends Phaser.GameObjects.Container {
 
     public showMark(): void {
 
-        let mark = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "frame_winner_hand");
-        this.add(mark);
-
-        mark.alpha = 0;
+        this.mark.alpha = 0;
+        this.mark.visible = true;
 
         this.scene.tweens.add({
-            targets: mark,
+            targets: this.mark,
             alpha: 1,
             ease: Phaser.Math.Easing.Linear,
-            duration: 500,
-            onComplete: () => {
-                this.scene.tweens.add({
-                    targets: mark,
-                    alpha: 0,
-                    ease: Phaser.Math.Easing.Linear,
-                    duration: 500,
-                    delay: 4000,
-                    onComplete: () => {
-                        mark.destroy();
-                    },
-                    onCompleteScope: this
-                });
-            },
-            onCompleteScope: this
+            duration: 500
         });
     }
 }

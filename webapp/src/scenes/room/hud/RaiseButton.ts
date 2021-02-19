@@ -30,7 +30,7 @@ export class RaiseButton extends Phaser.GameObjects.Container {
         icon.setOrigin(0, .5);
         this.add(icon);
 
-        this.raiseValue = new Phaser.GameObjects.Text(this.scene, icon.x + icon.width + 30, -42, " " + (RoomManager.getOpponentBets() + GameVars.raiseValue).toString() + " ", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
+        this.raiseValue = new Phaser.GameObjects.Text(this.scene, icon.x + icon.width + 30, -42, " " + (RoomManager.getOpponentBets() + GameVars.raiseValue  - RoomManager.getPlayerBets()).toString() + " ", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
         this.raiseValue.setOrigin(.5);
         this.raiseValue.setShadow(1, 1, "#000000", 5);
         this.add(this.raiseValue);
@@ -49,7 +49,7 @@ export class RaiseButton extends Phaser.GameObjects.Container {
             GameVars.raiseValue = 1;
         }
 
-        this.raiseValue.text = " " + (RoomManager.getOpponentBets() + GameVars.raiseValue).toString() + " ";
+        this.raiseValue.text = " " + (RoomManager.getOpponentBets() + GameVars.raiseValue - RoomManager.getPlayerBets()).toString() + " ";
         this.raiseSlider.updateMarker();
     }
 
@@ -63,14 +63,14 @@ export class RaiseButton extends Phaser.GameObjects.Container {
             GameVars.raiseValue = 1;
         }
 
-        this.raiseValue.text = " " + (RoomManager.getOpponentBets() + GameVars.raiseValue).toString() + " ";
+        this.raiseValue.text = " " + (RoomManager.getOpponentBets() + GameVars.raiseValue  - RoomManager.getPlayerBets()).toString() + " ";
         this.raiseSlider.updateMarker();
     }
 
     public updateRaiseValue(value: number) {
 
         GameVars.raiseValue = value;
-        this.raiseValue.text = " " + (RoomManager.getOpponentBets() + GameVars.raiseValue).toString() + " ";
+        this.raiseValue.text = " " + (RoomManager.getOpponentBets() + GameVars.raiseValue  - RoomManager.getPlayerBets()).toString() + " ";
     }
 
     private onDown(): void {

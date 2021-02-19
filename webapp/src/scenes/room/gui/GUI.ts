@@ -16,9 +16,14 @@ export class GUI extends Phaser.GameObjects.Container {
     private botContainer: Phaser.GameObjects.Container; 
     private winnerLayer: WinnerLayer;
 
+    private canClick: boolean;
+    private nextButton: Phaser.GameObjects.Container;
+
     constructor(scene: Phaser.Scene) {
 
         super(scene);
+
+        this.canClick = false;
 
         this.topContainer = new Phaser.GameObjects.Container(this.scene, GameConstants.GAME_WIDTH / 2, 0);
         this.add(this.topContainer);
@@ -52,6 +57,35 @@ export class GUI extends Phaser.GameObjects.Container {
         this.potImage.visible = false;
         this.midContainer.add(this.potImage);
 
+        this.nextButton = new Phaser.GameObjects.Container(this.scene);
+        this.nextButton.setPosition(310, 30);
+        this.midContainer.add(this.nextButton);
+
+        let nextText = new Phaser.GameObjects.Text(this.scene, 0, 0, "NEXT HAND", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#183D62"});
+        nextText.setOrigin(.5);
+
+        let nextBtn = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "btn_long");
+        nextBtn.setOrigin(.5);
+        nextBtn.scaleX = .7;
+        nextBtn.setInteractive();
+        nextBtn.on("pointerdown", () => {
+            nextBtn.setScale(.7, 1);
+            nextText.setScale(1);
+        }, this);
+        nextBtn.on("pointerup", this.onClickNext, this);
+        nextBtn.on("pointerover", () => {
+            nextBtn.setScale(.75, 1.05);
+            nextText.setScale(1.05);
+        }, this);
+        nextBtn.on("pointerout", () => {
+            nextBtn.setScale(.7, 1);
+            nextText.setScale(1);
+        }, this);
+        this.nextButton.add(nextBtn);
+        this.nextButton.add(nextText);
+
+        this.nextButton.visible = false;
+
         this.stateLayer = new StateLayer(this.scene);
         this.midContainer.add(this.stateLayer);
 
@@ -76,6 +110,7 @@ export class GUI extends Phaser.GameObjects.Container {
 
             this.topContainer.setScale(GameVars.scaleX, 1);
             this.botContainer.setScale(GameVars.scaleX, 1);
+            this.nextButton.setPosition(310, 30);
         } else {
 
             this.midContainer.y = GameConstants.GAME_HEIGHT / 2 - 47;
@@ -83,6 +118,7 @@ export class GUI extends Phaser.GameObjects.Container {
 
             this.topContainer.setScale(1.3 + (0.55 - GameVars.scaleY) * 3, (1.3 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
             this.botContainer.setScale(1.5 + (0.55 - GameVars.scaleY) * 3, (1.5 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
+            this.nextButton.setPosition(0, 130);
         }
     }
 
@@ -90,11 +126,24 @@ export class GUI extends Phaser.GameObjects.Container {
 
         this.potText.visible = false;
         this.potImage.visible = false;
+
+        this.winnerLayer.hide();
     }
 
     public showWinner(endData: any): void {
 
         this.winnerLayer.showWinner(endData);
+
+        this.canClick = true;
+        this.nextButton.visible = true;
+        this.nextButton.alpha = 0;
+
+        this.scene.tweens.add({
+            targets: this.nextButton,
+            alpha: 1,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 250
+        });
     }
 
     public updateBoard(): void {
@@ -115,5 +164,27 @@ export class GUI extends Phaser.GameObjects.Container {
 
         this.potText.text = "POT: " + (RoomManager.getPlayerBets() + RoomManager.getOpponentBets());
         this.potImage.x = this.potText.x + this.potText.width / 2 + 10;
+    }
+
+    private onClickNext(): void {
+
+        if (!this.canClick) {
+            return;
+        }
+    
+        this.canClick = false;
+
+        this.scene.tweens.add({
+            targets: this.nextButton,
+            alpha: 0,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 250,
+            onComplete: () => {
+                this.nextButton.visible = false;
+            },
+            onCompleteScope: this
+        });
+        
+        RoomManager.onClickNext();  
     }
 }

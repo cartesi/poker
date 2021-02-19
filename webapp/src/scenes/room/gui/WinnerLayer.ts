@@ -38,8 +38,6 @@ export class WinnerLayer extends Phaser.GameObjects.Container {
             }
         }
 
-        console.log(endData);
-
         let title = new Phaser.GameObjects.Text(this.scene, 0, -122, text, {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#FFFFFF"});
         title.setOrigin(.5);
         this.add(title);
@@ -61,13 +59,15 @@ export class WinnerLayer extends Phaser.GameObjects.Container {
                 });
             }
         }
+    }
+
+    public hide(): void {
 
         this.scene.tweens.add({
             targets: this,
             alpha: 0,
             ease: Phaser.Math.Easing.Linear,
-            duration: 500,
-            delay: 4000,
+            duration: 250,
             onComplete: () => {
                 this.visible = false;
             },

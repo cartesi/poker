@@ -209,6 +209,15 @@ export class RoomManager {
         return {value: parseInt(card) % 13, suit: Math.floor(parseInt(card) / 13)};
     }
 
+    public static onClickNext(): void {
+
+        RoomScene.currentInstance.resetTable();
+
+        setTimeout(() => {
+            RoomManager.startRound();
+        }, 500);
+    }
+
     private static onBetRequested(): void {
         
         RoomManager.showBetButtons();
@@ -224,11 +233,6 @@ export class RoomManager {
             GameVars.playerFunds = endData.fundsShare[ALICE];
             GameVars.opponentFunds = endData.fundsShare[BOB];
         }, 2000);
-        
-        setTimeout(() => {
-            RoomScene.currentInstance.resetTable();
-            RoomManager.startRound();
-        }, 6000);
     }
 
     private static onAutomaticBet(player): void {
