@@ -7,6 +7,7 @@ import { WinnerLayer } from "./WinnerLayer";
 export class GUI extends Phaser.GameObjects.Container {
 
     private topContainer: Phaser.GameObjects.Container;
+    private cartesi: Phaser.GameObjects.Text;
 
     private midContainer: Phaser.GameObjects.Container; 
     private potText: Phaser.GameObjects.Text;
@@ -34,8 +35,15 @@ export class GUI extends Phaser.GameObjects.Container {
         title.setScale(.5);
         this.topContainer.add(title);
 
+        this.cartesi = new Phaser.GameObjects.Text(this.scene, 95, 60, " powered by Cartesi ", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        this.cartesi.setOrigin(0, .5);
+        this.cartesi.alpha = 0;
+        this.cartesi.setScale(.5);
+        this.cartesi.setShadow(1, 1, "#000000", 5);
+        this.topContainer.add(this.cartesi);
+
         this.scene.tweens.add({
-            targets: title,
+            targets: [title, this.cartesi],
             alpha: 1,
             scaleX: 1,
             scaleY: 1,
@@ -111,6 +119,9 @@ export class GUI extends Phaser.GameObjects.Container {
             this.topContainer.setScale(GameVars.scaleX, 1);
             this.botContainer.setScale(GameVars.scaleX, 1);
             this.nextButton.setPosition(310, 30);
+
+            this.cartesi.setPosition(95, 60);
+            this.cartesi.setOrigin(0, .5);
         } else {
 
             this.midContainer.y = GameConstants.GAME_HEIGHT / 2 - 47;
@@ -119,6 +130,9 @@ export class GUI extends Phaser.GameObjects.Container {
             this.topContainer.setScale(1.3 + (0.55 - GameVars.scaleY) * 3, (1.3 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
             this.botContainer.setScale(1.5 + (0.55 - GameVars.scaleY) * 3, (1.5 + (0.55 - GameVars.scaleY) * 3) * GameVars.scaleY);
             this.nextButton.setPosition(0, 130);
+
+            this.cartesi.setPosition(0, 120);
+            this.cartesi.setOrigin(.5);
         }
     }
 
