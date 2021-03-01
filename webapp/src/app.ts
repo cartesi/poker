@@ -7,6 +7,7 @@ import { GameConstants } from "./GameConstants";
 import { BootScene } from "./scenes/BootScene";
 import { RoomScene } from "./scenes/room/RoomScene";
 import { GameVars } from "./GameVars";
+import { LobbyScene } from "./scenes/lobby/LobbyScene";
 
 let game: Game;
 
@@ -30,7 +31,8 @@ window.onload = () => {
         scene:  [
             BootScene,
             PreloadScene,
-            RoomScene
+            RoomScene,
+            LobbyScene
         ],
         render: {
             antialias: true,
@@ -61,6 +63,8 @@ window.onload = () => {
             
             if (GameVars.currentScene === RoomScene.currentInstance) {
                 RoomScene.currentInstance.onOrientationChange();
+            } else if (GameVars.currentScene === LobbyScene.currentInstance) {
+                LobbyScene.currentInstance.onOrientationChange();
             }
             
         }, callbackScope: GameVars.currentScene});
@@ -82,6 +86,8 @@ window.onload = () => {
         
         if (GameVars.currentScene === RoomScene.currentInstance) {
             RoomScene.currentInstance.onOrientationChange();
+        } else if (GameVars.currentScene === LobbyScene.currentInstance) {
+            LobbyScene.currentInstance.onOrientationChange();
         }
     }
 };
