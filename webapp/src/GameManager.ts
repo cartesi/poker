@@ -160,18 +160,24 @@ export class GameManager {
 
         AudioManager.init();
 
-        GameManager.enterLobbyScene();
+        GameManager.enterSplashScene();
+        // GameManager.enterLobbyScene();
         // GameManager.enterRoomScene();
     }
 
-    public static enterRoomScene(): void {
+    public static enterSplashScene(): void {
 
-        GameVars.currentScene.scene.start("RoomScene");
+        GameVars.currentScene.scene.start("SplashScene");
     }
 
     public static enterLobbyScene(): void {
 
         GameVars.currentScene.scene.start("LobbyScene");
+    }
+
+    public static enterRoomScene(): void {
+
+        GameVars.currentScene.scene.start("RoomScene");
     }
 
     public static writeGameData(): void {

@@ -8,6 +8,7 @@ import { BootScene } from "./scenes/BootScene";
 import { RoomScene } from "./scenes/room/RoomScene";
 import { GameVars } from "./GameVars";
 import { LobbyScene } from "./scenes/lobby/LobbyScene";
+import { SplashScene } from "./scenes/splash/SplashScene";
 
 let game: Game;
 
@@ -32,7 +33,8 @@ window.onload = () => {
             BootScene,
             PreloadScene,
             RoomScene,
-            LobbyScene
+            LobbyScene,
+            SplashScene
         ],
         render: {
             antialias: true,
