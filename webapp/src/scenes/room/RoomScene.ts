@@ -47,7 +47,7 @@ export class RoomScene extends Phaser.Scene {
         this.add.existing(this.settingsLayer);
 
         setTimeout(() => {
-            RoomManager.startRound(true);
+            RoomManager.startRound();
         }, 2000);
 
         AudioManager.playMusic("soundtrack", 0.1);

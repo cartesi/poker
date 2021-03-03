@@ -40,7 +40,7 @@ export class LobbyScene extends Phaser.Scene {
             backButton.setScale(1);
         }, this);
         backButton.on("pointerup", () => {
-            //TODO: go to splash 
+            GameManager.enterSplashScene();
         }, this);
         this.backContainer.add(backButton);
 
@@ -61,9 +61,14 @@ export class LobbyScene extends Phaser.Scene {
         this.matchingLayer = new MatchingLayer(this);
         this.add.existing(this.matchingLayer);
 
-        Lobby.joinGame("David", 1000, (index, context) => {
+        Lobby.joinGame(GameVars.playerName, GameVars.playerFunds, (index, context) => {
             console.log(index);
             console.log(context);
+
+            GameVars.opponentName = context.playerInfos[1];
+            GameVars.opponentFunds = context.playerFunds[1];
+
+            console.log(GameVars.opponentName, GameVars.opponentFunds);
         });
 
         this.onOrientationChange();

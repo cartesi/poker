@@ -19,7 +19,7 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
         let frameBg = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", "frame_bg_matching");
         this.add(frameBg);
 
-        let playerImage = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", "avatar_player");
+        let playerImage = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", GameVars.playerAvatar === 1 ? "avatar_player" : "avatar_opponent");
         this.add(playerImage);
 
         let frame = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", "frame_matching");

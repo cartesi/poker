@@ -27,6 +27,9 @@ export class GameManager {
             GameVars.landscape = false;
         }
 
+        GameVars.playerName = "David";
+        GameVars.playerFunds = 100;
+
         GameManager.readGameData();
     }
 
@@ -212,6 +215,11 @@ export class GameManager {
     private static startGame(): void {
 
         GameVars.currentScene.scene.start("PreloadScene");
+    }
+
+    public static setPlayerAvatar(value: number): void {
+
+        GameVars.playerAvatar = value;
     }
     
     private static getGameStorageData(key: string, successCb: Function): void {

@@ -14,13 +14,7 @@ export class RoomManager {
         GameVars.raiseValue = 1;
     }
 
-    public static startRound(reset?: boolean): void {
-
-        if (reset) {
-            GameVars.playerFunds = 100;
-            GameVars.opponentFunds = 100;
-            GameVars.raiseValue = 1;
-        }
+    public static startRound(): void {
 
         if (GameVars.playerFunds < 2) {
             console.log("GAME OVER, OPPONENT WON");  

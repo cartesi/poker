@@ -63,7 +63,9 @@ window.onload = () => {
                 GameVars.landscape = false;
             }
             
-            if (GameVars.currentScene === RoomScene.currentInstance) {
+            if (GameVars.currentScene === SplashScene.currentInstance) {
+                SplashScene.currentInstance.onOrientationChange();
+            } else if (GameVars.currentScene === RoomScene.currentInstance) {
                 RoomScene.currentInstance.onOrientationChange();
             } else if (GameVars.currentScene === LobbyScene.currentInstance) {
                 LobbyScene.currentInstance.onOrientationChange();
@@ -86,7 +88,9 @@ window.onload = () => {
             GameVars.landscape = false;
         }
         
-        if (GameVars.currentScene === RoomScene.currentInstance) {
+        if (GameVars.currentScene === SplashScene.currentInstance) {
+            SplashScene.currentInstance.onOrientationChange();
+        } else if (GameVars.currentScene === RoomScene.currentInstance) {
             RoomScene.currentInstance.onOrientationChange();
         } else if (GameVars.currentScene === LobbyScene.currentInstance) {
             LobbyScene.currentInstance.onOrientationChange();
