@@ -181,15 +181,15 @@ export class GameManager {
 
         GameVars.currentScene.scene.start("LobbyScene");
 
-        // Lobby.joinGame(GameVars.playerName, GameVars.playerFunds, (index, context) => {
-        //     console.log(index);
-        //     console.log(context);
+        Lobby.joinGame(GameVars.playerName, GameVars.playerFunds, (index, context) => {
+            console.log(index);
+            console.log(context);
 
-        //     GameVars.opponentName = context.playerInfos[1];
-        //     GameVars.opponentFunds = context.playerFunds[1];
+            GameVars.opponentName = context.playerInfos[1];
+            GameVars.opponentFunds = context.playerFunds[1];
 
-        //     LobbyScene.currentInstance.onOpponentJoined();
-        // });
+            LobbyScene.currentInstance.onOpponentJoined();
+        });
     }
 
     public static enterRoomScene(): void {
