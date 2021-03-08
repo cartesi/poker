@@ -3,6 +3,8 @@ import { GameVars } from "./GameVars";
 
 import Web3 from "web3";
 import { AudioManager } from "./AudioManager";
+import { Lobby } from "./web3/Lobby";
+import { LobbyScene } from "./scenes/lobby/LobbyScene";
 // import Zoom from "./abis/Zoom.json";
 // import TurnBasedGame from "./abis/TurnBasedGame.json";
 
@@ -27,8 +29,10 @@ export class GameManager {
             GameVars.landscape = false;
         }
 
-        GameVars.playerName = "David";
+        GameVars.playerName = "Alice";
         GameVars.playerFunds = 100;
+
+        GameVars.opponentAvatar = 1;
 
         GameManager.readGameData();
     }
@@ -176,6 +180,16 @@ export class GameManager {
     public static enterLobbyScene(): void {
 
         GameVars.currentScene.scene.start("LobbyScene");
+
+        // Lobby.joinGame(GameVars.playerName, GameVars.playerFunds, (index, context) => {
+        //     console.log(index);
+        //     console.log(context);
+
+        //     GameVars.opponentName = context.playerInfos[1];
+        //     GameVars.opponentFunds = context.playerFunds[1];
+
+        //     LobbyScene.currentInstance.onOpponentJoined();
+        // });
     }
 
     public static enterRoomScene(): void {

@@ -28,7 +28,7 @@ export class Lobby {
             playerFunds: [funds, 100],
             playerInfos: [name, "Bob"]
         };
-        setTimeout(() => gameReadyCallback(index, context), 3000);
+        setTimeout(() => gameReadyCallback(index, context), 6000);
     }
 
 }

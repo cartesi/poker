@@ -61,17 +61,12 @@ export class LobbyScene extends Phaser.Scene {
         this.matchingLayer = new MatchingLayer(this);
         this.add.existing(this.matchingLayer);
 
-        Lobby.joinGame(GameVars.playerName, GameVars.playerFunds, (index, context) => {
-            console.log(index);
-            console.log(context);
-
-            GameVars.opponentName = context.playerInfos[1];
-            GameVars.opponentFunds = context.playerFunds[1];
-
-            console.log(GameVars.opponentName, GameVars.opponentFunds);
-        });
-
         this.onOrientationChange();
+    }
+
+    public onOpponentJoined(): void {
+
+        GameManager.enterRoomScene();
     }
 
     public onOrientationChange(): void {
