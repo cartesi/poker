@@ -66,7 +66,7 @@ export class LobbyScene extends Phaser.Scene {
 
     public onOpponentJoined(): void {
 
-        GameManager.enterRoomScene();
+        this.matchingLayer.onStopScrolling();
     }
 
     public onOrientationChange(): void {

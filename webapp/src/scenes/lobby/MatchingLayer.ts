@@ -1,7 +1,10 @@
 import { GameConstants } from "../../GameConstants";
+import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
 
 export class MatchingLayer extends Phaser.GameObjects.Container {
+
+    private static NAMES: string[] = ["Ruth","Jackson","Debra","Allen","Gerald","Harris","Raymond","Carter","Jacqueline","Torres","Joseph","Nelson","Carlos","Sanchez","Ralph","Clark","Jean","Alexander","Stephen","Roberts","Eric","Long","Amanda","Scott","Teresa","Diaz","Wanda","Thomas"];
 
     private waitingText: Phaser.GameObjects.Text;
     private watchingTimer: number;
@@ -9,14 +12,28 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
     private playerContainer: Phaser.GameObjects.Container;
     private opponentContainer: Phaser.GameObjects.Container;
 
+    private upperAvatarImage: Phaser.GameObjects.Image;
+    private lowerAvatarImage: Phaser.GameObjects.Image;
+
+    private adversarySelected: boolean;
+    private setToStop: boolean;
+    private stopScrolling: boolean;
+
+    private opponentNickname: Phaser.GameObjects.Text;
+
+    private maskShape: Phaser.GameObjects.Graphics;
+
     constructor(scene: Phaser.Scene) {
 
         super(scene);
 
+        this.adversarySelected = false;
+        this.setToStop = false;
+        this.stopScrolling = false;
         this.watchingTimer = 0;
 
         this.x = GameConstants.GAME_WIDTH / 2;
-        this.y = GameConstants.GAME_HEIGHT/ 2;
+        this.y = GameConstants.GAME_HEIGHT / 2;
 
         let bgVs = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "bg_vs");
         bgVs.alpha = 0;
@@ -53,9 +70,23 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
         frameBg = new Phaser.GameObjects.Image(this.scene, 250, 0, "texture_atlas_1", "frame_bg_matching");
         this.opponentContainer.add(frameBg);
 
-        let opponentImage = new Phaser.GameObjects.Image(this.scene, 250, 0, "texture_atlas_1", "avatar_opponent");
-        opponentImage.scaleX = -1;
-        this.opponentContainer.add(opponentImage);
+        this.upperAvatarImage = new Phaser.GameObjects.Image(this.scene, 250, 0, "texture_atlas_1", "avatar_opponent");
+        this.upperAvatarImage.scaleX = -1;
+        this.opponentContainer.add(this.upperAvatarImage);
+
+        this.lowerAvatarImage = new Phaser.GameObjects.Image(this.scene, 250, 0, "texture_atlas_1", "avatar_player");
+        this.lowerAvatarImage.scaleX = -1;
+        this.opponentContainer.add(this.lowerAvatarImage);
+
+        this.maskShape = new Phaser.GameObjects.Graphics(this.scene);
+        this.maskShape.x = this.x + 250;
+        this.maskShape.y = this.y;
+        this.maskShape.fillStyle(0xFF0000);
+        this.maskShape.fillRect(-70, -70, 140, 140);
+
+        const mask = this.maskShape.createGeometryMask();
+        this.upperAvatarImage.setMask(mask);
+        this.lowerAvatarImage.setMask(mask);
 
         frame = new Phaser.GameObjects.Image(this.scene, 250, 0, "texture_atlas_1", "frame_matching");
         this.opponentContainer.add(frame);
@@ -63,9 +94,9 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
         nicknameBck = new Phaser.GameObjects.Image(this.scene, 250, 120, "texture_atlas_1", "txt_box_names");
         this.opponentContainer.add(nicknameBck);
 
-        nickname = new Phaser.GameObjects.Text(this.scene, 250, 120, "???", {fontFamily: "Oswald-Medium", fontSize: "24px", color: "#FFFFFF"});
-        nickname.setOrigin(.5);
-        this.opponentContainer.add(nickname);
+        this.opponentNickname = new Phaser.GameObjects.Text(this.scene, 250, 120, "???", {fontFamily: "Oswald-Medium", fontSize: "24px", color: "#FFFFFF"});
+        this.opponentNickname.setOrigin(.5);
+        this.opponentContainer.add(this.opponentNickname);
 
         this.waitingText = new Phaser.GameObjects.Text(this.scene, -80, 300, "MATCHING...", {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#FFFFFF"});
         this.waitingText.setOrigin(0, .5);
@@ -101,22 +132,91 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
 
     public preUpdate(time: number, delta: number): void {
 
-        if (this.watchingTimer++ === 60) {
+        if (this.watchingTimer++ === 60 && !this.stopScrolling) {
 
             this.watchingTimer = 0;
 
-            switch(this.waitingText.text) {
+            switch (this.waitingText.text) {
                 case "MATCHING.":
-                    this.waitingText.text = "MATCHING.."
+                    this.waitingText.text = "MATCHING..";
                     break;
                 case "MATCHING..":
-                    this.waitingText.text = "MATCHING..."
+                    this.waitingText.text = "MATCHING...";
                     break;
                 case "MATCHING...":
-                    this.waitingText.text = "MATCHING."
+                    this.waitingText.text = "MATCHING.";
+                    break;
+                default:
                     break;
             }
         }
+
+        this.maskShape.x = this.x + 250;
+
+        if (this.stopScrolling) {
+            return;
+        }
+        
+        this.lowerAvatarImage.y += 20;
+        this.upperAvatarImage.y = this.lowerAvatarImage.y - 300;
+
+        if (this.lowerAvatarImage.y >= 200) {
+
+            if (this.setToStop) {
+
+                this.stopScrolling = true;
+                this.upperAvatarImage.y = 0;
+
+                this.opponentNickname.setText(GameVars.opponentName);
+
+            } else {
+
+                const tmpAvatarImage = this.lowerAvatarImage;
+                this.lowerAvatarImage = this.upperAvatarImage;
+                this.upperAvatarImage = tmpAvatarImage;
+    
+                if (this.adversarySelected) {
+                    this.upperAvatarImage.setFrame(GameVars.opponentAvatar === 1 ? "avatar_player" : "avatar_opponent");
+                    this.setToStop = true;
+                }
+
+                this.opponentNickname.setText(MatchingLayer.NAMES[Math.floor(Math.random() * MatchingLayer.NAMES.length)]);
+            }
+        }
+    }
+
+    public onStopScrolling(): void {
+
+        this.adversarySelected = true;
+
+        this.scene.tweens.add({
+            targets: this.waitingText,
+            alpha: 0,
+            ease: Phaser.Math.Easing.Cubic.Out,
+            duration: 500
+        });
+
+        let playButton = new Phaser.GameObjects.Image(this.scene, 0, this.waitingText.y, "texture_atlas_1", "btn_play");
+        playButton.setInteractive();
+        playButton.alpha = 0;
+        playButton.on("pointerover", () => {
+            playButton.setScale(1.05);
+        }, this);
+        playButton.on("pointerout", () => {
+            playButton.setScale(1);
+        }, this);
+        playButton.on("pointerup", () => {
+            GameManager.enterRoomScene();
+        }, this);
+        this.add(playButton);
+
+        this.scene.tweens.add({
+            targets: playButton,
+            alpha: 1,
+            ease: Phaser.Math.Easing.Cubic.Out,
+            duration: 500,
+            delay: 500
+        });
     }
 
     public setScalesAndPositions(): void {
