@@ -1,3 +1,4 @@
+import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
@@ -54,6 +55,7 @@ export class SplashScene extends Phaser.Scene {
         avatar1graphic.setInteractive(new Phaser.Geom.Rectangle(-55, -55, 110, 110), Phaser.Geom.Rectangle.Contains);
         avatar1graphic.on("pointerdown", () => {
             this.chooseAvatarFrame.setPosition(-85, 111);
+            AudioManager.playSound("btn_click");
             GameManager.setPlayerAvatar(1);
         }, this);
         this.midContainer.add(avatar1graphic);
@@ -65,10 +67,10 @@ export class SplashScene extends Phaser.Scene {
         avatar2graphic.setInteractive(new Phaser.Geom.Rectangle(-55, -55, 110, 110), Phaser.Geom.Rectangle.Contains);
         avatar2graphic.on("pointerdown", () => {
             this.chooseAvatarFrame.setPosition(85, 111);
+            AudioManager.playSound("btn_click");
             GameManager.setPlayerAvatar(2);
         }, this);
         this.midContainer.add(avatar2graphic);
-
 
         this.chooseAvatarFrame = new Phaser.GameObjects.Image(this, -85, 111, "texture_atlas_1", "choose_avatar_frame");
         this.midContainer.add(this.chooseAvatarFrame);
@@ -82,6 +84,7 @@ export class SplashScene extends Phaser.Scene {
             playButton.setScale(1);
         }, this);
         playButton.on("pointerup", () => {
+            AudioManager.playSound("btn_click");
             GameManager.enterLobbyScene();
         }, this);
         this.midContainer.add(playButton);
@@ -89,6 +92,8 @@ export class SplashScene extends Phaser.Scene {
         GameManager.setPlayerAvatar(1);
 
         this.onOrientationChange();
+
+        AudioManager.playMusic("soundtrack", 0.1);
     }
 
     public onOrientationChange(): void {

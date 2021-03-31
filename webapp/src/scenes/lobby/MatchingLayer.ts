@@ -1,3 +1,4 @@
+import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
@@ -82,7 +83,7 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
         this.maskShape.x = this.x + 250;
         this.maskShape.y = this.y;
         this.maskShape.fillStyle(0xFF0000);
-        this.maskShape.fillRect(-70, -70, 140, 140);
+        this.maskShape.fillRect(-GameConstants.GAME_WIDTH / 2, -70 * GameVars.scaleY, GameConstants.GAME_WIDTH, 140 * GameVars.scaleY);
 
         const mask = this.maskShape.createGeometryMask();
         this.upperAvatarImage.setMask(mask);
@@ -124,7 +125,11 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
             alpha: 1,
             ease: Phaser.Math.Easing.Cubic.Out,
             duration: 500,
-            delay: 1500
+            delay: 1500,
+            onStart: () => {
+                AudioManager.playMatching("matching");
+            },
+            onStartScope: this
         });
 
         this.scene.sys.updateList.add(this);
@@ -187,6 +192,8 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
 
     public onStopScrolling(): void {
 
+        AudioManager.stopMatching();
+
         this.adversarySelected = true;
 
         this.scene.tweens.add({
@@ -206,6 +213,7 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
             playButton.setScale(1);
         }, this);
         playButton.on("pointerup", () => {
+            AudioManager.playSound("btn_click");
             GameManager.enterRoomScene();
         }, this);
         this.add(playButton);
@@ -221,14 +229,19 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
 
     public setScalesAndPositions(): void {
 
+        this.maskShape.clear();
+
         if (GameVars.landscape) {
             if (GameVars.scaleX > 1.2) {
                 this.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+                this.maskShape.fillRect(-GameConstants.GAME_WIDTH / 2, -70 * (1 - (GameVars.scaleX - 1.2)), GameConstants.GAME_WIDTH, 140 * (1 - (GameVars.scaleX - 1.2)));
             } else {
                 this.setScale(GameVars.scaleX, 1);
+                this.maskShape.fillRect(-GameConstants.GAME_WIDTH / 2, -70, GameConstants.GAME_WIDTH, 140);
             }
         } else {
             this.setScale(1.2, GameVars.scaleY * 1.2);
+            this.maskShape.fillRect(-GameConstants.GAME_WIDTH / 2, -70 * GameVars.scaleY * 1.2, GameConstants.GAME_WIDTH, 140 * GameVars.scaleY * 1.2);
         }
     }
 }

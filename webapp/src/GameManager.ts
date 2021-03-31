@@ -226,14 +226,14 @@ export class GameManager {
         }
     }
 
-    private static startGame(): void {
-
-        GameVars.currentScene.scene.start("PreloadScene");
-    }
-
     public static setPlayerAvatar(value: number): void {
 
         GameVars.playerAvatar = value;
+    }
+
+    private static startGame(): void {
+
+        GameVars.currentScene.scene.start("PreloadScene");
     }
     
     private static getGameStorageData(key: string, successCb: Function): void {

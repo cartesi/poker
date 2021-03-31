@@ -10,6 +10,7 @@ export class AudioManager {
     public static themeVolume: number;
     public static themeKey: string;
     public static loopedSounds: { [key: string]: number; };
+    public static matchingID: number;
 
     public static init(): void {
 
@@ -71,6 +72,21 @@ export class AudioManager {
         // AudioManager.sound.stop(AudioManager.loopedSounds[key]);
         AudioManager.sound.fade(1, 0, 500, AudioManager.loopedSounds[key]);
         AudioManager.loopedSounds[key] = null;
+    }
+
+    public static playMatching(key: string) {
+
+        let id = AudioManager.sound.play(key);
+        AudioManager.sound.loop(true, id);
+        AudioManager.matchingID = id;
+    }
+
+    public static stopMatching(): void {
+
+        if (AudioManager.matchingID) {
+            AudioManager.sound.fade(1, 0, 500, AudioManager.matchingID);
+            AudioManager.matchingID = null;
+        }
     }
 
 

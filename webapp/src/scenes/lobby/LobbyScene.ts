@@ -1,7 +1,7 @@
+import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
-import { Lobby } from "../../web3/Lobby";
 import { MatchingLayer } from "./MatchingLayer";
 
 export class LobbyScene extends Phaser.Scene {
@@ -40,6 +40,7 @@ export class LobbyScene extends Phaser.Scene {
             backButton.setScale(1);
         }, this);
         backButton.on("pointerup", () => {
+            AudioManager.playSound("btn_click");
             GameManager.enterSplashScene();
         }, this);
         this.backContainer.add(backButton);
