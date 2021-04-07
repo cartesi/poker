@@ -27,8 +27,8 @@ Download and extract the ready-to-use environment artifact within the `blockchai
 
 ```bash
 $ cd blockchain
-$ wget https://github.com/cartesi/descartes-tutorials/releases/download/v0.2.0/descartes-env-0.2.0.tar.gz
-$ tar -xzvf descartes-env-0.2.0.tar.gz
+$ wget https://github.com/cartesi/descartes-tutorials/releases/download/v1.1.0/descartes-env-1.1.0.tar.gz
+$ tar -xzvf descartes-env-1.1.0.tar.gz
 ```
 
 After that, you may start the environment by typing:
