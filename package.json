@@ -1,7 +1,10 @@
 {
-  "private": true,
-  "workspaces": ["blockchain","webapp"],
-  "scripts": {
-    "start": "cd webapp && yarn start"
-  }
+    "private": true,
+    "workspaces": [
+        "blockchain",
+        "webapp"
+    ],
+    "scripts": {
+        "start": "cd webapp && yarn start"
+    }
 }
