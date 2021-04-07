@@ -1,24 +1,26 @@
 {
     "name": "@cartesi/poker-contracts",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Contracts for Mental Poker game using Cartesi+Matic",
-    "directories": {
-        "test": "test"
-    },
     "dependencies": {
-        "@cartesi/descartes-sdk": "^0.2.0"
+        "@cartesi/descartes-sdk": "^1.1.1"
     },
     "devDependencies": {
-        "@truffle/contract": "^4.2.10",
-        "truffle": "^5.1.37"
+        "ethers": "^5.1.0",
+        "hardhat": "^2.1.2",
+        "hardhat-deploy": "^0.7.2",
+        "hardhat-deploy-ethers": "0.3.0-beta.7",
+        "ts-node": "^9.1.1",
+        "typescript": "^4.2.4"
     },
     "scripts": {
-        "build": "truffle compile",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "build": "hardhat compile",
+        "deploy": "hardhat deploy --network localhost",
+        "console": "hardhat console --network localhost"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/cartesi-corp/poker-contracts.git"
+        "url": "git+https://github.com/cartesi-corp/poker.git"
     },
     "keywords": [
         "cartesi"
@@ -26,7 +28,7 @@
     "author": "Milton Jonathan <milton.jonathan@cartesi.io>",
     "license": "Apache-2.0",
     "bugs": {
-        "url": "https://github.com/cartesi-corp/poker-contracts/issues"
+        "url": "https://github.com/cartesi-corp/poker/issues"
     },
-    "homepage": "https://github.com/cartesi-corp/poker-contracts#readme"
+    "homepage": "https://github.com/cartesi-corp/poker#readme"
 }

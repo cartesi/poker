@@ -1,4 +1,4 @@
-node_modules/
 descartes-env*
-build/
-contracts/artifacts
+deployments/localhost
+artifacts
+cache
