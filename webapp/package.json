@@ -25,10 +25,10 @@
         "web3": "1.0.0-beta.55"
     },
     "scripts": {
-        "start": "run-s contracts:migrate contracts:copy engine:copy && webpack --mode development && webpack-dev-server --mode development",
+        "start": "run-s contracts:deploy contracts:copy engine:copy && webpack --mode development && webpack-dev-server --mode development",
         "dev": "run-s engine:copy && webpack --mode development && webpack-dev-server --mode development",
         "build": "webpack --mode production",
-        "contracts:migrate": "cd ../blockchain && npx truffle migrate",
+        "contracts:deploy": "cd ../blockchain && yarn deploy",
         "contracts:copy": "mkdir -p src/abis && cp ../blockchain/build/contracts/TurnBasedGame*.json ./src/abis/",
         "engine:copy": "mkdir -p dist && cp ../engine/mock/poker-api.js ./dist/"
     },
