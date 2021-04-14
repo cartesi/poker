@@ -42,6 +42,8 @@ const RIVER = 4;
 const SHOWDOWN = 5;
 const END = 6;
 
+const VALID_CARD_PATTERN = /^s\d_\d{1,2}_\d{1,2}$|^\d{1,2}$/;
+
 class Game {
 
   constructor(player, playerFunds, opponentFunds, metadata, tx, onBetRequested, onEnd, onEvent) {
@@ -64,6 +66,17 @@ class Game {
 
     // game state
     this.state = START;
+
+    // Methods that maliciously alter game state on purpose
+    this.cheat = {
+      isCardCoopCheatOn: false,
+
+      // When card cooperation is disabled, cards are sent to opponent 
+      // still encrypted. Enabled by default.
+      toggleCardCooperation: () => {
+        this.cheat.isCardCoopCheatOn = !this.cheat.isCardCoopCheatOn;
+      },
+    }
   }
   
   start() {
@@ -276,9 +289,12 @@ class Game {
   _sendCards(...cardIndexes) {
     const decryptedCards = {};
 
-    for(var index in cardIndexes) {
-      const cardIndex = cardIndexes[index]; 
-      decryptedCards[cardIndex] = this._decryptCard(this.deck[cardIndex]);
+    for(var cardIndex of cardIndexes) {
+      const card = this.deck[cardIndex];
+      
+      decryptedCards[cardIndex] = this.cheat.isCardCoopCheatOn 
+        ? card 
+        : this._decryptCard(card);
     }
 
     this.tx.send(decryptedCards);
@@ -332,6 +348,9 @@ class Game {
   _decryptedCardsReceived(cards) {
     this.onEvent(`decryptedCardsReceived ${JSON.stringify(cards)}`)
     for (const [index, card] of Object.entries(cards)) {
+      if(!card.match(VALID_CARD_PATTERN)) {
+        throw("Opponent sent invalid card");
+      }
       this.deck[index] = card;
     }
     this.onEvent(`myDeck ${JSON.stringify(this.deck)}`)
