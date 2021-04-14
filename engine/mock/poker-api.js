@@ -273,13 +273,24 @@ class Game {
     return card;
   }
 
+  _sendCards(...cardIndexes) {
+    const decryptedCards = {};
+
+    for(var index in cardIndexes) {
+      const cardIndex = cardIndexes[index]; 
+      decryptedCards[cardIndex] = this._decryptCard(this.deck[cardIndex]);
+    }
+
+    this.tx.send(decryptedCards);
+  }
+
   _dealPrivateCards() {
     if (this.player == ALICE) {
       // decrypts Bob's cards (indices 2,3) and sends them over
-      this.tx.send({ 2: this._decryptCard(this.deck[2]), 3: this._decryptCard(this.deck[3]) });
+      this._sendCards(2,3);
     } else {
       // decrypts Alice's cards (indices 0,1) and sends them over
-      this.tx.send({ 0: this._decryptCard(this.deck[0]), 1: this._decryptCard(this.deck[1]) });
+      this._sendCards(0,1);
     }
     // waits for the opponent to send decrypted cards
     this.tx.receive(this._decryptedCardsReceived.bind(this));
@@ -287,21 +298,21 @@ class Game {
 
   _dealFlop() {
     // decrypts Flop cards and sends them over
-    this.tx.send({ 4: this._decryptCard(this.deck[4]), 5: this._decryptCard(this.deck[5]), 6: this._decryptCard(this.deck[6]) });
+    this._sendCards(4,5,6);
     // waits for the opponent to send decrypted cards
     this.tx.receive(this._decryptedCardsReceived.bind(this));
   }
 
   _dealTurn() {
     // decrypts Turn card and sends it over
-    this.tx.send({ 7: this._decryptCard(this.deck[7]) });
+    this._sendCards(7);
     // waits for the opponent to send decrypted card
     this.tx.receive(this._decryptedCardsReceived.bind(this));
   }
 
   _dealRiver() {
     // decrypts River card and sends it over
-    this.tx.send({ 8: this._decryptCard(this.deck[8]) });
+    this._sendCards(8);
     // waits for the opponent to send decrypted card
     this.tx.receive(this._decryptedCardsReceived.bind(this));
   }
@@ -309,10 +320,10 @@ class Game {
   _dealShowdown() {
     if (this.player == ALICE) {
       // decrypts Alice's own cards (indices 0,1) so that all can see
-      this.tx.send({ 0: this._decryptCard(this.deck[0]), 1: this._decryptCard(this.deck[1]) });
+      this._sendCards(0,1);
     } else {
       // decrypts Bob's own cards (indices 2,3) so that all can see
-      this.tx.send({ 2: this._decryptCard(this.deck[2]), 3: this._decryptCard(this.deck[3]) });
+      this._sendCards(2,3);
     }
     // waits for the opponent to send decrypted cards
     this.tx.receive(this._decryptedCardsReceived.bind(this));
