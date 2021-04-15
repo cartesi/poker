@@ -33,7 +33,7 @@ class Transport {
 const ALICE = 0;
 const BOB = 1;
 
-// states
+// game states
 const START = 0;
 const PREFLOP = 1;
 const FLOP = 2;
@@ -41,12 +41,22 @@ const TURN = 3;
 const RIVER = 4;
 const SHOWDOWN = 5;
 const END = 6;
+const VERIFICATION = 7;
+
+// verification states
+const VERIFICATION_NONE = 0;
+const VERIFICATION_STARTED = 1;
+const VERIFICATION_RESULT_SUBMITTED = 2;
+const VERIFICATION_RESULT_CONFIRMED = 3;
+const VERIFICATION_RESULT_CHALLENGED = 4;
+const VERIFICATION_ENDED = 5;
+const VERIFICATION_ERROR = 6;
 
 const VALID_CARD_PATTERN = /^s\d_\d{1,2}_\d{1,2}$|^\d{1,2}$/;
 
 class Game {
 
-  constructor(player, playerFunds, opponentFunds, metadata, tx, onBetRequested, onEnd, onEvent) {
+  constructor(player, playerFunds, opponentFunds, metadata, tx, onBetRequested, onEnd, onEvent, onVerification) {
     this.player = player;
     this.opponent = (player == ALICE) ? BOB : ALICE;
     this.playerFunds = playerFunds;
@@ -58,6 +68,7 @@ class Game {
     this.onEvent = onEvent ? onEvent : ()=>{};
     this.onEnd = onEnd ? onEnd : ()=>{};
     this.onBetRequested = onBetRequested ? onBetRequested : ()=>{};
+    this.onVerification = onVerification ? onVerification : ()=>{};
 
     // player leading the betting round
     // - starts with ALICE and is changed every time a player raises
@@ -66,6 +77,8 @@ class Game {
 
     // game state
     this.state = START;
+    // verification state
+    this.verificationState = VERIFICATION_NONE;
 
     // Methods that maliciously alter game state on purpose
     this.cheat = {
@@ -105,6 +118,10 @@ class Game {
       this.opponentBets = 1;
       this.tx.receive(this._cryptoStuffReceived.bind(this))
     }
+  }
+
+  getVerificationState() {
+    return this.verificationState;
   }
 
   call() {
@@ -227,6 +244,9 @@ class Game {
   }
 
   _cryptoStuffReceived(stuff) {
+    if (stuff == "VERIFICATION") {
+      this._verificationReceived();
+    }
     this.onEvent(`cryptoStuffReceived ${stuff}`)
     this.cryptoStuff = stuff;
     this.mykey = "BOBKEY";
@@ -235,12 +255,18 @@ class Game {
   }
   
   _keyReceived(key) {
+    if (key == "VERIFICATION") {
+      this._verificationReceived();
+    }
     this.onEvent(`keyReceived ${key}`)
     this.key = key;
     this.tx.receive(this._deckReceived.bind(this))
   }
 
   _deckReceived(deck) {
+    if (deck == "VERIFICATION") {
+      this._verificationReceived();
+    }
     this.onEvent(`deckReceived ${JSON.stringify(deck)}`)
     this.deck = [...deck];
     if (this.player == BOB) {
@@ -358,6 +384,9 @@ class Game {
   }
 
   _decryptedCardsReceived(cards) {
+    if (cards == "VERIFICATION") {
+      this._verificationReceived();
+    }
     this.onEvent(`decryptedCardsReceived ${JSON.stringify(cards)}`)
     for (const [index, card] of Object.entries(cards)) {
       if(!card.match(VALID_CARD_PATTERN)) {
@@ -404,6 +433,9 @@ class Game {
   }
 
   _betsReceived(opponentBets) {
+    if (opponentBets == "VERIFICATION") {
+      this._verificationReceived();
+    }
     this.onEvent(`betsReceived ${opponentBets}`)
     if (opponentBets == "FOLD") {
       // opponent gave up
@@ -429,6 +461,10 @@ class Game {
   }
 
   _advanceState() {
+    if (this.state == VERIFICATION) {
+      // nothing to do while verification is in progress
+      return;
+    }
     this.state++;
     if (this.state == PREFLOP) {
       this._dealPrivateCards();
@@ -496,6 +532,60 @@ class Game {
     fundsShare[this.player] = this.playerFunds + this.opponentBets;
     fundsShare[this.opponent] = this.opponentFunds - this.opponentBets;
     this.result = { isWinner, fundsShare };
+  }
+
+  _computeResultVerification() {
+    // cheater loses everything, half of which goes to his opponent
+    const winner = (this.cheater == ALICE) ? BOB : ALICE;
+    const winnerFunds = (this.winner == this.player) ? this.playerFunds + this.opponentFunds/2 : this.playerFunds/2 + this.opponentFunds;
+    let isWinner = Array(2);
+    isWinner[winner] = true;
+    isWinner[this.cheater] = false;
+    let fundsShare = Array(2);
+    fundsShare[winner] = winnerFunds;
+    fundsShare[this.cheater] = 0;
+    this.result = { isWinner, fundsShare };
+  }
+
+  _triggerVerification() {
+    // TODO: to be called when cheating is detected
+    this.onEvent("triggerVerification");
+    this.tx.send("VERIFICATION");
+    this.state = VERIFICATION;
+    this.cheater = this.opponent;
+    setTimeout(() => this._setVerificationState(VERIFICATION_STARTED), 3000);
+  }
+
+  _verificationReceived() {
+    this.onEvent("verificationReceived");
+    this.state = VERIFICATION;
+    this.cheater = this.player;
+    setTimeout(() => this._setVerificationState(VERIFICATION_STARTED), 3000);
+  }
+
+  _setVerificationState(newState) {
+    // ensures valid verification state
+    if (newState < VERIFICATION_NONE || newState > VERIFICATION_ERROR) {
+      throw `Invalid verification state ${newState}`;
+    }
+
+    // sets verification state and triggers callback
+    this.verificationState = newState;
+    this.onVerification(this.verificationState);
+
+    if (newState == VERIFICATION_ENDED) {
+      // verification ended, game ends with cheater losing everything
+      this.state = END;
+      this._computeResultVerification();
+      this.onEnd();
+    } else {
+      // simulates verification progress (one step every 5 sec, let's skip VERIFICATION_RESULT_CHALLENGED)
+      newState++;
+      if (newState == VERIFICATION_RESULT_CHALLENGED) {
+        newState++;
+      }
+      setTimeout(() => this._setVerificationState(newState), 5000);
+    }
   }
 }
 

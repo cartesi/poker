@@ -38,6 +38,14 @@
     <button onclick='showState(ALICE, "alice_state")'>STATE</button>
     <div id=alice_state></div>
 </div>
+<div style="display: flex; padding-bottom: 10pt">
+    <button onclick='showVerification(ALICE, "alice_verification")'>VERIFICATION</button>
+    <div id=alice_verification></div>
+</div>
+<div style="display: flex; padding-bottom: 10pt">
+    <button onclick='triggerVerification(ALICE)'>TRIGGER VERIFICATION</button>
+    <div id=alice_verification_trigger></div>
+</div>
 <hr>
 <div id=alice_div>
 </div>
@@ -76,6 +84,14 @@
     <button onclick='showState(BOB, "bob_state")'>STATE</button>
     <div id=bob_state></div>
 </div>
+<div style="display: flex; padding-bottom: 10pt">
+    <button onclick='showVerification(BOB, "bob_verification")'>VERIFICATION</button>
+    <div id=bob_verification></div>
+</div>
+<div style="display: flex; padding-bottom: 10pt">
+    <button onclick='triggerVerification(BOB)'>TRIGGER VERIFICATION</button>
+    <div id=bob_verification_trigger></div>
+</div>
 <hr>
 <div id=bob_div>
 </div>
@@ -95,13 +111,15 @@
             ALICE, alice_funds, bob_funds, metadata, alice_tx,
             () => onBetRequested(ALICE, "alice_newbet"),
             () => onEnd(ALICE, "alice_result"),
-            msg => append_text('alice_div', msg)
+            msg => append_text('alice_div', msg),
+            msg => append_text('alice_div', `verification: ${msg}`)
         );
         const bob = new Game(
             BOB, alice_funds, bob_funds, metadata, bob_tx,
             () => onBetRequested(BOB, "bob_newbet"),
             () => onEnd(BOB, "bob_result"),
-            msg => append_text('bob_div', msg)
+            msg => append_text('bob_div', msg),
+            msg => append_text('bob_div', `verification: ${msg}`)
         );
         
         alice_tx.connect(bob_tx);
@@ -210,6 +228,20 @@
             var input = document.getElementById(idInput);
             games[player].raise(input.value);
             document.getElementById(id).style.display = "none";
+        }
+    }
+    function showVerification(player, id) {
+        var state = "?";
+        if (games[player]) {
+            state = games[player].getVerificationState();
+        }
+        var div = document.getElementById(id);
+        div.innerHTML = `${state}`;
+    }
+
+    function triggerVerification(player) {
+        if (games[player]) {
+            games[player]._triggerVerification();
         }
     }
 
