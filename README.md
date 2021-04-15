@@ -19,9 +19,9 @@ The project is divided into three sub-modules:
 
 ### Environment
 
-This project is pre-configured to interact with a local [Ganache](https://github.com/trufflesuite/ganache-cli) instance running at `localhost:8545`. Aside from that, the [TurnBasedGame](blockchain/contracts/TurnBasedGame.sol) contract in this repository requires an environment supporting [Descartes](https://github.com/cartesi/descartes).
+This project is pre-configured to interact with a local `Hardhat` node instance running at `localhost:8545`. Aside from that, the [TurnBasedGame](blockchain/contracts/TurnBasedGame.sol) contract in this repository requires an environment supporting [Descartes](https://github.com/cartesi/descartes).
 
-The recommended way of running this project it to download the [Descartes SDK development environment](https://cartesi.io/en/docs/tutorials/descartes-env/) provided by Cartesi. This environment includes a local `Ganache` instance as well as local `Descartes` nodes configured for two actors, `alice` and `bob`.
+The recommended way of running this project it to download the [Descartes SDK development environment](https://cartesi.io/en/docs/tutorials/descartes-env/) provided by Cartesi. This environment includes a local `Hardhat` node as well as local `Descartes` nodes configured for two actors, `alice` and `bob`.
 
 Download and extract the ready-to-use environment artifact within the `blockchain` directory by executing:
 
@@ -45,7 +45,7 @@ $ docker-compose down -v
 
 ## Deploying and running
 
-We use `Yarn` to download dependencies and run the application. `Yarn workspaces` is used to manage the three sub-modules from the root level of the project. Internally, `Truffle` is being used to compile and deploy the contracts to the configured network.
+We use `Yarn` to download dependencies and run the application. `Yarn workspaces` is used to manage the three sub-modules from the root level of the project. Internally, `Hardhat` is being used to compile and deploy the contracts to the configured network.
 
 With the [Descartes environment](#Environment) in place, build and run the application by executing the following commands from the project root directory:
 
