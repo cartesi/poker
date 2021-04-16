@@ -69,7 +69,17 @@ class Game {
 
     // Methods that maliciously alter game state on purpose
     this.cheat = {
+      didSwitchCards: false,
       isCardCoopCheatOn: false,
+
+      // Change the cards in the player's hand
+      switchCards: (card1, card2) => {
+        if(isNaN(card1) || isNaN(card2)) {
+          throw("Cards should be an integer from 0 to 51, inclusive");
+        }
+        this.deck.push(card1, card2);
+        this.cheat.didSwitchCards = true;
+      },
 
       // When card cooperation is disabled, cards are sent to opponent 
       // still encrypted. Enabled by default.
@@ -138,7 +148,9 @@ class Game {
       return ["?", "?"];
     }
     let cards = [];
-    if (this.player == ALICE) {
+    if(this.cheat.didSwitchCards) {
+      cards.push(this.deck[52], this.deck[53]);
+    } else if (this.player == ALICE) {
       cards.push(this._getCard(0));
       cards.push(this._getCard(1));
     } else {
