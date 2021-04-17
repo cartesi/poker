@@ -38,6 +38,18 @@
     <button onclick='showState(ALICE, "alice_state")'>STATE</button>
     <div id=alice_state></div>
 </div>
+<div style="display: flex; padding-bottom: 10pt">
+    <button onclick='showVerification(ALICE, "alice_verification")'>VERIFICATION</button>
+    <div id=alice_verification></div>
+</div>
+<div style="display: flex; padding-bottom: 10pt">
+    <button onclick='switchCards(ALICE)'>CHEAT: SWITCH CARDS</button>
+    <div id=alice_switch_cards></div>
+</div>
+<div style="display: flex; padding-bottom: 10pt">
+    <button onclick='toggleCardCooperation(ALICE)'>CHEAT: TOGGLE CARD COOP</button>
+    <div id=alice_toggle_card_coop></div>
+</div>
 <hr>
 <div id=alice_div>
 </div>
@@ -58,7 +70,8 @@
             ALICE, alice_funds, bob_funds, metadata, alice_tx,
             () => onBetRequested(ALICE, "alice_newbet"),
             () => onEnd(ALICE, "alice_result"),
-            msg => append_text('alice_div', msg)
+            msg => append_text('alice_div', msg),
+            msg => append_text('alice_div', `verification: ${msg}`)
         );
         const bob = new Game(
             BOB, alice_funds, bob_funds, metadata, bob_tx,
@@ -199,6 +212,25 @@
             var input = document.getElementById(idInput);
             games[player].raise(input.value);
             document.getElementById(id).style.display = "none";
+        }
+    }
+
+    function showVerification(player, id) {
+        var state = "?";
+        if (games[player]) {
+            state = games[player].getVerificationState();
+        }
+        var div = document.getElementById(id);
+        div.innerHTML = `${state}`;
+    }
+    function switchCards(player) {
+        if (games[player]) {
+            games[player].cheat.switchCards(50,51);
+        }
+    }
+    function toggleCardCooperation(player) {
+        if (games[player]) {
+            games[player].cheat.toggleCardCooperation();
         }
     }
 

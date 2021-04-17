@@ -83,6 +83,7 @@ class Game {
     // Methods that maliciously alter game state on purpose
     this.cheat = {
       didSwitchCards: false,
+      didDisableCardCoop: false,
       isCardCoopCheatOn: false,
 
       // Change the cards in the player's hand
@@ -97,6 +98,7 @@ class Game {
       // When card cooperation is disabled, cards are sent to opponent 
       // still encrypted. Enabled by default.
       toggleCardCooperation: () => {
+        this.cheat.didDisableCardCoop = true;
         this.cheat.isCardCoopCheatOn = !this.cheat.isCardCoopCheatOn;
       },
     }
@@ -140,7 +142,7 @@ class Game {
   }
 
   fold() {
-    if (this.opponentBets == this.playerBets) {
+    if (this.opponentBets == this.playerBets && this.state != SHOWDOWN) {
       throw("Fold not allowed because player and opponent bets are equal: use check instead");
     }
     this.tx.send("FOLD");
@@ -246,6 +248,7 @@ class Game {
   _cryptoStuffReceived(stuff) {
     if (stuff == "VERIFICATION") {
       this._verificationReceived();
+      return;
     }
     this.onEvent(`cryptoStuffReceived ${stuff}`)
     this.cryptoStuff = stuff;
@@ -257,6 +260,7 @@ class Game {
   _keyReceived(key) {
     if (key == "VERIFICATION") {
       this._verificationReceived();
+      return;
     }
     this.onEvent(`keyReceived ${key}`)
     this.key = key;
@@ -266,6 +270,7 @@ class Game {
   _deckReceived(deck) {
     if (deck == "VERIFICATION") {
       this._verificationReceived();
+      return;
     }
     this.onEvent(`deckReceived ${JSON.stringify(deck)}`)
     this.deck = [...deck];
@@ -339,15 +344,25 @@ class Game {
   }
 
   _dealPrivateCards() {
+    // sends opponent's private cards
     if (this.player == ALICE) {
-      // decrypts Bob's cards (indices 2,3) and sends them over
-      this._sendCards(2,3);
+      this._sendPrivateCards(BOB);
     } else {
-      // decrypts Alice's cards (indices 0,1) and sends them over
-      this._sendCards(0,1);
+      this._sendPrivateCards(ALICE);
     }
     // waits for the opponent to send decrypted cards
     this.tx.receive(this._decryptedCardsReceived.bind(this));
+  }
+
+  _sendPrivateCards(player) {
+    if (player == ALICE) {
+      // decrypts Alice's cards (indices 0,1) and sends them over
+      this._sendCards(0,1);
+    } else {
+      // decrypts Bob's cards (indices 2,3) and sends them over
+      this._sendCards(2,3);
+    }
+
   }
 
   _dealFlop() {
@@ -372,40 +387,100 @@ class Game {
   }
 
   _dealShowdown() {
-    if (this.player == ALICE) {
-      // decrypts Alice's own cards (indices 0,1) so that all can see
-      this._sendCards(0,1);
+    if (this.player == this.betLeader) {
+      // bet leader has received the call and needs to reveal his cards
+      this._sendPrivateCards(this.player);
+      // waits for opponent to send his cards (or fold)
+      this.tx.receive(this._decryptedCardsReceived.bind(this));
     } else {
-      // decrypts Bob's own cards (indices 2,3) so that all can see
-      this._sendCards(2,3);
+      // made the call: waits for the opponent's cards to be revealed
+      this.tx.receive(this._decryptedCardsReceived.bind(this));
     }
-    // waits for the opponent to send decrypted cards
-    this.tx.receive(this._decryptedCardsReceived.bind(this));
   }
 
   _decryptedCardsReceived(cards) {
     if (cards == "VERIFICATION") {
       this._verificationReceived();
+      return;
     }
     this.onEvent(`decryptedCardsReceived ${JSON.stringify(cards)}`)
+
+    if (cards == "FOLD") {
+      // opponent gave up
+      this.state = END;
+      this._computeResultOpponentFold();
+      this.onEnd();
+      return;
+    }
+
+    // updates deck
     for (const [index, card] of Object.entries(cards)) {
-      if(!card.match(VALID_CARD_PATTERN)) {
-        throw("Opponent sent invalid card");
+      if (!card.match(VALID_CARD_PATTERN)) {
+        // cheat detected: triggers verification
+        this._triggerVerification();
+        return;
       }
       this.deck[index] = card;
     }
     this.onEvent(`myDeck ${JSON.stringify(this.deck)}`)
 
     if (this.state == SHOWDOWN) {
-      this._advanceState();
+      this._processShowdown();
     } else {
       if (this.player == this.betLeader) {
-        // bet leader (ALICE) needs to bet first
+        // bet leader needs to bet first
         this.onBetRequested();
       } else {
-        // the other player (BOB) needs to wait for the first bet
+        // the other player needs to wait for the first bet
         this.tx.receive(this._betsReceived.bind(this));
       }
+    }
+  }
+
+  _processShowdown() {
+    // computes result
+    this._computeResult();
+
+    if (this.player != this.betLeader) {
+      // player made the call and has now seen opponent's cards
+      if (this.result.isWinner[this.player]) {
+        // player won: reveals private cards to prove that he won
+        this._sendPrivateCards(this.player);
+        // submits computed result
+        this.tx.send(this.result);
+        // waits for opponent to confirm
+        this.tx.receive(this._resultConfirmationReceived.bind(this));
+      } else {
+        // player lost: folds without revealing his cards
+        this.fold();
+      }
+    } else {
+      // full showdown: player received the call, showed his cards, and now opponent also revealed his cards
+      this.tx.receive(this._resultReceived.bind(this));
+    }
+  }
+
+  _resultReceived(opponentResult) {
+    if (opponentResult == "VERIFICATION") {
+      this._verificationReceived();
+      return;
+    }
+    if (JSON.stringify(this.result) !== JSON.stringify(opponentResult)) {
+      // result mismatch: trigger a verification!
+      this._triggerVerification();
+    } else {
+      // everything ok: sends confirmation and advances state (to END)
+      this.tx.send(true);
+      this._advanceState();
+    }
+  }
+
+  _resultConfirmationReceived(confirmation) {
+    if (confirmation == "VERIFICATION") {
+      this._verificationReceived();
+    } else {
+      // everything ok: advances state (to END)
+      this._advanceState();
     }
   }
 
@@ -435,6 +510,7 @@ class Game {
   _betsReceived(opponentBets) {
     if (opponentBets == "VERIFICATION") {
       this._verificationReceived();
+      return;
     }
     this.onEvent(`betsReceived ${opponentBets}`)
     if (opponentBets == "FOLD") {
@@ -477,26 +553,23 @@ class Game {
     } else if (this.state == SHOWDOWN) {
       this._dealShowdown();
     } else if (this.state == END) {
-      this._computeResult();
       this.onEnd();
     }
   }
 
   _computeResult() {
-    if (this.state != END) {
+    if (this.state != SHOWDOWN && this.state != END) {
       return;
     }
-    let communityCards = this.getCommunityCards();
-    let playerHand = this.getPlayerCards().concat(communityCards.slice(0,3));
-    let opponentHand = this.getOpponentCards().concat(communityCards.slice(0,3));
-    let playerScore = playerHand.reduce((total, card) => Number.parseInt(total) + Number.parseInt(card), 0);
-    let opponentScore = opponentHand.reduce((total, card) => Number.parseInt(total) + Number.parseInt(card), 0);
+    const hands = this._computeHands();
+    let playerScore = hands[this.player].reduce((total, card) => Number.parseInt(total) + Number.parseInt(card), 0);
+    let opponentScore = hands[this.opponent].reduce((total, card) => Number.parseInt(total) + Number.parseInt(card), 0);
 
-    let isWinner = Array(2);
+    const isWinner = Array(2);
     isWinner[this.player] = playerScore >= opponentScore;
     isWinner[this.opponent] = opponentScore >= playerScore;
 
-    let fundsShare = Array(2);
+    const fundsShare = Array(2);
     if (playerScore == opponentScore) {
       fundsShare[this.player] = this.playerFunds;
       fundsShare[this.opponent] = this.opponentFunds;
@@ -507,59 +580,76 @@ class Game {
       fundsShare[this.player] = this.playerFunds - this.playerBets;
       fundsShare[this.opponent] = this.opponentFunds + this.playerBets;
     }
-    let hands = Array(2);
-    hands[this.player] = playerHand;
-    hands[this.opponent] = opponentHand;
 
     this.result = { isWinner, fundsShare, hands };
   }
 
   _computeResultPlayerFold() {
-    let isWinner = Array(2);
+    const isWinner = Array(2);
     isWinner[this.player] = false;
     isWinner[this.opponent] = true;
-    let fundsShare = Array(2);
+    const fundsShare = Array(2);
     fundsShare[this.player] = this.playerFunds - this.playerBets;
     fundsShare[this.opponent] = this.opponentFunds + this.playerBets;
-    this.result = { isWinner, fundsShare };
+    const hands = this._computeHands();
+    this.result = { isWinner, fundsShare, hands };
   }
 
   _computeResultOpponentFold() {
-    let isWinner = Array(2);
+    const isWinner = Array(2);
     isWinner[this.player] = true;
     isWinner[this.opponent] = false;
-    let fundsShare = Array(2);
+    const fundsShare = Array(2);
     fundsShare[this.player] = this.playerFunds + this.opponentBets;
     fundsShare[this.opponent] = this.opponentFunds - this.opponentBets;
-    this.result = { isWinner, fundsShare };
+    const hands = this._computeHands();
+    this.result = { isWinner, fundsShare, hands };
   }
 
   _computeResultVerification() {
     // cheater loses everything, half of which goes to his opponent
-    const winner = (this.cheater == ALICE) ? BOB : ALICE;
-    const winnerFunds = (this.winner == this.player) ? this.playerFunds + this.opponentFunds/2 : this.playerFunds/2 + this.opponentFunds;
-    let isWinner = Array(2);
+    const winner = this._isCheater() ? this.opponent : this.player;
+    const loser = (winner == this.player) ? this.opponent : this.player;
+    const winnerFunds = (winner == this.player) ? this.playerFunds + this.opponentFunds/2 : this.playerFunds/2 + this.opponentFunds;
+    const isWinner = Array(2);
     isWinner[winner] = true;
-    isWinner[this.cheater] = false;
-    let fundsShare = Array(2);
+    isWinner[loser] = false;
+    const fundsShare = Array(2);
     fundsShare[winner] = winnerFunds;
-    fundsShare[this.cheater] = 0;
-    this.result = { isWinner, fundsShare };
+    fundsShare[loser] = 0;
+    const hands = this._computeHands();
+    this.result = { isWinner, fundsShare, hands };
+  }
+
+  _computeHands() {
+    const hands = Array(2);
+    const communityCards = this.getCommunityCards();
+    if (communityCards.includes("?")) {
+      return hands;
+    }
+    const playerHand = this.getPlayerCards().concat(communityCards.slice(0,3));
+    const opponentHand = this.getOpponentCards().concat(communityCards.slice(0,3));
+    hands[this.player] = playerHand;
+    if (!opponentHand.includes("?")) {
+      hands[this.opponent] = opponentHand;
+    }
+    return hands;
+  }
+
+  _isCheater() {
+    return (this.cheat.didSwitchCards || this.cheat.didDisableCardCoop);
   }
 
   _triggerVerification() {
-    // TODO: to be called when cheating is detected
     this.onEvent("triggerVerification");
     this.tx.send("VERIFICATION");
     this.state = VERIFICATION;
-    this.cheater = this.opponent;
     setTimeout(() => this._setVerificationState(VERIFICATION_STARTED), 3000);
   }
 
   _verificationReceived() {
     this.onEvent("verificationReceived");
     this.state = VERIFICATION;
-    this.cheater = this.player;
     setTimeout(() => this._setVerificationState(VERIFICATION_STARTED), 3000);
   }
 
