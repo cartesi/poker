@@ -34,23 +34,27 @@ const ALICE = 0;
 const BOB = 1;
 
 // game states
-const START = 0;
-const PREFLOP = 1;
-const FLOP = 2;
-const TURN = 3;
-const RIVER = 4;
-const SHOWDOWN = 5;
-const END = 6;
-const VERIFICATION = 7;
+const GameStates = {
+  "START": 0,
+  "PREFLOP": 1,
+  "FLOP": 2,
+  "TURN": 3,
+  "RIVER": 4,
+  "SHOWDOWN": 5,
+  "END": 6,
+  "VERIFICATION": 7
+}
 
 // verification states
-const VERIFICATION_NONE = 0;
-const VERIFICATION_STARTED = 1;
-const VERIFICATION_RESULT_SUBMITTED = 2;
-const VERIFICATION_RESULT_CONFIRMED = 3;
-const VERIFICATION_RESULT_CHALLENGED = 4;
-const VERIFICATION_ENDED = 5;
-const VERIFICATION_ERROR = 6;
+const VerificationStates = {
+  "NONE": 0,
+  "STARTED": 1,
+  "RESULT_SUBMITTED": 2,
+  "RESULT_CONFIRMED": 3,
+  "RESULT_CHALLENGED": 4,
+  "ENDED": 5,
+  "ERROR": 6
+}
 
 const VALID_CARD_PATTERN = /^s\d_\d{1,2}_\d{1,2}$|^\d{1,2}$/;
 
@@ -76,9 +80,9 @@ class Game {
     this.betLeader = ALICE;
 
     // game state
-    this.state = START;
+    this.state = GameStates.START;
     // verification state
-    this.verificationState = VERIFICATION_NONE;
+    this.verificationState = VerificationStates.NONE;
 
     // Methods that maliciously alter game state on purpose
     this.cheat = {
@@ -142,11 +146,11 @@ class Game {
   }
 
   fold() {
-    if (this.opponentBets == this.playerBets && this.state != SHOWDOWN) {
+    if (this.opponentBets == this.playerBets && this.state != GameStates.SHOWDOWN) {
       throw("Fold not allowed because player and opponent bets are equal: use check instead");
     }
     this.tx.send("FOLD");
-    this.state = END;
+    this.state = GameStates.END;
     this._computeResultPlayerFold();
     this.onEnd();
   }
@@ -407,7 +411,7 @@ class Game {
 
     if (cards == "FOLD") {
       // opponent gave up
-      this.state = END;
+      this.state = GameStates.END;
       this._computeResultOpponentFold();
       this.onEnd();
       return;
@@ -424,7 +428,7 @@ class Game {
     }
     this.onEvent(`myDeck ${JSON.stringify(this.deck)}`)
 
-    if (this.state == SHOWDOWN) {
+    if (this.state == GameStates.SHOWDOWN) {
       this._processShowdown();
     } else {
       if (this.player == this.betLeader) {
@@ -515,7 +519,7 @@ class Game {
     this.onEvent(`betsReceived ${opponentBets}`)
     if (opponentBets == "FOLD") {
       // opponent gave up
-      this.state = END;
+      this.state = GameStates.END;
       this._computeResultOpponentFold();
       this.onEnd();
       return;
@@ -537,28 +541,28 @@ class Game {
   }
 
   _advanceState() {
-    if (this.state == VERIFICATION) {
+    if (this.state == GameStates.VERIFICATION) {
       // nothing to do while verification is in progress
       return;
     }
     this.state++;
-    if (this.state == PREFLOP) {
+    if (this.state == GameStates.PREFLOP) {
       this._dealPrivateCards();
-    } else if (this.state == FLOP) {
+    } else if (this.state == GameStates.FLOP) {
       this._dealFlop();
-    } else if (this.state == TURN) {
+    } else if (this.state == GameStates.TURN) {
       this._dealTurn();
-    } else if (this.state == RIVER) {
+    } else if (this.state == GameStates.RIVER) {
       this._dealRiver();
-    } else if (this.state == SHOWDOWN) {
+    } else if (this.state == GameStates.SHOWDOWN) {
       this._dealShowdown();
-    } else if (this.state == END) {
+    } else if (this.state == GameStates.END) {
       this.onEnd();
     }
   }
 
   _computeResult() {
-    if (this.state != SHOWDOWN && this.state != END) {
+    if (this.state != GameStates.SHOWDOWN && this.state != GameStates.END) {
       return;
     }
     const hands = this._computeHands();
@@ -643,19 +647,19 @@ class Game {
   _triggerVerification() {
     this.onEvent("triggerVerification");
     this.tx.send("VERIFICATION");
-    this.state = VERIFICATION;
-    setTimeout(() => this._setVerificationState(VERIFICATION_STARTED), 3000);
+    this.state = GameStates.VERIFICATION;
+    setTimeout(() => this._setVerificationState(VerificationStates.STARTED), 3000);
   }
 
   _verificationReceived() {
     this.onEvent("verificationReceived");
-    this.state = VERIFICATION;
-    setTimeout(() => this._setVerificationState(VERIFICATION_STARTED), 3000);
+    this.state = GameStates.VERIFICATION;
+    setTimeout(() => this._setVerificationState(VerificationStates.STARTED), 3000);
   }
 
   _setVerificationState(newState) {
     // ensures valid verification state
-    if (newState < VERIFICATION_NONE || newState > VERIFICATION_ERROR) {
+    if (newState < VerificationStates.NONE || newState > VerificationStates.ERROR) {
       throw `Invalid verification state ${newState}`;
     }
 
@@ -663,15 +667,15 @@ class Game {
     this.verificationState = newState;
     this.onVerification(this.verificationState);
 
-    if (newState == VERIFICATION_ENDED) {
+    if (newState == VerificationStates.ENDED) {
       // verification ended, game ends with cheater losing everything
-      this.state = END;
+      this.state = GameStates.END;
       this._computeResultVerification();
       this.onEnd();
     } else {
-      // simulates verification progress (one step every 5 sec, let's skip VERIFICATION_RESULT_CHALLENGED)
+      // simulates verification progress (one step every 5 sec, let's skip VerificationStates.RESULT_CHALLENGED)
       newState++;
-      if (newState == VERIFICATION_RESULT_CHALLENGED) {
+      if (newState == VerificationStates.RESULT_CHALLENGED) {
         newState++;
       }
       setTimeout(() => this._setVerificationState(newState), 5000);
