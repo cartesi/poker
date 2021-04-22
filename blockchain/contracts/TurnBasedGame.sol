@@ -231,6 +231,8 @@ contract TurnBasedGame is InstantiatorImpl {
         bytes32 gameTemplateHash;
         // game-specific initial metadata/parameters
         bytes gameMetadata;
+        // validator nodes to be used for descartes computations
+        address[] validators;
         // players involved
         address[] players;
         // player funds locked for the game
@@ -243,6 +245,13 @@ contract TurnBasedGame is InstantiatorImpl {
         bool isDescartesInstantiated;
         // associated descartes computation index
         uint256 descartesIndex;
+        // claim data: player who placed claim
+        address claimer;
+        // claim data: claimed result represented by a distribution of player funds
+        uint[] claimedFundsShare;
+        // FIXME: either enforce max of 255 players or use a variable-sized Bitmask
+        // claim data: mask indicating players that agree with the claim
+        uint256 claimAgreementMask;
     }
 
     // game instances
@@ -251,8 +260,9 @@ contract TurnBasedGame is InstantiatorImpl {
     // events emitted    
     event GameReady(uint256 _index, GameContext _context);
     event TurnOver(uint256 _index, Turn _turn);
-    event GameEndClaimed(uint256 _index, uint256 _descartesIndex);
-    event GameOver(uint256 _index, uint[] _potShare);
+    event GameResultClaimed(uint256 _index, uint[] _fundsShare, address _author);
+    event GameChallenged(uint256 _index, uint256 _descartesIndex, address _author);
+    event GameOver(uint256 _index, uint[] _fundsShare);
 
 
     /// @notice Constructor
@@ -285,11 +295,12 @@ contract TurnBasedGame is InstantiatorImpl {
     ) public
         returns (uint256)
     {
-
         // creates new context
         GameContext storage context = instances[currentIndex];
         context.gameTemplateHash = _gameTemplateHash;
         context.gameMetadata = _gameMetadata;
+        // FIXME: validators should be an independent parameter
+        context.validators = _players;
         // TODO: check/lock funds, preferrably use a token and not ether
         context.players = _players;
         context.playerFunds = _playerFunds;
@@ -309,11 +320,9 @@ contract TurnBasedGame is InstantiatorImpl {
     /// @param _data game-specific turn data (array of 64-bit words)
     function submitTurn(uint256 _index, bytes32 _stateHash, bytes8[] memory _data) public
         onlyActive(_index)
+        onlyByPlayer(_index)
     {
         GameContext storage context = instances[_index];
-
-        // ensures sender is actually a player participating in the game
-        require(isConcerned(_index, msg.sender), "Player is not participating in the game.");
 
         // ensures no turn is submitted while a GameEnd claim is being verified
         require(!context.isDescartesInstantiated || !descartes.isActive(context.descartesIndex), "GameEnd claim verification in progress.");
@@ -337,20 +346,22 @@ contract TurnBasedGame is InstantiatorImpl {
     }
 
 
-    /// @notice Claims game has ended; game results will be given by a Descartes computation
+    /// @notice Challenges game state, triggering a verification by a Descartes computation
     /// @param _index index identifying the game
     /// @return index of the Descartes computation
-    function claimGameEnd(uint256 _index) public
+    function challengeGame(uint256 _index) public
         onlyActive(_index)
+        onlyByPlayer(_index)
         returns (uint256)
     {
         GameContext storage context = instances[_index];
 
         // ensures there is not already a Descartes computation verifying the game
-        require(!context.isDescartesInstantiated || !descartes.isActive(context.descartesIndex), "GameEnd claim verification already in progress.");
+        // FIXME: check if Descartes computation is "active" but has failed (cancel/delete it in this case)
+        require(!context.isDescartesInstantiated || !descartes.isActive(context.descartesIndex), "Game verification already in progress.");
 
         // builds input drives for the descartes computation
-        DescartesInterface.Drive[] memory drives = new DescartesInterface.Drive[](4);
+        DescartesInterface.Drive[] memory drives = new DescartesInterface.Drive[](7);
 
         // 1st input drive: game metadata
         drives[0] = buildDirectDrive(context, context.gameMetadata, 0xb000000000000000);
@@ -366,56 +377,114 @@ contract TurnBasedGame is InstantiatorImpl {
         // 4th input drive: turns data stored in the Logger
         drives[3] = buildTurnsDrive(context, 0xc000000000000000);
 
+        // CLAIM DATA: important so that the Descartes computation can punish a false claimer or challenger accordingly and encode that in the resulting funds distribution
+
+        // 5th input drive: player who claimed result
+        bytes memory claimer = abi.encodePacked(context.claimer);
+        drives[4] = buildDirectDrive(context, claimer, 0xd000000000000000);
+
+        // 6th input drive: claimed result represented by a distibution of the player funds
+        bytes memory claimedFundsShare = abi.encodePacked(context.claimedFundsShare);
+        drives[5] = buildDirectDrive(context, claimedFundsShare, 0xe000000000000000);
+
+        // 7th input drive: player who challenged result
+        bytes memory challenger = abi.encodePacked(msg.sender);
+        drives[6] = buildDirectDrive(context, challenger, 0xd000000000000000);
+
+
         // instantiates the computation
         context.descartesIndex = descartes.instantiate(
             1e13,                  // max cycles allowed
             context.gameTemplateHash,  // hash identifying the computation template
             0xd000000000000000,    // output drive position: 6th drive position
+            // FIXME: either enforce max of 4 players or make this variable
             10,                    // output drive size: 1K (should hold awarded amounts for up to 4 players)
-            45,                    // round duration
-            context.players,       // parties
+            51,                    // round duration
+            context.validators,    // parties involved in the computation (validator nodes)
             drives
         );
 
         context.isDescartesInstantiated = true;
 
         // emits event announcing game end has been claimed and that Descartes verification is underway
-        emit GameEndClaimed(_index, context.descartesIndex);
+        emit GameChallenged(_index, context.descartesIndex, msg.sender);
 
         return context.descartesIndex;
     }
 
 
-    /// @notice Applies the results of a game, transferring funds according to the results given by its final Descartes computation
+    /// @notice Claims game has ended with the provided result (share of locked funds)
     /// @param _index index identifying the game
-    function applyResult(uint256 _index) public
+    /// @param _fundsShare result of the game given as a distribution of the funds previously locked
+    function claimResult(uint256 _index, uint[] memory _fundsShare) public
+        onlyActive(_index)
+        onlyByPlayer(_index)
+    {
+        GameContext storage context = instances[_index];
+
+        // reverts if result has already been claimed
+        require(context.claimer == address(0), "Result has already been claimed for this game: it must now be either confirmed or challenged.");
+
+        // ensures claimed result is valid
+        checkResult(context.playerFunds, _fundsShare);
+
+        // stores claimer and claimed result in game context
+        context.claimer = msg.sender;
+        context.claimedFundsShare = _fundsShare;
+
+        // adds claimer to mask indicating players that agree with the claim
+        context.claimAgreementMask = updateClaimAgreementMask(context);
+
+        emit GameResultClaimed(_index, _fundsShare, msg.sender);
+    }
+    
+
+    /// @notice Confirms game results previously claimed
+    /// @param _index index identifying the game
+    function confirmResult(uint256 _index) public
+        onlyActive(_index)
+        onlyByPlayer(_index)
+    {
+        GameContext storage context = instances[_index];
+
+        // reverts if result has not been claimed yet
+        require(context.claimer != address(0), "Result has not been claimed for this game yet.");
+
+        // adds confirming player to mask indicating players that agree with the claim
+        context.claimAgreementMask = updateClaimAgreementMask(context);
+
+        // checks if all players have agreed with the claim
+        uint256 consensusMask = (uint256(1) << context.players.length) - uint256(1);
+        if (context.claimAgreementMask == consensusMask) {
+            // if all players agree, applies claimed result and ends game
+            applyResult(_index, context.claimedFundsShare);
+        }
+    }
+    
+
+    /// @notice Applies the result of a game verified by Descartes, transferring funds according to the Descartes computation output
+    /// @param _index index identifying the game
+    function applyVerificationResult(uint256 _index) public
         onlyActive(_index)
     {
         GameContext storage context = instances[_index];
 
         // ensures Descartes computation has been instantiated
-        require(context.isDescartesInstantiated, "GameEnd has not been claimed yet.");
+        require(context.isDescartesInstantiated, "Game verification has not been requested.");
 
         // queries Descartes result
         (bool isResultReady, , , bytes memory result) = descartes.getResult(context.descartesIndex);
 
         // ensures Descartes computation result is ready
-        require(isResultReady, "Game result has not been computed yet." );
+        require(isResultReady, "Game verification result has not been computed yet." );
 
         // FIXME: decode result bytes as an uint[] representing amount from the locked funds to be transferred to each player
-        uint[] memory potShare;
-        require(result.length > 0);
-        // FIXME: transfer funds according to result
-        // ...
+        uint[] memory fundsShare;
 
-        // deactivates game to prevent further interaction with it
-        delete context.players;
-        delete context.playerFunds;
-        delete context.turns;
-        deactivate(_index);
+        // NOTE: it is up to the Descartes computation to punish a false claimer or challenger accordingly
+        // and encode that in the resulting funds distribution
 
-        // emit event for end of game
-        emit GameOver(_index, potShare);
+        applyResult(_index, fundsShare);
     }
 
 
@@ -549,5 +618,76 @@ contract TurnBasedGame is InstantiatorImpl {
             ++result;
         }
         return result;
-    }   
+    }
+
+
+    /// @notice Applies the results of a game, transferring locked funds according to the provided distribution
+    /// @notice Applies Retrieves sub-instances of the game (required method for Instantiator).
+    /// @param _index index identifying the game
+    /// @param _fundsShare result of the game given as a distribution of the funds previously locked
+    function applyResult(uint256 _index, uint[] memory _fundsShare) internal {
+        GameContext storage context = instances[_index];
+
+        // ensures provided result is valid
+        uint fundsToBurn = checkResult(context.playerFunds, _fundsShare);
+
+        // FIXME: transfer funds according to result, and burn remaining funds
+        // ...
+
+        // deactivates game to prevent further interaction with it
+        delete context.players;
+        delete context.playerFunds;
+        delete context.turns;
+        deactivate(_index);
+
+        // emit event for end of game
+        emit GameOver(_index, _fundsShare);
+    }
+
+    /// @notice Ensures a given result is acceptable considering the player funds locked for the game
+    /// @param _playerFunds funds originally submitted by the players
+    /// @param _fundsShare result of the game given as a distribution of the funds previously locked
+    /// @return _fundsToBurn the amount of funds to burn as a result of some of the locked funds not being distributed to any player
+    function checkResult(uint[] memory _playerFunds, uint[] memory _fundsShare) internal pure
+        returns (uint _fundsToBurn)
+    {
+        require(_playerFunds.length == _fundsShare.length, "Resulting funds distribution has more entries than number of players.");
+
+        // checks if given address belongs to one of the game players
+        uint totalPlayerFunds = 0;
+        uint totalFundsShare = 0;
+        for (uint i = 0; i < _playerFunds.length; i++) {
+            totalPlayerFunds += _playerFunds[i];
+            totalFundsShare += _fundsShare[i];
+        }
+        require(totalPlayerFunds >= totalFundsShare, "Resulting funds distribution exceeds amount locked by the players for the game.");
+
+        // amount to burn corresponds to the difference between total original player funds and resulting distribution
+        return totalPlayerFunds - totalFundsShare;
+    }
+
+    /// @notice Updates mask indicating players that agree with the claim, considering that `msg.sender` now agrees too
+    /// @param _context game context
+    /// @return _newClaimAgreementMask new claim agreement mask
+    function updateClaimAgreementMask(GameContext memory _context) internal view
+        returns (uint256 _newClaimAgreementMask)
+    {
+        uint256 newClaimAgreementMask = _context.claimAgreementMask;
+        for (uint i = 0; i < _context.players.length; i++) {
+            if (msg.sender == _context.players[i]) {
+                newClaimAgreementMask = (newClaimAgreementMask | (uint256(1) << i));
+                break;
+            }
+        }
+        return newClaimAgreementMask;
+    }
+
+    /// @notice Allows calls only from participating players
+    /// @param _index index identifying the game
+    modifier onlyByPlayer(uint256 _index) {
+        require(isConcerned(_index, msg.sender), "Player is not participating in the game.");
+        _;
+    }
+
+
 }
