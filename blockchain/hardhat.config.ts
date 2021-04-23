@@ -1,5 +1,6 @@
 import { HardhatUserConfig, task, types } from "hardhat/config";
 
+import "hardhat-typechain";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 
@@ -23,6 +24,10 @@ const config: HardhatUserConfig = {
         deployments: {
             localhost: ["./descartes-env/deployments/localhost"],
         },
+    },
+    typechain: {
+        outDir: "src/types",
+        target: "ethers-v5",
     },
     namedAccounts: {
         deployer: {

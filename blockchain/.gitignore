@@ -2,3 +2,4 @@ descartes-env*
 deployments/localhost
 artifacts
 cache
+src/types
