@@ -1,5 +1,6 @@
 import { HardhatUserConfig, task, types } from "hardhat/config";
 
+import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
@@ -17,8 +18,8 @@ const config: HardhatUserConfig = {
         contracts: [
             {
                 artifacts:
-                    "node_modules/@cartesi/descartes-sdk/export/artifacts",
-                deploy: "node_modules/@cartesi/descartes-sdk/dist/deploy",
+                    "../node_modules/@cartesi/descartes-sdk/export/artifacts",
+                deploy: "../node_modules/@cartesi/descartes-sdk/dist/deploy",
             },
         ],
         deployments: {
