@@ -1,6 +1,0 @@
-build
-build-wasm
-*.wasm
-poker.js
-poker-lib-thunk.js
-poker-native

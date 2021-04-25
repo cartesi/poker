@@ -1,0 +1,19 @@
+LIBVERSION=1.27
+LIBNAME=libgpg-error-$(LIBVERSION)
+
+all: libgpg-error
+
+libgpg-error: $(LIBNAME)
+	cd $(LIBNAME)  && \
+    ./configure --prefix=/poker/build && \
+    make && \
+    make install
+
+$(LIBNAME):
+	wget https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-$(LIBVERSION).tar.bz2 && \
+    bunzip2 libgpg-error-$(LIBVERSION).tar.bz2 && \
+    tar xvf libgpg-error-$(LIBVERSION).tar && \
+    rm libgpg-error-$(LIBVERSION).tar
+
+clean:
+	rm -rf libgpg-error-$(LIBVERSION)

@@ -1,0 +1,33 @@
+<html>
+<head><title>Poker-lib demo</title></head>
+
+<body><pre>
+WARNING: This code blocks the browser UI.
+In production, loading and interacting with the WASM module should be done by a web worker.
+Open the dev tools console to inspect objects and see console output.
+</pre></body>
+
+<script language="javascript">
+    function onReady() {
+        console.log('onReady');
+        window.PokerLib = module.exports.PokerLib;
+        window.poker = new PokerLib(Module);
+        var blob = poker.new_blob();
+        var alice = poker.new_player(0,2)
+        alice.create_group(blob);
+        console.log(blob.get_data());
+    }
+    
+    window.module = {};
+    window.Module = {};
+    Module.print = function(text) { 
+        console.log('stdout: ' + text)
+    };
+    Module.printErr =function(text) { 
+        console.log('stderr: ' + text)
+    };
+    Module['onRuntimeInitialized'] = function() { window.setTimeout(onReady, 10);  }  
+</script>
+<script language="javascript" src="poker-lib-wasm-thunk"></script>
+<script language="javascript" src="poker-lib.js"></script>
+</html>

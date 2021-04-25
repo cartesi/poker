@@ -1,31 +1,10 @@
 # Poker Engine
 
-Main logic for the Poker game, intended to be both translated into WebAssembly, providing a Javascript API, and packaged inside a Cartesi Machine.
+Main logic for the Poker game.
 
-The Poker engine core is made up of C++ libraries, most notably [Heiko Stamer's LibTMCG library].
+## poker-lib
 
-## Building
-```bash
-$ make
-```
-
-## Running
-
-### Poker compiled to x86-64
-```bash
-$ make run-poker-native
-```
-
-### Poker compiled to WebAssembly in NodeJS
-```bash
-$ make run-poker-js
-```
-
-### Poker compiled to WebAssembly in web browser
-```bash
-$ make run-poker-server
-```
-Then navigate to http://localhost:1234
+The engine's C++ code is in `poker-lib`, most notably, the use of [Heiko Stamer's LibTMCG library].
 
 ## Mock JS implementation
 
