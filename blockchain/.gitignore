@@ -1,5 +1,6 @@
 descartes-env*
 deployments/localhost
+deployments/hardhat
 artifacts
 cache
 src/types

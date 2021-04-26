@@ -8,10 +8,15 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
     const Descartes = await get("Descartes");
     const Logger = await get("Logger");
+    const TurnBasedGameContext = await deploy("TurnBasedGameContext", {
+        from: deployer,
+        log: true,
+    });
     const TurnBasedGame = await deploy("TurnBasedGame", {
         from: deployer,
         log: true,
         args: [Descartes.address, Logger.address],
+        libraries: { TurnBasedGameContext: TurnBasedGameContext.address },
     });
     await deploy("TurnBasedGameLobby", {
         from: deployer,
