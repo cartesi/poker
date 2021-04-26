@@ -71,11 +71,11 @@ class Player {
   prove_card_secret(card_index, my_proof) {
     return this.rawlib._player_prove_card_secret(this.p, card_index, my_proof.p);
   }
-  self_card_seret(card_index) {
-    return this.rawlib._player_self_card_seret(this.p, card_index);
+  self_card_secret(card_index) {
+    return this.rawlib._player_self_card_secret(this.p, card_index);
   }
-  verify_card_seret(card_index, their_proof) {
-    return this.rawlib._player_verify_card_seret(this.p, card_index, their_proof.p);
+  verify_card_secret(card_index, their_proof) {
+    return this.rawlib._player_verify_card_secret(this.p, card_index, their_proof.p);
   }
   open_card(card_index) {
     return this.rawlib._player_open_card(this.p, card_index);

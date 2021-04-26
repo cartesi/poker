@@ -4,11 +4,11 @@ Mental poker game library.
 
 ## Reqirements
 
-Refer to platforms-spacific README file in `platforms/`.
+Refer to platforms-specific README file in `platforms/`.
 
 ## Directory structure
 - poker-lib - Our mental poker source code
-- platforms - Platform-spacific 3rd party code and  build environments
+- platforms - Platform-specific 3rd party code and  build environments
 
 ## Target Platforms
 The library builds for 3 platforms:
@@ -16,7 +16,7 @@ The library builds for 3 platforms:
 - WASM
 - RISC-V
 
-For platform-spacific innformation, refer to the platform's README.
+For platform-specific information, refer to the platform's README.
 
 ## Building
 

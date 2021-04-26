@@ -52,8 +52,8 @@ public:
     // Cards
     int take_cards_from_stack(int count);
     int prove_card_secret(int card_index, blob& my_proof);
-    int self_card_seret(int card_index);
-    int verify_card_seret(int card_index, blob& their_proof);
+    int self_card_secret(int card_index);
+    int verify_card_secret(int card_index, blob& their_proof);
     int open_card(int card_index);
     size_t get_open_card(int card_index);
 };

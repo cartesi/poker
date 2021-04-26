@@ -98,12 +98,12 @@ INT API player_prove_card_secret(POINTER p, int c, POINTER s) {
     return ASPLAYER(p)->prove_card_secret(c, *ASBLOB(s));
 }
 
-INT API player_self_card_seret(POINTER p, int c) {
-    return ASPLAYER(p)->self_card_seret(c);
+INT API player_self_card_secret(POINTER p, int c) {
+    return ASPLAYER(p)->self_card_secret(c);
 }
 
-INT API player_verify_card_seret(POINTER p, int c, POINTER s) {
-    return ASPLAYER(p)->verify_card_seret(c, *ASBLOB(s));
+INT API player_verify_card_secret(POINTER p, int c, POINTER s) {
+    return ASPLAYER(p)->verify_card_secret(c, *ASBLOB(s));
 }
 
 INT API player_open_card(POINTER p, int c) {

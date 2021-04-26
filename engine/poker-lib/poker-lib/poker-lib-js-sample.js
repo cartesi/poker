@@ -43,17 +43,17 @@ function poker_lib_demo(lib) {
   bob.take_cards_from_stack(2);
 
   var  bob_proof_0 = lib.new_blob();
-  alice.self_card_seret(0);
+  alice.self_card_secret(0);
   bob.prove_card_secret(0, bob_proof_0);
-  alice.verify_card_seret(0, bob_proof_0);
+  alice.verify_card_secret(0, bob_proof_0);
   alice.open_card(0);
   alice_card_0 = alice.get_open_card(0);
   console.log('alice_card_0=', alice_card_0)
 
   var alice_proof_0 = lib.new_blob();
-  bob.self_card_seret(0);
+  bob.self_card_secret(0);
   alice.prove_card_secret(0, alice_proof_0);
-  bob.verify_card_seret(0, alice_proof_0);
+  bob.verify_card_secret(0, alice_proof_0);
   bob.open_card(0);
   bob_card_0 = bob.get_open_card(0);
   console.log('bob_card_0=', bob_card_0)

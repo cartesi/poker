@@ -71,25 +71,25 @@ int main(int argc, char** argv) {
     eve.take_cards_from_stack(2);
 
     blob bob_proof_0, eve_proof_0;
-    alice.self_card_seret(0);
+    alice.self_card_secret(0);
     bob.prove_card_secret(0, bob_proof_0);
     eve.prove_card_secret(0, eve_proof_0);
-    alice.verify_card_seret(0, bob_proof_0);
-    alice.verify_card_seret(0, eve_proof_0);
+    alice.verify_card_secret(0, bob_proof_0);
+    alice.verify_card_secret(0, eve_proof_0);
     alice.open_card(0);
     auto alice_card_0 = alice.get_open_card(0);
 
     blob alice_proof_0;
-    bob.self_card_seret(0);
+    bob.self_card_secret(0);
     alice.prove_card_secret(0, alice_proof_0);
-    bob.verify_card_seret(0, alice_proof_0);
-    bob.verify_card_seret(0, eve_proof_0);
+    bob.verify_card_secret(0, alice_proof_0);
+    bob.verify_card_secret(0, eve_proof_0);
     bob.open_card(0);
     auto bob_card_0 = bob.get_open_card(0);
 
-    eve.self_card_seret(0);
-    eve.verify_card_seret(0, alice_proof_0);
-    eve.verify_card_seret(0, bob_proof_0);
+    eve.self_card_secret(0);
+    eve.verify_card_secret(0, alice_proof_0);
+    eve.verify_card_secret(0, bob_proof_0);
     eve.open_card(0);
     auto eve_card_0 = eve.get_open_card(0);
 

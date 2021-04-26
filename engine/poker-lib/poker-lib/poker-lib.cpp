@@ -157,17 +157,17 @@ int player::prove_card_secret(int card_index, blob& my_proof) {
     return 0;
 }
 
-int player::self_card_seret(int card_index) {
-    std::cout << _pfx << "self_card_seret(" << card_index << ")" << std::endl;
+int player::self_card_secret(int card_index) {
+    std::cout << _pfx << "self_card_secret(" << card_index << ")" << std::endl;
     _tmcg->TMCG_SelfCardSecret(_cards[card_index], _vtmf);
     return 0;
 }
 
-int player::verify_card_seret(int card_index, blob& their_proof) {
-    std::cout << _pfx << "verify_card_seret(" << card_index << ")" << std::endl;
+int player::verify_card_secret(int card_index, blob& their_proof) {
+    std::cout << _pfx << "verify_card_secret(" << card_index << ")" << std::endl;
     blob dummy; // not used b/c this is non-interactive proof
 	if (!_tmcg->TMCG_VerifyCardSecret(_cards[card_index], _vtmf,	their_proof.in(), dummy.out())) {
-		std::cout << "*** [verify_card_seret] Card " << card_index << " verification failed!" << std::endl;
+		std::cout << "*** [verify_card_secret] Card " << card_index << " verification failed!" << std::endl;
 		return POKER_ERROR;
 	}
     return 0;
