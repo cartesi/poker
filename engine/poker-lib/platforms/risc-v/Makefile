@@ -2,7 +2,7 @@ PLAT=risc-v
 IMGNAME=poker-toolchain-$(PLAT)
 TAG=dev
 
-BUILD_BASE=`PWD`/build
+BUILD_BASE=`pwd`/build
 POKER_ENGINE_BASE=`cd ../../poker-lib; pwd`
 RUN_TOOLCHAIN=docker run --rm  \
         -v `pwd`:/poker/src  \
