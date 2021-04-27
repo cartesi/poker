@@ -51,7 +51,8 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
         let frameBg = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", "frame_bg_matching");
         this.playerContainer.add(frameBg);
 
-        let playerImage = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", GameVars.playerAvatar === 1 ? "avatar_player" : "avatar_opponent");
+        let playerImage = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", "avatar_0" + GameVars.playerAvatar);
+        playerImage.scaleX = -1;
         this.playerContainer.add(playerImage);
 
         let frame = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", "frame_matching");
@@ -71,12 +72,10 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
         frameBg = new Phaser.GameObjects.Image(this.scene, 250, 0, "texture_atlas_1", "frame_bg_matching");
         this.opponentContainer.add(frameBg);
 
-        this.upperAvatarImage = new Phaser.GameObjects.Image(this.scene, 250, 0, "texture_atlas_1", "avatar_opponent");
-        this.upperAvatarImage.scaleX = -1;
+        this.upperAvatarImage = new Phaser.GameObjects.Image(this.scene, 250, 0, "texture_atlas_1", "avatar_01");
         this.opponentContainer.add(this.upperAvatarImage);
 
-        this.lowerAvatarImage = new Phaser.GameObjects.Image(this.scene, 250, 0, "texture_atlas_1", "avatar_player");
-        this.lowerAvatarImage.scaleX = -1;
+        this.lowerAvatarImage = new Phaser.GameObjects.Image(this.scene, 250, 0, "texture_atlas_1", "avatar_02");
         this.opponentContainer.add(this.lowerAvatarImage);
 
         this.maskShape = new Phaser.GameObjects.Graphics(this.scene);
@@ -179,9 +178,11 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
                 const tmpAvatarImage = this.lowerAvatarImage;
                 this.lowerAvatarImage = this.upperAvatarImage;
                 this.upperAvatarImage = tmpAvatarImage;
+
+                this.lowerAvatarImage.setFrame("avatar_0" + Math.ceil(Math.random() * 5));
     
                 if (this.adversarySelected) {
-                    this.upperAvatarImage.setFrame(GameVars.opponentAvatar === 1 ? "avatar_player" : "avatar_opponent");
+                    this.upperAvatarImage.setFrame("avatar_0" + GameVars.opponentAvatar);
                     this.setToStop = true;
                 }
 

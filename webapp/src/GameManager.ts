@@ -32,7 +32,7 @@ export class GameManager {
         GameVars.playerName = "Alice";
         GameVars.playerFunds = 100;
 
-        GameVars.opponentAvatar = 1;
+        GameVars.opponentAvatar = 5;
 
         GameManager.readGameData();
     }
