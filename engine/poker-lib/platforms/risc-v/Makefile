@@ -4,10 +4,13 @@ TAG=dev
 
 BUILD_BASE=`pwd`/build
 POKER_ENGINE_BASE=`cd ../../poker-lib; pwd`
+PATCHES_BASE=`cd ../../patches; pwd`
+
 RUN_TOOLCHAIN=docker run --rm  \
         -v `pwd`:/poker/src  \
         -v $(BUILD_BASE):/poker/build  \
         -v $(POKER_ENGINE_BASE):/poker/poker-lib-base \
+        -v $(PATCHES_BASE):/poker/patches  \
         -w /poker/src \
         -e HOSTNAME=`hostname` \
         -it $(IMGNAME):$(TAG)

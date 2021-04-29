@@ -1,5 +1,5 @@
 diff --git a/src/mpz_srandom.cc b/src/mpz_srandom.cc
-index 56e82ac..3205fc8 100644
+index 56e82ac..8e71e8d 100644
 --- a/src/mpz_srandom.cc
 +++ b/src/mpz_srandom.cc
 @@ -41,10 +41,17 @@
@@ -20,3 +20,22 @@ index 56e82ac..3205fc8 100644
  	unsigned long int tmp = 0;
  	if (level == GCRY_WEAK_RANDOM)
  		gcry_create_nonce((unsigned char*)&tmp, sizeof(tmp));
+@@ -179,9 +186,17 @@ void tmcg_mpz_grandomm
+ 	// make bias negligible cf. BSI TR-02102-1, B.4 Verfahren 2
+ 	unsigned long int nbytes = (mpz_sizeinbase(m, 2UL) + 64 + 7) / 8;
+ 	unsigned char tmp[nbytes];
+-	gcry_randomize(tmp, nbytes, level);
++
++    if (libtmcg_cartesi_predictable) {
++        for(unsigned long int i=0; i<nbytes; i++) {
++            tmp[i] = (char)i;
++        }
++    } else {
++        gcry_randomize(tmp, nbytes, level);
++    }
+ 	mpz_import(r, nbytes, 1, 1, 1, 0, (const void*)tmp);
+ #ifdef BOTAN
++
+ 	std::unique_ptr<Botan::RandomNumberGenerator>
+ 		rng(new Botan::AutoSeeded_RNG);
+ 	rng->randomize((uint8_t*)tmp, nbytes);

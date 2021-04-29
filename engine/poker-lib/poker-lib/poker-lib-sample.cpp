@@ -103,7 +103,7 @@ int run_and_open_card(int card_index) {
     auto eve_card_0 = eve.get_open_card(card_index);
 
     std::cout << "OK" << std::endl;    
-    return 0;
+    return eve_card_0;
 }
 
 void verify_open_card(int card_index, int expected_card_type) {
@@ -119,16 +119,13 @@ void verify_open_card(int card_index, int expected_card_type) {
     eve.finalize_key_generation();
 
     eve.load_vsshe_group(g.vsshe_group);
-
     eve.create_stack();
-    
     blob eve_mix, eve_mix_proof;
     eve.load_stack(g.alice_mix, g.alice_mix_proof);
     eve.load_stack(g.bob_mix, g.bob_mix_proof);
     eve.shuffle_stack(eve_mix, eve_mix_proof);
 
     eve.take_cards_from_stack(2);
-
     blob eve_proof_0;
     eve.self_card_secret(card_index);
     eve.verify_card_secret(card_index, g.alice_proof_0);
@@ -139,8 +136,8 @@ void verify_open_card(int card_index, int expected_card_type) {
     auto success = eve_card_0 == expected_card_type;
 
     std::cout << "Verification " <<  success << 
-        "expected: " << expected_card_type  <<
-        "actual:" << eve_card_0 <<
+        " - expected: " << expected_card_type  <<
+        " actual:" << eve_card_0 <<
         std::endl;    
 
 }

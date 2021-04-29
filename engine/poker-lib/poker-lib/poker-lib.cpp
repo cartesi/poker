@@ -17,9 +17,11 @@ int init_poker_lib() {
 class libtmcg_guard {
 public:
     libtmcg_guard(player* p) {
+        //std::cout << "\n>>> patching libtmcg " << p->predictable() << std::endl;
         set_libtmcg_cartesi_predictable(p->predictable());
     }
     ~libtmcg_guard() {
+        //std::cout << "<<< unpatching libtmcg\n" << std::endl;
         set_libtmcg_cartesi_predictable(0);
     }
 };

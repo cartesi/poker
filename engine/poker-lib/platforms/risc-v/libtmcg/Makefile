@@ -5,6 +5,7 @@ HOST-ARCH=riscv64-cartesi-linux-gnu
 
 libtmcg: $(LIBNAME)
 	cd $(LIBNAME)  && \
+    git apply /poker/patches/$(LIBNAME).patch && \
 	aclocal  -I /poker/build/share/aclocal && \
     libtoolize   --force   && \
     cp configure.ac configure.ac.original && \

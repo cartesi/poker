@@ -4,9 +4,12 @@ TAG=dev
 BUILD_BASE=`pwd`/build
 POKER_LIB_BASE=`cd ../../poker-lib; pwd`
 HTTP_SERVER_PORT=1234
+PATCHES_BASE=`cd ../../patches; pwd`
+
 RUN_TOOLCHAIN=docker run --rm  \
         -v `pwd`:/poker/src  \
         -v $(BUILD_BASE):/poker/build  \
+        -v $(PATCHES_BASE):/poker/patches  \
         -v $(POKER_LIB_BASE):/poker/poker-lib-base \
         -w /poker/src \
          -p $(HTTP_SERVER_PORT):1234 \
