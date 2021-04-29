@@ -5,6 +5,7 @@ all: libtmcg
 
 libtmcg: $(LIBNAME)
 	cd $(LIBNAME)  && \
+    git apply /poker/patches/$(LIBNAME).patch && \
     aclocal  -I /poker/build/share/aclocal && \
     libtoolize   --force && \
     autoheader  && \

@@ -16,8 +16,9 @@ class blob;
 class player {
     const int decksize = 52;
     
-    int id;
+    int _id;
     int _num_players;
+    bool _predictable;
     std::string _pfx;
     SchindelhauerTMCG *_tmcg;
     BarnettSmartVTMF_dlog *_vtmf;
@@ -28,8 +29,12 @@ class player {
     std::map<int, size_t> _open_cards;
 
 public:
-    player(int player_id, int num_players);
+    player(int player_id, int num_players, bool predictable);
     ~player();
+
+    int id() { return _id; }
+    int num_players() { return _num_players; }
+    bool predictable() { return _predictable; }
 
     // initial group generation
     int create_group(blob& group);

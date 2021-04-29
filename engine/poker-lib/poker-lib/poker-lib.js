@@ -20,9 +20,9 @@ class Blob {
 }
 
 class Player {
-  constructor(rawlib, player_id, num_players) {
+  constructor(rawlib, player_id, num_players, predictable) {
     this.rawlib = rawlib;
-    this.p = this.rawlib._poker_new_player(player_id, num_players)
+    this.p = this.rawlib._poker_new_player(player_id, num_players, predictable)
   }
 
   create_group(blob) {

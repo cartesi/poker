@@ -4,8 +4,8 @@ const Poker = require('./poker-lib.js');
 function poker_lib_demo(lib) {
   lib.init();
   const num_players = 2;
-  var alice = lib.new_player(0, num_players);
-  var bob = lib.new_player(1, num_players);
+  var alice = lib.new_player(0, num_players, /* predictable */ false);
+  var bob = lib.new_player(1, num_players,   /* predictable */ false);
 
   var group = lib.new_blob();
   alice.create_group(group);

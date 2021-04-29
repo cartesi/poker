@@ -41,8 +41,8 @@ void API blob_set_data(POINTER p, POINTER str) {
     ASBLOB(p)->set_data(s);
 }
 
-POINTER API  poker_new_player(int player_id, int num_players) {
-    auto player = new poker::player(player_id, num_players);
+POINTER API  poker_new_player(int player_id, int num_players, bool predictable) {
+    auto player = new poker::player(player_id, num_players, predictable);
     return reinterpret_cast<POINTER>(player);
 }
 

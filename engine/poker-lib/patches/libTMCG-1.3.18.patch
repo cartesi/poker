@@ -1,0 +1,22 @@
+diff --git a/src/mpz_srandom.cc b/src/mpz_srandom.cc
+index 56e82ac..3205fc8 100644
+--- a/src/mpz_srandom.cc
++++ b/src/mpz_srandom.cc
+@@ -41,10 +41,17 @@
+ 	#include <botan/rng.h>
+ #endif
+ 
++static int libtmcg_cartesi_predictable = 0;
++
++void set_libtmcg_cartesi_predictable(int v) {
++    libtmcg_cartesi_predictable = v;
++}
+ 
+ unsigned long int tmcg_mpz_grandom_ui
+ 	(enum gcry_random_level level)
+ {
++    if (libtmcg_cartesi_predictable) return 1;
++
+ 	unsigned long int tmp = 0;
+ 	if (level == GCRY_WEAK_RANDOM)
+ 		gcry_create_nonce((unsigned char*)&tmp, sizeof(tmp));

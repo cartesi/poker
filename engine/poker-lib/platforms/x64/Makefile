@@ -2,11 +2,13 @@ PLAT=x64
 IMGNAME=poker-toolchain-$(PLAT)
 TAG=dev
 BUILD_BASE=`pwd`/build
+PATCHES_BASE=`cd ../../patches; pwd`
 POKER_LIB_BASE=`cd ../../poker-lib; pwd`
 
 RUN_TOOLCHAIN=docker run --rm  \
         -v `pwd`:/poker/src  \
         -v $(BUILD_BASE):/poker/build  \
+        -v $(PATCHES_BASE):/poker/patches  \
         -v $(POKER_LIB_BASE):/poker/poker-lib-base \
         -v $(POKER_LIB_BASE):/poker/poker-lib-base \
         -w /poker/src \
