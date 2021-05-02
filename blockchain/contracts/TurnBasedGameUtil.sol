@@ -57,7 +57,7 @@ library TurnBasedGameUtil {
     function checkResult(uint[] memory _playerFunds, uint[] memory _fundsShare) internal pure
         returns (uint _fundsToBurn)
     {
-        require(_playerFunds.length == _fundsShare.length, "Resulting funds distribution has more entries than number of players.");
+        require(_playerFunds.length == _fundsShare.length, "Resulting funds distribution does not match number of players in the game");
 
         // checks if given address belongs to one of the game players
         uint totalPlayerFunds = 0;
@@ -66,7 +66,7 @@ library TurnBasedGameUtil {
             totalPlayerFunds += _playerFunds[i];
             totalFundsShare += _fundsShare[i];
         }
-        require(totalPlayerFunds >= totalFundsShare, "Resulting funds distribution exceeds amount locked by the players for the game.");
+        require(totalPlayerFunds >= totalFundsShare, "Resulting funds distribution exceeds amount locked by the players for the game");
 
         // amount to burn corresponds to the difference between total original player funds and resulting distribution
         return totalPlayerFunds - totalFundsShare;

@@ -166,6 +166,8 @@ library TurnBasedGameContext {
     {
         // reverts if result has already been claimed
         require(_context.claimer == address(0), "Result has already been claimed for this game: it must now be either confirmed or challenged");
+        // reverts if game verification has been triggered
+        require(!_context.isDescartesInstantiated, "Game has been challenged and a verification has been requested");
 
         // ensures claimed result is valid
         TurnBasedGameUtil.checkResult(_context.playerFunds, _fundsShare);
@@ -190,6 +192,8 @@ library TurnBasedGameContext {
     {
         // reverts if result has not been claimed yet
         require(_context.claimer != address(0), "Result has not been claimed for this game yet");
+        // reverts if game verification has been triggered
+        require(!_context.isDescartesInstantiated, "Game has been challenged and a verification has been requested");
 
         // adds confirming player to mask indicating players that agree with the claim
         _context.claimAgreementMask = TurnBasedGameUtil.updateClaimAgreementMask(_context.claimAgreementMask, _context.players, msg.sender);

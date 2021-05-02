@@ -313,4 +313,83 @@ describe("TurnBasedGame", async () => {
             .to.emit(contextLibrary, "GameChallenged")
             .withArgs(1, descartesIndex.add(1), players[1]);
     });
+
+    // CLAIM RESULT
+
+    it("Should only allow result to be claimed for active games", async () => {
+        await expect(gameContract.claimResult(0, playerFunds)).to.be.revertedWith("Index not instantiated");
+
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
+    });
+
+    it("Should only allow result to be claimed by participating players", async () => {
+        const accounts = await ethers.getSigners();
+        let gameContractOtherSigner = gameContract.connect(accounts[2]);
+        await gameContractOtherSigner.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContractOtherSigner.claimResult(0, playerFunds)).to.be.revertedWith(
+            "Player is not participating in the game"
+        );
+
+        await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
+    });
+
+    it("Should not allow result to be claimed more than once", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
+        await expect(gameContract.claimResult(0, playerFunds)).to.be.revertedWith(
+            "Result has already been claimed for this game: it must now be either confirmed or challenged"
+        );
+    });
+
+    it("Should not allow result to be claimed when Descartes verification is in progress", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+
+        await expect(gameContract.claimResult(0, playerFunds)).to.be.revertedWith(
+            "Game has been challenged and a verification has been requested"
+        );
+    });
+
+    it("Should check if claimed result is valid", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.claimResult(0, [201, 0])).to.be.revertedWith(
+            "Resulting funds distribution exceeds amount locked by the players for the game"
+        );
+        await expect(gameContract.claimResult(0, [99, 102])).to.be.revertedWith(
+            "Resulting funds distribution exceeds amount locked by the players for the game"
+        );
+        await expect(gameContract.claimResult(0, [40, 30, 50])).to.be.revertedWith(
+            "Resulting funds distribution does not match number of players in the game"
+        );
+        await expect(gameContract.claimResult(0, [40])).to.be.revertedWith(
+            "Resulting funds distribution does not match number of players in the game"
+        );
+        await expect(gameContract.claimResult(0, [30, 80])).not.to.be.reverted;
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.claimResult(1, [100, 100])).not.to.be.reverted;
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.claimResult(2, [101, 99])).not.to.be.reverted;
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.claimResult(3, [200, 0])).not.to.be.reverted;
+    });
+
+    it("Should emit GameResultClaimed event when result is claimed", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+
+        // result claimed by player 0
+        await expect(gameContract.claimResult(0, [120, 80]))
+            .to.emit(contextLibrary, "GameResultClaimed")
+            .withArgs(0, [120, 80], players[0]);
+
+        // another game with result claimed by player 1
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        let player1 = (await ethers.getSigners())[1];
+        let gameContractPlayer1 = gameContract.connect(player1);
+        await expect(gameContractPlayer1.claimResult(1, [0, 150]))
+            .to.emit(contextLibrary, "GameResultClaimed")
+            .withArgs(1, [0, 150], players[1]);
+    });
 });
