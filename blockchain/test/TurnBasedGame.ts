@@ -38,6 +38,9 @@ describe("TurnBasedGame", async () => {
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Alice")),
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Bob")),
     ];
+    const turnData = ["0x325E3731202B2033", "0x365E313200000000"];
+    const initialStateHash = ethers.constants.HashZero;
+
     let players;
     let validators;
 
@@ -73,6 +76,8 @@ describe("TurnBasedGame", async () => {
         contextLibrary = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
         contextLibrary = contextLibrary.attach(gameContract.address);
     });
+
+    // START GAME
 
     it("Should activate game instance when starting a game", async () => {
         expect(await gameContract.isActive(0), "1st game should be inactive before calling startGame").to.equal(false);
@@ -162,5 +167,76 @@ describe("TurnBasedGame", async () => {
         expect(context[9]).to.eql(ethers.constants.AddressZero, "3rd game should emit event with appropriate context"); // null claimer
         expect(context[10]).to.eql([], "3rd game should emit event with appropriate context"); // null claimedFundsShare
         expect(context[11]).to.eql(ethers.constants.Zero, "3rd game should emit event with appropriate context"); // null claimAgreementMask
+    });
+
+    // SUBMIT TURN
+
+    it("Should only allow turn submission for active games", async () => {
+        await expect(gameContract.submitTurn(0, initialStateHash, turnData)).to.be.revertedWith(
+            "Index not instantiated"
+        );
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.submitTurn(0, initialStateHash, turnData)).not.to.be.reverted;
+    });
+
+    it("Should only allow turn submission from participating players", async () => {
+        const accounts = await ethers.getSigners();
+        let gameContractOtherSigner = gameContract.connect(accounts[2]);
+        await gameContractOtherSigner.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContractOtherSigner.submitTurn(0, initialStateHash, turnData)).to.be.revertedWith(
+            "Player is not participating in the game"
+        );
+        await expect(gameContract.submitTurn(0, initialStateHash, turnData)).not.to.be.reverted;
+    });
+
+    it("Should not allow turn submission when game result has been claimed", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContract.claimResult(0, playerFunds);
+        await expect(gameContract.submitTurn(0, initialStateHash, turnData)).to.be.revertedWith(
+            "Game end has been claimed"
+        );
+
+        // new games should be ok
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.submitTurn(1, initialStateHash, turnData)).not.to.be.reverted;
+    });
+
+    it("Should not allow turn submission when game verification is in progress", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+
+        // prepares mocks and challenges game
+        await mockDescartes.mock.instantiate.returns(0);
+        await mockDescartes.mock.isActive.returns(true);
+        await mockLogger.mock.calculateMerkleRootFromHistory.returns(EMPTY_DATA_LOG_HASH);
+        await gameContract.challengeGame(0);
+
+        await expect(gameContract.submitTurn(0, initialStateHash, turnData)).to.be.revertedWith(
+            "Game verification in progress"
+        );
+
+        // new games should be ok
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.submitTurn(1, initialStateHash, turnData)).not.to.be.reverted;
+    });
+
+    it("Should emit TurnOver event when submitting a turn", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+
+        // turn from player 0
+        await expect(gameContract.submitTurn(0, initialStateHash, turnData))
+            .to.emit(contextLibrary, "TurnOver")
+            .withArgs(0, [players[0], initialStateHash, EMPTY_DATA_LOG_INDEX]);
+
+        // turn from player 1 with different data (state hash and log hash/index)
+        const player1StateHash = ethers.utils.formatBytes32String("player1 state hash");
+        const player1LogHash = ethers.utils.formatBytes32String("player1 log hash");
+        const player1LogIndex = 3;
+        await mockLogger.mock.calculateMerkleRootFromData.returns(player1LogHash);
+        await mockLogger.mock.getLogIndex.returns(player1LogIndex);
+        let player1 = (await ethers.getSigners())[1];
+        let gameContractPlayer1 = gameContract.connect(player1);
+        await expect(gameContractPlayer1.submitTurn(0, player1StateHash, turnData))
+            .to.emit(contextLibrary, "TurnOver")
+            .withArgs(0, [players[1], player1StateHash, player1LogIndex]);
     });
 });

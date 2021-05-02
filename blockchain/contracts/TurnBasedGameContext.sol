@@ -82,8 +82,11 @@ library TurnBasedGameContext {
     function submitTurn(GameContext storage _context, uint256 _index, bytes32 _stateHash, bytes8[] memory _data, DescartesInterface _descartes, Logger _logger, uint8 _turnDataLog2Size) public
         onlyByPlayer(_context)
     {
-        // ensures no turn is submitted while a GameEnd claim is being verified
-        require(!_context.isDescartesInstantiated || !_descartes.isActive(_context.descartesIndex), "GameEnd claim verification in progress.");
+        // ensures game is still ongoing
+        // - result has not been claimed yet
+        require(_context.claimer == address(0), "Game end has been claimed");
+        // - game has not been challenged
+        require(!_context.isDescartesInstantiated, "Game verification in progress");
 
         // stores submitted turn data in the logger and retrieves its index
         bytes32 logHash = _logger.calculateMerkleRootFromData(_turnDataLog2Size, _data);
@@ -117,7 +120,7 @@ library TurnBasedGameContext {
     {
         // ensures there is not already a Descartes computation verifying the game
         // FIXME: check if Descartes computation is "active" but has failed (cancel/delete it in this case)
-        require(!_context.isDescartesInstantiated || !_descartes.isActive(_context.descartesIndex), "Game verification already in progress.");
+        require(!_context.isDescartesInstantiated || !_descartes.isActive(_context.descartesIndex), "Game verification already in progress");
 
         // builds input drives for the descartes computation
         DescartesInterface.Drive[] memory drives = buildInputDrives(_context, _logger, _turnDataLog2Size, _emptyDataLogIndex);
@@ -151,7 +154,7 @@ library TurnBasedGameContext {
         onlyByPlayer(_context)
     {
         // reverts if result has already been claimed
-        require(_context.claimer == address(0), "Result has already been claimed for this game: it must now be either confirmed or challenged.");
+        require(_context.claimer == address(0), "Result has already been claimed for this game: it must now be either confirmed or challenged");
 
         // ensures claimed result is valid
         TurnBasedGameUtil.checkResult(_context.playerFunds, _fundsShare);
@@ -175,7 +178,7 @@ library TurnBasedGameContext {
         returns (bool _isConsensus)
     {
         // reverts if result has not been claimed yet
-        require(_context.claimer != address(0), "Result has not been claimed for this game yet.");
+        require(_context.claimer != address(0), "Result has not been claimed for this game yet");
 
         // adds confirming player to mask indicating players that agree with the claim
         _context.claimAgreementMask = TurnBasedGameUtil.updateClaimAgreementMask(_context.claimAgreementMask, _context.players, msg.sender);
@@ -197,13 +200,13 @@ library TurnBasedGameContext {
     function applyVerificationResult(GameContext storage _context, uint256 _index, DescartesInterface _descartes) public
     {
         // ensures Descartes computation has been instantiated
-        require(_context.isDescartesInstantiated, "Game verification has not been requested.");
+        require(_context.isDescartesInstantiated, "Game verification has not been requested");
 
         // queries Descartes result
         (bool isResultReady, , , bytes memory result) = _descartes.getResult(_context.descartesIndex);
 
         // ensures Descartes computation result is ready
-        require(isResultReady, "Game verification result has not been computed yet." );
+        require(isResultReady, "Game verification result has not been computed yet");
 
         // FIXME: decode result bytes as an uint[] representing amount from the locked funds to be transferred to each player
         uint[] memory fundsShare;
@@ -358,7 +361,7 @@ library TurnBasedGameContext {
     /// @notice Allows calls only from participating players
     /// @param _context game context
     modifier onlyByPlayer(GameContext storage _context) {
-        require(isConcerned(_context, msg.sender), "Player is not participating in the game.");
+        require(isConcerned(_context, msg.sender), "Player is not participating in the game");
         _;
     }
 }
