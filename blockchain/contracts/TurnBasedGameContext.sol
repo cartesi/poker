@@ -118,9 +118,20 @@ library TurnBasedGameContext {
         onlyByPlayer(_context)
         returns (uint256)
     {
-        // ensures there is not already a Descartes computation verifying the game
-        // FIXME: check if Descartes computation is "active" but has failed (cancel/delete it in this case)
-        require(!_context.isDescartesInstantiated || !_descartes.isActive(_context.descartesIndex), "Game verification already in progress");
+        // ensures Descartes verification is not in progress or has not already been performed
+        // - a new challenge is allowed if the Descartes computation is inactive or has failed
+        if (_context.isDescartesInstantiated) {
+            (bool hasResult, bool isRunning, ,) = _descartes.getResult(_context.descartesIndex);
+            if (isRunning == true) {
+                revert("Game verification already in progress");
+            } else if (hasResult == true) {
+                revert("Game verification has already been performed");
+            } else {
+                // the Descartes computation has failed: it is not running and there are no results available
+                // - let's destruct it before allowing a new computation to take place
+                _descartes.destruct(_context.descartesIndex);
+            }
+        }
 
         // builds input drives for the descartes computation
         DescartesInterface.Drive[] memory drives = buildInputDrives(_context, _logger, _turnDataLog2Size, _emptyDataLogIndex);

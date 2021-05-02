@@ -40,6 +40,7 @@ describe("TurnBasedGame", async () => {
     ];
     const turnData = ["0x325E3731202B2033", "0x365E313200000000"];
     const initialStateHash = ethers.constants.HashZero;
+    const descartesIndex = ethers.BigNumber.from(13);
 
     let players;
     let validators;
@@ -76,6 +77,12 @@ describe("TurnBasedGame", async () => {
         contextLibrary = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
         contextLibrary = contextLibrary.attach(gameContract.address);
     });
+
+    // prepares mock responses so that TurnBasedGame.challengeGame() can be called
+    const prepareChallengeGame = async () => {
+        await mockDescartes.mock.instantiate.returns(descartesIndex);
+        await mockLogger.mock.calculateMerkleRootFromHistory.returns(EMPTY_DATA_LOG_HASH);
+    };
 
     // START GAME
 
@@ -204,10 +211,8 @@ describe("TurnBasedGame", async () => {
     it("Should not allow turn submission when game verification is in progress", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
 
-        // prepares mocks and challenges game
-        await mockDescartes.mock.instantiate.returns(0);
-        await mockDescartes.mock.isActive.returns(true);
-        await mockLogger.mock.calculateMerkleRootFromHistory.returns(EMPTY_DATA_LOG_HASH);
+        // challenges game
+        await prepareChallengeGame();
         await gameContract.challengeGame(0);
 
         await expect(gameContract.submitTurn(0, initialStateHash, turnData)).to.be.revertedWith(
@@ -238,5 +243,74 @@ describe("TurnBasedGame", async () => {
         await expect(gameContractPlayer1.submitTurn(0, player1StateHash, turnData))
             .to.emit(contextLibrary, "TurnOver")
             .withArgs(0, [players[1], player1StateHash, player1LogIndex]);
+    });
+
+    // CHALLENGE GAME
+
+    it("Should only allow active games to be challenged", async () => {
+        await prepareChallengeGame();
+        await expect(gameContract.challengeGame(0)).to.be.revertedWith("Index not instantiated");
+
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.challengeGame(0)).not.to.be.reverted;
+    });
+
+    it("Should only allow game to be challenged by participating players", async () => {
+        const accounts = await ethers.getSigners();
+        let gameContractOtherSigner = gameContract.connect(accounts[2]);
+        await gameContractOtherSigner.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContractOtherSigner.challengeGame(0)).to.be.revertedWith(
+            "Player is not participating in the game"
+        );
+
+        await prepareChallengeGame();
+        await expect(gameContract.challengeGame(0)).not.to.be.reverted;
+    });
+
+    it("Should not allow game to be challenged when Descartes verification is in progress", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+
+        // mockDescartes informing that computation is still going on
+        await mockDescartes.mock.getResult
+            .withArgs(descartesIndex)
+            .returns(false, true, ethers.constants.AddressZero, "0x");
+
+        await expect(gameContract.challengeGame(0)).to.be.revertedWith("Game verification already in progress");
+    });
+
+    it("Should not allow game to be challenged when Descartes verification has been fully performed", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+
+        // mockDescartes informing that computation is complete and results are available
+        await mockDescartes.mock.getResult
+            .withArgs(descartesIndex)
+            .returns(true, false, ethers.constants.AddressZero, "0x123456");
+
+        await expect(gameContract.challengeGame(0)).to.be.revertedWith("Game verification has already been performed");
+    });
+
+    it("Should emit GameChallenged event when a game is challenged", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+
+        // game challenged by player 0
+        await prepareChallengeGame();
+        await expect(gameContract.challengeGame(0))
+            .to.emit(contextLibrary, "GameChallenged")
+            .withArgs(0, descartesIndex, players[0]);
+
+        // another game challenged by player 1
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await mockDescartes.mock.instantiate.returns(descartesIndex.add(1));
+        let player1 = (await ethers.getSigners())[1];
+        let gameContractPlayer1 = gameContract.connect(player1);
+        await expect(gameContractPlayer1.challengeGame(1))
+            .to.emit(contextLibrary, "GameChallenged")
+            .withArgs(1, descartesIndex.add(1), players[1]);
     });
 });
