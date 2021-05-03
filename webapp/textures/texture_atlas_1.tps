@@ -392,16 +392,29 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">texture_atlas_1/choose_avatar.png</key>
+            <key type="filename">texture_atlas_1/choose_avatar_base_landscape.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>171,55,342,110</rect>
+                <rect>218,57,436,115</rect>
                 <key>scale9Paddings</key>
-                <rect>171,55,342,110</rect>
+                <rect>218,57,436,115</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/choose_avatar_base_portrait.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>163,97,325,195</rect>
+                <key>scale9Paddings</key>
+                <rect>163,97,325,195</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>

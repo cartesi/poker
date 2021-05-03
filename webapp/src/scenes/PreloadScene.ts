@@ -41,6 +41,8 @@ export class PreloadScene extends Phaser.Scene {
 
         this.load.json("audiosprite", "assets/audio/audiosprite.json");
 
+        this.load.html("input-text", "assets/dom/inputText.html");
+
         this.load.on("progress", this.updateLoadedPercentage, this);
     }
 

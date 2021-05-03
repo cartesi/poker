@@ -29,14 +29,14 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.setScalesAndPostions();
 
-        this.image = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, -45, "texture_atlas_1", isPlayer ? "avatar_0" + GameVars.playerAvatar : "avatar_0" + GameVars.opponentAvatar);
+        this.image = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, -45, "texture_atlas_1", isPlayer ? "avatar_0" + GameVars.gameData.avatar : "avatar_0" + GameVars.opponentAvatar);
         this.image.scaleX = isPlayer ? -1 : 1;
         this.add(this.image);
 
         let nicknameBck = new Phaser.GameObjects.Image(this.scene, isPlayer ? -280 : 280, 49, "texture_atlas_1", "txt_box_names");
         this.add(nicknameBck);
 
-        this.nickname = new Phaser.GameObjects.Text(this.scene, isPlayer ? -280 : 280, 49, isPlayer ? GameVars.playerName : GameVars.opponentName, {fontFamily: "Oswald-Medium", fontSize: "24px", color: "#FFFFFF"});
+        this.nickname = new Phaser.GameObjects.Text(this.scene, isPlayer ? -280 : 280, 49, isPlayer ? GameVars.gameData.name : GameVars.opponentName, {fontFamily: "Oswald-Medium", fontSize: "24px", color: "#FFFFFF"});
         this.nickname.setOrigin(.5);
         this.add(this.nickname);
 

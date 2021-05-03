@@ -56,15 +56,15 @@ export class SplashScene extends Phaser.Scene {
                 this.chooseAvatarLayer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
             } else {
                 this.topContainer.setScale(GameVars.scaleX, 1);
-                this.chooseAvatarLayer.setScale(GameVars.scaleX, 1);
+                this.chooseAvatarLayer.setScale(GameVars.scaleX, 1); 
             }
+            this.chooseAvatarLayer.setLandscapeMode();
         } else {
 
             let extraScale = (0.67 - GameVars.scaleY) * 2.5;
             this.topContainer.setScale(1.2 + extraScale, GameVars.scaleY * (1.2 + extraScale));
-            this.chooseAvatarLayer.setScale(1.2 + extraScale, GameVars.scaleY * (1.2 + extraScale));
-
-            console.log(GameVars.scaleY);
+            this.chooseAvatarLayer.setScale(1.2 + extraScale / 2, GameVars.scaleY * (1.2 + extraScale / 2));
+            this.chooseAvatarLayer.setPortraitMode();
         }
     }
 }

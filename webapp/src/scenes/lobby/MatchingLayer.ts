@@ -51,7 +51,7 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
         let frameBg = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", "frame_bg_matching");
         this.playerContainer.add(frameBg);
 
-        let playerImage = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", "avatar_0" + GameVars.playerAvatar);
+        let playerImage = new Phaser.GameObjects.Image(this.scene, -250, 0, "texture_atlas_1", "avatar_0" + GameVars.gameData.avatar);
         playerImage.scaleX = -1;
         this.playerContainer.add(playerImage);
 
@@ -61,7 +61,7 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
         let nicknameBck = new Phaser.GameObjects.Image(this.scene, -250, 120, "texture_atlas_1", "txt_box_names");
         this.playerContainer.add(nicknameBck);
 
-        let nickname = new Phaser.GameObjects.Text(this.scene, -250, 120, GameVars.playerName, {fontFamily: "Oswald-Medium", fontSize: "24px", color: "#FFFFFF"});
+        let nickname = new Phaser.GameObjects.Text(this.scene, -250, 120, GameVars.gameData.name, {fontFamily: "Oswald-Medium", fontSize: "24px", color: "#FFFFFF"});
         nickname.setOrigin(.5);
         this.playerContainer.add(nickname);
 

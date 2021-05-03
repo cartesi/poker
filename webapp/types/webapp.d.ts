@@ -5,6 +5,8 @@ declare var BOB: number;
 
 declare interface GameData {
     muted: boolean;
+    name: string;
+    avatar: number;
 }
 
 declare interface AppState {

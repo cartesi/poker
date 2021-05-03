@@ -29,7 +29,6 @@ export class GameManager {
             GameVars.landscape = false;
         }
 
-        GameVars.playerName = "Alice";
         GameVars.playerFunds = 100;
 
         GameVars.opponentAvatar = 5;
@@ -154,7 +153,9 @@ export class GameManager {
                     GameVars.gameData = JSON.parse(gameData);
                 } else {
                     GameVars.gameData = {
-                        muted: false
+                        muted: false,
+                        name: null,
+                        avatar: 1
                     };
                 }
 
@@ -181,7 +182,7 @@ export class GameManager {
 
         GameVars.currentScene.scene.start("LobbyScene");
 
-        Lobby.joinGame(GameVars.playerName, GameVars.playerFunds, (index, context) => {
+        Lobby.joinGame(GameVars.gameData.name, GameVars.playerFunds, (index, context) => {
             console.log(index);
             console.log(context);
 
@@ -228,7 +229,14 @@ export class GameManager {
 
     public static setPlayerAvatar(value: number): void {
 
-        GameVars.playerAvatar = value;
+        GameVars.gameData.avatar = value;
+        GameManager.writeGameData();
+    }
+
+    public static setPlayerName(value: string): void {
+
+        GameVars.gameData.name = value;
+        GameManager.writeGameData();
     }
 
     private static startGame(): void {
