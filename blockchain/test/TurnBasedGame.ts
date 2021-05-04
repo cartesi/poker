@@ -392,4 +392,65 @@ describe("TurnBasedGame", async () => {
             .to.emit(contextLibrary, "GameResultClaimed")
             .withArgs(1, [0, 150], players[1]);
     });
+
+    // CONFIRM RESULT
+
+    it("Should only allow result to be confirmed for active games", async () => {
+        await expect(gameContract.confirmResult(0)).to.be.revertedWith("Index not instantiated");
+
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContract.claimResult(0, playerFunds);
+        await expect(gameContract.confirmResult(0)).not.to.be.reverted;
+    });
+
+    it("Should only allow result to be claimed by participating players", async () => {
+        const accounts = await ethers.getSigners();
+        let gameContractOtherSigner = gameContract.connect(accounts[2]);
+        await gameContractOtherSigner.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContract.claimResult(0, playerFunds);
+        await expect(gameContractOtherSigner.confirmResult(0)).to.be.revertedWith(
+            "Player is not participating in the game"
+        );
+
+        await expect(gameContract.confirmResult(0)).not.to.be.reverted;
+    });
+
+    it("Should only allow result to be confirmed when one was claimed before", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.confirmResult(0)).to.be.revertedWith("Result has not been claimed for this game yet");
+
+        await gameContract.claimResult(0, playerFunds);
+        await expect(gameContract.confirmResult(0)).not.to.be.reverted;
+    });
+
+    it("Should not allow result to be confirmed when Descartes verification is in progress", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContract.claimResult(0, playerFunds);
+
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+
+        await expect(gameContract.confirmResult(0)).to.be.revertedWith(
+            "Game has been challenged and a verification has been requested"
+        );
+    });
+
+    it("Should end game and emit GameOver event when result is confirmed by all players", async () => {
+        let player1 = (await ethers.getSigners())[1];
+        let gameContractPlayer1 = gameContract.connect(player1);
+
+        // result claimed by player 0 and confirmed by player 1
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContract.claimResult(0, [120, 80]);
+        expect(await gameContract.isActive(0), "1st game should be active before result is confirmed").to.equal(true);
+        await expect(gameContractPlayer1.confirmResult(0)).to.emit(contextLibrary, "GameOver").withArgs(0, [120, 80]);
+        expect(await gameContract.isActive(0), "1st game should be inactive after confirmed by all").to.equal(false);
+
+        // another game with result claimed by player 1 and confirmed by player 0
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContractPlayer1.claimResult(1, [0, 150]);
+        expect(await gameContract.isActive(1), "2nd game should be active before result is confirmed").to.equal(true);
+        await expect(gameContract.confirmResult(1)).to.emit(contextLibrary, "GameOver").withArgs(1, [0, 150]);
+        expect(await gameContract.isActive(1), "2nd game should be inactive after confirmed by all").to.equal(false);
+    });
 });
