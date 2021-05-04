@@ -121,10 +121,10 @@ library TurnBasedGameContext {
         // ensures Descartes verification is not in progress or has not already been performed
         // - a new challenge is allowed if the Descartes computation is inactive or has failed
         if (_context.isDescartesInstantiated) {
-            (bool hasResult, bool isRunning, ,) = _descartes.getResult(_context.descartesIndex);
+            (bool isResultReady, bool isRunning, ,) = _descartes.getResult(_context.descartesIndex);
             if (isRunning == true) {
                 revert("Game verification already in progress");
-            } else if (hasResult == true) {
+            } else if (isResultReady == true) {
                 revert("Game verification has already been performed");
             } else {
                 // the Descartes computation has failed: it is not running and there are no results available
@@ -218,16 +218,14 @@ library TurnBasedGameContext {
         require(_context.isDescartesInstantiated, "Game verification has not been requested");
 
         // queries Descartes result
-        (bool isResultReady, , , bytes memory result) = _descartes.getResult(_context.descartesIndex);
+        (bool isResultReady, bool isRunning, , bytes memory result) = _descartes.getResult(_context.descartesIndex);
 
         // ensures Descartes computation result is ready
-        require(isResultReady, "Game verification result has not been computed yet");
+        require(!isRunning, "Game verification result has not been computed yet");
+        require(isResultReady, "Game verification result not available");
 
         // FIXME: decode result bytes as an uint[] representing amount from the locked funds to be transferred to each player
-        uint[] memory fundsShare;
-
-        // NOTE: it is up to the Descartes computation to punish a false claimer or challenger accordingly
-        // and encode that in the resulting funds distribution
+        uint[] memory fundsShare = _context.playerFunds;
 
         applyResult(_context, _index, fundsShare);
     }

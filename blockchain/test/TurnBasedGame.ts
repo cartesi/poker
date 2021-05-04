@@ -453,4 +453,76 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.confirmResult(1)).to.emit(contextLibrary, "GameOver").withArgs(1, [0, 150]);
         expect(await gameContract.isActive(1), "2nd game should be inactive after confirmed by all").to.equal(false);
     });
+
+    // APPLY VERIFICATION RESULT
+
+    it("Should only allow verification result to be applied for active games", async () => {
+        await expect(gameContract.applyVerificationResult(0)).to.be.revertedWith("Index not instantiated");
+
+        // challenge game and then set mockDescartes to inform that computation is complete and results are available
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+        await mockDescartes.mock.getResult
+            .withArgs(descartesIndex)
+            .returns(true, false, ethers.constants.AddressZero, "0x123456");
+
+        await expect(gameContract.applyVerificationResult(0)).not.to.be.reverted;
+    });
+
+    it("Should not allow verification result to be applied when it is not available", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContract.claimResult(0, playerFunds);
+
+        // no Descartes verification requested
+        await expect(gameContract.applyVerificationResult(0)).to.be.revertedWith(
+            "Game verification has not been requested"
+        );
+
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+
+        // Descartes verification still in progress
+        await mockDescartes.mock.getResult
+            .withArgs(descartesIndex)
+            .returns(false, true, ethers.constants.AddressZero, "0x");
+        await expect(gameContract.applyVerificationResult(0)).to.be.revertedWith(
+            "Game verification result has not been computed yet"
+        );
+
+        // Descartes verification over but no result is available
+        await mockDescartes.mock.getResult
+            .withArgs(descartesIndex)
+            .returns(false, false, ethers.constants.AddressZero, "0x");
+        await expect(gameContract.applyVerificationResult(0)).to.be.revertedWith(
+            "Game verification result not available"
+        );
+
+        // Descartes verification result available
+        await mockDescartes.mock.getResult
+            .withArgs(descartesIndex)
+            .returns(true, false, ethers.constants.AddressZero, "0x123456");
+        await expect(gameContract.applyVerificationResult(0)).not.to.be.reverted;
+    });
+
+    it("Should end game and emit GameOver event when verification result is applied", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContract.claimResult(0, playerFunds);
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+
+        await mockDescartes.mock.getResult
+            .withArgs(descartesIndex)
+            .returns(true, false, ethers.constants.AddressZero, "0x123456");
+
+        expect(await gameContract.isActive(0), "Game should be active before verification result is applied").to.equal(
+            true
+        );
+        // FIXME: check if resulting fundsShare corresponds to bytes result
+        // await expect(gameContract.applyVerificationResult(0)).to.emit(contextLibrary, "GameOver").withArgs(0, [120, 80]);
+        await expect(gameContract.applyVerificationResult(0)).to.emit(contextLibrary, "GameOver");
+        expect(await gameContract.isActive(0), "Game should be inactive after verification result is applied").to.equal(
+            false
+        );
+    });
 });
