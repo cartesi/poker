@@ -43,19 +43,21 @@ contract TurnBasedGameLobby {
     /// @notice Retrieves the current queue for a given game (specified by its template hash, metadata and number of players)
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
     /// @param _gameMetadata game-specific initial metadata/parameters
+    /// @param _gameValidators addresses of the validator nodes that will run a Descartes verification should it be needed
     /// @param _gameNumPlayers number of players in the game
     /// @param _gameMinFunds minimum funds required to be staked in order to join the game
     /// @return array of QueuedPlayer structs representing the currently enqueued players for the specified game
     function getQueue(
         bytes32 _gameTemplateHash,
         bytes memory _gameMetadata,
+        address[] memory _gameValidators,
         uint8 _gameNumPlayers,
         uint256 _gameMinFunds
     ) public view
         returns (QueuedPlayer[] memory)
     {
         // builds hash for game specification
-        bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameNumPlayers, _gameMinFunds));
+        bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameValidators, _gameNumPlayers, _gameMinFunds));
         // retrieves queued players for given game specification
         return queues[queueHash];
     }
@@ -80,7 +82,7 @@ contract TurnBasedGameLobby {
     ) public {
 
         // ensures player is staking enough funds to participate in the game
-        require(_playerFunds >= _gameMinFunds, "Player's staked funds is insufficient to join the game.");
+        require(_playerFunds >= _gameMinFunds, "Player's staked funds is insufficient to join the game");
 
         // builds hash for game specification
         bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameValidators, _gameNumPlayers, _gameMinFunds));
