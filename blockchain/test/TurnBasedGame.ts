@@ -24,6 +24,7 @@ use(solidity);
 
 describe("TurnBasedGame", async () => {
     let gameContract: TurnBasedGame;
+    let gameContractPlayer1: TurnBasedGame;
     let contextLibrary: TurnBasedGameContext;
     let mockDescartes: MockContract;
     let mockLogger: MockContract;
@@ -46,7 +47,7 @@ describe("TurnBasedGame", async () => {
     let validators;
 
     beforeEach(async () => {
-        const [signer] = await ethers.getSigners();
+        const [signer, player1] = await ethers.getSigners();
 
         const { alice, bob } = await getNamedAccounts();
         players = [alice, bob];
@@ -74,6 +75,8 @@ describe("TurnBasedGame", async () => {
         });
 
         gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
+        gameContractPlayer1 = gameContract.connect(player1);
+
         contextLibrary = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
         contextLibrary = contextLibrary.attach(gameContract.address);
     });
@@ -176,6 +179,38 @@ describe("TurnBasedGame", async () => {
         expect(context[11]).to.eql(ethers.constants.Zero, "3rd game should emit event with appropriate context"); // null claimAgreementMask
     });
 
+    // GET CONTEXT
+
+    it("Should only allow getting context for instantiated games", async () => {
+        await expect(gameContract.getContext(0)).to.be.revertedWith("Index not instantiated");
+
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await expect(gameContract.getContext(0)).not.to.be.reverted;
+    });
+
+    it("Should retrieve correct values when getting context", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        let context = await gameContract.getContext(0);
+        expect(context[0]).to.eql(gameTemplateHash);
+        expect(context[1]).to.eql(gameMetadata);
+        expect(context[2]).to.eql(validators);
+        expect(context[3]).to.eql(players);
+        expect(context[4]).to.eql(playerFunds);
+        expect(context[5]).to.eql(playerInfos);
+        expect(context[6]).to.eql([]); // turns
+        expect(context[7]).to.eql(false); // null isDescartesInstantiated
+        expect(context[8]).to.eql(ethers.constants.Zero); // null descartesIndex
+        expect(context[9]).to.eql(ethers.constants.AddressZero); // null claimer
+        expect(context[10]).to.eql([]); // null claimedFundsShare
+        expect(context[11]).to.eql(ethers.constants.Zero); // null claimAgreementMask
+
+        // 2nd game: different metadata should reflect in the context
+        const gameMetadataOther = "0x123456";
+        await gameContract.startGame(gameTemplateHash, gameMetadataOther, players, playerFunds, playerInfos);
+        context = await gameContract.getContext(1);
+        expect(context[1]).to.eql(gameMetadataOther);
+    });
+
     // SUBMIT TURN
 
     it("Should only allow turn submission for active games", async () => {
@@ -238,11 +273,33 @@ describe("TurnBasedGame", async () => {
         const player1LogIndex = 3;
         await mockLogger.mock.calculateMerkleRootFromData.returns(player1LogHash);
         await mockLogger.mock.getLogIndex.returns(player1LogIndex);
-        let player1 = (await ethers.getSigners())[1];
-        let gameContractPlayer1 = gameContract.connect(player1);
         await expect(gameContractPlayer1.submitTurn(0, player1StateHash, turnData))
             .to.emit(contextLibrary, "TurnOver")
             .withArgs(0, [players[1], player1StateHash, player1LogIndex]);
+    });
+
+    it("Should update context when submitting turns", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+
+        const stateHash0 = ethers.utils.formatBytes32String("state hash 0");
+        const stateHash1 = ethers.utils.formatBytes32String("state hash 1");
+        const turnData0 = ["0x325E3731202B2033", "0x365E313200000000"];
+        const turnData1 = ["0x325E3731202B2099", "0x365E313200000088", "0x365E313200000099"];
+        const logIndex0 = 25;
+        const logIndex1 = 28;
+        await mockLogger.mock.getLogIndex.returns(logIndex0);
+        await gameContract.submitTurn(0, stateHash0, turnData0);
+        await mockLogger.mock.getLogIndex.returns(logIndex1);
+        await gameContractPlayer1.submitTurn(0, stateHash1, turnData1);
+        let context = await gameContract.getContext(0);
+        let turns = context[6];
+        expect(turns.length).to.eql(2);
+        expect(turns[0].player).to.eql(players[0]);
+        expect(turns[0].stateHash).to.eql(stateHash0);
+        expect(turns[0].dataLogIndex).to.eql(ethers.BigNumber.from(logIndex0));
+        expect(turns[1].player).to.eql(players[1]);
+        expect(turns[1].stateHash).to.eql(stateHash1);
+        expect(turns[1].dataLogIndex).to.eql(ethers.BigNumber.from(logIndex1));
     });
 
     // CHALLENGE GAME
@@ -307,11 +364,18 @@ describe("TurnBasedGame", async () => {
         // another game challenged by player 1
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await mockDescartes.mock.instantiate.returns(descartesIndex.add(1));
-        let player1 = (await ethers.getSigners())[1];
-        let gameContractPlayer1 = gameContract.connect(player1);
         await expect(gameContractPlayer1.challengeGame(1))
             .to.emit(contextLibrary, "GameChallenged")
             .withArgs(1, descartesIndex.add(1), players[1]);
+    });
+
+    it("Should update context when a game is challenged", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+        let context = await gameContract.getContext(0);
+        expect(context[7]).to.eql(true); // isDescartesInstantiated
+        expect(context[8]).to.eql(descartesIndex); // descartesIndex
     });
 
     // CLAIM RESULT
@@ -386,11 +450,27 @@ describe("TurnBasedGame", async () => {
 
         // another game with result claimed by player 1
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
-        let player1 = (await ethers.getSigners())[1];
-        let gameContractPlayer1 = gameContract.connect(player1);
         await expect(gameContractPlayer1.claimResult(1, [0, 150]))
             .to.emit(contextLibrary, "GameResultClaimed")
             .withArgs(1, [0, 150], players[1]);
+    });
+
+    it("Should update context when result is claimed", async () => {
+        // result claimed by player 0
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContract.claimResult(0, [120, 80]);
+        let context = await gameContract.getContext(0);
+        expect(context[9]).to.eql(players[0]); // claimer
+        expect(context[10]).to.eql([ethers.BigNumber.from(120), ethers.BigNumber.from(80)]); // claimedFundsShare
+        expect(context[11]).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with only last bit turned on (only player0 agrees)
+
+        // another game with result claimed by player 1
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContractPlayer1.claimResult(1, [70, 120]);
+        context = await gameContract.getContext(1);
+        expect(context[9]).to.eql(players[1]); // claimer
+        expect(context[10]).to.eql([ethers.BigNumber.from(70), ethers.BigNumber.from(120)]); // claimedFundsShare
+        expect(context[11]).to.eql(ethers.BigNumber.from(2)); // claimAgreementMask with only before last bit turned on (only player1 agrees)
     });
 
     // CONFIRM RESULT
@@ -436,9 +516,6 @@ describe("TurnBasedGame", async () => {
     });
 
     it("Should end game and emit GameOver event when result is confirmed by all players", async () => {
-        let player1 = (await ethers.getSigners())[1];
-        let gameContractPlayer1 = gameContract.connect(player1);
-
         // result claimed by player 0 and confirmed by player 1
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await gameContract.claimResult(0, [120, 80]);
@@ -452,6 +529,17 @@ describe("TurnBasedGame", async () => {
         expect(await gameContract.isActive(1), "2nd game should be active before result is confirmed").to.equal(true);
         await expect(gameContract.confirmResult(1)).to.emit(contextLibrary, "GameOver").withArgs(1, [0, 150]);
         expect(await gameContract.isActive(1), "2nd game should be inactive after confirmed by all").to.equal(false);
+    });
+
+    it("Should update context when result is confirmed", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
+        await gameContract.claimResult(0, [120, 80]);
+        let context = await gameContract.getContext(0);
+        expect(context[11]).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with last bit turned on (only player0 agrees)
+
+        await gameContractPlayer1.confirmResult(0);
+        context = await gameContract.getContext(0);
+        expect(context[11]).to.eql(ethers.BigNumber.from(3)); // claimAgreementMask with last two bits turned on (player0 and player1 agree)
     });
 
     // APPLY VERIFICATION RESULT

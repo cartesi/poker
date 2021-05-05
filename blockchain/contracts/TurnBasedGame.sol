@@ -92,6 +92,17 @@ contract TurnBasedGame is InstantiatorImpl {
     }
 
 
+    /// @notice Returns game context
+    /// @param _index index identifying the game
+    /// @return GameContext struct for the specified game
+    function getContext(uint256 _index) public view
+        onlyInstantiated(_index)
+        returns(GameContext memory)
+    {
+        return instances[_index];
+    }
+
+
     /// @notice Submits a new turn for a given game
     /// @param _index index identifying the game
     /// @param _stateHash game state for which the turn applies
@@ -150,17 +161,6 @@ contract TurnBasedGame is InstantiatorImpl {
         GameContext storage context = instances[_index];
         context.applyVerificationResult(_index, descartes);
         deactivate(_index);
-    }
-
-
-    /// @notice Returns game context
-    /// @param _index index identifying the game
-    /// @return GameContext struct for the specified game
-    function getContext(uint256 _index) public view
-        onlyInstantiated(_index)
-        returns(GameContext memory)
-    {
-        return instances[_index];
     }
 
 
