@@ -60,6 +60,7 @@ contract TurnBasedGame is InstantiatorImpl {
     /// @notice Starts a new game
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
     /// @param _gameMetadata game-specific initial metadata/parameters
+    /// @param _validators addresses of the validator nodes that will run a Descartes verification should it be needed
     /// @param _players addresses of the players involved
     /// @param _playerFunds funds/balances that each player is bringing into the game
     /// @param _playerInfos game-specific information for each player
@@ -67,6 +68,7 @@ contract TurnBasedGame is InstantiatorImpl {
     function startGame(
         bytes32 _gameTemplateHash,
         bytes memory _gameMetadata,
+        address[] memory _validators,
         address[] memory _players,
         uint[] memory _playerFunds,
         bytes[] memory _playerInfos
@@ -77,8 +79,7 @@ contract TurnBasedGame is InstantiatorImpl {
         GameContext storage context = instances[currentIndex];
         context.gameTemplateHash = _gameTemplateHash;
         context.gameMetadata = _gameMetadata;
-        // FIXME: validators should be an independent parameter
-        context.validators = _players;
+        context.validators = _validators;
         // TODO: check/lock funds, preferrably use a token and not ether
         context.players = _players;
         context.playerFunds = _playerFunds;

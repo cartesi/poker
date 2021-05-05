@@ -64,6 +64,7 @@ contract TurnBasedGameLobby {
     /// @notice Allows a player to join a game. People are queued up as they join and the game starts when enough people are available.
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
     /// @param _gameMetadata game-specific initial metadata/parameters
+    /// @param _gameValidators addresses of the validator nodes that will run a Descartes verification should it be needed
     /// @param _gameNumPlayers number of players in the game
     /// @param _gameMinFunds minimum funds required to be staked in order to join the game
     /// @param _playerFunds amount being staked by the player joining the game
@@ -71,6 +72,7 @@ contract TurnBasedGameLobby {
     function joinGame(
         bytes32 _gameTemplateHash,
         bytes memory _gameMetadata,
+        address[] memory _gameValidators,
         uint8 _gameNumPlayers,
         uint256 _gameMinFunds,
         uint256 _playerFunds,
@@ -81,7 +83,7 @@ contract TurnBasedGameLobby {
         require(_playerFunds >= _gameMinFunds, "Player's staked funds is insufficient to join the game.");
 
         // builds hash for game specification
-        bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameNumPlayers, _gameMinFunds));
+        bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameValidators, _gameNumPlayers, _gameMinFunds));
         // retrieves queued players for given game specification
         QueuedPlayer[] storage queuedPlayers = queues[queueHash];
 
@@ -111,6 +113,7 @@ contract TurnBasedGameLobby {
             turnBasedGame.startGame(
                 _gameTemplateHash,
                 _gameMetadata,
+                _gameValidators,
                 players,
                 playerFunds,
                 playerInfos
