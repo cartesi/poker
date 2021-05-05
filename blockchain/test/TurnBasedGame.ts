@@ -89,7 +89,7 @@ describe("TurnBasedGame", async () => {
 
     // START GAME
 
-    it("Should activate game instance when starting a game", async () => {
+    it("startGame: should activate game instance", async () => {
         expect(await gameContract.isActive(0), "1st game should be inactive before calling startGame").to.equal(false);
 
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
@@ -107,7 +107,7 @@ describe("TurnBasedGame", async () => {
         );
     });
 
-    it("Should emit GameReady event when starting a game", async () => {
+    it("startGame: should emit GameReady event", async () => {
         // 1st game
         let tx = await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         let gameReadyEventRaw = (await tx.wait()).events[0];
@@ -181,14 +181,14 @@ describe("TurnBasedGame", async () => {
 
     // GET CONTEXT
 
-    it("Should only allow getting context for instantiated games", async () => {
+    it("getContext: should only be allowed for instantiated games", async () => {
         await expect(gameContract.getContext(0)).to.be.revertedWith("Index not instantiated");
 
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await expect(gameContract.getContext(0)).not.to.be.reverted;
     });
 
-    it("Should retrieve correct values when getting context", async () => {
+    it("getContext: should return correct values", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         let context = await gameContract.getContext(0);
         expect(context[0]).to.eql(gameTemplateHash);
@@ -213,7 +213,7 @@ describe("TurnBasedGame", async () => {
 
     // SUBMIT TURN
 
-    it("Should only allow turn submission for active games", async () => {
+    it("submitTurn: should only be allowed for active games", async () => {
         await expect(gameContract.submitTurn(0, initialStateHash, turnData)).to.be.revertedWith(
             "Index not instantiated"
         );
@@ -221,7 +221,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.submitTurn(0, initialStateHash, turnData)).not.to.be.reverted;
     });
 
-    it("Should only allow turn submission from participating players", async () => {
+    it("submitTurn: should only be allowed from participating players", async () => {
         const accounts = await ethers.getSigners();
         let gameContractOtherSigner = gameContract.connect(accounts[2]);
         await gameContractOtherSigner.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
@@ -231,7 +231,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.submitTurn(0, initialStateHash, turnData)).not.to.be.reverted;
     });
 
-    it("Should not allow turn submission when game result has been claimed", async () => {
+    it("submitTurn: should not be allowed when game result has been claimed", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await gameContract.claimResult(0, playerFunds);
         await expect(gameContract.submitTurn(0, initialStateHash, turnData)).to.be.revertedWith(
@@ -243,7 +243,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.submitTurn(1, initialStateHash, turnData)).not.to.be.reverted;
     });
 
-    it("Should not allow turn submission when game verification is in progress", async () => {
+    it("submitTurn: should not be allowed when game verification is in progress", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
 
         // challenges game
@@ -259,7 +259,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.submitTurn(1, initialStateHash, turnData)).not.to.be.reverted;
     });
 
-    it("Should emit TurnOver event when submitting a turn", async () => {
+    it("submitTurn: should emit TurnOver event", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
 
         // turn from player 0
@@ -278,7 +278,7 @@ describe("TurnBasedGame", async () => {
             .withArgs(0, [players[1], player1StateHash, player1LogIndex]);
     });
 
-    it("Should update context when submitting turns", async () => {
+    it("submitTurn: should update context", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
 
         const stateHash0 = ethers.utils.formatBytes32String("state hash 0");
@@ -304,7 +304,7 @@ describe("TurnBasedGame", async () => {
 
     // CHALLENGE GAME
 
-    it("Should only allow active games to be challenged", async () => {
+    it("challengeGame: should only be allowed for active games", async () => {
         await prepareChallengeGame();
         await expect(gameContract.challengeGame(0)).to.be.revertedWith("Index not instantiated");
 
@@ -312,7 +312,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.challengeGame(0)).not.to.be.reverted;
     });
 
-    it("Should only allow game to be challenged by participating players", async () => {
+    it("challengeGame: should only be allowed by participating players", async () => {
         const accounts = await ethers.getSigners();
         let gameContractOtherSigner = gameContract.connect(accounts[2]);
         await gameContractOtherSigner.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
@@ -324,7 +324,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.challengeGame(0)).not.to.be.reverted;
     });
 
-    it("Should not allow game to be challenged when Descartes verification is in progress", async () => {
+    it("challengeGame: should not be allowed when Descartes verification is in progress", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
 
         await prepareChallengeGame();
@@ -338,7 +338,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.challengeGame(0)).to.be.revertedWith("Game verification already in progress");
     });
 
-    it("Should not allow game to be challenged when Descartes verification has been fully performed", async () => {
+    it("challengeGame: should not be allowed when Descartes verification has been fully performed", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
 
         await prepareChallengeGame();
@@ -352,7 +352,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.challengeGame(0)).to.be.revertedWith("Game verification has already been performed");
     });
 
-    it("Should emit GameChallenged event when a game is challenged", async () => {
+    it("challengeGame: should emit GameChallenged event", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
 
         // game challenged by player 0
@@ -369,7 +369,7 @@ describe("TurnBasedGame", async () => {
             .withArgs(1, descartesIndex.add(1), players[1]);
     });
 
-    it("Should update context when a game is challenged", async () => {
+    it("challengeGame: should update context", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await prepareChallengeGame();
         await gameContract.challengeGame(0);
@@ -380,14 +380,14 @@ describe("TurnBasedGame", async () => {
 
     // CLAIM RESULT
 
-    it("Should only allow result to be claimed for active games", async () => {
+    it("claimResult: should only be allowed for active games", async () => {
         await expect(gameContract.claimResult(0, playerFunds)).to.be.revertedWith("Index not instantiated");
 
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
     });
 
-    it("Should only allow result to be claimed by participating players", async () => {
+    it("claimResult: should only be allowed by participating players", async () => {
         const accounts = await ethers.getSigners();
         let gameContractOtherSigner = gameContract.connect(accounts[2]);
         await gameContractOtherSigner.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
@@ -398,7 +398,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
     });
 
-    it("Should not allow result to be claimed more than once", async () => {
+    it("claimResult: should not be allowed more than once", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
         await expect(gameContract.claimResult(0, playerFunds)).to.be.revertedWith(
@@ -406,7 +406,7 @@ describe("TurnBasedGame", async () => {
         );
     });
 
-    it("Should not allow result to be claimed when Descartes verification is in progress", async () => {
+    it("claimResult: should not be allowed when Descartes verification is in progress", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
 
         await prepareChallengeGame();
@@ -417,7 +417,7 @@ describe("TurnBasedGame", async () => {
         );
     });
 
-    it("Should check if claimed result is valid", async () => {
+    it("claimResult: should check if claimed result is valid", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await expect(gameContract.claimResult(0, [201, 0])).to.be.revertedWith(
             "Resulting funds distribution exceeds amount locked by the players for the game"
@@ -440,7 +440,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.claimResult(3, [200, 0])).not.to.be.reverted;
     });
 
-    it("Should emit GameResultClaimed event when result is claimed", async () => {
+    it("claimResult: should emit GameResultClaimed event", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
 
         // result claimed by player 0
@@ -455,7 +455,7 @@ describe("TurnBasedGame", async () => {
             .withArgs(1, [0, 150], players[1]);
     });
 
-    it("Should update context when result is claimed", async () => {
+    it("claimResult: should update context", async () => {
         // result claimed by player 0
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await gameContract.claimResult(0, [120, 80]);
@@ -475,7 +475,7 @@ describe("TurnBasedGame", async () => {
 
     // CONFIRM RESULT
 
-    it("Should only allow result to be confirmed for active games", async () => {
+    it("confirmResult: should only be allowed for active games", async () => {
         await expect(gameContract.confirmResult(0)).to.be.revertedWith("Index not instantiated");
 
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
@@ -483,7 +483,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.confirmResult(0)).not.to.be.reverted;
     });
 
-    it("Should only allow result to be claimed by participating players", async () => {
+    it("confirmResult: should only be allowed by participating players", async () => {
         const accounts = await ethers.getSigners();
         let gameContractOtherSigner = gameContract.connect(accounts[2]);
         await gameContractOtherSigner.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
@@ -495,7 +495,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.confirmResult(0)).not.to.be.reverted;
     });
 
-    it("Should only allow result to be confirmed when one was claimed before", async () => {
+    it("confirmResult: should only be allowed when a result was claimed before", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await expect(gameContract.confirmResult(0)).to.be.revertedWith("Result has not been claimed for this game yet");
 
@@ -503,7 +503,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.confirmResult(0)).not.to.be.reverted;
     });
 
-    it("Should not allow result to be confirmed when Descartes verification is in progress", async () => {
+    it("confirmResult: should not be allowed when Descartes verification is in progress", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await gameContract.claimResult(0, playerFunds);
 
@@ -515,7 +515,7 @@ describe("TurnBasedGame", async () => {
         );
     });
 
-    it("Should end game and emit GameOver event when result is confirmed by all players", async () => {
+    it("confirmResult: should end game and emit GameOver event when called by all players", async () => {
         // result claimed by player 0 and confirmed by player 1
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await gameContract.claimResult(0, [120, 80]);
@@ -531,7 +531,7 @@ describe("TurnBasedGame", async () => {
         expect(await gameContract.isActive(1), "2nd game should be inactive after confirmed by all").to.equal(false);
     });
 
-    it("Should update context when result is confirmed", async () => {
+    it("confirmResult: should update context", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await gameContract.claimResult(0, [120, 80]);
         let context = await gameContract.getContext(0);
@@ -544,7 +544,7 @@ describe("TurnBasedGame", async () => {
 
     // APPLY VERIFICATION RESULT
 
-    it("Should only allow verification result to be applied for active games", async () => {
+    it("applyVerificationResult: should only be allowed for active games", async () => {
         await expect(gameContract.applyVerificationResult(0)).to.be.revertedWith("Index not instantiated");
 
         // challenge game and then set mockDescartes to inform that computation is complete and results are available
@@ -558,7 +558,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.applyVerificationResult(0)).not.to.be.reverted;
     });
 
-    it("Should not allow verification result to be applied when it is not available", async () => {
+    it("applyVerificationResult: should not be allowed when result is not available", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await gameContract.claimResult(0, playerFunds);
 
@@ -593,7 +593,7 @@ describe("TurnBasedGame", async () => {
         await expect(gameContract.applyVerificationResult(0)).not.to.be.reverted;
     });
 
-    it("Should end game and emit GameOver event when verification result is applied", async () => {
+    it("applyVerificationResult: should end game and emit GameOver event", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, players, playerFunds, playerInfos);
         await gameContract.claimResult(0, playerFunds);
         await prepareChallengeGame();
