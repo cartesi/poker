@@ -1,12 +1,20 @@
 <style>
     #inputText {
-        border-style: solid;
-        width: 255px;
-        height: 30px;
-        font-size: 26px;
-        font-family: "Arial";
+        background: transparent;
+        border: none;
+        outline: none;
+        border-color: transparent;
+        width: 320px;
+        height: 40px;
+        font-size: 32px;
+        font-family: "Oswald-Medium";
         text-align: center;
+        color: #081A49;
+    }
+
+    #inputText::placeholder {
+        color: #3D8EA5;
     }
 </style>
 
-<input type="text" name="fname" id="inputText" autocomplete="off" placeholder="Enter your name">
+<input type="text" name="fname" id="inputText" autocomplete="off" placeholder="Enter your name" maxlength="20">

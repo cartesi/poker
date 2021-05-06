@@ -10,6 +10,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
     private chooseAvatar: Phaser.GameObjects.Image;
     private playButton: Phaser.GameObjects.Image;
     private avatars: Avatar[];
+    private inputBackground: Phaser.GameObjects.Image;
     private inputElement: Phaser.GameObjects.DOMElement;
 
     constructor(scene: Phaser.Scene) {
@@ -36,7 +37,10 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         this.chooseAvatarFrame.setScale(1.2);
         this.add(this.chooseAvatarFrame);
 
-        this.inputElement = this.scene.add.dom(0, 250).createFromCache("input-text");
+        this.inputBackground = new Phaser.GameObjects.Image(this.scene, 0, 260, "texture_atlas_1", "txt_box");
+        this.add(this.inputBackground);
+
+        this.inputElement = this.scene.add.dom(0, 257).createFromCache("input-text");
         this.add(this.inputElement);
 
         let inputText: any = this.inputElement.getChildByName("fname");
@@ -44,7 +48,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
             inputText.value = GameVars.gameData.name;
         }
 
-        this.playButton = new Phaser.GameObjects.Image(this.scene, 0, 400, "texture_atlas_1", "btn_play");
+        this.playButton = new Phaser.GameObjects.Image(this.scene, 0, 355, "texture_atlas_1", "btn_play");
         this.playButton.setInteractive();
         this.playButton.on("pointerover", () => {
             this.playButton.setScale(1.05);
@@ -71,8 +75,9 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
     public setLandscapeMode(): void {
 
         this.chooseAvatar.setFrame("choose_avatar_base_landscape");
-        this.playButton.y = 350;
-        this.inputElement.y = 250;
+        this.playButton.y = 355;
+        this.inputElement.y = 257;
+        this.inputBackground.y = 260;
         this.chooseAvatar.scaleX = 1.05;
 
         for (let i = 0; i < 6; i++) {
@@ -85,8 +90,9 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
     public setPortraitMode(): void {
 
         this.chooseAvatar.setFrame("choose_avatar_base_portrait");
-        this.playButton.y = 420;
-        this.inputElement.y = 330;
+        this.playButton.y = 435;
+        this.inputElement.y = 337;
+        this.inputBackground.y = 340;
         this.chooseAvatar.scaleX = 1;
 
         for (let i = 0; i < 3; i++) {

@@ -1018,6 +1018,48 @@
 					}
 				},
 				{
+					"filename": "txt_box",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 402,
+						"h": 126
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 402,
+						"h": 126
+					},
+					"frame": {
+						"x": 492,
+						"y": 1333,
+						"w": 402,
+						"h": 126
+					}
+				},
+				{
+					"filename": "btn_back",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 70,
+						"h": 70
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 70,
+						"h": 70
+					},
+					"frame": {
+						"x": 896,
+						"y": 1333,
+						"w": 70,
+						"h": 70
+					}
+				},
+				{
 					"filename": "mark_card",
 					"rotated": false,
 					"trimmed": false,
@@ -1060,7 +1102,7 @@
 					}
 				},
 				{
-					"filename": "btn_back",
+					"filename": "btn_reset",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -1081,7 +1123,7 @@
 					}
 				},
 				{
-					"filename": "btn_reset",
+					"filename": "btn_sound_off",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -1144,7 +1186,7 @@
 					}
 				},
 				{
-					"filename": "btn_sound_off",
+					"filename": "btn_sound_on",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -1165,27 +1207,6 @@
 					}
 				},
 				{
-					"filename": "btn_sound_on",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 70,
-						"h": 70
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 70,
-						"h": 70
-					},
-					"frame": {
-						"x": 1956,
-						"y": 1346,
-						"w": 70,
-						"h": 70
-					}
-				},
-				{
 					"filename": "txt_raise",
 					"rotated": false,
 					"trimmed": false,
@@ -1201,7 +1222,7 @@
 					},
 					"frame": {
 						"x": 1884,
-						"y": 1418,
+						"y": 1400,
 						"w": 93,
 						"h": 29
 					}
@@ -1212,6 +1233,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:43a816d247455c49a90c7819b862b369:76ce1ad89f841cf066389e5df0ce1a2a:1bd3fbbbdaf54e41cf80e3e904578de4$"
+		"smartupdate": "$TexturePacker:SmartUpdate:da0fe3f42de209afad5656bac4841ce5:55a19559a1185db25ae8ef892a3d6053:1bd3fbbbdaf54e41cf80e3e904578de4$"
 	}
 }
