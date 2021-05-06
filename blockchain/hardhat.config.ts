@@ -78,24 +78,23 @@ task("join-game", "Registers player in the lobby in order to join a game")
         types.string
     )
     .addOptionalParam("metadata", "Metadata of the game", "0x", types.string)
-    .addOptionalParam("validators", "Accounts names for game validator nodes", '["alice", "bob"]', types.json)
+    .addOptionalParam("validators", "Accounts names for game validator nodes", ["alice", "bob"], types.json)
     .addOptionalParam("numplayers", "Number of players in the game", 2, types.int)
     .addOptionalParam("minfunds", "Minimum amount that needs to be staked in order to join the game", 10, types.int)
     .addOptionalParam("player", "Name of the account joining the game", "alice")
-    .addOptionalParam("playerfunds", "the amount being staked by the player joining the game", 100, types.int)
-    .addOptionalParam("playerinfo", "additional information for the player joining the game", "0x", types.string)
+    .addOptionalParam("playerfunds", "The amount being staked by the player joining the game", 100, types.int)
+    .addOptionalParam("playerinfo", "Additional information for the player joining the game", "0x", types.string)
     .setAction(async ({ hash, metadata, validators, numplayers, minfunds, player, playerfunds, playerinfo }, hre) => {
         const { ethers } = hre;
         const accounts = await hre.getNamedAccounts();
 
         // retrieves validators according to their account names
-        const validatorArray = JSON.parse(validators);
-        const validatorAddresses = validatorArray.map((name) => accounts[name]);
+        const validatorAddresses = validators.map((name) => accounts[name]);
 
         // retrieves account from configured named accounts, according to player's name
         const playerAccount = accounts[player];
 
-        // retrieves game and lobby contracts with signer configured for the specified account
+        // retrieves lobby contract with signer configured for the specified account
         // - this means that any transaction submitted will be on behalf of that specified account
         const lobby = await ethers.getContract("TurnBasedGameLobby", playerAccount);
         const contextLib = await ethers.getContract("TurnBasedGameContext");
@@ -232,11 +231,16 @@ task("submit-turn", "Submits a game turn for a given player")
 // challenge-game task
 task("challenge-game", "Challenges a game given its index")
     .addOptionalParam("index", "The game index", 0, types.int)
-    .setAction(async ({ index }, hre) => {
+    .addOptionalParam("player", "Name of the account challenging the game", "alice")
+    .setAction(async ({ index, player }, hre) => {
         const { ethers } = hre;
 
-        // retrieves game and logger contracts
-        const game = await ethers.getContract("TurnBasedGame");
+        // retrieves account from configured named accounts, according to player's name
+        const accounts = await hre.getNamedAccounts();
+        const playerAccount = accounts[player];
+
+        // retrieves game and context contracts
+        const game = await ethers.getContract("TurnBasedGame", playerAccount);
         const contextLibrary = await ethers.getContract("TurnBasedGameContext");
 
         console.log("");
@@ -251,7 +255,66 @@ task("challenge-game", "Challenges a game given its index")
                 const gameChallengedEvent = contextLibrary.interface.parseLog(event);
                 const descartesIndex = gameChallengedEvent.args._descartesIndex;
                 console.log(
-                    `Game '${index}' challenged, producing Descartes computation index '${descartesIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`
+                    `Game '${index}' challenged by '${player}', producing Descartes computation index '${descartesIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`
+                );
+                break;
+            }
+        }
+    });
+
+// claim-result task
+task("claim-result", "Claims a game has ended with a specified result")
+    .addOptionalParam("index", "The game index", 0, types.int)
+    .addOptionalParam("result", "Result as a distribution of the funds previously staked", [120, 80], types.json)
+    .addOptionalParam("player", "Name of the account claiming the result", "alice")
+    .setAction(async ({ index, result, player }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves account from configured named accounts, according to player's name
+        const accounts = await hre.getNamedAccounts();
+        const playerAccount = accounts[player];
+
+        const game = await ethers.getContract("TurnBasedGame", playerAccount);
+        const tx = await game.claimResult(index, result);
+
+        console.log(
+            `Result '${JSON.stringify(result)}' claimed by '${player}' for game with index '${index}' (tx: ${
+                tx.hash
+            } ; blocknumber: ${tx.blockNumber})\n`
+        );
+    });
+
+// confirm-result task
+task("confirm-result", "Confirms a game result that was previously claimed")
+    .addOptionalParam("index", "The game index", 0, types.int)
+    .addOptionalParam("player", "Name of the account confirming the result", "bob")
+    .setAction(async ({ index, player }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves account from configured named accounts, according to player's name
+        const accounts = await hre.getNamedAccounts();
+        const playerAccount = accounts[player];
+
+        // retrieves game and context contracts
+        const game = await ethers.getContract("TurnBasedGame", playerAccount);
+        const contextLibrary = await ethers.getContract("TurnBasedGameContext");
+
+        console.log("");
+        console.log(`Confirming result on behalf of '${player}' for game with index '${index}'\n`);
+
+        const tx = await game.confirmResult(index);
+
+        // looks for GameOverEvent (only event that can be emitted by TurnBasedGame)
+        const events = (await tx.wait()).events;
+        for (let event of events) {
+            if (event.address == game.address) {
+                const gameOverEvent = contextLibrary.interface.parseLog(event);
+                const result = gameOverEvent.args._fundsShare;
+                const resultPrintable = result.map((v) => v.toNumber());
+                console.log(
+                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${
+                        tx.hash
+                    } ; blocknumber: ${tx.blockNumber})\n`
                 );
                 break;
             }
