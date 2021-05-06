@@ -48,20 +48,23 @@ const config: HardhatUserConfig = {
 task("start-game", "Starts a TurnBasedGame instance").setAction(async ({}, hre) => {
     const { ethers } = hre;
     const game = await ethers.getContract("TurnBasedGame");
+    const contextLibrary = await ethers.getContract("TurnBasedGameContext");
 
     const { alice, bob } = await hre.getNamedAccounts();
 
     const gameTemplateHash = "0x88040f919276854d14efb58967e5c0cb2fa637ae58539a1c71c7b98b4f959baa";
     const gameMetadata = "0x";
     const players = [alice, bob];
+    const validators = players;
     const playerfunds = [100, 100];
     const playerinfos = [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Alice")),
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Bob")),
     ];
 
-    const tx = await game.startGame(gameTemplateHash, gameMetadata, players, playerfunds, playerinfos);
-    const gameReadyEvent = (await tx.wait()).events[0];
+    const tx = await game.startGame(gameTemplateHash, gameMetadata, validators, players, playerfunds, playerinfos);
+    const gameReadyEventRaw = (await tx.wait()).events[0];
+    const gameReadyEvent = contextLibrary.interface.parseLog(gameReadyEventRaw);
     const index = gameReadyEvent.args._index;
     console.log(`Game started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
 });
@@ -75,24 +78,38 @@ task("join-game", "Registers player in the lobby in order to join a game")
         types.string
     )
     .addOptionalParam("metadata", "Metadata of the game", "0x", types.string)
+    .addOptionalParam("validators", "Accounts names for game validator nodes", '["alice", "bob"]', types.json)
     .addOptionalParam("numplayers", "Number of players in the game", 2, types.int)
     .addOptionalParam("minfunds", "Minimum amount that needs to be staked in order to join the game", 10, types.int)
     .addOptionalParam("player", "Name of the account joining the game", "alice")
     .addOptionalParam("playerfunds", "the amount being staked by the player joining the game", 100, types.int)
     .addOptionalParam("playerinfo", "additional information for the player joining the game", "0x", types.string)
-    .setAction(async ({ hash, metadata, numplayers, minfunds, player, playerfunds, playerinfo }, hre) => {
+    .setAction(async ({ hash, metadata, validators, numplayers, minfunds, player, playerfunds, playerinfo }, hre) => {
         const { ethers } = hre;
+        const accounts = await hre.getNamedAccounts();
+
+        // retrieves validators according to their account names
+        const validatorArray = JSON.parse(validators);
+        const validatorAddresses = validatorArray.map((name) => accounts[name]);
 
         // retrieves account from configured named accounts, according to player's name
-        const playerAccount = (await hre.getNamedAccounts())[player];
+        const playerAccount = accounts[player];
 
         // retrieves game and lobby contracts with signer configured for the specified account
         // - this means that any transaction submitted will be on behalf of that specified account
-        const game = await ethers.getContract("TurnBasedGame", playerAccount);
         const lobby = await ethers.getContract("TurnBasedGameLobby", playerAccount);
+        const contextLib = await ethers.getContract("TurnBasedGameContext");
 
         // submits transaction to the lobby contract to join a game
-        let tx = await lobby.joinGame(hash, metadata, numplayers, minfunds, playerfunds, playerinfo);
+        let tx = await lobby.joinGame(
+            hash,
+            metadata,
+            validatorAddresses,
+            numplayers,
+            minfunds,
+            playerfunds,
+            playerinfo
+        );
 
         // retrieves transaction's emitted events to report outcome
         const events = (await tx.wait()).events;
@@ -100,12 +117,12 @@ task("join-game", "Registers player in the lobby in order to join a game")
         if (events && events.length) {
             // a GameReady event is emitted by TurnBasedGame if a game starts
             // - parse event using TurnBasedGame's contract interface
-            const gameReadyEvent = game.interface.parseLog(events[0]);
+            const gameReadyEvent = contextLib.interface.parseLog(events[0]);
             const index = gameReadyEvent.args._index;
             console.log(`Game started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
         } else {
             // no event emitted: show current queue to start a game
-            const queue = await lobby.getQueue(hash, metadata, numplayers, minfunds);
+            const queue = await lobby.getQueue(hash, metadata, validatorAddresses, numplayers, minfunds);
             console.log("Player enqueued. Current queue is:");
             if (queue && queue.length) {
                 for (let i = 0; i < queue.length; i++) {
@@ -136,15 +153,20 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
         // queries game contract to retrieve context for the specified game index
         const ret = await game.getContext(index);
 
-        console.log("gameTemplateHash: " + ret[0]);
-        console.log("gameMetadata: " + ret[1]);
-        console.log("players: " + ret[2]);
-        console.log("playerfunds: " + ret[3]);
-        console.log("playerinfos: " + ret[4]);
-        console.log("descartesIndex: " + ret[7]);
+        console.log(`gameTemplateHash: ${ret[0]}`);
+        console.log(`gameMetadata: ${ret[1]}`);
+        console.log(`validators: ${ret[2]}`);
+        console.log(`players: ${ret[3]}`);
+        console.log(`playerfunds: ${ret[4]}`);
+        console.log(`playerinfos: ${ret[5]}`);
+        console.log(`isDescartesInstantiated: ${ret[7]}`);
+        console.log(`descartesIndex: ${ret[8]}`);
+        console.log(`claimer: ${ret[9]}`);
+        console.log(`claimerFundsShare: ${ret[10]}`);
+        console.log(`claimerAgreementMask: ${ret[11]}`);
 
         // displays turn info: data is retrieved from the corresponding logger events ("MerkleRootCalculatedFromData")
-        const turns = ret[5];
+        const turns = ret[6];
         if (turns && turns.length) {
             for (let i = 0; i < turns.length; i++) {
                 const turn = turns[i];
@@ -154,11 +176,11 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
                 if (logEvents && logEvents.length) {
                     data = logEvents[0].args._data;
                 }
-                console.log("- turn " + i);
-                console.log("  - player: " + turn.player);
-                console.log("  - index: " + turn.dataLogIndex);
-                console.log("  - stateHash: " + turn.stateHash);
-                console.log("  - data: " + data);
+                console.log(`- turn ${i}`);
+                console.log(`  - player: ${turn.player}`);
+                console.log(`  - index: ${turn.dataLogIndex}`);
+                console.log(`  - stateHash: ${turn.stateHash}`);
+                console.log(`  - data: ${data}`);
             }
         }
         console.log("");
