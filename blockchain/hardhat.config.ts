@@ -66,6 +66,7 @@ task("start-game", "Starts a TurnBasedGame instance").setAction(async ({}, hre) 
     const gameReadyEventRaw = (await tx.wait()).events[0];
     const gameReadyEvent = contextLibrary.interface.parseLog(gameReadyEventRaw);
     const index = gameReadyEvent.args._index;
+    console.log("");
     console.log(`Game started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
 });
 
@@ -118,11 +119,11 @@ task("join-game", "Registers player in the lobby in order to join a game")
             // - parse event using TurnBasedGame's contract interface
             const gameReadyEvent = contextLib.interface.parseLog(events[0]);
             const index = gameReadyEvent.args._index;
-            console.log(`Game started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
+            console.log(`\nGame started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
         } else {
             // no event emitted: show current queue to start a game
             const queue = await lobby.getQueue(hash, metadata, validatorAddresses, numplayers, minfunds);
-            console.log("Player enqueued. Current queue is:");
+            console.log(`\nPlayer '${player}' enqueued. Current queue is:`);
             if (queue && queue.length) {
                 for (let i = 0; i < queue.length; i++) {
                     player = queue[i];
@@ -277,6 +278,7 @@ task("claim-result", "Claims a game has ended with a specified result")
         const game = await ethers.getContract("TurnBasedGame", playerAccount);
         const tx = await game.claimResult(index, result);
 
+        console.log("");
         console.log(
             `Result '${JSON.stringify(result)}' claimed by '${player}' for game with index '${index}' (tx: ${
                 tx.hash
@@ -303,6 +305,38 @@ task("confirm-result", "Confirms a game result that was previously claimed")
         console.log(`Confirming result on behalf of '${player}' for game with index '${index}'\n`);
 
         const tx = await game.confirmResult(index);
+
+        // looks for GameOverEvent (only event that can be emitted by TurnBasedGame)
+        const events = (await tx.wait()).events;
+        for (let event of events) {
+            if (event.address == game.address) {
+                const gameOverEvent = contextLibrary.interface.parseLog(event);
+                const result = gameOverEvent.args._fundsShare;
+                const resultPrintable = result.map((v) => v.toNumber());
+                console.log(
+                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${
+                        tx.hash
+                    } ; blocknumber: ${tx.blockNumber})\n`
+                );
+                break;
+            }
+        }
+    });
+
+// apply-result task
+task("apply-result", "Applies the result of a game verified by Descartes")
+    .addOptionalParam("index", "The game index", 0, types.int)
+    .setAction(async ({ index, player }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves game and context contracts
+        const game = await ethers.getContract("TurnBasedGame");
+        const contextLibrary = await ethers.getContract("TurnBasedGameContext");
+
+        console.log("");
+        console.log(`Applying verification result computed by Descartes for game with index '${index}'\n`);
+
+        const tx = await game.applyVerificationResult(index);
 
         // looks for GameOverEvent (only event that can be emitted by TurnBasedGame)
         const events = (await tx.wait()).events;
