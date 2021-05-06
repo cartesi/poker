@@ -229,4 +229,33 @@ task("submit-turn", "Submits a game turn for a given player")
         console.log(`Context: ${JSON.stringify(context)}\n`);
     });
 
+// challenge-game task
+task("challenge-game", "Challenges a game given its index")
+    .addOptionalParam("index", "The game index", 0, types.int)
+    .setAction(async ({ index }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves game and logger contracts
+        const game = await ethers.getContract("TurnBasedGame");
+        const contextLibrary = await ethers.getContract("TurnBasedGameContext");
+
+        console.log("");
+        console.log(`Challenging game with index '${index}'\n`);
+
+        const tx = await game.challengeGame(index);
+
+        // looks for GameChallengedEvent (only event that can be emitted by TurnBasedGame)
+        const events = (await tx.wait()).events;
+        for (let event of events) {
+            if (event.address == game.address) {
+                const gameChallengedEvent = contextLibrary.interface.parseLog(event);
+                const descartesIndex = gameChallengedEvent.args._descartesIndex;
+                console.log(
+                    `Game '${index}' challenged, producing Descartes computation index '${descartesIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`
+                );
+                break;
+            }
+        }
+    });
+
 export default config;

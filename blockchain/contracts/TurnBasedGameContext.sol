@@ -319,7 +319,11 @@ library TurnBasedGameContext {
     function buildDirectDrive(address _provider, bytes memory _data, uint64 _drivePosition) internal pure
         returns (DescartesInterface.Drive memory _drive)
     {
-        uint8 driveLog2Size = TurnBasedGameUtil.getLog2Ceil(_data.length);
+        // minimum drive log2size is 5 (one 32-byte word)
+        uint8 driveLog2Size = 5;
+        if (_data.length > 32) {
+            driveLog2Size = TurnBasedGameUtil.getLog2Ceil(_data.length);
+        }
         return DescartesInterface.Drive(
             _drivePosition,        // drive position
             driveLog2Size,         // driveLog2Size
