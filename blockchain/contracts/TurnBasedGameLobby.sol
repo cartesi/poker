@@ -86,8 +86,14 @@ contract TurnBasedGameLobby {
 
         // builds hash for game specification
         bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameValidators, _gameNumPlayers, _gameMinFunds));
+        
         // retrieves queued players for given game specification
         QueuedPlayer[] storage queuedPlayers = queues[queueHash];
+
+        // reverts if player is already in the queue
+        for (uint i = 0; i < queuedPlayers.length; i++) {
+            require(queuedPlayers[i].addr != msg.sender, "Player has already been enqueued to join this game");
+        }
 
         if (queuedPlayers.length < _gameNumPlayers - 1) {
             // not enough players queued yet, so we simply add this new one to the queue

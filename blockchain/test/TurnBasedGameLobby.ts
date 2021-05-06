@@ -94,6 +94,30 @@ describe("TurnBasedGameLobby", async () => {
         ).not.to.be.reverted;
     });
 
+    it("joinGame: should not allow player to join game more than once", async () => {
+        await lobbyContract.joinGame(
+            gameTemplateHash,
+            gameMetadata,
+            validators,
+            players.length,
+            minFunds,
+            playerFunds[0],
+            playerInfos[0]
+        );
+
+        await expect(
+            lobbyContract.joinGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                players.length,
+                minFunds,
+                minFunds,
+                playerInfos[0]
+            )
+        ).to.be.revertedWith("Player has already been enqueued to join this game");
+    });
+
     it("joinGame: should add first player to the appropriate queue", async () => {
         await lobbyContract.joinGame(
             gameTemplateHash,
@@ -136,7 +160,7 @@ describe("TurnBasedGameLobby", async () => {
             playerInfos[0]
         );
 
-        // player 1 joins yet another game with different metadata and minFunds (no game started)
+        // player 1 joins another game with different metadata and minFunds (no game started)
         const gameMetadataOther = "0x123456";
         const minFundsOther = minFunds - 2;
         await lobbyContractPlayer1.joinGame(
