@@ -1,0 +1,31 @@
+cartesi-machine \
+    --flash-drive="label:verifier,filename:mock-verifier.ext2" \
+    --flash-drive="label:metadata,length:1<<12,filename:metadata.raw" \
+    --flash-drive="label:players,length:1<<12,filename:players.raw" \
+    --flash-drive="label:playerFunds,length:1<<12,filename:playerFunds.raw" \
+    --flash-drive="label:turns,length:1<<20,filename:turns.raw" \
+    --flash-drive="label:verificationInfo,length:1<<12,filename:verificationInfo.raw" \
+    --flash-drive="label:output,length:1<<12,filename:output.raw,shared" \
+    -- $'/mnt/verifier/mock-run.sh'
+
+
+- players
+echo "000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb9226600000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8" | xxd -r -p > players.raw
+
+- playerFunds (100/100)
+echo "00000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064" | xxd -r -p > playerFunds.raw
+
+- verificationInfo with claim (120/80)
+echo "f39fd6e51aad88f6f4ce6ab8827279cfffb9226670997970c51812dc3a010c7d01b50e0d17dc79c800000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000050" | xxd -r -p > verificationInfo.raw
+
+- result
+echo -n -e "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x78\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x50"  > output.raw
+
+
+
+truncate -s 4K metadata.raw
+truncate -s 4K players.raw
+truncate -s 4K playerFunds.raw
+truncate -s 1M turns.raw
+truncate -s 4K verificationInfo.raw
+truncate -s 4K output.raw

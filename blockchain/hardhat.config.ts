@@ -52,7 +52,7 @@ task("start-game", "Starts a TurnBasedGame instance").setAction(async ({}, hre) 
 
     const { alice, bob } = await hre.getNamedAccounts();
 
-    const gameTemplateHash = "0x88040f919276854d14efb58967e5c0cb2fa637ae58539a1c71c7b98b4f959baa";
+    const gameTemplateHash = "0x819936fbf284f7eb6eaa75b60a3d7cb62bf262d7122f1470674fdd138a741576";
     const gameMetadata = "0x";
     const players = [alice, bob];
     const validators = players;
@@ -75,7 +75,7 @@ task("join-game", "Registers player in the lobby in order to join a game")
     .addOptionalParam(
         "hash",
         "Game template hash to use",
-        "0x88040f919276854d14efb58967e5c0cb2fa637ae58539a1c71c7b98b4f959baa",
+        "0x819936fbf284f7eb6eaa75b60a3d7cb62bf262d7122f1470674fdd138a741576",
         types.string
     )
     .addOptionalParam("metadata", "Metadata of the game", "0x", types.string)
@@ -162,8 +162,8 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
         console.log(`isDescartesInstantiated: ${ret[7]}`);
         console.log(`descartesIndex: ${ret[8]}`);
         console.log(`claimer: ${ret[9]}`);
-        console.log(`claimerFundsShare: ${ret[10]}`);
-        console.log(`claimerAgreementMask: ${ret[11]}`);
+        console.log(`claimedFundsShare: ${ret[10]}`);
+        console.log(`claimAgreementMask: ${ret[11]}`);
 
         // displays turn info: data is retrieved from the corresponding logger events ("MerkleRootCalculatedFromData")
         const turns = ret[6];

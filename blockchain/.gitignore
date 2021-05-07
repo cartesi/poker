@@ -4,3 +4,4 @@ deployments/hardhat
 artifacts
 cache
 src/types
+logs
