@@ -34,10 +34,8 @@ contract TurnBasedGame is InstantiatorImpl {
     // index of an empty chunk of data stored in the logger
     uint256 emptyDataLogIndex;
 
-    // turn data log2size fixed as 9
-    // - data is given as 64-bit (8-byte) words
-    // - total turn data size is thus fixed at 8 * 2^9 = 4K 
-    uint8 constant turnDataLog2Size = 9;
+    // turn data log2size fixed as 12 (4K)
+    uint8 constant turnDataLog2Size = 12;
 
     // game instances
     mapping(uint256 => GameContext) internal instances;

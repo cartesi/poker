@@ -138,9 +138,11 @@ library TurnBasedGameContext {
 
         // instantiates the computation
         _context.descartesIndex = _descartes.instantiate(
-            1e13,                  // max cycles allowed
+            // FIXME: using lower max cycles unti Descartes 1.2.0 is released (includes confirm tx to speed things up)
+            5e11,                  // max cycles allowed
+            // 1e13,                  // max cycles allowed
             _context.gameTemplateHash,  // hash identifying the computation template
-            0xd000000000000000,    // output drive position: 6th drive position
+            0xf000000000000000,    // output drive position: 8th drive position after the rootfs, dapp data, and 5 input drives
             // FIXME: either enforce max of 4 players or make this variable
             10,                    // output drive size: 1K (should hold awarded amounts for up to 4 players)
             51,                    // round duration
@@ -276,36 +278,27 @@ library TurnBasedGameContext {
         returns (DescartesInterface.Drive[] memory)
     {
         // builds input drives for the descartes computation
-        DescartesInterface.Drive[] memory drives = new DescartesInterface.Drive[](7);
-        address provider = _context.validators[0];
+        DescartesInterface.Drive[] memory drives = new DescartesInterface.Drive[](5);
+        address provider = address(0);
 
-        // 1st input drive: game metadata
-        drives[0] = buildDirectDrive(provider, _context.gameMetadata, 0xb000000000000000);
+        // 1st input drive: game metadata (3rd drive position after rootfs and dapp data)
+        drives[0] = buildDirectDrive(provider, _context.gameMetadata, 0xa000000000000000);
 
         // 2nd input drive: players data
         bytes memory players = abi.encodePacked(_context.players);
-        drives[1] = buildDirectDrive(provider, players, 0x9000000000000000);
+        drives[1] = buildDirectDrive(provider, players, 0xb000000000000000);
 
         // 3rd input drive: player funds data
         bytes memory playerFunds = abi.encodePacked(_context.playerFunds);
-        drives[2] = buildDirectDrive(provider, playerFunds, 0xa000000000000000);
+        drives[2] = buildDirectDrive(provider, playerFunds, 0xc000000000000000);
 
         // 4th input drive: turns data stored in the Logger
-        drives[3] = buildTurnsDrive(_context, _logger, _turnDataLog2Size, _emptyDataLogIndex, 0xc000000000000000);
+        drives[3] = buildTurnsDrive(_context, _logger, _turnDataLog2Size, _emptyDataLogIndex, 0xd000000000000000);
 
-        // CLAIM DATA: important so that the Descartes computation can punish a false claimer or challenger accordingly and encode that in the resulting funds distribution
-
-        // 5th input drive: player who claimed result
-        bytes memory claimer = abi.encodePacked(_context.claimer);
-        drives[4] = buildDirectDrive(provider, claimer, 0xd000000000000000);
-
-        // 6th input drive: claimed result represented by a distibution of the player funds
-        bytes memory claimedFundsShare = abi.encodePacked(_context.claimedFundsShare);
-        drives[5] = buildDirectDrive(provider, claimedFundsShare, 0xe000000000000000);
-
-        // 7th input drive: player who challenged result
-        bytes memory challenger = abi.encodePacked(msg.sender);
-        drives[6] = buildDirectDrive(provider, challenger, 0xd000000000000000);
+        // 5th input drive: verification info, specifying the challenger player and, if present, the claimer along with the claimed result
+        // - this is important so that the Descartes computation can punish a false claimer or challenger accordingly in the resulting funds distribution
+        bytes memory verificationInfo = abi.encodePacked(msg.sender, _context.claimer, _context.claimedFundsShare);
+        drives[4] = buildDirectDrive(provider, verificationInfo, 0xe000000000000000);
 
         return drives;
     }
@@ -358,10 +351,10 @@ library TurnBasedGameContext {
         }
         bytes32 logRoot = _logger.calculateMerkleRootFromHistory(_turnDataLog2Size, logIndices);
 
-        // total size of the data under logRoot, expressed in bytes, is given by:
-        // - size of each data chunk/entry: 8 bytes * 2^turnDataLog2Size = 2^(3 + turnDataLog2Size)
-        // - number of chunks/entries: logIndicesLength = 2^(logIndicesLengthLog2)
-        uint8 rootLog2Size = 3 + _turnDataLog2Size + logIndicesLengthLog2;
+        // total log2 size of the data under logRoot, expressed in bytes, is given by:
+        // - size of each data chunk/entry: turnDataLog2Size
+        // - number of chunks/entries: logIndicesLengthLog2
+        uint8 rootLog2Size =  _turnDataLog2Size + logIndicesLengthLog2;
 
         return DescartesInterface.Drive(
             _drivePosition,        // drive position
