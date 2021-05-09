@@ -15,7 +15,7 @@ RUN_TOOLCHAIN=docker run --rm  \
         -e HOSTNAME=`hostname` \
         -it $(IMGNAME):$(TAG) \
 
-LIBS=libgmp libgpg-error libgcrypt libtmcg poker-lib
+LIBS=libgmp libgpg-error libgcrypt libtmcg XPokerEval poker-lib
 
 all: $(LIBS)
 

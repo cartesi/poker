@@ -1,3 +1,30 @@
+//
+// poker-lib JavaScript wrapper
+//
+
+class Solver {
+  constructor(rawlib) { 
+    this.rawlib = rawlib;
+    this.p = this.rawlib._poker_new_solver();
+    this.solver_card_type_from_str = this.rawlib.cwrap('solver_card_type_from_str', 'int', ['int','string'])
+    this.solver_card_str_from_type = this.rawlib.cwrap('solver_card_str_from_type', 'string', ['int','int'])
+    this.solver_compare_hands = this.rawlib.cwrap('solver_compare_hands', 'int', ['int','int*', 'int*', 'int'])
+  }
+
+  card_type_from_str(str) {
+    return this.solver_card_type_from_str(this._p, str);
+  }
+
+  card_str_from_type(card_type) {
+    return solver_card_str_from_type(this._p, card_type);
+  }
+
+  compare_hands(hand1, hand2, hand_size) {
+    return this.solver_compare_hands(this._p, hand1, hand2, hand_size);
+  }
+ 
+}
+
 class Blob {
   constructor(rawlib) { 
     this.rawlib = rawlib;
@@ -93,6 +120,14 @@ class PokerLib {
 
   init() {
     this.rawlib._poker_init();
+  }
+
+  new_solver() {
+    return new Solver(this.rawlib);    
+  }
+
+  delete_solver(solver) {
+    this.rawlib._poker_delete_solver(solver.p)
   }
 
   new_blob() {

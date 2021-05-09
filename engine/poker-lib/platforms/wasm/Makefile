@@ -18,7 +18,7 @@ RUN_TOOLCHAIN=docker run --rm  \
         -e LD_LIBRARY_PATH=/poker/build/lib \
         -it $(IMGNAME):$(TAG) \
 
-LIBS=libgmp libgpg-error libgcrypt libtmcg poker-lib
+LIBS=libgmp libgpg-error libgcrypt libtmcg XPokerEval poker-lib
 
 all: $(LIBS)
 
@@ -27,6 +27,9 @@ $(LIBS): toolchain $(BUILD_BASE)
 
 run-hello:
 	$(RUN_TOOLCHAIN) /bin/bash -c 'cd /poker/build/poker-lib; time node hello'
+
+run-test-solver:
+	$(RUN_TOOLCHAIN) /bin/bash -c 'cd /poker/build/poker-lib; time node test-solver'
 
 run-poker-lib-sample:
 	$(RUN_TOOLCHAIN) /bin/bash -c 'cd /poker/build/poker-lib; time node poker-lib-sample'

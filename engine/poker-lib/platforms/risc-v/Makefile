@@ -15,7 +15,7 @@ RUN_TOOLCHAIN=docker run --rm  \
         -e HOSTNAME=`hostname` \
         -it $(IMGNAME):$(TAG)
 
-LIBS=libgmp libgpg-error libgcrypt libtmcg poker-lib
+LIBS=libgmp libgpg-error libgcrypt libtmcg XPokerEval poker-lib
 
 all: $(LIBS)
 
@@ -27,12 +27,6 @@ shell: $(BUILD_BASE)
 
 $(BUILD_BASE):
 	mkdir -p $(BUILD_BASE)
-
-run-hello:
-	./run-cartesi.sh hello'
-
-run-sanity-check:
-	./run-cartesi.sh poker-lib-sample'
 
 toolchain:
 	docker build -t $(IMGNAME):$(TAG) .

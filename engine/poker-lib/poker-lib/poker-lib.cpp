@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include "s-stream.h"
+#include "solver.h"
 
 void set_libtmcg_cartesi_predictable(int v);
 

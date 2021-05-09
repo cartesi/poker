@@ -16,6 +16,8 @@ Open the dev tools console to inspect objects and see console output.
         var alice = poker.new_player(0,2)
         alice.create_group(blob);
         console.log(blob.get_data());
+        var solver = poker.new_solver();
+        var ctype = solver.card_type_from_str("As");
     }
     
     window.module = {};
