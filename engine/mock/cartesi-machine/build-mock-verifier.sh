@@ -11,6 +11,7 @@ docker run \
   -w /home/$(id -u -n) \
   --rm $CARTESI_PLAYGROUND_DOCKER /bin/bash -c '\
     mkdir -p ext2 &&
+    cp eval-turns.lua ext2 &&
     cp mock-run.sh ext2 &&
     genext2fs -b 1024 -d ext2 mock-verifier.ext2 \
   '

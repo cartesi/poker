@@ -6,7 +6,7 @@ cartesi-machine \
     --flash-drive="label:turns,length:1<<20,filename:turns.raw" \
     --flash-drive="label:verificationInfo,length:1<<12,filename:verificationInfo.raw" \
     --flash-drive="label:output,length:1<<12,filename:output.raw,shared" \
-    -- $'/mnt/verifier/mock-run.sh'
+    -- $'cd /mnt/verifier/ && ./mock-run.sh'
 
 
 - players
@@ -14,6 +14,11 @@ echo "000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb922660000000000
 
 - playerFunds (100/100)
 echo "00000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064" | xxd -r -p > playerFunds.raw
+
+- turn1: "2^71 + 36^12"
+- turn2: "3^71 + 36^12"
+echo "325E3731202B2033365E313200000000" | xxd -r -p > turn1.raw
+echo "335E3731202B2033365E313200000000" | xxd -r -p > turn2.raw
 
 - verificationInfo with claim (120/80)
 echo "f39fd6e51aad88f6f4ce6ab8827279cfffb9226670997970c51812dc3a010c7d01b50e0d17dc79c800000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000050" | xxd -r -p > verificationInfo.raw
@@ -26,6 +31,10 @@ echo -n -e "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
 truncate -s 4K metadata.raw
 truncate -s 4K players.raw
 truncate -s 4K playerFunds.raw
-truncate -s 1M turns.raw
 truncate -s 4K verificationInfo.raw
 truncate -s 4K output.raw
+
+truncate -s 4K turn1.raw
+truncate -s 4K turn2.raw
+cat turn1.raw turn2.raw > turns.raw
+truncate -s 1M turns.raw

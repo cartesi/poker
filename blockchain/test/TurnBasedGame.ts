@@ -651,7 +651,25 @@ describe("TurnBasedGame", async () => {
                 ethers.constants.AddressZero,
                 "0x00000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000050"
             );
-        await expect(gameContract.applyVerificationResult(0)).not.to.be.reverted;
+        await expect(gameContract.applyVerificationResult(0), "Valid result with exact size").not.to.be.reverted;
+    });
+
+    it("applyVerificationResult: should be allowed even when result is larger than required", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+        await gameContract.claimResult(0, playerFunds);
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+
+        await mockDescartes.mock.getResult
+            .withArgs(descartesIndex)
+            .returns(
+                true,
+                false,
+                ethers.constants.AddressZero,
+                "0x00000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000050000000"
+            );
+        await expect(gameContract.applyVerificationResult(0), "Valid result with larger size (padded with zeros)").not
+            .to.be.reverted;
     });
 
     it("applyVerificationResult: should end game and emit GameOver event", async () => {
@@ -667,7 +685,7 @@ describe("TurnBasedGame", async () => {
                 true,
                 false,
                 ethers.constants.AddressZero,
-                "0x00000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000050"
+                "0x00000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000050000000"
             );
 
         expect(await gameContract.isActive(0), "Game should be active before verification result is applied").to.equal(

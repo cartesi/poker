@@ -227,7 +227,7 @@ library TurnBasedGameContext {
         require(isResultReady, "Game verification result not available");
 
         // ensures result is valid: needs to have a uint256 value (32 bytes) for each player
-        require(result.length == 32*_context.players.length, "Game verification result is invalid: should have one uint256 value for each player");
+        require(result.length >= 32*_context.players.length, "Game verification result is invalid: should have one uint256 value for each player");
 
         // decodes result bytes as an uint[] representing amount from the locked funds to be transferred to each player
         uint[] memory fundsShare = new uint[](_context.players.length);

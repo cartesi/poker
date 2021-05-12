@@ -45,37 +45,44 @@ const config: HardhatUserConfig = {
 // TASKS
 
 // start-game task
-task("start-game", "Starts a TurnBasedGame instance").setAction(async ({}, hre) => {
-    const { ethers } = hre;
-    const game = await ethers.getContract("TurnBasedGame");
-    const contextLibrary = await ethers.getContract("TurnBasedGameContext");
+task("start-game", "Starts a TurnBasedGame instance")
+    .addOptionalParam(
+        "hash",
+        "Game template hash to use",
+        "0x577f140d3286f0abd97a204b9f88ad5e9e45442cc8cec3e117dbac2b769427ae",
+        types.string
+    )
+    .setAction(async ({ hash }, hre) => {
+        const { ethers } = hre;
+        const game = await ethers.getContract("TurnBasedGame");
+        const contextLibrary = await ethers.getContract("TurnBasedGameContext");
 
-    const { alice, bob } = await hre.getNamedAccounts();
+        const { alice, bob } = await hre.getNamedAccounts();
 
-    const gameTemplateHash = "0x819936fbf284f7eb6eaa75b60a3d7cb62bf262d7122f1470674fdd138a741576";
-    const gameMetadata = "0x";
-    const players = [alice, bob];
-    const validators = players;
-    const playerfunds = [100, 100];
-    const playerinfos = [
-        ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Alice")),
-        ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Bob")),
-    ];
+        const gameTemplateHash = hash;
+        const gameMetadata = "0x";
+        const players = [alice, bob];
+        const validators = players;
+        const playerfunds = [100, 100];
+        const playerinfos = [
+            ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Alice")),
+            ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Bob")),
+        ];
 
-    const tx = await game.startGame(gameTemplateHash, gameMetadata, validators, players, playerfunds, playerinfos);
-    const gameReadyEventRaw = (await tx.wait()).events[0];
-    const gameReadyEvent = contextLibrary.interface.parseLog(gameReadyEventRaw);
-    const index = gameReadyEvent.args._index;
-    console.log("");
-    console.log(`Game started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
-});
+        const tx = await game.startGame(gameTemplateHash, gameMetadata, validators, players, playerfunds, playerinfos);
+        const gameReadyEventRaw = (await tx.wait()).events[0];
+        const gameReadyEvent = contextLibrary.interface.parseLog(gameReadyEventRaw);
+        const index = gameReadyEvent.args._index;
+        console.log("");
+        console.log(`Game started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
+    });
 
 // join-game task
 task("join-game", "Registers player in the lobby in order to join a game")
     .addOptionalParam(
         "hash",
         "Game template hash to use",
-        "0x819936fbf284f7eb6eaa75b60a3d7cb62bf262d7122f1470674fdd138a741576",
+        "0x577f140d3286f0abd97a204b9f88ad5e9e45442cc8cec3e117dbac2b769427ae",
         types.string
     )
     .addOptionalParam("metadata", "Metadata of the game", "0x", types.string)
