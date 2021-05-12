@@ -226,9 +226,21 @@ library TurnBasedGameContext {
         require(!isRunning, "Game verification result has not been computed yet");
         require(isResultReady, "Game verification result not available");
 
-        // FIXME: decode result bytes as an uint[] representing amount from the locked funds to be transferred to each player
-        uint[] memory fundsShare = _context.playerFunds;
+        // ensures result is valid: needs to have a uint256 value (32 bytes) for each player
+        require(result.length == 32*_context.players.length, "Game verification result is invalid: should have one uint256 value for each player");
 
+        // decodes result bytes as an uint[] representing amount from the locked funds to be transferred to each player
+        uint[] memory fundsShare = new uint[](_context.players.length);
+        for (uint i = 0; i < _context.players.length; i++) {
+            uint256 fundValue;
+            assembly {
+                result := add(result, 0x20)
+                fundValue := mload(result)
+            }
+            fundsShare[i] = fundValue;
+        }
+
+        // applies result and ends game
         applyResult(_context, _index, fundsShare);
     }
 

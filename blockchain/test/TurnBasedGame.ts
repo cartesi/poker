@@ -596,7 +596,12 @@ describe("TurnBasedGame", async () => {
         await gameContract.challengeGame(0);
         await mockDescartes.mock.getResult
             .withArgs(descartesIndex)
-            .returns(true, false, ethers.constants.AddressZero, "0x123456");
+            .returns(
+                true,
+                false,
+                ethers.constants.AddressZero,
+                "0x00000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000050"
+            );
 
         await expect(gameContract.applyVerificationResult(0)).not.to.be.reverted;
     });
@@ -629,10 +634,23 @@ describe("TurnBasedGame", async () => {
             "Game verification result not available"
         );
 
-        // Descartes verification result available
+        // Descartes verification complete but result is invalid
         await mockDescartes.mock.getResult
             .withArgs(descartesIndex)
             .returns(true, false, ethers.constants.AddressZero, "0x123456");
+        await expect(gameContract.applyVerificationResult(0)).to.be.revertedWith(
+            "Game verification result is invalid: should have one uint256 value for each player"
+        );
+
+        // Descartes verification complete with valid result
+        await mockDescartes.mock.getResult
+            .withArgs(descartesIndex)
+            .returns(
+                true,
+                false,
+                ethers.constants.AddressZero,
+                "0x00000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000050"
+            );
         await expect(gameContract.applyVerificationResult(0)).not.to.be.reverted;
     });
 
@@ -642,16 +660,25 @@ describe("TurnBasedGame", async () => {
         await prepareChallengeGame();
         await gameContract.challengeGame(0);
 
+        // mockDescartes result corresponding to a [120, 80] distribution (or [0x78, 0x50] in hex)
         await mockDescartes.mock.getResult
             .withArgs(descartesIndex)
-            .returns(true, false, ethers.constants.AddressZero, "0x123456");
+            .returns(
+                true,
+                false,
+                ethers.constants.AddressZero,
+                "0x00000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000050"
+            );
 
         expect(await gameContract.isActive(0), "Game should be active before verification result is applied").to.equal(
             true
         );
-        // FIXME: check if resulting fundsShare corresponds to bytes result
-        // await expect(gameContract.applyVerificationResult(0)).to.emit(contextLibrary, "GameOver").withArgs(0, [120, 80]);
-        await expect(gameContract.applyVerificationResult(0)).to.emit(contextLibrary, "GameOver");
+
+        // checks event
+        await expect(gameContract.applyVerificationResult(0))
+            .to.emit(contextLibrary, "GameOver")
+            .withArgs(0, [120, 80]);
+
         expect(await gameContract.isActive(0), "Game should be inactive after verification result is applied").to.equal(
             false
         );
