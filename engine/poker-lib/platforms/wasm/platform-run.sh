@@ -4,5 +4,5 @@
 # Cuurent dir must be platform root 
 
 set -e
-echo === Running WASN program: $@
+echo === Running WASM program: $@
 make run-$@

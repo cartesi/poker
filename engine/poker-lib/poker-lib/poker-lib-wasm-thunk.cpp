@@ -22,34 +22,25 @@ INT API poker_init() {
     return 0;
 }
 
-POINTER API  poker_new_solver() {
+POINTER API poker_new_solver() {
     return reinterpret_cast<POINTER>(new poker::solver());
 }
 
-void API  poker_delete_solver(POINTER b) {
+void API poker_delete_solver(POINTER b) {
     delete ASSOLVER(b);
 }
 
-int API solver_card_type_from_str(POINTER p, POINTER* str) {
-    const char* s = (const char*)str;
-    return ASSOLVER(p)->card_type_from_str(s);
-}
-
-const char*  API solver_card_str_from_type(POINTER p, int card_type) {
-    return ASSOLVER(p)->card_str_from_type(card_type);
-}
-
-int  API solver_compare_hands(POINTER p, POINTER hand1, POINTER  hand2, int hand_size) {
+int API solver_compare_hands(POINTER p, POINTER hand1, POINTER hand2, int hand_size) {
     int* h1 = (int *)hand1;
     int* h2 = (int *)hand2;
     return ASSOLVER(p)->compare_hands(h1, h2, hand_size);
 }
 
-POINTER API  poker_new_blob() {
+POINTER API poker_new_blob() {
     return reinterpret_cast<POINTER>(new poker::blob());
 }
 
-void API  poker_delete_blob(POINTER b) {
+void API poker_delete_blob(POINTER b) {
     delete ASBLOB(b);
 }
 

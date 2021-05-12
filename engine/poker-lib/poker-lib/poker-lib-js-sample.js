@@ -5,9 +5,8 @@ function poker_lib_demo(lib) {
   lib.init();
   
   var solver = lib.new_solver();
-  var ctype = solver.card_type_from_str("As");
-  console.log("card_type_from_str(As) =", ctype);
   var comparison = solver.compare_hands([1,2,3,4,5], [10,11,12,13,14], 5);
+  console.log("The winning hand is %d\n", comparison);
 
   const num_players = 2;
   var alice = lib.new_player(0, num_players, /* predictable */ false);
