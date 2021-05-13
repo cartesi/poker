@@ -1,6 +1,7 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
+#include "card_type.h"
 #include <cstdint>
 
 namespace poker {
