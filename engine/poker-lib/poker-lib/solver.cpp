@@ -14,7 +14,7 @@ namespace poker {
 
     solver::solver() {}
 
-    solver::~solver() {}
+    solver::~solver(){}
 
     int32_t convert_hand_to_mask(const int32_t *hand, int32_t hand_size, CardMask& mask) {
         CardMask_RESET(mask);
@@ -60,4 +60,14 @@ namespace poker {
         }
     }
 
+    const char* solver::get_hand_name(const int32_t *hand, int32_t hand_size) {
+        CardMask mask;
+
+        if (convert_hand_to_mask(hand, hand_size, mask) == 0) {
+            int32_t type = StdDeck_StdRules_EVAL_TYPE(mask, hand_size);
+            return handTypeNames[type];
+        } else {
+            return 0;
+        }
+    }
 } // namespace poker
