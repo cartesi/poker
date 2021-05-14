@@ -43,7 +43,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
         this.title.setOrigin(.5);
         this.midContainer.add(this.title);
 
-        // EXIT 
+        // CLOSE 
 
         this.exitBtn = new Phaser.GameObjects.Image(this.scene, 160, -260, "texture_atlas_1", "btn_close");
         this.exitBtn.setOrigin(.5);
@@ -102,10 +102,10 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
         // HOW TO PLAY
 
-        let howText = new Phaser.GameObjects.Text(this.scene, 0, 50, "HOW TO PLAY", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#183D62"});
+        let howText = new Phaser.GameObjects.Text(this.scene, 0, 20, "HOW TO PLAY", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#183D62"});
         howText.setOrigin(.5);
 
-        let howBtn = new Phaser.GameObjects.Image(this.scene, 0, 50, "texture_atlas_1", "btn_long");
+        let howBtn = new Phaser.GameObjects.Image(this.scene, 0, 20, "texture_atlas_1", "btn_long");
         howBtn.setOrigin(.5);
         howBtn.setInteractive();
         howBtn.on("pointerdown", () => {
@@ -126,10 +126,10 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
         // RANKING 
 
-        let rankingText = new Phaser.GameObjects.Text(this.scene, 0, 150, "POKER HAND RANKING", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#183D62"});
+        let rankingText = new Phaser.GameObjects.Text(this.scene, 0, 120, "POKER HAND RANKING", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#183D62"});
         rankingText.setOrigin(.5);
 
-        let rankingBtn = new Phaser.GameObjects.Image(this.scene, 0, 150, "texture_atlas_1", "btn_long");
+        let rankingBtn = new Phaser.GameObjects.Image(this.scene, 0, 120, "texture_atlas_1", "btn_long");
         rankingBtn.setOrigin(.5);
         rankingBtn.setInteractive();
         rankingBtn.on("pointerdown", () => {
@@ -147,6 +147,30 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
         }, this);
         this.buttonsContainer.add(rankingBtn);
         this.buttonsContainer.add(rankingText);
+
+        // EXIT 
+
+        let exitText = new Phaser.GameObjects.Text(this.scene, 0, 220, "EXIT", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#183D62"});
+        exitText.setOrigin(.5);
+
+        let exitBtn = new Phaser.GameObjects.Image(this.scene, 0, 220, "texture_atlas_1", "btn_long");
+        exitBtn.setOrigin(.5);
+        exitBtn.setInteractive();
+        exitBtn.on("pointerdown", () => {
+            exitBtn.setScale(1);
+            exitText.setScale(1);
+        }, this);
+        exitBtn.on("pointerup", this.onClickExit, this);
+        exitBtn.on("pointerover", () => {
+            exitBtn.setScale(1.05);
+            exitText.setScale(1.05);
+        }, this);
+        exitBtn.on("pointerout", () => {
+            exitBtn.setScale(1);
+            exitText.setScale(1);
+        }, this);
+        this.buttonsContainer.add(exitBtn);
+        this.buttonsContainer.add(exitText);
 
         this.handRankings = new Phaser.GameObjects.Image(this.scene, 0, 50, "texture_atlas_1", "hand_rank");
         this.handRankings.setScale(.8);
@@ -240,6 +264,11 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
         }); 
 
         AudioManager.playSound("btn_click");
+    }
+
+    public onClickExit(): void {
+
+        GameManager.enterLobbyScene();
     }
 
     public hideHands(): void {
