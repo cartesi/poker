@@ -3,7 +3,8 @@
     "version": "0.2.0",
     "description": "Contracts for Mental Poker game using Cartesi+Matic",
     "dependencies": {
-        "@cartesi/descartes-sdk": "^1.1.1"
+        "@cartesi/descartes-sdk": "^1.1.1",
+        "@openzeppelin/contracts": "^3.0.0"
     },
     "devDependencies": {
         "hardhat": "^2.1.2",
