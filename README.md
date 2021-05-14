@@ -14,7 +14,7 @@ The project is divided into three sub-modules:
 - docker-compose
 - node 12.x
 - yarn
-- truffle
+- Hardhat
 
 
 ### Environment
