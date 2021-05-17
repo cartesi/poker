@@ -289,6 +289,66 @@ int32_t test_compare_7_cards_QUADS_with_STFLUSH(){
   return 0;
 }
 
+int32_t test_compare_hands_with_4_cards() {
+  solver sol;
+  int32_t hand1[] = {c7, s6, c4, d3}; 
+  int32_t hand2[] = {c3, s6, c4, d3};
+  int32_t expected_result = 2;
+
+  int32_t result = sol.compare_hands(hand1, hand2, 4);
+
+  if(result != expected_result) {
+    printf("[test_compare_hands_with_4_cards] Failed. Expected %d, found %d\n", expected_result, result);
+    return -1;
+  }
+  return 0;
+}
+
+int32_t test_compare_hands_with_6_cards() {
+  solver sol;
+  int32_t hand1[] = {s2, c7, s6, c4, d3, h2};
+  int32_t hand2[] = {c8, c7, s6, c4, d3, h2};
+  int32_t expected_result = 1;
+
+  int32_t result = sol.compare_hands(hand1, hand2, 6);
+
+  if(result != expected_result) {
+    printf("[test_compare_hands_with_6_cards] Failed. Expected %d, found %d\n", expected_result, result);
+    return -1;
+  }
+  return 0;
+}
+
+int32_t test_compare_hands_with_8_cards() {
+  solver sol;
+  int32_t hand1[] = {d2, hJ, h9, c7, s6, c4, d3, h2};
+  int32_t hand2[] = {sK, hA, dQ, c7, s6, c4, d3, h2};
+  int32_t expected_result = 1;
+
+  int32_t result = sol.compare_hands(hand1, hand2, 8);
+
+  if(result != expected_result) {
+    printf("[test_compare_hands_with_8_cards] Failed. Expected %d, found %d\n", expected_result, result);
+    return -1;
+  }
+  return 0;
+}
+
+int32_t test_compare_5_card_hands_with_hand_size_4() {
+  solver sol;
+  int32_t hand1[] = {d2, hJ, h9, c7, s2};
+  int32_t hand2[] = {sK, hA, dQ, c7, s6};
+  int32_t expected_result = 2;
+
+  int32_t result = sol.compare_hands(hand1, hand2, 4);
+
+  if(result != expected_result) {
+    printf("[test_compare_5_card_hands_with_hand_size_4] Failed. Expected %d, found %d\n", expected_result, result);
+    return -1;
+  }
+  return 0;
+}
+
 int32_t test_get_hand_name_with_NOPAIR() {
   solver sol;
   int32_t hand[] = {hA, dQ, c7, s6, c4, d3, h2};
@@ -462,6 +522,11 @@ int32_t main(int32_t argc, char **argv) {
   run(test_compare_7_cards_FLUSH_with_FULLHOUSE);
   run(test_compare_7_cards_FULLHOUSE_with_QUADS);
   run(test_compare_7_cards_QUADS_with_STFLUSH);
+  
+  run(test_compare_hands_with_4_cards);
+  run(test_compare_hands_with_6_cards);
+  run(test_compare_hands_with_8_cards);
+  run(test_compare_5_card_hands_with_hand_size_4);
 
   run(test_get_hand_name_with_NOPAIR);
   run(test_get_hand_name_with_PAIR);
