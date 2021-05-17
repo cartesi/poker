@@ -1,545 +1,97 @@
+#include "solver.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include "solver.h"
-#include <string>
+#include <cstring>
 #include <cstdint>
-
-/*
-StdRules_HandType_NOPAIR    0
-StdRules_HandType_ONEPAIR   1
-StdRules_HandType_TWOPAIR   2
-StdRules_HandType_TRIPS     3
-StdRules_HandType_STRAIGHT  4
-StdRules_HandType_FLUSH     5
-StdRules_HandType_FULLHOUSE 6
-StdRules_HandType_QUADS     7
-StdRules_HandType_STFLUSH   8
-*/
+#include <vector>
 
 using namespace poker;
-
-int32_t test_compare_5_cards_NOPAIR_with_NOPAIR() {
-  solver sol;
-  int32_t expected_result = 2;
-  int32_t hand1[] = {c7, s6, c4, d3, h2}; 
-  int32_t hand2[] = {c8, s6, c4, d3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 5);
-
-  if(result != expected_result) {
-    printf("[test_compare_5_cards_NOPAIR_with_NOPAIR] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_5_cards_NOPAIR_with_PAIR() {
-  solver sol;
-  int32_t expected_result = 2;
-  int32_t hand1[] = {c7, s6, c4, d3, h2};
-  int32_t hand2[] = {d2, s6, c4, d3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 5);
-
-  if(result != expected_result) {
-    printf("[test_compare_5_cards_NOPAIR_with_PAIR] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_5_cards_PAIR_with_TWOPAIR() {
-  solver sol;
-  int32_t expected_result = 1;
-  int32_t hand1[] = {d2, h4, c4, d3, h2};
-  int32_t hand2[] = {d2, s6, c4, d3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 5);
-
-  if(result != expected_result) {
-    printf("[test_compare_5_cards_PAIR_with_TWOPAIR] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_5_cards_TWOPAIR_with_TRIPS() {
-  solver sol;
-  int32_t expected_result = 2;
-  int32_t hand1[] = {d2, h4, c4, d3, h2};
-  int32_t hand2[] = {d2, c2, c4, d3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 5);
-
-  if(result != expected_result) {
-    printf("[test_compare_5_cards_TWOPAIR_with_TRIPS] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_5_cards_TRIPS_with_STRAIGHT() {
-  solver sol;
-  int32_t expected_result = 1;
-  int32_t hand1[] = {s6, d5, c4, d3, h2};
-  int32_t hand2[] = {d2, c2, c4, d3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 5);
-
-  if(result != expected_result) {
-    printf("[test_compare_5_cards_TRIPS_with_STRAIGHT] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_5_cards_STRAIGHT_with_FLUSH() {
-  solver sol;
-  int32_t expected_result = 2;
-  int32_t hand1[] = {s6, d5, c4, d3, h2};
-  int32_t hand2[] = {hT, h8, h6, h4, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 5);
-
-  if(result != expected_result) {
-    printf("[test_compare_5_cards_STRAIGHT_with_FLUSH] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_5_cards_FLUSH_with_FULLHOUSE() {
-  solver sol;
-  int32_t expected_result = 1;
-  int32_t hand1[] = {hK, dK, cK, d2, h2};
-  int32_t hand2[] = {hT, h8, h6, h4, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 5);
-
-  if(result != expected_result) {
-    printf("[test_compare_5_cards_FLUSH_with_FULLHOUSE] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_5_cards_FULLHOUSE_with_QUADS() {
-  solver sol;
-  int32_t expected_result = 2;
-  int32_t hand1[] = {hK, dK, cK, d2, h2};
-  int32_t hand2[] = {hT, s2, c2, d2, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 5);
-
-  if(result != expected_result) {
-    printf("[test_compare_5_cards_FULLHOUSE_with_QUADS] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_5_cards_QUADS_with_STFLUSH() {
-  solver sol;
-  int32_t expected_result = 1;
-  int32_t hand1[] = {h6, h5, h4, h3, h2};
-  int32_t hand2[] = {hT, s2, c2, d2, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 5);
-
-  if(result != expected_result) {
-    printf("[test_compare_5_cards_QUADS_with_STFLUSH] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_7_cards_NOPAIR_with_NOPAIR(){
-  solver sol;
-  int32_t expected_result = 2;
-  int32_t hand1[] = {hJ, h9, c7, s6, c4, d3, h2};
-  int32_t hand2[] = {hA, dQ, c7, s6, c4, d3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 7);
-
-  if(result != expected_result) {
-    printf("[test_compare_7_cards_NOPAIR_with_NOPAIR] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_7_cards_NOPAIR_with_PAIR(){
-  solver sol;
-  int32_t expected_result = 1;
-  int32_t hand1[] = {d2, h9, c7, s6, c4, d3, h2};
-  int32_t hand2[] = {hA, dQ, c7, s6, c4, d3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 7);
-
-  if(result != expected_result) {
-    printf("[test_compare_7_cards_NOPAIR_with_PAIR] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_7_cards_PAIR_with_TWOPAIR(){
-  solver sol;
-  int32_t expected_result = 2;
-  int32_t hand1[] = {d2, h9, c7, s6, c4, d3, h2};
-  int32_t hand2[] = {s2, d6, c7, s6, c4, d3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 7);
-
-  if(result != expected_result) {
-    printf("[test_compare_7_cards_PAIR_with_TWOPAIR] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_7_cards_TWOPAIR_with_TRIPS(){
-  solver sol;
-  int32_t expected_result = 1;
-  int32_t hand1[] = {d2, c2, c7, s6, c4, d3, h2};
-  int32_t hand2[] = {s2, d6, c7, s6, c4, d3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 7);
-
-  if(result != expected_result) {
-    printf("[test_compare_7_cards_TWOPAIR_with_TRIPS] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_7_cards_TRIPS_with_STRAIGHT(){
-  solver sol;
-  int32_t expected_result = 2;
-  int32_t hand1[] = {d2, c2, c7, s6, c4, d3, h2};
-  int32_t hand2[] = {c8, h5, c7, s6, c4, d3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 7);
-
-  if(result != expected_result) {
-    printf("[test_compare_7_cards_TRIPS_with_STRAIGHT] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_7_cards_STRAIGHT_with_FLUSH(){
-  solver sol;
-  int32_t expected_result = 1;
-  int32_t hand1[] = {cK, cJ, c7, s6, c4, c3, h2};
-  int32_t hand2[] = {c8, h5, c7, s6, c4, c3, h2};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 7);
-
-  if(result != expected_result) {
-    printf("[test_compare_7_cards_STRAIGHT_with_FLUSH] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_7_cards_FLUSH_with_FULLHOUSE(){
-  solver sol;
-  int32_t expected_result = 2;
-  int32_t hand1[] = {cK, cJ, c7, s6, c4, c3, d3};
-  int32_t hand2[] = {s7, d7, c7, s6, c4, c3, d3};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 7);
-
-  if(result != expected_result) {
-    printf("[test_compare_7_cards_FLUSH_with_FULLHOUSE] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_7_cards_FULLHOUSE_with_QUADS(){
-  solver sol;
-  int32_t expected_result = 1;
-  int32_t hand1[] = {s3, h3, c7, s6, c4, c3, d3};
-  int32_t hand2[] = {s7, d7, c7, s6, c4, c3, d3};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 7);
-
-  if(result != expected_result) {
-    printf("[test_compare_7_cards_FULLHOUSE_with_QUADS] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_7_cards_QUADS_with_STFLUSH(){
-  solver sol;
-  int32_t expected_result = 2;
-  int32_t hand1[] = {s3, h3, d7, d6, d4, c3, d3};
-  int32_t hand2[] = {d8, d5, d7, d6, d4, c3, d3};
-
-  int32_t result = sol.compare_hands(hand1, hand2, 7);
-
-  if(result != expected_result) {
-    printf("[test_compare_7_cards_QUADS_with_STFLUSH] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_hands_with_4_cards() {
-  solver sol;
-  int32_t hand1[] = {c7, s6, c4, d3}; 
-  int32_t hand2[] = {c3, s6, c4, d3};
-  int32_t expected_result = 2;
-
-  int32_t result = sol.compare_hands(hand1, hand2, 4);
-
-  if(result != expected_result) {
-    printf("[test_compare_hands_with_4_cards] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_hands_with_6_cards() {
-  solver sol;
-  int32_t hand1[] = {s2, c7, s6, c4, d3, h2};
-  int32_t hand2[] = {c8, c7, s6, c4, d3, h2};
-  int32_t expected_result = 1;
-
-  int32_t result = sol.compare_hands(hand1, hand2, 6);
-
-  if(result != expected_result) {
-    printf("[test_compare_hands_with_6_cards] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_hands_with_8_cards() {
-  solver sol;
-  int32_t hand1[] = {d2, hJ, h9, c7, s6, c4, d3, h2};
-  int32_t hand2[] = {sK, hA, dQ, c7, s6, c4, d3, h2};
-  int32_t expected_result = 1;
-
-  int32_t result = sol.compare_hands(hand1, hand2, 8);
-
-  if(result != expected_result) {
-    printf("[test_compare_hands_with_8_cards] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_compare_5_card_hands_with_hand_size_4() {
-  solver sol;
-  int32_t hand1[] = {d2, hJ, h9, c7, s2};
-  int32_t hand2[] = {sK, hA, dQ, c7, s6};
-  int32_t expected_result = 2;
-
-  int32_t result = sol.compare_hands(hand1, hand2, 4);
-
-  if(result != expected_result) {
-    printf("[test_compare_5_card_hands_with_hand_size_4] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_get_hand_name_with_NOPAIR() {
-  solver sol;
-  int32_t hand[] = {hA, dQ, c7, s6, c4, d3, h2};
-  const char *expected_result = "NoPair";
-  
-  const char *result = sol.get_hand_name(hand, 7);
-
-  if(strcmp(result, expected_result) != 0) {
-    printf("[test_get_hand_name_with_NOPAIR] Failed. Expected %s, found %s\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_get_hand_name_with_PAIR() {
-  solver sol;
-  int32_t hand[] = {d2, h9, c7, s6, c4, d3, h2};
-  const char *expected_result = "OnePair";
-  
-  const char *result = sol.get_hand_name(hand, 7);
-
-  if(strcmp(result, expected_result) != 0) {
-    printf("[test_get_hand_name_with_PAIR] Failed. Expected %s, found %s\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_get_hand_name_with_TWOPAIR() {
-  solver sol;
-  int32_t hand[] = {s2, d6, c7, s6, c4, d3, h2};
-  const char *expected_result = "TwoPair";
-  
-  const char *result = sol.get_hand_name(hand, 7);
-
-  if(strcmp(result, expected_result) != 0) {
-    printf("[test_get_hand_name_with_TWOPAIR] Failed. Expected %s, found %s\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_get_hand_name_with_TRIPS() {
-  solver sol;
-  int32_t hand[] = {d2, c2, c7, s6, c4, d3, h2};
-  const char *expected_result = "Trips";
-  
-  const char *result = sol.get_hand_name(hand, 7);
-
-  if(strcmp(result, expected_result) != 0) {
-    printf("[test_get_hand_name_with_TRIPS] Failed. Expected %s, found %s\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_get_hand_name_with_STRAIGHT() {
-  solver sol;
-  int32_t hand[] = {c8, h5, c7, s6, c4, d3, h2};
-  const char *expected_result = "Straight";
-  
-  const char *result = sol.get_hand_name(hand, 7);
-
-  if(strcmp(result, expected_result) != 0) {
-    printf("[test_get_hand_name_with_STRAIGHT] Failed. Expected %s, found %s\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_get_hand_name_with_FLUSH() {
-  solver sol;
-  int32_t hand[] = {cK, cJ, c7, s6, c4, c3, h2};
-  const char *expected_result = "Flush";
-  
-  const char *result = sol.get_hand_name(hand, 7);
-
-  if(strcmp(result, expected_result) != 0) {
-    printf("[test_get_hand_name_with_FLUSH] Failed. Expected %s, found %s\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_get_hand_name_with_FULLHOUSE() {
-  solver sol;
-  int32_t hand[] = {s7, d7, c7, s6, c4, c3, d3};
-  const char *expected_result = "FlHouse";
-  
-  const char *result = sol.get_hand_name(hand, 7);
-
-  if(strcmp(result, expected_result) != 0) {
-    printf("[test_get_hand_name_with_FULLHOUSE] Failed. Expected %s, found %s\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_get_hand_name_with_QUADS() {
-  solver sol;
-  int32_t hand[] = {s3, h3, c7, s6, c4, c3, d3};
-  const char *expected_result = "Quads";
-  
-  const char *result = sol.get_hand_name(hand, 7);
-
-  if(strcmp(result, expected_result) != 0) {
-    printf("[test_get_hand_name_with_QUADS] Failed. Expected %s, found %s\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_get_hand_name_with_STFLUSH() {
-  solver sol;
-  int32_t hand[] = {d8, d5, d7, d6, d4, c3, d3};
-  const char *expected_result = "StFlush";
-  
-  const char *result = sol.get_hand_name(hand, 7);
-
-  if(strcmp(result, expected_result) != 0) {
-    printf("[test_get_hand_name_with_STFLUSH] Failed. Expected %s, found %s\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
-
-int32_t test_hand_with_non_existing_card() {
-  solver sol;
-  int32_t hand1[] = {s3, h3, uk, s6, c4, c3, d3};
-  int32_t hand2[] = {s7, d7, c7, s6, c4, c3, d3};
-  int32_t expected_result = -1;
-
-  int32_t result = sol.compare_hands(hand1, hand2, 7);
-
-  if(result != expected_result) {
-    printf("[test_hand_with_non_existing_card] Failed. Expected %d, found %d\n", expected_result, result);
-    return -1;
-  }
-  return 0;
-}
 
 int32_t failures = 0;
 int32_t testCount = 0;
 
-void run(int32_t (*func)()) {
+bool assert_compare_n(
+    int32_t n,
+    const char* name,
+    int32_t expected,
+    std::vector<int32_t> h1,
+    std::vector<int32_t> h2)
+{
   testCount++;
-  failures += (*func)();
+  solver sol; 
+  auto actual = sol.compare_hands(h1.data(), h2.data(), n);
+
+  if (actual == expected) return true;
+  
+  printf("assertion failed - %s - expected %d, actual %d\n", name, expected, actual);
+  failures++;
+  return false;
+}
+
+bool assert_hand_name(
+    int32_t n,
+    const char* name,
+    const char* expected,
+    std::vector<int32_t> h)
+{
+  testCount++;
+  solver sol;
+  const char * actual;
+
+  if(!(actual = sol.get_hand_name(h.data(), n))) {
+    printf("assertion failed - %s - couldn't evaluate hand\n", name);
+    failures++;
+    return false; 
+  } else if(strcmp(actual, expected) != 0) {
+    printf("assertion failed - %s - expected %s, actual %s\n", name, expected, actual);
+    failures++;
+    return false;
+  }
+  return true;
 }
 
 int32_t main(int32_t argc, char **argv) {
   solver sol;
   failures = 0;
   testCount = 0;
-
-  run(test_compare_5_cards_NOPAIR_with_NOPAIR);
-  run(test_compare_5_cards_NOPAIR_with_PAIR);
-  run(test_compare_5_cards_PAIR_with_TWOPAIR);
-  run(test_compare_5_cards_TWOPAIR_with_TRIPS);
-  run(test_compare_5_cards_TRIPS_with_STRAIGHT);
-  run(test_compare_5_cards_STRAIGHT_with_FLUSH);
-  run(test_compare_5_cards_FLUSH_with_FULLHOUSE);
-  run(test_compare_5_cards_FULLHOUSE_with_QUADS);
-  run(test_compare_5_cards_QUADS_with_STFLUSH);
-
-  run(test_compare_7_cards_NOPAIR_with_NOPAIR);
-  run(test_compare_7_cards_NOPAIR_with_PAIR);
-  run(test_compare_7_cards_PAIR_with_TWOPAIR);
-  run(test_compare_7_cards_TWOPAIR_with_TRIPS);
-  run(test_compare_7_cards_TRIPS_with_STRAIGHT);
-  run(test_compare_7_cards_STRAIGHT_with_FLUSH);
-  run(test_compare_7_cards_FLUSH_with_FULLHOUSE);
-  run(test_compare_7_cards_FULLHOUSE_with_QUADS);
-  run(test_compare_7_cards_QUADS_with_STFLUSH);
   
-  run(test_compare_hands_with_4_cards);
-  run(test_compare_hands_with_6_cards);
-  run(test_compare_hands_with_8_cards);
-  run(test_compare_5_card_hands_with_hand_size_4);
-
-  run(test_get_hand_name_with_NOPAIR);
-  run(test_get_hand_name_with_PAIR);
-  run(test_get_hand_name_with_TWOPAIR);
-  run(test_get_hand_name_with_TRIPS);
-  run(test_get_hand_name_with_STRAIGHT);
-  run(test_get_hand_name_with_FLUSH);
-  run(test_get_hand_name_with_FULLHOUSE);
-  run(test_get_hand_name_with_QUADS);
-  run(test_get_hand_name_with_STFLUSH);
+  assert_compare_n(5, "5_NOPAIR_with_NOPAIR",   2, {c7, s6, c4, d3, h2}, {c8, s6, c4, d3, h2});
+  assert_compare_n(5, "5_NOPAIR_with_PAIR",     2, {c7, s6, c4, d3, h2}, {d2, s6, c4, d3, h2});
+  assert_compare_n(5, "5_PAIR_with_TWOPAIR",    1, {d2, h4, c4, d3, h2}, {d2, s6, c4, d3, h2});
+  assert_compare_n(5, "5_TWOPAIR_with_TRIPS",   2, {d2, h4, c4, d3, h2}, {d2, c2, c4, d3, h2});
+  assert_compare_n(5, "5_TRIPS_with_STRAIGHT",  1, {s6, d5, c4, d3, h2}, {d2, c2, c4, d3, h2});
+  assert_compare_n(5, "5_STRAIGHT_with_FLUSH",  2, {s6, d5, c4, d3, h2}, {hT, h8, h6, h4, h2});
+  assert_compare_n(5, "5_FLUSH_with_FULLHOUSE", 1, {hK, dK, cK, d2, h2}, {hT, h8, h6, h4, h2});
+  assert_compare_n(5, "5_FULLHOUSE_with_QUADS", 2, {hK, dK, cK, d2, h2}, {hT, s2, c2, d2, h2});
+  assert_compare_n(5, "5_QUADS_with_STFLUSH",   1, {h6, h5, h4, h3, h2}, {hT, s2, c2, d2, h2});
   
-  run(test_hand_with_non_existing_card);
+  assert_compare_n(7, "7_NOPAIR_with_NOPAIR",   2, {hJ, h9, c7, s6, c4, d3, h2}, {hA, dQ, c7, s6, c4, d3, h2});
+  assert_compare_n(7, "7_NOPAIR_with_PAIR",     1, {d2, h9, c7, s6, c4, d3, h2}, {hA, dQ, c7, s6, c4, d3, h2});
+  assert_compare_n(7, "7_PAIR_with_TWOPAIR",    2, {d2, h9, c7, s6, c4, d3, h2}, {s2, d6, c7, s6, c4, d3, h2});
+  assert_compare_n(7, "7_TWOPAIR_with_TRIPS",   1, {d2, c2, c7, s6, c4, d3, h2}, {s2, d6, c7, s6, c4, d3, h2});
+  assert_compare_n(7, "7_TRIPS_with_STRAIGHT",  2, {d2, c2, c7, s6, c4, d3, h2}, {c8, h5, c7, s6, c4, d3, h2});
+  assert_compare_n(7, "7_STRAIGHT_with_FLUSH",  1, {cK, cJ, c7, s6, c4, c3, h2}, {c8, h5, c7, s6, c4, c3, h2});
+  assert_compare_n(7, "7_FLUSH_with_FULLHOUSE", 2, {cK, cJ, c7, s6, c4, c3, d3}, {s7, d7, c7, s6, c4, c3, d3});
+  assert_compare_n(7, "7_FULLHOUSE_with_QUADS", 1, {s3, h3, c7, s6, c4, c3, d3}, {s7, d7, c7, s6, c4, c3, d3});
+  assert_compare_n(7, "7_QUADS_with_STFLUSH",   2, {s3, h3, d7, d6, d4, c3, d3}, {d8, d5, d7, d6, d4, c3, d3});
+  
+  assert_compare_n(4, "4_NOPAIR_with_NOPAIR",           2, {c7, s6, c4, d3}, {c3, s6, c4, d3});
+  assert_compare_n(6, "6_NOPAIR_with_NOPAIR",           1, {s2, c7, s6, c4, d3, h2}, {c8, c7, s6, c4, d3, h2});
+  assert_compare_n(8, "8_PAIR_with_NOPAIR",             1, {d2, hJ, h9, c7, s6, c4, d3, h2}, {sK, hA, dQ, c7, s6, c4, d3, h2});
+  assert_compare_n(4, "5_PAIR_with_NOPAIR_wrong_size",  2, {d2, hJ, h9, c7, s2}, {sK, hA, dQ, c7, s6});
+  assert_compare_n(7, "7_non_existing_card",           -1, {s3, h3, uk, s6, c4, c3, d3}, {s7, d7, c7, s6, c4, c3, d3});
 
+  assert_hand_name(7, "hand_name_NOPAIR",     "NoPair",   {hA, dQ, c7, s6, c4, d3, h2});
+  assert_hand_name(7, "hand_name_PAIR",       "OnePair",  {d2, h9, c7, s6, c4, d3, h2});
+  assert_hand_name(7, "hand_name_TWOPAIR",    "TwoPair",  {s2, d6, c7, s6, c4, d3, h2});
+  assert_hand_name(7, "hand_name_TRIPS",      "Trips",    {d2, c2, c7, s6, c4, d3, h2});
+  assert_hand_name(7, "hand_name_STRAIGHT",   "Straight", {c8, h5, c7, s6, c4, d3, h2});
+  assert_hand_name(7, "hand_name_FLUSH",      "Flush",    {cK, cJ, c7, s6, c4, c3, h2});
+  assert_hand_name(7, "hand_name_FULLHOUSE",  "FlHouse",  {s7, d7, c7, s6, c4, c3, d3});
+  assert_hand_name(7, "hand_name_QUADS",      "Quads",    {s3, h3, c7, s6, c4, c3, d3});
+  assert_hand_name(7, "hand_name_STFLUSH",    "StFlush",  {d8, d5, d7, d6, d4, c3, d3});
+  
   printf("Executed %d tests, with %d failures.\n.", testCount, std::abs(failures));
 
   return failures ? 1 : 0;
