@@ -6,7 +6,7 @@ class Solver {
   constructor(rawlib) { 
     this.rawlib = rawlib;
     this.p = this.rawlib._poker_new_solver();
-    this.solver_compare_hands = this.rawlib.cwrap('solver_compare_hands', 'int', ['int','array', 'array', 'int'])
+    this.solver_compare_hands = this.rawlib.cwrap('solver_compare_hands', 'number', ['number','array', 'array', 'number'])
   }
 
   compare_hands(hand1, hand2, hand_size) {
@@ -21,8 +21,8 @@ class Blob {
   constructor(rawlib) { 
     this.rawlib = rawlib;
     this.p = this.rawlib._poker_new_blob();
-    this.blob_get_data = this.rawlib.cwrap('blob_get_data', 'string', ['int'])
-    this.blob_set_data = this.rawlib.cwrap('blob_set_data', null, ['int','string'])
+    this.blob_get_data = this.rawlib.cwrap('blob_get_data', 'string', ['number'])
+    this.blob_set_data = this.rawlib.cwrap('blob_set_data', null, ['number','string'])
   }
 
   clear() {
