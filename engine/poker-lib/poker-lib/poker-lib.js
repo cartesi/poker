@@ -6,11 +6,14 @@ class Solver {
   constructor(rawlib) { 
     this.rawlib = rawlib;
     this.p = this.rawlib._poker_new_solver();
-    this.solver_compare_hands = this.rawlib.cwrap('solver_compare_hands', 'int', ['int','int*', 'int*', 'int'])
+    this.solver_compare_hands = this.rawlib.cwrap('solver_compare_hands', 'int', ['int','array', 'array', 'int'])
   }
 
   compare_hands(hand1, hand2, hand_size) {
-    return this.solver_compare_hands(this._p, hand1, hand2, hand_size);
+    const [h1a8] = make_int_array(hand1);
+    const [h2a8] = make_int_array(hand2);
+
+    return this.solver_compare_hands(this._p, h1a8, h2a8, hand_size);
   }
 }
 
@@ -134,6 +137,16 @@ class PokerLib {
   delete_player(player) {
     this.rawlib._poker_delete_player(player.p)
   }
+}
+
+function make_int_array(src) {
+  const b = new ArrayBuffer(src.length * 4);
+  const v32 = new Int32Array(b);
+  const v8 = new Uint8Array(b);
+  
+  v32.set(src);
+  
+  return [v8, v32];
 }
 
 module.exports = PokerLib;
