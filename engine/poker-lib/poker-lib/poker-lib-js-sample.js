@@ -4,10 +4,11 @@ const Poker = require('./poker-lib.js');
 function poker_lib_demo(lib) {
   lib.init();
   
-  var solver = lib.new_solver();
-  var comparison = solver.compare_hands([1,2,3,4,5], [10,11,12,13,14], 5);
-  console.log("The winning hand is %d\n", comparison);
+  solver_demo(lib);
+  deck_shuffling_demo(lib);
+}
 
+function deck_shuffling_demo(lib) {
   const num_players = 2;
   var alice = lib.new_player(0, num_players, /* predictable */ false);
   var bob = lib.new_player(1, num_players,   /* predictable */ false);
@@ -62,6 +63,16 @@ function poker_lib_demo(lib) {
   bob.open_card(0);
   bob_card_0 = bob.get_open_card(0);
   console.log('bob_card_0=', bob_card_0)
+}
+
+function solver_demo(lib) {
+  var solver = lib.new_solver();
+
+  var comparison = solver.compare_hands([1,2,3,4,5], [10,11,12,13,14], 5);
+  console.log("The winning hand is %d\n", comparison);
+  
+  const name = solver.get_hand_name([1,2,3,4,5], 5);
+  console.log(`The winning hand name is: ${name}`);
 }
 
 raw_lib.onRuntimeInitialized = function() {

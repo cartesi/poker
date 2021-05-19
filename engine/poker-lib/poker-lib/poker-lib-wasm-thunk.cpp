@@ -30,6 +30,11 @@ void API poker_delete_solver(POINTER b) {
     delete ASSOLVER(b);
 }
 
+const char* API solver_get_hand_name(POINTER p, POINTER hand, int hand_size) {
+    int* h = (int*)hand;
+    return ASSOLVER(p)->get_hand_name(h, hand_size);
+}
+
 int API solver_compare_hands(POINTER p, POINTER hand1, POINTER hand2, int hand_size) {
     int* h1 = (int *)hand1;
     int* h2 = (int *)hand2;

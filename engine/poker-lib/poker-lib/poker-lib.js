@@ -6,7 +6,14 @@ class Solver {
   constructor(rawlib) { 
     this.rawlib = rawlib;
     this.p = this.rawlib._poker_new_solver();
+    this.solver_get_hand_name = this.rawlib.cwrap('solver_get_hand_name', 'string', ['number', 'array', 'number']);
     this.solver_compare_hands = this.rawlib.cwrap('solver_compare_hands', 'number', ['number','array', 'array', 'number'])
+  }
+
+  get_hand_name(hand, hand_size) {
+    const [ha8] = make_int_array(hand);
+    
+    return this.solver_get_hand_name(this._p, ha8, hand_size);
   }
 
   compare_hands(hand1, hand2, hand_size) {
