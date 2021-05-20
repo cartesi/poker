@@ -242,6 +242,9 @@ library TurnBasedGameContext {
 
         // applies result and ends game
         applyResult(_context, _index, fundsShare);
+
+        // descartes computation is over: we can destruct it
+        _descartes.destruct(_context.descartesIndex);
     }
 
 
@@ -374,7 +377,7 @@ library TurnBasedGameContext {
             "",                    // directValue (empty)
             "",                    // loggerIpfsPath (empty)
             logRoot,               // loggerRootHash
-            _context.validators[0],// provider
+            address(0),            // provider
             false,                 // waitsProvider
             true                   // needsLogger
         );
