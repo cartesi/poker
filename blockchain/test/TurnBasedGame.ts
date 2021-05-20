@@ -62,6 +62,7 @@ describe("TurnBasedGame", async () => {
 
         await mockLogger.mock.calculateMerkleRootFromData.returns(EMPTY_DATA_LOG_HASH);
         await mockLogger.mock.getLogIndex.returns(EMPTY_DATA_LOG_INDEX);
+        await mockDescartes.mock.destruct.returns();
 
         const { deploy } = deployments;
         const TurnBasedGameContext = await deploy("TurnBasedGameContext", {
@@ -291,9 +292,21 @@ describe("TurnBasedGame", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
 
         // turn from player 0
-        await expect(gameContract.submitTurn(0, initialStateHash, turnData))
-            .to.emit(contextLibrary, "TurnOver")
-            .withArgs(0, [players[0], initialStateHash, EMPTY_DATA_LOG_INDEX]);
+        let tx = await gameContract.submitTurn(0, initialStateHash, turnData);
+        let turnOverEventRaw = (await tx.wait()).events[0];
+        expect(turnOverEventRaw).not.equal(undefined, "No event emitted");
+        let turnOverEvent = contextLibrary.interface.parseLog(turnOverEventRaw);
+        expect(turnOverEvent.args).not.equal(undefined, "Emitted event has no arguments (unknown event type?)");
+        expect(turnOverEvent).not.equal(undefined, "No event emitted");
+        let index = turnOverEvent.args._index;
+        let turn = turnOverEvent.args._turn;
+        expect(index).to.eql(ethers.BigNumber.from(0), "1st turn should have game index 0");
+        expect(turn[0]).to.eql(players[0], "1st turn should be emitted by player0");
+        expect(turn[1]).to.eql(initialStateHash, "1st turn should refer to the initial state hash");
+        expect(turn[2]).to.eql(
+            [ethers.BigNumber.from(EMPTY_DATA_LOG_INDEX)],
+            "1st turn should refer to the appropriate log index"
+        );
 
         // turn from player 1 with different data (state hash and log hash/index)
         const player1StateHash = ethers.utils.formatBytes32String("player1 state hash");
@@ -301,9 +314,21 @@ describe("TurnBasedGame", async () => {
         const player1LogIndex = 3;
         await mockLogger.mock.calculateMerkleRootFromData.returns(player1LogHash);
         await mockLogger.mock.getLogIndex.returns(player1LogIndex);
-        await expect(gameContractPlayer1.submitTurn(0, player1StateHash, turnData))
-            .to.emit(contextLibrary, "TurnOver")
-            .withArgs(0, [players[1], player1StateHash, player1LogIndex]);
+        tx = await gameContractPlayer1.submitTurn(0, player1StateHash, turnData);
+        turnOverEventRaw = (await tx.wait()).events[0];
+        expect(turnOverEventRaw).not.equal(undefined, "No event emitted");
+        turnOverEvent = contextLibrary.interface.parseLog(turnOverEventRaw);
+        expect(turnOverEvent.args).not.equal(undefined, "Emitted event has no arguments (unknown event type?)");
+        expect(turnOverEvent).not.equal(undefined, "No event emitted");
+        index = turnOverEvent.args._index;
+        turn = turnOverEvent.args._turn;
+        expect(index).to.eql(ethers.BigNumber.from(0), "2nd turn should have game index 0");
+        expect(turn[0]).to.eql(players[1], "2nd turn should be emitted by player1");
+        expect(turn[1]).to.eql(player1StateHash, "2nd turn should refer to player1StateHash");
+        expect(turn[2]).to.eql(
+            [ethers.BigNumber.from(player1LogIndex)],
+            "2nd turn should refer to the appropriate log index"
+        );
     });
 
     it("submitTurn: should update context", async () => {
@@ -324,10 +349,10 @@ describe("TurnBasedGame", async () => {
         expect(turns.length).to.eql(2);
         expect(turns[0].player).to.eql(players[0]);
         expect(turns[0].stateHash).to.eql(stateHash0);
-        expect(turns[0].dataLogIndex).to.eql(ethers.BigNumber.from(logIndex0));
+        expect(turns[0].dataLogIndices[0]).to.eql(ethers.BigNumber.from(logIndex0));
         expect(turns[1].player).to.eql(players[1]);
         expect(turns[1].stateHash).to.eql(stateHash1);
-        expect(turns[1].dataLogIndex).to.eql(ethers.BigNumber.from(logIndex1));
+        expect(turns[1].dataLogIndices[0]).to.eql(ethers.BigNumber.from(logIndex1));
     });
 
     // CHALLENGE GAME

@@ -25,8 +25,8 @@ struct Turn {
     address player;
     // game state for which the turn applies
     bytes32 stateHash;
-    // index that identifies the turn's data stored in the Logger
-    uint256 dataLogIndex;
+    // indices that identify the turn's data stored in the Logger
+    uint256[] dataLogIndices;
 }
 
 
@@ -79,7 +79,7 @@ library TurnBasedGameContext {
     /// @param _descartes Descartes instance used for triggering verified computations
     /// @param _logger Logger instance used for storing data in the event history
     /// @param _turnDataLog2Size turn data log2size considering 64-bit words (i.e., how many 64-bit words are there in a chunk of turn data)
-    function submitTurn(GameContext storage _context, uint256 _index, bytes32 _stateHash, bytes8[] memory _data, DescartesInterface _descartes, Logger _logger, uint8 _turnDataLog2Size) public
+    function submitTurn(GameContext storage _context, uint256 _index, bytes32 _stateHash, bytes8[] calldata _data, DescartesInterface _descartes, Logger _logger, uint8 _turnDataLog2Size) public
         onlyByPlayer(_context)
     {
         // ensures game is still ongoing
@@ -88,15 +88,33 @@ library TurnBasedGameContext {
         // - game has not been challenged
         require(!_context.isDescartesInstantiated, "Game verification in progress");
 
-        // stores submitted turn data in the logger and retrieves its index
-        bytes32 logHash = _logger.calculateMerkleRootFromData(_turnDataLog2Size, _data);
-        uint256 logIndex = _logger.getLogIndex(logHash);
+        uint nChunks = (_data.length / (2 ** _turnDataLog2Size)) + 1;
+        uint256[] memory logIndices = new uint256[](nChunks);
+        if (nChunks == 1) {
+            // data fits into one chunk: store entire submitted data in the logger and retrieve its index
+            bytes32 logHash = _logger.calculateMerkleRootFromData(_turnDataLog2Size, _data);
+            uint256 logIndex = _logger.getLogIndex(logHash);
+            logIndices[0] = logIndex;
+        } else {
+            // data does not fit into one chunk: split it and process each chunk
+            uint chunkFullBytes8Length = 2 ** (_turnDataLog2Size - 3);
+            for (uint i = 0; i < nChunks; i++) {
+                // retrieves chunk data
+                uint iStart = i*chunkFullBytes8Length;
+                uint iEnd = (iStart + chunkFullBytes8Length < _data.length ? iStart + chunkFullBytes8Length : _data.length);
+                bytes8[] calldata chunkData = _data[iStart:iEnd];
+                // stores chunk in the logger, adding corresponding index to logIndices array
+                bytes32 logHash = _logger.calculateMerkleRootFromData(_turnDataLog2Size, chunkData);
+                uint256 logIndex = _logger.getLogIndex(logHash);
+                logIndices[i] = logIndex;
+            }
+        }
 
         // instantiates new turn
         Turn memory turn = Turn({
             player: msg.sender,
             stateHash: _stateHash,
-            dataLogIndex: logIndex
+            dataLogIndices: logIndices
         });
 
         // records new turn in the game context
@@ -351,18 +369,28 @@ library TurnBasedGameContext {
     function buildTurnsDrive(GameContext storage _context, Logger _logger, uint8 _turnDataLog2Size, uint256 _emptyDataLogIndex, uint64 _drivePosition) internal
         returns (DescartesInterface.Drive memory _drive)
     {
+        // computes total number of turn chunk entries
+        uint nTotalChunks = 0;
+        for (uint iTurn = 0; iTurn < _context.turns.length; iTurn++) {
+            nTotalChunks += _context.turns[iTurn].dataLogIndices.length;
+        }
+
         // builds "logRoot" logger entry to be used as an input drive with turn data
         // - number of composing entries must be a power of 2
-        // - each entry will correspond to one turn
+        // - each entry will correspond to one turn's chunk of data
         // - padding is done by adding "empty" entries (repeats log index pointing to empty data)
-        uint8 logIndicesLengthLog2 = TurnBasedGameUtil.getLog2Ceil(_context.turns.length);
+        uint8 logIndicesLengthLog2 = TurnBasedGameUtil.getLog2Ceil(nTotalChunks);
         uint64 logIndicesLength = uint64(1) << logIndicesLengthLog2;
         uint256[] memory logIndices = new uint256[](logIndicesLength);
-        for (uint i = 0; i < _context.turns.length; i++) {
-            logIndices[i] = _context.turns[i].dataLogIndex;
+        uint i = 0;
+        for (uint iTurn = 0; iTurn < _context.turns.length; iTurn++) {
+            uint256[] memory logIndicesTurn = _context.turns[iTurn].dataLogIndices;
+            for (uint iChunk = 0; iChunk < logIndicesTurn.length; iChunk++) {
+                logIndices[i++] = logIndicesTurn[iChunk];
+            }
         }
-        for (uint i = _context.turns.length; i < logIndicesLength; i++) {
-            logIndices[i] = _emptyDataLogIndex;
+        while (i < logIndicesLength) {
+            logIndices[i++] = _emptyDataLogIndex;
         }
         bytes32 logRoot = _logger.calculateMerkleRootFromHistory(_turnDataLog2Size, logIndices);
 

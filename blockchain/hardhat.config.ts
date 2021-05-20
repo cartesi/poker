@@ -65,7 +65,7 @@ task("start-game", "Starts a TurnBasedGame instance")
     .addOptionalParam(
         "hash",
         "Game template hash to use",
-        "0xb630533e4e64931da65d7089d499043c49f7cf8f9af73575f5e155d9a1d4f070",
+        "0x7e2c0b7303a4c5f8af24bd6b3219e3b3b2b7a2df08305501b169b9ad5f9ff9ac",
         types.string
     )
     .setAction(async ({ hash }, hre) => {
@@ -98,7 +98,7 @@ task("join-game", "Registers player in the lobby in order to join a game")
     .addOptionalParam(
         "hash",
         "Game template hash to use",
-        "0xb630533e4e64931da65d7089d499043c49f7cf8f9af73575f5e155d9a1d4f070",
+        "0x7e2c0b7303a4c5f8af24bd6b3219e3b3b2b7a2df08305501b169b9ad5f9ff9ac",
         types.string
     )
     .addOptionalParam("metadata", "Metadata of the game", "0x", types.string)
@@ -191,19 +191,22 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
         // displays turn info: data is retrieved from the corresponding logger events ("MerkleRootCalculatedFromData")
         const turns = ret[6];
         if (turns && turns.length) {
-            for (let i = 0; i < turns.length; i++) {
-                const turn = turns[i];
-                let data = undefined;
-                const filter = logger.filters.MerkleRootCalculatedFromData(turn.dataLogIndex);
-                const logEvents = await logger.queryFilter(filter);
-                if (logEvents && logEvents.length) {
-                    data = logEvents[0].args._data;
-                }
-                console.log(`- turn ${i}`);
+            for (let iTurn = 0; iTurn < turns.length; iTurn++) {
+                const turn = turns[iTurn];
+                console.log(`- turn ${iTurn}`);
                 console.log(`  - player: ${turn.player}`);
-                console.log(`  - index: ${turn.dataLogIndex}`);
                 console.log(`  - stateHash: ${turn.stateHash}`);
-                console.log(`  - data: ${data}`);
+                for (let iChunk = 0; iChunk < turn.dataLogIndices.length; iChunk++) {
+                    let index = turn.dataLogIndices[iChunk];
+                    let data = undefined;
+                    const filter = logger.filters.MerkleRootCalculatedFromData(index);
+                    const logEvents = await logger.queryFilter(filter);
+                    if (logEvents && logEvents.length) {
+                        data = logEvents[0].args._data;
+                    }
+                    console.log(`  - index[${iChunk}]: ${index}`);
+                    console.log(`  - data[${iChunk}]: ${data}`);
+                }
             }
         }
         console.log("");
@@ -349,7 +352,7 @@ task("confirm-result", "Confirms a game result that was previously claimed")
 // apply-result task
 task("apply-result", "Applies the result of a game verified by Descartes")
     .addOptionalParam("index", "The game index", 0, types.int)
-    .setAction(async ({ index, player }, hre) => {
+    .setAction(async ({ index }, hre) => {
         const { ethers } = hre;
 
         // retrieves game and context contracts
