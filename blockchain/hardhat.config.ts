@@ -65,7 +65,7 @@ task("start-game", "Starts a TurnBasedGame instance")
     .addOptionalParam(
         "hash",
         "Game template hash to use",
-        "0x577f140d3286f0abd97a204b9f88ad5e9e45442cc8cec3e117dbac2b769427ae",
+        "0xb630533e4e64931da65d7089d499043c49f7cf8f9af73575f5e155d9a1d4f070",
         types.string
     )
     .setAction(async ({ hash }, hre) => {
@@ -98,7 +98,7 @@ task("join-game", "Registers player in the lobby in order to join a game")
     .addOptionalParam(
         "hash",
         "Game template hash to use",
-        "0x577f140d3286f0abd97a204b9f88ad5e9e45442cc8cec3e117dbac2b769427ae",
+        "0xb630533e4e64931da65d7089d499043c49f7cf8f9af73575f5e155d9a1d4f070",
         types.string
     )
     .addOptionalParam("metadata", "Metadata of the game", "0x", types.string)

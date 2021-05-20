@@ -36,7 +36,7 @@ docker run \
     --flash-drive="label:turns,length:1<<20" \
     --flash-drive="label:verificationInfo,length:1<<12" \
     --flash-drive="label:output,length:1<<12" \
-    -- $'/mnt/verifier/mock-run.sh'
+    -- $'cd /mnt/verifier/ && ./mock-run.sh'
 
 # defines target directory as being within $MACHINES_DIR and named after the stored machine's hash
 MACHINE_TARGET_DIR=$MACHINES_DIR/$(docker run \
