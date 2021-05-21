@@ -5,10 +5,20 @@ import "hardhat-typechain";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 
+import * as fs from "fs";
+
+// read MNEMONIC from file or from env variable
+let mnemonic = process.env.MNEMONIC;
+
 const config: HardhatUserConfig = {
     networks: {
         localhost: {
             url: "http://localhost:8545",
+        },
+        matic_testnet: {
+            url: "https://rpc-mumbai.matic.today",
+            chainId: 80001,
+            accounts: mnemonic ? { mnemonic } : undefined,
         },
     },
     solidity: {
@@ -39,6 +49,10 @@ const config: HardhatUserConfig = {
         ],
         deployments: {
             localhost: ["./descartes-env/deployments/localhost"],
+            matic_testnet: [
+                "../node_modules/@cartesi/logger/deployments/matic_testnet",
+                "../node_modules/@cartesi/descartes-sdk/deployments/matic_testnet",
+            ],
         },
     },
     typechain: {
@@ -233,7 +247,13 @@ task("submit-turn", "Submits a game turn for a given player")
         ["0x0000000000000001", "0x0000000000000002"],
         types.json
     )
-    .setAction(async ({ index, player, statehash, data }, hre) => {
+    .addOptionalParam(
+        "datafile",
+        "File containing turn data to submit, whose content must be a JSON array of 64-bit words",
+        undefined,
+        types.string
+    )
+    .setAction(async ({ index, player, statehash, data, datafile }, hre) => {
         const { ethers } = hre;
         // retrieves account from configured named accounts, according to player's name
         const playerAccount = (await hre.getNamedAccounts())[player];
@@ -242,11 +262,18 @@ task("submit-turn", "Submits a game turn for a given player")
         const game = await ethers.getContract("TurnBasedGame", playerAccount);
 
         console.log("");
-        console.log(
-            `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data '${JSON.stringify(
-                data
-            )}'\n`
-        );
+        if (datafile) {
+            console.log(
+                `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data from file '${datafile}'\n`
+            );
+            data = JSON.parse(fs.readFileSync(datafile).toString());
+        } else {
+            console.log(
+                `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data '${JSON.stringify(
+                    data
+                )}'\n`
+            );
+        }
 
         // submits turn for the specified player
         await game.submitTurn(index, statehash, data);

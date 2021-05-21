@@ -28,6 +28,7 @@
         "build": "hardhat compile",
         "test": "hardhat test",
         "deploy": "hardhat deploy --network localhost",
+        "deploy:matic_testnet": "hardhat deploy --network matic_testnet",
         "console": "hardhat console --network localhost"
     },
     "repository": {

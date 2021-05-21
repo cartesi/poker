@@ -2,6 +2,7 @@ descartes-env*
 deployments/localhost
 deployments/hardhat
 artifacts
+**/solcInputs
 cache
 src/types
 logs
