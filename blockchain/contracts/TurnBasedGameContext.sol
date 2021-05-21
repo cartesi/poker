@@ -88,7 +88,11 @@ library TurnBasedGameContext {
         // - game has not been challenged
         require(!_context.isDescartesInstantiated, "Game verification in progress");
 
-        uint nChunks = (_data.length / (2 ** _turnDataLog2Size)) + 1;
+        // defines number of required chunks
+        // - full size of a chunk in 8-byte entries is 128 for chunks of 1K
+        uint chunkSize = 2 ** (_turnDataLog2Size - 3);
+        uint nChunks = ((_data.length-1) / chunkSize) + 1;
+
         uint256[] memory logIndices = new uint256[](nChunks);
         if (nChunks == 1) {
             // data fits into one chunk: store entire submitted data in the logger and retrieve its index
@@ -97,11 +101,10 @@ library TurnBasedGameContext {
             logIndices[0] = logIndex;
         } else {
             // data does not fit into one chunk: split it and process each chunk
-            uint chunkFullBytes8Length = 2 ** (_turnDataLog2Size - 3);
             for (uint i = 0; i < nChunks; i++) {
                 // retrieves chunk data
-                uint iStart = i*chunkFullBytes8Length;
-                uint iEnd = (iStart + chunkFullBytes8Length < _data.length ? iStart + chunkFullBytes8Length : _data.length);
+                uint iStart = i*chunkSize;
+                uint iEnd = (iStart + chunkSize < _data.length ? iStart + chunkSize : _data.length);
                 bytes8[] calldata chunkData = _data[iStart:iEnd];
                 // stores chunk in the logger, adding corresponding index to logIndices array
                 bytes32 logHash = _logger.calculateMerkleRootFromData(_turnDataLog2Size, chunkData);

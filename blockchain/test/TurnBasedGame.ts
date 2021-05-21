@@ -355,6 +355,57 @@ describe("TurnBasedGame", async () => {
         expect(turns[1].dataLogIndices[0]).to.eql(ethers.BigNumber.from(logIndex1));
     });
 
+    it("submitTurn: should update context with large data", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+
+        // 8-byte entry
+        const bytes8 = "0x325E3731202B2033";
+
+        // data with 10 * 8-byte entries (80 bytes): should fit into one chunk
+        let turnData = [];
+        for (let i = 0; i < 10; i++) {
+            turnData.push(bytes8);
+        }
+        await gameContract.submitTurn(0, initialStateHash, turnData);
+        let context = await gameContract.getContext(0);
+        let turns = context[6];
+        expect(turns.length).to.eql(1, "Should contain one turn");
+        expect(turns[0].dataLogIndices.length).to.eql(1, "10 8-byte entries should fit into one chunk");
+
+        // data with 128 * 8-byte entries (1024 bytes): should fit into one chunk
+        turnData = [];
+        for (let i = 0; i < 128; i++) {
+            turnData.push(bytes8);
+        }
+        await gameContract.submitTurn(0, initialStateHash, turnData);
+        context = await gameContract.getContext(0);
+        turns = context[6];
+        expect(turns.length).to.eql(2, "Should contain two turns");
+        expect(turns[1].dataLogIndices.length).to.eql(1, "128 8-byte entries should fit into one chunk");
+
+        // data with 129 * 8-byte entries (1032 bytes): should need two chunks
+        turnData = [];
+        for (let i = 0; i < 129; i++) {
+            turnData.push(bytes8);
+        }
+        await gameContract.submitTurn(0, initialStateHash, turnData);
+        context = await gameContract.getContext(0);
+        turns = context[6];
+        expect(turns.length).to.eql(3, "Should contain three turns");
+        expect(turns[2].dataLogIndices.length).to.eql(2, "129 8-byte entries should require two chunks");
+
+        // data with 500 * 8-byte entries (4000 bytes): should need four chunks
+        turnData = [];
+        for (let i = 0; i < 500; i++) {
+            turnData.push(bytes8);
+        }
+        await gameContract.submitTurn(0, initialStateHash, turnData);
+        context = await gameContract.getContext(0);
+        turns = context[6];
+        expect(turns.length).to.eql(4, "Should contain four turns");
+        expect(turns[3].dataLogIndices.length).to.eql(4, "500 8-byte entries should require four chunks");
+    });
+
     // CHALLENGE GAME
 
     it("challengeGame: should only be allowed for active games", async () => {
