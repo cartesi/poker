@@ -1,3 +1,4 @@
+import { CheatLayer } from './CheatLayer';
 import { AudioManager } from './../../AudioManager';
 import { TableContainer } from "./table-container/TableContainer";
 import { RoomManager } from "./RoomManager";
@@ -16,6 +17,7 @@ export class RoomScene extends Phaser.Scene {
     public hud: HUD;
     public tableContainer: TableContainer;
     public settingsLayer: SettingsLayer;
+    public cheatLayer: CheatLayer;
     public shuffleCardsLayer: SuffleCardsLayer;
 
     constructor() {
@@ -45,6 +47,9 @@ export class RoomScene extends Phaser.Scene {
 
         this.settingsLayer = new SettingsLayer(this);
         this.add.existing(this.settingsLayer);
+
+        this.cheatLayer = new CheatLayer(this);
+        this.add.existing(this.cheatLayer);
 
         setTimeout(() => {
             RoomManager.startRound();
