@@ -35,7 +35,7 @@ contract TurnBasedGame is InstantiatorImpl {
     uint256 emptyDataLogIndex;
 
     // turn data log2size fixed as 10 (1K)
-    uint8 constant turnDataLog2Size = 10;
+    uint8 constant turnChunkLog2Size = 10;
 
     // game instances
     mapping(uint256 => GameContext) internal instances;
@@ -50,7 +50,7 @@ contract TurnBasedGame is InstantiatorImpl {
 
         // stores an empty chunk of data in the logger and records its index
         bytes8[] memory emptyData = new bytes8[](1);
-        bytes32 logHash = logger.calculateMerkleRootFromData(turnDataLog2Size, emptyData);
+        bytes32 logHash = logger.calculateMerkleRootFromData(turnChunkLog2Size, emptyData);
         emptyDataLogIndex = logger.getLogIndex(logHash);
     }
 
@@ -110,7 +110,7 @@ contract TurnBasedGame is InstantiatorImpl {
         onlyActive(_index)
     {
         GameContext storage context = instances[_index];
-        context.submitTurn(_index, _stateHash, _data, descartes, logger, turnDataLog2Size);
+        context.submitTurn(_index, _stateHash, _data, logger, turnChunkLog2Size);
     }
 
 
@@ -122,7 +122,7 @@ contract TurnBasedGame is InstantiatorImpl {
         returns (uint256)
     {
         GameContext storage context = instances[_index];
-        return context.challengeGame(_index, descartes, logger, turnDataLog2Size, emptyDataLogIndex);
+        return context.challengeGame(_index, descartes, logger, turnChunkLog2Size, emptyDataLogIndex);
     }
 
 
