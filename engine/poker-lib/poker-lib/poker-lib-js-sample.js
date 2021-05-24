@@ -3,15 +3,19 @@ const Poker = require('./poker-lib.js');
 
 function poker_lib_demo(lib) {
   lib.init();
-  
-  solver_demo(lib);
-  deck_shuffling_demo(lib);
-}
 
-function deck_shuffling_demo(lib) {
-  const num_players = 2;
-  var alice = lib.new_player(0, num_players, /* predictable */ false);
-  var bob = lib.new_player(1, num_players,   /* predictable */ false);
+  var solver = lib.new_solver();
+  var ctype = solver.card_type_from_str("As");
+  console.log("card_type_from_str(As) =", ctype);
+  var comparison = solver.compare_hands([1,2,3,4,5], [10,11,12,13,14], 5);
+  //var res = solver.card_str_from_type(1);
+  var res = solver.foo([1,2,3], 3);
+  process._rawDebug('---->', res)
+  process.exit(0);
+
+  const num_participants = 2;
+  var alice = lib.new_participant(0, num_participants, /* predictable */ false);
+  var bob = lib.new_participant(1, num_participants,   /* predictable */ false);
 
   var group = lib.new_blob();
   alice.create_group(group);
@@ -63,16 +67,6 @@ function deck_shuffling_demo(lib) {
   bob.open_card(0);
   bob_card_0 = bob.get_open_card(0);
   console.log('bob_card_0=', bob_card_0)
-}
-
-function solver_demo(lib) {
-  var solver = lib.new_solver();
-
-  var comparison = solver.compare_hands([1,2,3,4,5], [10,11,12,13,14], 5);
-  console.log("The winning hand is %d\n", comparison);
-  
-  const name = solver.get_hand_name([1,2,3,4,5], 5);
-  console.log(`The winning hand name is: ${name}`);
 }
 
 raw_lib.onRuntimeInitialized = function() {

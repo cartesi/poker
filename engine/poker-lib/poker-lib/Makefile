@@ -10,6 +10,7 @@ CXXFLAGS += -O3 -s ALLOW_TABLE_GROWTH \
             -s ALLOW_MEMORY_GROWTH=1 \
             -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap'] \
             --bind -fexceptions -std=c++11
+LOADER = node
 endif
 
 ifeq ($(POKER_BUILD_ENV),risc-v)
@@ -17,9 +18,12 @@ CXX = riscv64-cartesi-linux-gnu-g++
 CXXFLAGS += -Wl,-rpath-link=/mnt/poker
 endif
 
+TESTS = test-solver \
+    test-player
+
 PROGRAMS = hello \
     poker-lib-sample \
-    test-solver
+    $(TESTS)
     
 INSTALL_FILES = $(PROGRAMS)
 
@@ -30,6 +34,7 @@ INSTALL_FILES += hello.wasm \
     poker-lib-wasm-thunk \
     poker-lib-wasm-thunk.wasm \
     poker-lib.js \
+    test-player-js.js \
     poker-lib-js-sample.js \
     index.html
 endif
@@ -39,7 +44,12 @@ endif
 
 all: $(PROGRAMS)
 
-POKER_LIB_OBJS=solver.o poker-lib.o
+POKER_LIB_OBJS=solver.o \
+            participant.o \
+            poker-lib.o \
+            referee.o \
+            player.o \
+            game.o
 
 poker-lib.a: $(POKER_LIB_OBJS)
 	ar rcs $@ $^
@@ -53,9 +63,10 @@ hello: hello.cpp
 poker-lib-sample: poker-lib-sample.cpp poker-lib.a
 	$(CXX) $(CXXFLAGS) -o $@ $^ 
 
-test-solver: test-solver.cpp poker-lib.a
+test-%: test-%.cpp poker-lib.a
 	$(CXX) $(CXXFLAGS)  -o $@ $^
 
+    
 install: $(PROGRAMS)
 	mkdir -p $(INSTALL_DIR) && \
     for f in "$(INSTALL_FILES)"; do cp $$f $(INSTALL_DIR); done
@@ -71,3 +82,4 @@ distclean:
     done
 	
 
+.PHONY: test

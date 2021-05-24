@@ -26,6 +26,8 @@ public:
         return num;
     }
     void rewind() { _r = 0; }
+    int rpos() { return _r; }
+    void rseek(int pos) { _r=pos; }
 };
 
 struct sbuf_traits {
@@ -169,6 +171,8 @@ class isstream : public std::istream {
         void rewind() {
             s.rewind();
         }
+        int rpos() { return s.rpos(); }
+        void rseek(int pos) { s.rseek(pos); }
 };
 
 }

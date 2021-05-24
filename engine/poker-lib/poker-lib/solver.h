@@ -1,8 +1,9 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
-#include "card_type.h"
 #include <cstdint>
+#include "cards.h"
+#include "errors.h"
 
 namespace poker {
 
@@ -10,8 +11,8 @@ namespace poker {
     public:
         solver();
         ~solver();
-        int32_t compare_hands(const int32_t *hand1, const int32_t *hand2, int32_t hand_size);
-    	const char* get_hand_name(const int32_t *hand, int32_t hand_size);
+        int32_t compare_hands(const card_t *hand1, const card_t *hand2, int32_t hand_size);
+    	const char* get_hand_name(const card_t *hand, int32_t hand_size);
     };
 
 } // namespace poker

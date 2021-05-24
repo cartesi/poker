@@ -1,22 +1,18 @@
-#include "solver.h"
-
 #include <iostream>
 #include <poker_defs.h>
 #include <inlines/eval.h>
 #include <inlines/eval_type.h>
 #include <cstdint>
 
-namespace poker {
+#include "solver.h"
 
-    #ifndef POKER_ERROR
-    #define POKER_ERROR  -1
-    #endif
+namespace poker {
 
     solver::solver() {}
 
     solver::~solver(){}
 
-    int32_t convert_hand_to_mask(const int32_t *hand, int32_t hand_size, CardMask& mask) {
+    int32_t convert_hand_to_mask(const card_t *hand, int32_t hand_size, CardMask& mask) {
         CardMask_RESET(mask);
 
         for (int32_t i = 0; i < hand_size; i++) {
@@ -50,7 +46,7 @@ namespace poker {
         }
     }
 
-    int32_t solver::compare_hands(const int32_t *hand1, const int32_t *hand2, int32_t hand_size) {
+    int32_t solver::compare_hands(const card_t *hand1, const card_t *hand2, int32_t hand_size) {
         CardMask hand1_mask, hand2_mask;
 
         if (convert_hand_to_mask(hand1, hand_size, hand1_mask) == 0 && convert_hand_to_mask(hand2, hand_size, hand2_mask) == 0) {
@@ -60,7 +56,7 @@ namespace poker {
         }
     }
 
-    const char* solver::get_hand_name(const int32_t *hand, int32_t hand_size) {
+    const char* solver::get_hand_name(const card_t *hand, int32_t hand_size) {
         CardMask mask;
 
         if (convert_hand_to_mask(hand, hand_size, mask) == 0) {

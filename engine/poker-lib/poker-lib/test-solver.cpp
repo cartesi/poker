@@ -7,6 +7,7 @@
 #include <vector>
 
 using namespace poker;
+using namespace poker::cards;
 
 int32_t failures = 0;
 int32_t testCount = 0;

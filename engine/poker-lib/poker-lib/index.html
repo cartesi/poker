@@ -1,4 +1,4 @@
-<html>
+><html>
 <head><title>Poker-lib demo</title></head>
 
 <body><pre>
@@ -13,7 +13,7 @@ Open the dev tools console to inspect objects and see console output.
         window.PokerLib = module.exports.PokerLib;
         window.poker = new PokerLib(Module);
         var blob = poker.new_blob();
-        var alice = poker.new_player(0,2)
+        var alice = poker.new_participant(0,2, /* predictable */ false)
         alice.create_group(blob);
         console.log(blob.get_data());
         var solver = poker.new_solver();

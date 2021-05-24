@@ -13,13 +13,44 @@ struct game_state {
     
     blob bob_proof_0;
     blob alice_proof_0;
+    
+    void dump() {
+        std::cout << "---- vtmf_group " << vtmf_group.size() << " bytes " << std::endl;
+        std::cout << vtmf_group.get_data()  << std::endl;
+
+        std::cout << "---- alice_key " << alice_key.size() << " bytes " << std::endl;
+        std::cout << alice_key.get_data()  << std::endl;
+
+        std::cout << "---- bob_key " << bob_key.size() << " bytes " << std::endl;
+        std::cout << bob_key.get_data()  << std::endl;
+
+        std::cout << "---- vsshe_group " << vsshe_group.size() << " bytes " << std::endl;
+        std::cout << vsshe_group.get_data()  << std::endl;
+
+        std::cout << "---- alice_mix " << alice_mix.size() << " bytes " << std::endl;
+        std::cout << alice_mix.get_data()  << std::endl;
+
+        std::cout << "---- alice_mix_proof " << alice_mix_proof.size() << " bytes " << std::endl;
+        std::cout << alice_mix_proof.get_data()  << std::endl;
+
+        std::cout << "---- bob_mix " << bob_mix.size() << " bytes " << std::endl;
+        std::cout << bob_mix.get_data()  << std::endl;
+
+        std::cout << "---- bob_proof_0 " << bob_proof_0.size() << " bytes " << std::endl;
+        std::cout << bob_proof_0.get_data()  << std::endl;
+
+        std::cout << "---- alice_proof_0 " << alice_proof_0.size() << " bytes " << std::endl;
+        std::cout << alice_proof_0.get_data()  << std::endl;
+
+    }
 };
 
 game_state g;
 
 int run_and_open_card(int card_index) {
     std::cout << "initializing libTMCG" << std::endl;
-    
+
+
     if (init_poker_lib()) {
         std::cerr << "Error initializing libTMCG" << std::endl;
         return -1;
@@ -28,10 +59,10 @@ int run_and_open_card(int card_index) {
     // All library methods return 0 on success
     // For clarity, there is no more error handling from now on
 
-    int num_players = 3;
-    player alice(0, num_players, /* predictable */ false);
-    player bob(1, num_players,   /* predictable */ false);
-    player eve(2, num_players,   /* predictable */ true);
+    int num_participants = 3;
+    participant alice(0, num_participants, /* predictable */ false);
+    participant bob(1, num_participants,   /* predictable */ false);
+    participant eve(2, num_participants,   /* predictable */ true);
 
     alice.create_group(g.vtmf_group);
     bob.load_group(g.vtmf_group);
@@ -76,9 +107,9 @@ int run_and_open_card(int card_index) {
     alice.load_stack(eve_mix, eve_mix_proof);
     bob.load_stack(eve_mix, eve_mix_proof);
 
-    alice.take_cards_from_stack(2);
-    bob.take_cards_from_stack(2);
-    eve.take_cards_from_stack(2);
+    alice.take_cards_from_stack(20);
+    bob.take_cards_from_stack(20);
+    eve.take_cards_from_stack(20);
 
     blob eve_proof_0;
     alice.self_card_secret(card_index);
@@ -102,14 +133,79 @@ int run_and_open_card(int card_index) {
     eve.open_card(card_index);
     auto eve_card_0 = eve.get_open_card(card_index);
 
+    const int CARDS=3;
+    const int BASE=10;
+    blob alice_proofs[CARDS], bob_proofs[CARDS], eve_proofs[CARDS];
+    int alice_cards[CARDS], bob_cards[CARDS], eve_cards[CARDS];
+    //alice_proofs.set_auto_rewind(false);
+    //bob_proofs.set_auto_rewind(false);
+    //eve_proofs.set_auto_rewind(false);
+    for(auto i=0; i<CARDS; i++) {
+        auto card_index = BASE + i;
+        alice.prove_card_secret(card_index, alice_proofs[i]);
+        bob.prove_card_secret(card_index, bob_proofs[i]);
+        eve.prove_card_secret(card_index, eve_proofs[i]);
+    }
+
+    // alice
+    std::cout << "---- ALICE" << std::endl;    
+    //alice_proofs.rewind();
+    //bob_proofs.rewind();
+    //eve_proofs.rewind();
+    for(auto i=0; i<CARDS; i++) {
+        auto card_index = BASE+i;
+        alice.self_card_secret(card_index);
+        alice.verify_card_secret(card_index, bob_proofs[i]);
+        alice.verify_card_secret(card_index, eve_proofs[i]);
+        alice.open_card(card_index);
+        alice_cards[i] = alice.get_open_card(card_index);
+    }
+
+    // bob
+    std::cout << "---- BOB" << std::endl;    
+    //alice_proofs.rewind();
+    //bob_proofs.rewind();
+    //eve_proofs.rewind();
+    for(auto i=0; i<CARDS; i++) {
+        auto card_index = BASE+i;
+        bob.self_card_secret(card_index);
+        bob.verify_card_secret(card_index, alice_proofs[i]);
+        bob.verify_card_secret(card_index, eve_proofs[i]);
+        bob.open_card(card_index);
+        bob_cards[i] = bob.get_open_card(card_index);
+
+    }
+
+    // eve
+    std::cout << "---- EVE" << std::endl;    
+    //alice_proofs.rewind();
+    //bob_proofs.rewind();
+    //eve_proofs.rewind();
+    for(auto i=0; i<CARDS; i++) {
+        auto card_index = BASE+i;
+        eve.self_card_secret(card_index);
+        eve.verify_card_secret(card_index, alice_proofs[i]);
+        eve.verify_card_secret(card_index, bob_proofs[i]);
+        eve.open_card(card_index);
+        eve_cards[i] = eve.get_open_card(card_index);
+    }
+      
+    std::cout << "\n---- Opening...." << std::endl;      
+    for(auto i=0; i<CARDS; i++) {
+        std::cout << "ALICE CARD[" << card_index << "]=" << alice_cards[i] << std::endl;    
+        std::cout << "  BOB CARD[" << card_index << "]=" << bob_cards[i] << std::endl;    
+        std::cout << "  EVE CARD[" << card_index << "]=" << eve_cards[i] << std::endl;    
+    }
+
+
     std::cout << "OK" << std::endl;    
     return eve_card_0;
 }
 
 void verify_open_card(int card_index, int expected_card_type) {
     std::cout << "Starting verification of card " << card_index << std::endl;
-    int num_players = 3;
-    player eve(2, num_players,   /* predictable */ true);
+    int num_participants = 3;
+    participant eve(2, num_participants,   /* predictable */ true);
     eve.load_group(g.vtmf_group);
 
     blob eve_key;
@@ -140,6 +236,8 @@ void verify_open_card(int card_index, int expected_card_type) {
         " actual:" << eve_card_0 <<
         std::endl;    
 
+
+    g.dump();
 }
 
 int main(int argc, char** argv) {
