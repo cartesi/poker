@@ -17,6 +17,22 @@ const config: HardhatUserConfig = {
     external: {
         contracts: [
             {
+                artifacts: "../node_modules/@cartesi/util/export/artifacts",
+                deploy: "../node_modules/@cartesi/util/dist/deploy",
+            },
+            {
+                artifacts: "../node_modules/@cartesi/arbitration/export/artifacts",
+                deploy: "../node_modules/@cartesi/arbitration/dist/deploy",
+            },
+            {
+                artifacts: "../node_modules/@cartesi/logger/export/artifacts",
+                deploy: "../node_modules/@cartesi/logger/dist/deploy",
+            },
+            {
+                artifacts: "../node_modules/@cartesi/machine-solidity-step/export/artifacts",
+                deploy: "../node_modules/@cartesi/machine-solidity-step/dist/deploy",
+            },
+            {
                 artifacts: "../node_modules/@cartesi/descartes-sdk/export/artifacts",
                 deploy: "../node_modules/@cartesi/descartes-sdk/dist/deploy",
             },

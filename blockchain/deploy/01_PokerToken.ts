@@ -9,7 +9,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     await deploy("PokerToken", {
         from: deployer,
         log: true,
-        args: ["Test"]
     });
 };
 
