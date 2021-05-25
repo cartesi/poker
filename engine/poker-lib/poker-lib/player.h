@@ -26,7 +26,7 @@ public:
     game_error shuffle_stack(blob& mix, blob& proof);
     game_error load_stack(blob& mix, blob& proof);
     game_error deal_cards();
-    game_error proove_opponent_cards(blob& proofs);
+    game_error prove_opponent_cards(blob& proofs);
     game_error open_private_cards(blob& their_proofs);
     game_error proove_public_cards(blob& proofs);
     game_error open_public_cards(blob& their_proofs);
