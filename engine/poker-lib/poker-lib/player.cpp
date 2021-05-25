@@ -142,12 +142,12 @@ game_error player::deal_cards() {
     for(auto i=0; i<NUM_PUBLIC_CARDS; i++) {
         auto card_index = public_card_index(i);
         if (_p.prove_card_secret(card_index, _my_public_card_proofs))
-            return PRR_PROOVE_MY_PUBLIC_CARDS;
+            return PRR_PROVE_MY_PUBLIC_CARDS;
     }
     return SUCCESS;
 }
 
-game_error player::proove_opponent_cards(blob& proofs) {
+game_error player::prove_opponent_cards(blob& proofs) {
     for(auto i=0; i<NUM_PRIVATE_CARDS; i++) {
         auto card_index = private_card_index(_opponent_id, i);
         if (_p.prove_card_secret(card_index, proofs))
@@ -172,11 +172,11 @@ game_error player::open_private_cards(blob& their_proofs) {
     return SUCCESS;
 }
 
-game_error player::proove_public_cards(blob& proofs) {
+game_error player::prove_public_cards(blob& proofs) {
     for(auto i=0; i<NUM_PUBLIC_CARDS; i++) {
         auto card_index = public_card_index(i);
         if (_p.prove_card_secret(card_index, proofs))
-            return PRR_PROOVE_PUBLIC_CARDS;
+            return PRR_PROVE_PUBLIC_CARDS;
     }
     _my_public_card_proofs.set_data(proofs.get_data());
     return SUCCESS;
@@ -192,7 +192,7 @@ game_error player::open_public_cards(blob& their_proofs) {
     return SUCCESS;
 }
 
-game_error player::proove_my_cards(blob& proofs) {
+game_error player::prove_my_cards(blob& proofs) {
     for(auto i=0; i<NUM_PRIVATE_CARDS; i++) {
         auto card_index = private_card_index(_id, i);
         if (_p.prove_card_secret(card_index, proofs))

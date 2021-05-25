@@ -43,31 +43,31 @@ void the_happy_path() {
     ASSERT(bob.deal_cards());
 
     blob alice_private_proofs, bob_private_proofs;
-    ASSERT(bob.proove_opponent_cards(alice_private_proofs));
+    ASSERT(bob.prove_opponent_cards(alice_private_proofs));
     ASSERT(alice.open_private_cards(alice_private_proofs));
     std::cout << "### ALICE PRIVATE CARD[0]=" << alice.private_card(0) << std::endl;
     std::cout << "### ALICE PRIVATE CARD[1]=" << alice.private_card(1) << std::endl;
     
-    ASSERT(alice.proove_opponent_cards(bob_private_proofs));
+    ASSERT(alice.prove_opponent_cards(bob_private_proofs));
     ASSERT(bob.open_private_cards(bob_private_proofs));
     std::cout << "### BOB PRIVATE CARD[0]=" << bob.private_card(0) << std::endl;
     std::cout << "### BOB PRIVATE CARD[1]=" << bob.private_card(1) << std::endl;
 
     blob bob_public_proofs, alice_public_proofs;
-    ASSERT(bob.proove_public_cards(bob_public_proofs));
+    ASSERT(bob.prove_public_cards(bob_public_proofs));
     ASSERT(alice.open_public_cards(bob_public_proofs));
     for(auto i=0; i<NUM_PUBLIC_CARDS; i++)
         std::cout << "### ALICE PUBLIC CARD[" << i << "]=" << alice.public_card(i) << std::endl;
 
-    ASSERT(alice.proove_public_cards(alice_public_proofs));
+    ASSERT(alice.prove_public_cards(alice_public_proofs));
     ASSERT(bob.open_public_cards(alice_public_proofs));
     for(auto i=0; i<NUM_PUBLIC_CARDS; i++)
         std::cout << "### BOB PUBLIC CARD[" << i << "]=" << bob.public_card(i) << std::endl;
 
     blob alice_private_proofs2, bob_public_proofs2;
-    ASSERT(bob.proove_my_cards(bob_public_proofs2));
+    ASSERT(bob.prove_my_cards(bob_public_proofs2));
     ASSERT(alice.open_opponent_cards(bob_public_proofs2));
-    ASSERT(alice.proove_my_cards(alice_private_proofs2));
+    ASSERT(alice.prove_my_cards(alice_private_proofs2));
     ASSERT(bob.open_opponent_cards(alice_private_proofs2));
 
 }

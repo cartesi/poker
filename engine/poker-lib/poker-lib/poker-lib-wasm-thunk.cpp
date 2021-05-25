@@ -194,24 +194,24 @@ INT API player_deal_cards(POINTER p) {
     return ASPLAYER(p)->deal_cards();
 }
 
-INT API player_proove_opponent_cards(POINTER p, POINTER proofs) {
-    return ASPLAYER(p)->proove_opponent_cards(*ASBLOB(proofs));
+INT API player_prove_opponent_cards(POINTER p, POINTER proofs) {
+    return ASPLAYER(p)->prove_opponent_cards(*ASBLOB(proofs));
 }
 
 INT API player_open_private_cards(POINTER p, POINTER their_proofs) {
     return ASPLAYER(p)->open_private_cards(*ASBLOB(their_proofs));
 }
 
-INT API player_proove_public_cards(POINTER p, POINTER proofs) {
-    return ASPLAYER(p)->proove_public_cards(*ASBLOB(proofs));
+INT API player_prove_public_cards(POINTER p, POINTER proofs) {
+    return ASPLAYER(p)->prove_public_cards(*ASBLOB(proofs));
 }
 
 INT API player_open_public_cards(POINTER p, POINTER their_proofs) {
     return ASPLAYER(p)->open_public_cards(*ASBLOB(their_proofs));
 }
 
-INT API player_proove_my_cards(POINTER p, POINTER proofs) {
-    return ASPLAYER(p)->proove_my_cards(*ASBLOB(proofs));
+INT API player_prove_my_cards(POINTER p, POINTER proofs) {
+    return ASPLAYER(p)->prove_my_cards(*ASBLOB(proofs));
 }
 
 INT API player_open_opponent_cards(POINTER p, POINTER their_proofs) {

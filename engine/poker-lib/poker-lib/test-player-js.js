@@ -41,31 +41,31 @@ function run_tests(lib) {
     ASSERT(bob.deal_cards());
 
     var alice_private_proofs=lib.new_blob(), bob_private_proofs=lib.new_blob();
-    ASSERT(bob.proove_opponent_cards(alice_private_proofs));
+    ASSERT(bob.prove_opponent_cards(alice_private_proofs));
     ASSERT(alice.open_private_cards(alice_private_proofs));    
     console.log("### ALICE PRIVATE CARD[0]=" , alice.private_card(0));
     console.log("### ALICE PRIVATE CARD[1]=" , alice.private_card(1));
     
-    ASSERT(alice.proove_opponent_cards(bob_private_proofs));
+    ASSERT(alice.prove_opponent_cards(bob_private_proofs));
     ASSERT(bob.open_private_cards(bob_private_proofs));
     console.log("### BOB PRIVATE CARD[0]=" , bob.private_card(0));
     console.log("### BOB PRIVATE CARD[1]=" , bob.private_card(1));
 
     var bob_public_proofs=lib.new_blob(), alice_public_proofs=lib.new_blob();
-    ASSERT(bob.proove_public_cards(bob_public_proofs));
+    ASSERT(bob.prove_public_cards(bob_public_proofs));
     ASSERT(alice.open_public_cards(bob_public_proofs));
     for(var i=0; i<5; i++)
       console.log("### ALICE PUBLIC CARD[" , i , "]=" , alice.public_card(i));
 
-    ASSERT(alice.proove_public_cards(alice_public_proofs));
+    ASSERT(alice.prove_public_cards(alice_public_proofs));
     ASSERT(bob.open_public_cards(alice_public_proofs));
     for(var i=0; i<5; i++)
       console.log("### BOB PUBLIC CARD[" , i , "]=" , bob.public_card(i));
 
     var alice_private_proofs2=lib.new_blob(), bob_public_proofs2=lib.new_blob();
-    ASSERT(bob.proove_my_cards(bob_public_proofs2));
+    ASSERT(bob.prove_my_cards(bob_public_proofs2));
     ASSERT(alice.open_opponent_cards(bob_public_proofs2));
-    ASSERT(alice.proove_my_cards(alice_private_proofs2));
+    ASSERT(alice.prove_my_cards(alice_private_proofs2));
     ASSERT(bob.open_opponent_cards(alice_private_proofs2));
 
     console.log('OK');

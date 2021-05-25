@@ -10,12 +10,11 @@ class player {
     participant _p;
     referee _e;
     blob _my_key;
-    blob _my_public_card_proofs;    
-    blob _my_opponent_card_proofs;
+    blob _my_public_card_proofs;
 public:
     player(int id);
     ~player();
-   
+
     game_error init_game(money_t alice_money, money_t bob_money);
     game_error create_vtmf(blob &vtmf);
     game_error load_vtmf(blob &vtmf);
@@ -28,9 +27,9 @@ public:
     game_error deal_cards();
     game_error prove_opponent_cards(blob& proofs);
     game_error open_private_cards(blob& their_proofs);
-    game_error proove_public_cards(blob& proofs);
+    game_error prove_public_cards(blob& proofs);
     game_error open_public_cards(blob& their_proofs);
-    game_error proove_my_cards(blob& proofs);
+    game_error prove_my_cards(blob& proofs);
     game_error open_opponent_cards(blob& their_proofs);
 
     bool game_over() { return _e.game().error || _e.game().step == GAME_OVER; }

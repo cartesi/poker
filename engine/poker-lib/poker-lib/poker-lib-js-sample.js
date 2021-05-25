@@ -11,7 +11,6 @@ function poker_lib_demo(lib) {
   //var res = solver.card_str_from_type(1);
   var res = solver.foo([1,2,3], 3);
   process._rawDebug('---->', res)
-  process.exit(0);
 
   const num_participants = 2;
   var alice = lib.new_participant(0, num_participants, /* predictable */ false);

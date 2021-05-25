@@ -36,8 +36,8 @@ class Blob {
   constructor(rawlib) {
     this.rawlib = rawlib;
     this.p = this.rawlib._poker_new_blob();
-    this.blob_get_data = this.rawlib.cwrap('blob_get_data', 'string', ['int'])
-    this.blob_set_data = this.rawlib.cwrap('blob_set_data', null, ['int','string'])
+    this.blob_get_data = this.rawlib.cwrap('blob_get_data', 'string', ['number'])
+    this.blob_set_data = this.rawlib.cwrap('blob_set_data', null, ['number','string'])
   }
 
   clear() {
@@ -208,24 +208,24 @@ class Player {
     return this.rawlib._player_deal_cards(this.p);
   }
 
-  proove_opponent_cards(proofs) {
-    return this.rawlib._player_proove_opponent_cards(this.p, proofs.p);
+  prove_opponent_cards(proofs) {
+    return this.rawlib._player_prove_opponent_cards(this.p, proofs.p);
   }
 
   open_private_cards(their_proofs) {
     return this.rawlib._player_open_private_cards(this.p,  their_proofs.p);
   }
 
-  proove_public_cards(proofs) {
-    return this.rawlib._player_proove_public_cards(this.p, proofs.p);
+  prove_public_cards(proofs) {
+    return this.rawlib._player_prove_public_cards(this.p, proofs.p);
   }
 
   open_public_cards(their_proofs) {
     return this.rawlib._player_open_public_cards(this.p, their_proofs.p);
   }
 
-  proove_my_cards(proofs) {
-    return this.rawlib._player_proove_my_cards(this.p, proofs.p);
+  prove_my_cards(proofs) {
+    return this.rawlib._player_prove_my_cards(this.p, proofs.p);
   }
 
   open_opponent_cards(their_proofs) {
