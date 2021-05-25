@@ -244,8 +244,8 @@ task("submit-turn", "Submits a game turn for a given player")
     .addOptionalParam(
         "data",
         "Turn data to submit, which must be an array of 64-bit words",
-        ["0x0000000000000001", "0x0000000000000002"],
-        types.json
+        "0x00000000000000010000000000000002",
+        types.string
     )
     .addOptionalParam(
         "datafile",
@@ -266,7 +266,7 @@ task("submit-turn", "Submits a game turn for a given player")
             console.log(
                 `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data from file '${datafile}'\n`
             );
-            data = JSON.parse(fs.readFileSync(datafile).toString());
+            data = fs.readFileSync(datafile).toString();
         } else {
             console.log(
                 `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data '${JSON.stringify(

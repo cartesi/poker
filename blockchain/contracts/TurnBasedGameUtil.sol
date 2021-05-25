@@ -50,6 +50,52 @@ library TurnBasedGameUtil {
     }
 
 
+    /// @notice Converts a given bytes data array into an array of bytes8 entries
+    /// @param _data bytes data array to be converted
+    /// @param _start start index of the portion of the data array to be converted
+    /// @param _end end index of the portion of the data array to be converted
+    /// @param _output output bytes8 array previously allocated for storing the result
+    function bytes2bytes8(bytes calldata _data, uint _start, uint _end, bytes8[] memory _output) internal pure {
+        require(_end > _start, "end index should be larger than start");
+        require(_start >= 0 && _start < _data.length, "start index out of bounds");
+        require(_end > 0 && _end <= _data.length, "end index out of bounds");
+
+        uint nBytes8 = (_end - _start - 1)/8 + 1;
+        uint nBytes32 = (_end - _start - 1)/32 + 1;
+
+        require(_output.length >= nBytes8, "output buffer is not large enough to hold result");
+
+        bytes memory ptr = _data;
+        assembly {
+            ptr := add(ptr, _start)
+        }        
+        for (uint i = 0; i < nBytes32-1; i++) {
+            // full word entries
+            bytes32 value;
+            assembly {
+              ptr := add(ptr, 0x20)
+              value := mload(ptr)
+            }        
+            _output[i*4 + 0] = bytes8(value);
+            _output[i*4 + 1] = bytes8(value << 64);
+            _output[i*4 + 2] = bytes8(value << 128);
+            _output[i*4 + 3] = bytes8(value << 192);
+        }
+        {
+            // last entry
+            bytes32 value;
+            assembly {
+              ptr := add(ptr, 0x20)
+              value := mload(ptr)
+            }        
+            for (uint i = (nBytes32-1)*4; i < nBytes8; i++) {
+                _output[i] = bytes8(value);
+                value = value << 64;
+            }
+        }
+    }    
+
+
     /// @notice Ensures a given result is acceptable considering the player funds locked for the game
     /// @param _playerFunds funds originally submitted by the players
     /// @param _fundsShare result of the game given as a distribution of the funds previously locked

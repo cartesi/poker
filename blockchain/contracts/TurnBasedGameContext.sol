@@ -78,7 +78,7 @@ library TurnBasedGameContext {
     /// @param _data game-specific turn data (array of 64-bit words)
     /// @param _logger Logger instance used for storing data in the event history
     /// @param _turnChunkLog2Size turn data log2size considering 64-bit words (i.e., how many 64-bit words are there in a chunk of turn data)
-    function submitTurn(GameContext storage _context, uint256 _index, bytes32 _stateHash, bytes8[] calldata _data, Logger _logger, uint8 _turnChunkLog2Size) public
+    function submitTurn(GameContext storage _context, uint256 _index, bytes32 _stateHash, bytes calldata _data, Logger _logger, uint8 _turnChunkLog2Size) public
         onlyByPlayer(_context)
     {
         // ensures game is still ongoing
@@ -88,26 +88,32 @@ library TurnBasedGameContext {
         require(!_context.isDescartesInstantiated, "Game verification in progress");
 
         // defines number of required chunks
-        // - full size of a chunk in 8-byte entries is 128 for chunks of 1K
-        uint chunkSize = 2 ** (_turnChunkLog2Size - 3);
+        uint chunkSize = 2 ** _turnChunkLog2Size;
         uint nChunks = ((_data.length-1) / chunkSize) + 1;
 
         uint256[] memory logIndices = new uint256[](nChunks);
-        if (nChunks == 1) {
-            // data fits into one chunk: store entire submitted data in the logger and retrieve its index
-            bytes32 logHash = _logger.calculateMerkleRootFromData(_turnChunkLog2Size, _data);
-            logIndices[0] = _logger.getLogIndex(logHash);
-        } else {
-            // data does not fit into one chunk: split it and process each chunk
-            for (uint i = 0; i < nChunks; i++) {
-                // retrieves chunk data
-                uint iStart = i*chunkSize;
-                uint iEnd = (iStart + chunkSize < _data.length ? iStart + chunkSize : _data.length);
-                bytes8[] calldata chunkData = _data[iStart:iEnd];
-                // stores chunk in the logger, adding corresponding index to logIndices array
+        if (nChunks > 1) {
+            // build full chunks (all but the last one)
+            // - these can make use of a single chunkData buffer, because they will be completely overwritten for each chunk
+            bytes8[] memory chunkData = new bytes8[](chunkSize/8);
+            uint start = 0;
+            uint end = 0;
+            for (uint i = 0; i < nChunks - 1; i++) {
+                start = end;
+                end = start + chunkSize;
+                TurnBasedGameUtil.bytes2bytes8(_data, start, end, chunkData);
                 bytes32 logHash = _logger.calculateMerkleRootFromData(_turnChunkLog2Size, chunkData);
                 logIndices[i] = _logger.getLogIndex(logHash);
             }
+        }
+        {
+            // last chunk (probably not full)
+            uint start = (nChunks - 1) * chunkSize;
+            uint end = _data.length;
+            bytes8[] memory chunkData = new bytes8[]((end - start)/8);
+            TurnBasedGameUtil.bytes2bytes8(_data, start, end, chunkData);
+            bytes32 logHash = _logger.calculateMerkleRootFromData(_turnChunkLog2Size, chunkData);
+            logIndices[nChunks-1] = _logger.getLogIndex(logHash);
         }
 
         // instantiates new turn

@@ -106,7 +106,7 @@ contract TurnBasedGame is InstantiatorImpl {
     /// @param _index index identifying the game
     /// @param _stateHash game state for which the turn applies
     /// @param _data game-specific turn data (array of 64-bit words)
-    function submitTurn(uint256 _index, bytes32 _stateHash, bytes8[] memory _data) public
+    function submitTurn(uint256 _index, bytes32 _stateHash, bytes calldata _data) public
         onlyActive(_index)
     {
         GameContext storage context = instances[_index];
