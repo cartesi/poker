@@ -16,5 +16,7 @@ jobs:
       - run: pwd
       - run: yarn install
       # - run: yarn prettier
-      - run: yarn build
+      - run:
+         cd blockchain
+         yarn build
       - run: yarn test
