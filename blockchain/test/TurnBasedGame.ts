@@ -40,7 +40,7 @@ describe("TurnBasedGame", async () => {
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Alice")),
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Bob")),
     ];
-    const turnData = ["0x325E3731202B2033", "0x365E313200000000"];
+    const turnData = "0x325E3731202B2033365E3132";
     const initialStateHash = ethers.constants.HashZero;
     const descartesIndex = ethers.BigNumber.from(13);
 
@@ -336,8 +336,8 @@ describe("TurnBasedGame", async () => {
 
         const stateHash0 = ethers.utils.formatBytes32String("state hash 0");
         const stateHash1 = ethers.utils.formatBytes32String("state hash 1");
-        const turnData0 = ["0x325E3731202B2033", "0x365E313200000000"];
-        const turnData1 = ["0x325E3731202B2099", "0x365E313200000088", "0x365E313200000099"];
+        const turnData0 = "0x325E3731202B2033365E313200000000";
+        const turnData1 = "0x325E3731202B2099365E313200000088365E3132000099";
         const logIndex0 = 25;
         const logIndex1 = 28;
         await mockLogger.mock.getLogIndex.returns(logIndex0);
@@ -359,12 +359,12 @@ describe("TurnBasedGame", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
 
         // 8-byte entry
-        const bytes8 = "0x325E3731202B2033";
+        const bytes8 = "325E3731202B2033";
 
         // data with 10 * 8-byte entries (80 bytes): should fit into one chunk
-        let turnData = [];
+        let turnData = "0x";
         for (let i = 0; i < 10; i++) {
-            turnData.push(bytes8);
+            turnData = turnData.concat(bytes8);
         }
         await gameContract.submitTurn(0, initialStateHash, turnData);
         let context = await gameContract.getContext(0);
@@ -373,9 +373,9 @@ describe("TurnBasedGame", async () => {
         expect(turns[0].dataLogIndices.length).to.eql(1, "10 8-byte entries should fit into one chunk");
 
         // data with 128 * 8-byte entries (1024 bytes): should fit into one chunk
-        turnData = [];
+        turnData = "0x";
         for (let i = 0; i < 128; i++) {
-            turnData.push(bytes8);
+            turnData = turnData.concat(bytes8);
         }
         await gameContract.submitTurn(0, initialStateHash, turnData);
         context = await gameContract.getContext(0);
@@ -384,9 +384,9 @@ describe("TurnBasedGame", async () => {
         expect(turns[1].dataLogIndices.length).to.eql(1, "128 8-byte entries should fit into one chunk");
 
         // data with 129 * 8-byte entries (1032 bytes): should need two chunks
-        turnData = [];
+        turnData = "0x";
         for (let i = 0; i < 129; i++) {
-            turnData.push(bytes8);
+            turnData = turnData.concat(bytes8);
         }
         await gameContract.submitTurn(0, initialStateHash, turnData);
         context = await gameContract.getContext(0);
@@ -395,9 +395,9 @@ describe("TurnBasedGame", async () => {
         expect(turns[2].dataLogIndices.length).to.eql(2, "129 8-byte entries should require two chunks");
 
         // data with 500 * 8-byte entries (4000 bytes): should need four chunks
-        turnData = [];
+        turnData = "0x";
         for (let i = 0; i < 500; i++) {
-            turnData.push(bytes8);
+            turnData = turnData.concat(bytes8);
         }
         await gameContract.submitTurn(0, initialStateHash, turnData);
         context = await gameContract.getContext(0);

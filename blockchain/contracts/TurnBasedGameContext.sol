@@ -110,7 +110,8 @@ library TurnBasedGameContext {
             // last chunk (probably not full)
             uint start = (nChunks - 1) * chunkSize;
             uint end = _data.length;
-            bytes8[] memory chunkData = new bytes8[]((end - start)/8);
+            uint lastChunkSize = (end - start - 1)/8 + 1;
+            bytes8[] memory chunkData = new bytes8[](lastChunkSize);
             TurnBasedGameUtil.bytes2bytes8(_data, start, end, chunkData);
             bytes32 logHash = _logger.calculateMerkleRootFromData(_turnChunkLog2Size, chunkData);
             logIndices[nChunks-1] = _logger.getLogIndex(logHash);
