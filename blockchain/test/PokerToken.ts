@@ -37,7 +37,8 @@ describe("PokerToken", () => {
     beforeEach(async () => {
         [owner, holder1, holder2, spender] = await ethers.getSigners();
 
-        await deployments.fixture();
+        await deployments.fixture(); // reset contract to initial state
+
         const PokerToken = await deployments.get("PokerToken");
         pokerTokenContract = PokerToken__factory.connect(PokerToken.address, owner);
     });
@@ -104,13 +105,18 @@ describe("PokerToken", () => {
     // TRANFER
     describe("Transfer", () => {
         it("Should allow spender contract get tokens from an holder account INSIDE allowance limit", async () => {
+            // holder1 obtain tokens
             await pokerTokenContract.mint(await holder1.getAddress(), ALLOWED_AMOUNT);
 
+            // holder1 approve an spender account to get it's tokens
             await pokerTokenContract.connect(holder1).approve(await spender.getAddress(), ALLOWED_AMOUNT);
-            await pokerTokenContract.connect(spender).transferFrom(holder1.address, spender.address, ALLOWED_AMOUNT);
 
-            expect(await pokerTokenContract.balanceOf(holder1.address)).to.equal(NO_AMOUNT); // expected to be NO_AMOUT
-            expect(await pokerTokenContract.balanceOf(spender.address)).to.equal(ALLOWED_AMOUNT);
+            // spender(lobby contract) account transfers tokens from holder1(player) to a holder2(game contract)
+            await pokerTokenContract.connect(spender).transferFrom(holder1.address, holder2.address, ALLOWED_AMOUNT);
+
+            expect(await pokerTokenContract.balanceOf(holder1.address)).to.equal(NO_AMOUNT);
+            expect(await pokerTokenContract.balanceOf(holder2.address)).to.equal(ALLOWED_AMOUNT);
+            expect(await pokerTokenContract.balanceOf(spender.address)).to.equal(NO_AMOUNT);
         });
 
         it("Should NOT allow spender contract get tokens from an holder account BEYOND allowance limit", async () => {
@@ -121,6 +127,7 @@ describe("PokerToken", () => {
             await expect(
                 pokerTokenContract.connect(spender).transferFrom(holder1.address, spender.address, 2 * ALLOWED_AMOUNT)
             ).to.be.reverted;
+            expect(await pokerTokenContract.balanceOf(holder1.address)).to.equal(ALLOWED_AMOUNT);
         });
     });
 });
