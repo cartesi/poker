@@ -42,7 +42,7 @@ export class WinnerLayer extends Phaser.GameObjects.Container {
         title.setOrigin(.5);
         this.add(title);
 
-        if (winnerHand.length) {
+        if (winnerHand && winnerHand.length) {
             for (let i = 0; i < 5; i++) {
                 let card = new Card(this.scene, -130 + 65 * i, -55);
                 card.alpha = 0;

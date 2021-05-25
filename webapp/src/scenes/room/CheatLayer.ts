@@ -1,3 +1,4 @@
+import { RoomManager } from './RoomManager';
 import { GameConstants } from "../../GameConstants";
 
 export class CheatLayer extends Phaser.GameObjects.Container {
@@ -9,7 +10,7 @@ export class CheatLayer extends Phaser.GameObjects.Container {
 
         super(scene);
 
-        // this.visible = false;
+        this.visible = false;
 
         let background = new Phaser.GameObjects.Graphics(this.scene);
         background.fillStyle(0x000000, .25);
@@ -26,21 +27,84 @@ export class CheatLayer extends Phaser.GameObjects.Container {
 
         this.midBackground = new Phaser.GameObjects.Graphics(this.scene);
         this.midBackground.fillStyle(0x09070B, .8);
-        this.midBackground.fillRoundedRect(-200, -300, 400, 600, 15);
+        this.midBackground.fillRoundedRect(-200, -200, 400, 400, 15);
         this.midBackground.lineStyle(3, 0x2E7787);
-        this.midBackground.strokeRoundedRect(-200, -300, 400, 600, 15);
+        this.midBackground.strokeRoundedRect(-200, -200, 400, 400, 15);
         this.midContainer.add(this.midBackground);
 
-        this.scene.input.keyboard.createCombo("CARTESI");
+        let title = new Phaser.GameObjects.Text(this.scene, 0, -140, "CHEAT MENU", {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#ffffff"});
+        title.setOrigin(.5);
+        this.midContainer.add(title);
+
+        // TWO ACES
+
+        let twoAcesText = new Phaser.GameObjects.Text(this.scene, 0, 0, "FORCE TWO ACES", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#183D62"});
+        twoAcesText.setOrigin(.5);
+
+        let twoAcesBtn = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "btn_long");
+        twoAcesBtn.setOrigin(.5);
+        twoAcesBtn.setInteractive();
+        twoAcesBtn.on("pointerdown", () => {
+            twoAcesBtn.setScale(1);
+            twoAcesText.setScale(1);
+        }, this);
+        twoAcesBtn.on("pointerup", this.onClickAces, this);
+        twoAcesBtn.on("pointerover", () => {
+            twoAcesBtn.setScale(1.05);
+            twoAcesText.setScale(1.05);
+        }, this);
+        twoAcesBtn.on("pointerout", () => {
+            twoAcesBtn.setScale(1);
+            twoAcesText.setScale(1);
+        }, this);
+        this.midContainer.add(twoAcesBtn);
+        this.midContainer.add(twoAcesText);
+
+        // CARD COOPERATION
+
+        let cardCooperationText = new Phaser.GameObjects.Text(this.scene, 0, 120, "TOOGLE CARD\nCOOPERATION", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#183D62"});
+        cardCooperationText.setOrigin(.5);
+
+        let cardCooperationBtn = new Phaser.GameObjects.Image(this.scene, 0, 120, "texture_atlas_1", "btn_long");
+        cardCooperationBtn.setOrigin(.5);
+        cardCooperationBtn.setInteractive();
+        cardCooperationBtn.on("pointerdown", () => {
+            cardCooperationBtn.setScale(1);
+            cardCooperationText.setScale(1);
+        }, this);
+        cardCooperationBtn.on("pointerup", this.onClickToogle, this);
+        cardCooperationBtn.on("pointerover", () => {
+            cardCooperationBtn.setScale(1.05);
+            cardCooperationText.setScale(1.05);
+        }, this);
+        cardCooperationBtn.on("pointerout", () => {
+            cardCooperationBtn.setScale(1);
+            cardCooperationText.setScale(1);
+        }, this);
+        this.midContainer.add(cardCooperationBtn);
+        this.midContainer.add(cardCooperationText);
 
         let self = this;
 
-        this.scene.input.keyboard.on("keycombomatch", function (event) {
+        this.scene.input.keyboard.createCombo("CARTESI"); 
 
-            console.log("HOLAA!");
+        this.scene.input.keyboard.on("keycombomatch", function (event) {
+            console.log("CHEAT MODE");
             self.visible = !self.visible;
-            this.scene.input.keyboard.createCombo("CARTESI");
+            self.scene.input.keyboard.createCombo("CARTESI");
 
         });
+    }
+
+    private onClickAces(): void {
+
+        RoomManager.switchPlayerCards("1", "14");
+        this.visible = false;
+    }
+
+    private onClickToogle(): void {
+
+        RoomManager.toogleCardCooperation();
+        this.visible = false;
     }
 }

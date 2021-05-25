@@ -40,6 +40,9 @@ export class RoomManager {
             },
             (msg) => {
                 // console.log(msg);
+            },
+            () => {
+                console.log("VERIFICATION");
             }
         );
 
@@ -47,6 +50,15 @@ export class RoomManager {
             BOB, alice_funds, bob_funds, metadata, bob_tx,
             () => {
                 RoomManager.onAutomaticBet(BOB);
+            },
+            () => {
+                // 
+            },
+            (msg) => {
+                // console.log(msg);
+            },
+            () => {
+                console.log("VERIFICATION 2");
             }
         );
 
@@ -89,6 +101,16 @@ export class RoomManager {
         let cards: string[] = RoomManager.games[ALICE].getPlayerCards();
 
         return cards.map(RoomManager.getCardSuitValue);
+    }
+
+    public static switchPlayerCards(card1: string, card2: string): void {
+
+        RoomManager.games[ALICE].cheat.switchCards(card1, card2);
+    }
+
+    public static toogleCardCooperation(): void {
+
+        RoomManager.games[ALICE].cheat.toggleCardCooperation();
     }
 
     public static getOpponentCards(): {value: number, suit: number}[] {
