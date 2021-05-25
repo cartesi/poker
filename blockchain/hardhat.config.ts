@@ -50,7 +50,10 @@ const config: HardhatUserConfig = {
         deployments: {
             localhost: ["./descartes-env/deployments/localhost"],
             matic_testnet: [
+                "../node_modules/@cartesi/util/deployments/matic_testnet",
+                "../node_modules/@cartesi/arbitration/deployments/matic_testnet",
                 "../node_modules/@cartesi/logger/deployments/matic_testnet",
+                "../node_modules/@cartesi/machine-solidity-step/deployments/matic_testnet",
                 "../node_modules/@cartesi/descartes-sdk/deployments/matic_testnet",
             ],
         },
