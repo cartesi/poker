@@ -23,9 +23,9 @@ import { PokerToken__factory } from "../src/types/factories/PokerToken__factory"
 use(solidity);
 
 describe("PokerToken", () => {
-    const DEFAULT_ADMIN_ROLE = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    const DEFAULT_ADMIN_ROLE = ethers.constants.HashZero;
     const NO_AMOUNT = 0;
-    const DEFAULT_AMOUNT = 100;
+    const DEFAULT_AMOUNT = 50;
     const ALLOWED_AMOUNT = 100;
 
     let pokerTokenContract: PokerToken;
