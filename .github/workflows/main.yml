@@ -15,7 +15,8 @@ jobs:
           node-version: '15'
       - name: Resolve packages and run tests for contracts
         run: |
+          pwd
           yarn
-          cd blockchain
           yarn build
           yarn test
+        working-directory: ./poker/blockchain
