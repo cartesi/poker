@@ -51,10 +51,10 @@ namespace poker {
         CardMask hand1_mask, hand2_mask;
         game_error res;
 
-        if (res = convert_hand_to_mask(hand1, hand_size, hand1_mask))
+        if ((res = convert_hand_to_mask(hand1, hand_size, hand1_mask)))
             return res;
 
-        if (res = convert_hand_to_mask(hand2, hand_size, hand2_mask))
+        if ((res = convert_hand_to_mask(hand2, hand_size, hand2_mask)))
             return res;
         
         *result = eval(hand1_mask, hand2_mask, hand_size);

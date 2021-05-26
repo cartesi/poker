@@ -19,7 +19,8 @@ CXXFLAGS += -Wl,-rpath-link=/mnt/poker
 endif
 
 TESTS = test-solver \
-    test-player
+    test-player \
+    test-game
 
 PROGRAMS = hello \
     poker-lib-sample \

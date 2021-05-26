@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "cards.h"
 #include "errors.h"
+#include "solver.h"
 
 namespace poker {
 
@@ -13,6 +14,7 @@ const int NUM_PLAYERS = 2;
 const int NUM_PUBLIC_CARDS = 5;
 const int NUM_PRIVATE_CARDS = 2;
 const int NUM_CARDS = NUM_PUBLIC_CARDS + (NUM_PLAYERS * NUM_PRIVATE_CARDS);
+const int HAND_SIZE = NUM_PUBLIC_CARDS + NUM_PRIVATE_CARDS;
 
 constexpr int public_card_index(int card) {
     return card;
@@ -57,6 +59,7 @@ struct player_state {
 };
 
 class game_state {
+    solver _solver;
 public:
     game_state()
         : error(SUCCESS),winner(-1), current_player(ALICE),
@@ -75,7 +78,10 @@ public:
     game_error   call();
     game_error   raise(money_t amount);
     game_error   fold();
+    game_error   decide_winner();
     void         dump();
+private:
+    game_error get_player_hand(int player, card_t* hand);
 };
 
 } // namespace poker

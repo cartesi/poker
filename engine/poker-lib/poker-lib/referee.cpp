@@ -211,8 +211,7 @@ game_error referee::step_open_opponent_cards(int player_id, blob& alice_proofs, 
 }
 
 game_error referee::decide_winner() {
-    _g.winner = ALICE;     // TODO
-    return SUCCESS;
+    return _g.decide_winner();
 }
 
 

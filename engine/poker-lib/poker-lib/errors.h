@@ -55,6 +55,9 @@ enum game_error {
     // solver errors
     SRR_UNKNOWN_CARD,
     SRR_DUPLICATE_CARD,
+
+    // game_state errors
+    GRR_INVALID_PLAYER,
 };
 
 #define  POKER_ERROR  -1
