@@ -1,10 +1,11 @@
-#include "solver.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
 #include <cstdint>
 #include <vector>
+
+#include "solver.h"
+#include "errors.h"
 
 using namespace poker;
 using namespace poker::cards;
@@ -20,12 +21,17 @@ bool assert_compare_n(
     std::vector<int32_t> h2)
 {
   testCount++;
-  solver sol; 
-  auto actual = sol.compare_hands(h1.data(), h2.data(), n);
+  solver sol;
+  game_error err;
+  int actual = -1;
 
-  if (actual == expected) return true;
+  if((err=sol.compare_hands(h1.data(), h2.data(), n, &actual)) && err == expected)
+    return true;
+  else if (actual == expected) 
+    return true;
   
   printf("assertion failed - %s - expected %d, actual %d\n", name, expected, actual);
+  
   failures++;
   return false;
 }
@@ -81,7 +87,9 @@ int32_t main(int32_t argc, char **argv) {
   assert_compare_n(6, "6_NOPAIR_with_NOPAIR",           1, {s2, c7, s6, c4, d3, h2}, {c8, c7, s6, c4, d3, h2});
   assert_compare_n(8, "8_PAIR_with_NOPAIR",             1, {d2, hJ, h9, c7, s6, c4, d3, h2}, {sK, hA, dQ, c7, s6, c4, d3, h2});
   assert_compare_n(4, "5_PAIR_with_NOPAIR_wrong_size",  2, {d2, hJ, h9, c7, s2}, {sK, hA, dQ, c7, s6});
-  assert_compare_n(7, "7_non_existing_card",           -1, {s3, h3, uk, s6, c4, c3, d3}, {s7, d7, c7, s6, c4, c3, d3});
+  assert_compare_n(7, "7_non_existing_card",            SRR_UNKNOWN_CARD, {s3, h3, uk, s6, c4, c3, d3}, {s7, d7, c7, s6, c4, c3, d3});
+  assert_compare_n(7, "7_duplicate_card",               SRR_DUPLICATE_CARD, {d3, h3, c7, s6, c4, c3, d3}, {s7, d7, c7, s6, c4, c3, d3});
+  assert_compare_n(7, "7_tie",                          0, {s3, h2, cJ, sT, c9, d3, h3}, {s4, c3, cJ, sT, c9, d3, h3});
 
   assert_hand_name(7, "hand_name_NOPAIR",     "NoPair",   {hA, dQ, c7, s6, c4, d3, h2});
   assert_hand_name(7, "hand_name_PAIR",       "OnePair",  {d2, h9, c7, s6, c4, d3, h2});

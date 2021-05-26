@@ -11,7 +11,7 @@ namespace poker {
     public:
         solver();
         ~solver();
-        int32_t compare_hands(const card_t *hand1, const card_t *hand2, int32_t hand_size);
+        game_error compare_hands(const card_t *hand1, const card_t *hand2, int32_t hand_size, int* result);
     	const char* get_hand_name(const card_t *hand, int32_t hand_size);
     };
 

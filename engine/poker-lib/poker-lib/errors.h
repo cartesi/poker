@@ -51,6 +51,10 @@ enum game_error {
     PRR_PROVE_PUBLIC_CARDS,
     PRR_PROVE_MY_PUBLIC_CARDS,
     PRR_OPEN_MY_PRIVATE_CARDS,
+
+    // solver errors
+    SRR_UNKNOWN_CARD,
+    SRR_DUPLICATE_CARD,
 };
 
 #define  POKER_ERROR  -1
