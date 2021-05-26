@@ -10,7 +10,7 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-/// @title TurnBasedGameLib
+/// @title TurnBasedGameUtil
 /// @author Milton Jonathan
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
@@ -60,8 +60,10 @@ library TurnBasedGameUtil {
         require(_start >= 0 && _start < _data.length, "start index out of bounds");
         require(_end > 0 && _end <= _data.length, "end index out of bounds");
 
-        uint nBytes8 = (_end - _start - 1)/8 + 1;
-        uint nBytes32 = (_end - _start - 1)/32 + 1;
+        uint length = _end - _start;
+        uint nBytes8 = (length - 1)/8 + 1;
+        uint nBytes32 = (length - 1)/32 + 1;
+        uint paddingBits = (nBytes8*8 - length)*8;
 
         require(_output.length >= nBytes8, "output buffer is not large enough to hold result");
 
@@ -82,16 +84,21 @@ library TurnBasedGameUtil {
             _output[i*4 + 3] = bytes8(value << 192);
         }
         {
-            // last entry
+            // last word (may be partially used)
             bytes32 value;
             assembly {
               ptr := add(ptr, 0x20)
               value := mload(ptr)
-            }        
-            for (uint i = (nBytes32-1)*4; i < nBytes8; i++) {
+            }
+            // full 8-byte entries of last word
+            for (uint i = (nBytes32-1)*4; i < nBytes8 - 1; i++) {
                 _output[i] = bytes8(value);
                 value = value << 64;
             }
+            // last 8-byte entry (may be partial)
+            // - pads last value to chop out unrequested bytes
+            bytes8 valueBytes8 = (bytes8(value) >> paddingBits) << paddingBits;
+            _output[nBytes8-1] = valueBytes8;
         }
     }    
 
@@ -105,7 +112,7 @@ library TurnBasedGameUtil {
     {
         require(_playerFunds.length == _fundsShare.length, "Resulting funds distribution does not match number of players in the game");
 
-        // checks if given address belongs to one of the game players
+        // computes total funds submitted by the players and total funds distributed
         uint totalPlayerFunds = 0;
         uint totalFundsShare = 0;
         for (uint i = 0; i < _playerFunds.length; i++) {
