@@ -24,6 +24,7 @@ import { TurnBasedGameLobby__factory } from "../src/types/factories/TurnBasedGam
 use(solidity);
 
 describe("TurnBasedGameLobby", async () => {
+    let pokerTokenContract: PokerToken;
     let lobbyContract: TurnBasedGameLobby;
     let lobbyContractPlayer1: TurnBasedGameLobby;
     let mockGameContract: MockContract;
@@ -64,8 +65,16 @@ describe("TurnBasedGameLobby", async () => {
             args: [pokerToken.address, mockGameContract.address],
         });
 
+        // Connect player1 to lobby contract
         lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobby.address, signer);
         lobbyContractPlayer1 = lobbyContract.connect(player1);
+
+        // Mint tokens for player1
+        pokerTokenContract = PokerToken__factory.connect(pokerToken.address, signer);
+        await pokerTokenContract.mint(await player1.getAddress(), minFunds);
+
+        // Set up approval for lobby contract spend tokens on behalf of player1
+        pokerTokenContract.connect(player1).approve(TurnBasedGameLobby.address, minFunds)
     });
 
     // GET QUEUE

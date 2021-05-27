@@ -107,6 +107,8 @@ contract TurnBasedGameLobby {
             newPlayer.funds = _playerFunds;
             newPlayer.info = _playerInfo;
             queuedPlayers.push(newPlayer);
+            // Lock tokens
+            lockFundsUntilGameStart(newPlayer.addr, _gameMinFunds);
         } else {
             // enough players are already queued: we can start a game
             // - collects previously queued players
@@ -134,5 +136,13 @@ contract TurnBasedGameLobby {
             // clears up queue
             delete queues[queueHash];
         }
+    }
+
+    /// @notice Lock player tokens in the lobby account until the game start
+    /// @param _playerAddress address for the player whose tokens will be locked in lobby account
+    /// @param _gameMinFunds minimum funds required to be staked in order to join the game
+    function lockFundsUntilGameStart(address _playerAddress, uint256 _gameMinFunds) public {
+        // TODO - Cláudio - Who is address calling transferFrom? This?
+        pokerToken.transferFrom(_playerAddress, address(this), _gameMinFunds);
     }
 }
