@@ -16,10 +16,13 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "./TurnBasedGame.sol";
+import "./PokerToken.sol";
 
 /// @title TurnBasedGameLobby
 /// @notice Entry point for players to join games handled by the TurnBasedGame contract
 contract TurnBasedGameLobby {
+    // PokerToken contract used for obtaining players tokens
+    PokerToken pokerToken;
 
     // TurnBasedGame contract used for starting games
     TurnBasedGame turnBasedGame;
@@ -32,13 +35,13 @@ contract TurnBasedGameLobby {
     }
     mapping(bytes32 => QueuedPlayer[]) internal queues;
 
-
     /// @notice Constructor
+    /// @param pokerTokenAddress address of the PokerToken contract used for obtaining players tokens
     /// @param turnBasedGameAddress address of the TurnBasedGame contract used for starting games
-    constructor(address turnBasedGameAddress) {
+    constructor(address pokerTokenAddress, address turnBasedGameAddress) {
+        pokerToken = PokerToken(pokerTokenAddress);
         turnBasedGame = TurnBasedGame(turnBasedGameAddress);
     }
-
 
     /// @notice Retrieves the current queue for a given game (specified by its template hash, metadata and number of players)
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
@@ -53,15 +56,15 @@ contract TurnBasedGameLobby {
         address[] memory _gameValidators,
         uint8 _gameNumPlayers,
         uint256 _gameMinFunds
-    ) public view
-        returns (QueuedPlayer[] memory)
-    {
+    ) public view returns (QueuedPlayer[] memory) {
         // builds hash for game specification
-        bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameValidators, _gameNumPlayers, _gameMinFunds));
+        bytes32 queueHash =
+            keccak256(
+                abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameValidators, _gameNumPlayers, _gameMinFunds)
+            );
         // retrieves queued players for given game specification
         return queues[queueHash];
     }
-
 
     /// @notice Allows a player to join a game. People are queued up as they join and the game starts when enough people are available.
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
@@ -80,18 +83,20 @@ contract TurnBasedGameLobby {
         uint256 _playerFunds,
         bytes memory _playerInfo
     ) public {
-
         // ensures player is staking enough funds to participate in the game
         require(_playerFunds >= _gameMinFunds, "Player's staked funds is insufficient to join the game");
 
         // builds hash for game specification
-        bytes32 queueHash = keccak256(abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameValidators, _gameNumPlayers, _gameMinFunds));
-        
+        bytes32 queueHash =
+            keccak256(
+                abi.encodePacked(_gameTemplateHash, _gameMetadata, _gameValidators, _gameNumPlayers, _gameMinFunds)
+            );
+
         // retrieves queued players for given game specification
         QueuedPlayer[] storage queuedPlayers = queues[queueHash];
 
         // reverts if player is already in the queue
-        for (uint i = 0; i < queuedPlayers.length; i++) {
+        for (uint256 i = 0; i < queuedPlayers.length; i++) {
             require(queuedPlayers[i].addr != msg.sender, "Player has already been enqueued to join this game");
         }
 
@@ -108,15 +113,15 @@ contract TurnBasedGameLobby {
             address[] memory players = new address[](_gameNumPlayers);
             uint256[] memory playerFunds = new uint256[](_gameNumPlayers);
             bytes[] memory playerInfos = new bytes[](_gameNumPlayers);
-            for (uint i = 0; i < _gameNumPlayers - 1; i++) {
+            for (uint256 i = 0; i < _gameNumPlayers - 1; i++) {
                 players[i] = queuedPlayers[i].addr;
                 playerFunds[i] = queuedPlayers[i].funds;
                 playerInfos[i] = queuedPlayers[i].info;
             }
             // - adds new player
-            players[_gameNumPlayers-1] = msg.sender;
-            playerFunds[_gameNumPlayers-1] = _playerFunds;
-            playerInfos[_gameNumPlayers-1] = _playerInfo;
+            players[_gameNumPlayers - 1] = msg.sender;
+            playerFunds[_gameNumPlayers - 1] = _playerFunds;
+            playerInfos[_gameNumPlayers - 1] = _playerInfo;
             // - starts game
             turnBasedGame.startGame(
                 _gameTemplateHash,

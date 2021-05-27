@@ -15,6 +15,9 @@ import { expect, use } from "chai";
 import { deployments, ethers, getNamedAccounts } from "hardhat";
 import { MockContract, deployMockContract, solidity } from "ethereum-waffle";
 
+import { PokerToken } from "../src/types/PokerToken";
+import { PokerToken__factory } from "../src/types/factories/PokerToken__factory";
+
 import { TurnBasedGameLobby } from "../src/types/TurnBasedGameLobby";
 import { TurnBasedGameLobby__factory } from "../src/types/factories/TurnBasedGameLobby__factory";
 
@@ -40,18 +43,25 @@ describe("TurnBasedGameLobby", async () => {
     beforeEach(async () => {
         const [signer, player1, nonPlayer] = await ethers.getSigners();
 
-        const { alice, bob } = await getNamedAccounts();
+        const { deployer, alice, bob } = await getNamedAccounts();
         players = [alice, bob];
         validators = players;
 
+        await deployments.fixture(); // reset contracts to initial state
+
+        // Get previously deployed PokerToken contract
+        const pokerToken = await deployments.get("PokerToken");
+
+        // Get a mock for Game contract
         const TurnBasedGame = await deployments.getArtifact("TurnBasedGame");
         mockGameContract = await deployMockContract(signer, TurnBasedGame.abi);
 
+        // Deploy game lobby contract
         const { deploy } = deployments;
         const TurnBasedGameLobby = await deploy("TurnBasedGameLobby", {
             from: signer.address,
             log: true,
-            args: [mockGameContract.address],
+            args: [pokerToken.address, mockGameContract.address],
         });
 
         lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobby.address, signer);
