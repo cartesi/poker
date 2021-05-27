@@ -1,3 +1,4 @@
+import { VerificationLayer } from './VerificationLayer';
 import { CheatLayer } from './CheatLayer';
 import { AudioManager } from './../../AudioManager';
 import { TableContainer } from "./table-container/TableContainer";
@@ -18,6 +19,7 @@ export class RoomScene extends Phaser.Scene {
     public tableContainer: TableContainer;
     public settingsLayer: SettingsLayer;
     public cheatLayer: CheatLayer;
+    public verificationLayer: VerificationLayer;
     public shuffleCardsLayer: SuffleCardsLayer;
 
     constructor() {
@@ -51,6 +53,9 @@ export class RoomScene extends Phaser.Scene {
         this.cheatLayer = new CheatLayer(this);
         this.add.existing(this.cheatLayer);
 
+        this.verificationLayer = new VerificationLayer(this);
+        this.add.existing(this.verificationLayer);
+
         setTimeout(() => {
             RoomManager.startRound();
         }, 2000);
@@ -61,6 +66,16 @@ export class RoomScene extends Phaser.Scene {
     public showSettingsMenu(): void {
 
         this.settingsLayer.show();
+    }
+
+    public showVerificationLayer(): void {
+
+        this.verificationLayer.show();
+    }
+
+    public updateVerificationLayer(value: number): void {
+
+        this.verificationLayer.updateValue(value);
     }
 
     public onOrientationChange(): void {

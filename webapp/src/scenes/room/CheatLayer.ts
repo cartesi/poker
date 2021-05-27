@@ -98,7 +98,7 @@ export class CheatLayer extends Phaser.GameObjects.Container {
 
     private onClickAces(): void {
 
-        RoomManager.switchPlayerCards("1", "14");
+        RoomManager.switchPlayerCards(13, 26);
         this.visible = false;
     }
 

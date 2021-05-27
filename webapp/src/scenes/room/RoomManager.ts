@@ -39,10 +39,14 @@ export class RoomManager {
                 RoomManager.onEnd();
             },
             (msg) => {
-                // console.log(msg);
+                console.log(msg);
+
+                if (msg === "verificationReceived" || msg === "triggerVerification") {
+                    RoomManager.showVerificationLayer();
+                }
             },
-            () => {
-                console.log("VERIFICATION");
+            (msg) => {
+                RoomManager.updateVerification(msg);
             }
         );
 
@@ -56,9 +60,6 @@ export class RoomManager {
             },
             (msg) => {
                 // console.log(msg);
-            },
-            () => {
-                console.log("VERIFICATION 2");
             }
         );
 
@@ -91,6 +92,16 @@ export class RoomManager {
         return RoomManager.games[ALICE].getPlayerFunds();
     }
 
+    public static showVerificationLayer(): void {
+
+        RoomScene.currentInstance.showVerificationLayer();
+    }
+
+    public static updateVerification(value: number): void {
+
+        RoomScene.currentInstance.updateVerificationLayer(value);
+    }
+
     public static getOpponentFunds(): number {
 
         return RoomManager.games[ALICE].getOpponentFunds();
@@ -103,9 +114,11 @@ export class RoomManager {
         return cards.map(RoomManager.getCardSuitValue);
     }
 
-    public static switchPlayerCards(card1: string, card2: string): void {
+    public static switchPlayerCards(card1: number, card2: number): void {
 
         RoomManager.games[ALICE].cheat.switchCards(card1, card2);
+
+        RoomScene.currentInstance.updateBoard();
     }
 
     public static toogleCardCooperation(): void {
