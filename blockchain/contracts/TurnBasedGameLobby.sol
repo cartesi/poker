@@ -100,6 +100,9 @@ contract TurnBasedGameLobby {
             require(queuedPlayers[i].addr != msg.sender, "Player has already been enqueued to join this game");
         }
 
+        // Lock player tokens
+        lockFundsUntilGameStart(msg.sender, _gameMinFunds);
+
         if (queuedPlayers.length < _gameNumPlayers - 1) {
             // not enough players queued yet, so we simply add this new one to the queue
             QueuedPlayer memory newPlayer;
@@ -107,8 +110,6 @@ contract TurnBasedGameLobby {
             newPlayer.funds = _playerFunds;
             newPlayer.info = _playerInfo;
             queuedPlayers.push(newPlayer);
-            // Lock player tokens
-            lockFundsUntilGameStart(newPlayer.addr, _gameMinFunds);
         } else {
             // enough players are already queued: we can start a game
             // - collects previously queued players
@@ -120,6 +121,10 @@ contract TurnBasedGameLobby {
                 playerFunds[i] = queuedPlayers[i].funds;
                 playerInfos[i] = queuedPlayers[i].info;
             }
+
+            //Tranfer players tokens to Game contract account
+            transferTokenToGameAccount();
+
             // - adds new player
             players[_gameNumPlayers - 1] = msg.sender;
             playerFunds[_gameNumPlayers - 1] = _playerFunds;
@@ -143,5 +148,11 @@ contract TurnBasedGameLobby {
     /// @param _gameMinFunds minimum funds required to be staked in order to join the game
     function lockFundsUntilGameStart(address _playerAddress, uint256 _gameMinFunds) public {
         pokerToken.transferFrom(_playerAddress, address(this), _gameMinFunds);
+    }
+
+    /// @notice Transfer tokens from lobby account to the game account
+    function transferTokenToGameAccount() public {
+        uint256 lobbyFunds = pokerToken.balanceOf(address(this));
+        pokerToken.transferFrom(address(this), address(turnBasedGame), lobbyFunds);
     }
 }
