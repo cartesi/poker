@@ -16,8 +16,8 @@ game_error referee::step_init_game(money_t alice_money, money_t bob_money) {
     if (_g.step != game_step::BEGIN)
         return (_g.error = ERR_INVALID_MOVE);
 
-    _g.players[ALICE].available = alice_money;
-    _g.players[BOB].available = bob_money;
+    _g.players[ALICE].total_funds = alice_money;
+    _g.players[BOB].total_funds = bob_money;
     // etc etc....
 
     _g.step = game_step::INIT_GAME;

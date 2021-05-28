@@ -48,13 +48,13 @@ enum game_step {
 
 struct player_state {
     player_state(int pid) :
-        id(pid), available(0), pot{0},
+        id(pid), total_funds(0), bets{0},
         cards{cards::uk, cards::uk}
         {}
 
     int16_t id;    
-    money_t available;
-    money_t pot;
+    money_t total_funds;
+    money_t bets;
     card_t cards[NUM_PRIVATE_CARDS];
 };
 
