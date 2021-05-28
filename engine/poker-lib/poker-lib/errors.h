@@ -58,6 +58,12 @@ enum game_error {
 
     // game_state errors
     GRR_INVALID_PLAYER,
+    GRR_INSUFFICIENT_FUNDS,
+    GRR_BETS_NOT_EQUAL,
+    GRR_BET_ALREADY_HIGHER,
+    GRR_OPPONENT_BET_NOT_HIGHER,
+    GRR_BET_BELOW_MINIMUM,
+    GRR_BET_ABOVE_MAXIMUM,
 };
 
 #define  POKER_ERROR  -1
