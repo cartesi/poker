@@ -20,6 +20,7 @@ import { PokerToken__factory } from "../src/types/factories/PokerToken__factory"
 
 import { TurnBasedGameLobby } from "../src/types/TurnBasedGameLobby";
 import { TurnBasedGameLobby__factory } from "../src/types/factories/TurnBasedGameLobby__factory";
+import { SignerWithAddress } from "hardhat-deploy-ethers/dist/src/signer-with-address";
 
 use(solidity);
 
@@ -38,11 +39,15 @@ describe("TurnBasedGameLobby", async () => {
     ];
     const minFunds = 100;
 
+    let signer: SignerWithAddress;
+    let player1: SignerWithAddress;
+    let nonPlayer: SignerWithAddress;
+
     let players;
     let validators;
 
     beforeEach(async () => {
-        const [signer, player1, nonPlayer] = await ethers.getSigners();
+        [signer, player1, nonPlayer] = await ethers.getSigners();
 
         const { deployer, alice, bob } = await getNamedAccounts();
         players = [alice, bob];
@@ -65,196 +70,209 @@ describe("TurnBasedGameLobby", async () => {
             args: [pokerToken.address, mockGameContract.address],
         });
 
-        // Connect player1 to lobby contract
+        // Get lobby contract instance
         lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobby.address, signer);
+
+        // Connect player1(Bob) to lobby contract
         lobbyContractPlayer1 = lobbyContract.connect(player1);
 
-        // Mint tokens for player1
+        // Mint tokens for signer(Alice) and player1(Bob)
         pokerTokenContract = PokerToken__factory.connect(pokerToken.address, signer);
+        await pokerTokenContract.mint(await signer.getAddress(), minFunds);
         await pokerTokenContract.mint(await player1.getAddress(), minFunds);
 
-        // Set up approval for lobby contract spend tokens on behalf of player1
-        pokerTokenContract.connect(player1).approve(TurnBasedGameLobby.address, minFunds)
+        // Set up approval for lobby contract spend tokens on behalf of signer(Alice) and player1(Bob)
+        await pokerTokenContract.connect(signer).approve(TurnBasedGameLobby.address, minFunds)
+        await pokerTokenContract.connect(player1).approve(TurnBasedGameLobby.address, minFunds)
     });
 
     // GET QUEUE
-
-    it("getQueue: should be empty at first", async () => {
-        expect(
-            await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds)
-        ).to.eql([]);
+    describe("getQueue", async () => {
+        it("Should be empty at first", async () => {
+            expect(
+                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds)
+            ).to.eql([]);
+        });
     });
+
 
     // JOIN GAME
+    describe("JoinGame", async () => {
+        it("Should not be allowed if player funds are less than the minimum required", async () => {
+            await expect(
+                lobbyContract.joinGame(
+                    gameTemplateHash,
+                    gameMetadata,
+                    validators,
+                    players.length,
+                    minFunds,
+                    minFunds - 1,
+                    playerInfos[0]
+                )
+            ).to.be.revertedWith("Player's staked funds is insufficient to join the game");
+        });
 
-    it("joinGame: should not be allowed if player funds are less than the minimum required", async () => {
-        await expect(
-            lobbyContract.joinGame(
+        it("Should allow if player funds are greater or equal than the minimum required", async () => {
+            await expect(
+                lobbyContractPlayer1.joinGame(
+                    gameTemplateHash,
+                    gameMetadata,
+                    validators,
+                    players.length,
+                    minFunds,
+                    minFunds,
+                    players[0]
+                )
+            ).not.to.be.reverted;
+        });
+
+        it("Should not allow player to join game more than once", async () => {
+            await lobbyContractPlayer1.joinGame(
                 gameTemplateHash,
                 gameMetadata,
                 validators,
                 players.length,
                 minFunds,
-                minFunds - 1,
+                playerFunds[0],
                 playerInfos[0]
-            )
-        ).to.be.revertedWith("Player's staked funds is insufficient to join the game");
+            );
 
-        await expect(
-            lobbyContract.joinGame(
+            await expect(
+                lobbyContractPlayer1.joinGame(
+                    gameTemplateHash,
+                    gameMetadata,
+                    validators,
+                    players.length,
+                    minFunds,
+                    minFunds,
+                    playerInfos[0]
+                )
+            ).to.be.revertedWith("Player has already been enqueued to join this game");
+        });
+
+        it("Should add first player to the appropriate queue", async () => {
+            await lobbyContract.joinGame(
                 gameTemplateHash,
                 gameMetadata,
                 validators,
                 players.length,
                 minFunds,
-                minFunds,
+                playerFunds[0],
                 playerInfos[0]
-            )
-        ).not.to.be.reverted;
+            );
+
+            // queue containing player
+            const queuedPlayers = await lobbyContract.getQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                players.length,
+                minFunds
+            );
+            expect(queuedPlayers.length).to.eql(1);
+            expect(queuedPlayers[0][0]).to.eql(players[0]); // address
+            expect(queuedPlayers[0][1]).to.eql(playerFunds[0]); // staked funds
+            expect(queuedPlayers[0][2]).to.eql(playerInfos[0]); // info
+
+            // other queues (changing whatever parameter) should be empty
+            expect(
+                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds + 1)
+            ).to.eql([]);
+        });
+
     });
 
-    it("joinGame: should not allow player to join game more than once", async () => {
-        await lobbyContract.joinGame(
-            gameTemplateHash,
-            gameMetadata,
-            validators,
-            players.length,
-            minFunds,
-            playerFunds[0],
-            playerInfos[0]
-        );
-
-        await expect(
-            lobbyContract.joinGame(
+    // joinGame and startGame
+    describe("joinGame and startGame interaction", async () => {
+        it("Should start game and delete queue when enough players have joined", async () => {
+            // player 0 joins
+            await lobbyContract.joinGame(
                 gameTemplateHash,
                 gameMetadata,
                 validators,
                 players.length,
                 minFunds,
-                minFunds,
+                playerFunds[0],
                 playerInfos[0]
-            )
-        ).to.be.revertedWith("Player has already been enqueued to join this game");
-    });
+            );
 
-    it("joinGame: should add first player to the appropriate queue", async () => {
-        await lobbyContract.joinGame(
-            gameTemplateHash,
-            gameMetadata,
-            validators,
-            players.length,
-            minFunds,
-            playerFunds[0],
-            playerInfos[0]
-        );
+            // player 1 joins another game with different metadata and minFunds (no game started)
+            const gameMetadataOther = "0x123456";
+            const minFundsOther = minFunds - 2;
+            await lobbyContractPlayer1.joinGame(
+                gameTemplateHash,
+                gameMetadataOther,
+                validators,
+                players.length,
+                minFundsOther,
+                playerFunds[1],
+                playerInfos[1]
+            );
 
-        // queue containing player
-        const queuedPlayers = await lobbyContract.getQueue(
-            gameTemplateHash,
-            gameMetadata,
-            validators,
-            players.length,
-            minFunds
-        );
-        expect(queuedPlayers.length).to.eql(1);
-        expect(queuedPlayers[0][0]).to.eql(players[0]); // address
-        expect(queuedPlayers[0][1]).to.eql(playerFunds[0]); // staked funds
-        expect(queuedPlayers[0][2]).to.eql(playerInfos[0]); // info
+            // queue should have one player
+            let queuedPlayers = await lobbyContract.getQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                players.length,
+                minFunds
+            );
+            expect(queuedPlayers.length).to.eql(1);
 
-        // other queues (changing whatever parameter) should be empty
-        expect(
-            await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds + 1)
-        ).to.eql([]);
-    });
+            // mock now expecting to be called with these exact parameters
+            await mockGameContract.mock.startGame
+                .withArgs(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos)
+                .returns(0);
 
-    it("joinGame: should start game and delete queue when enough players have joined", async () => {
-        // player 0 joins
-        await lobbyContract.joinGame(
-            gameTemplateHash,
-            gameMetadata,
-            validators,
-            players.length,
-            minFunds,
-            playerFunds[0],
-            playerInfos[0]
-        );
+            // player 1 joins the game and mock should be called
+            await lobbyContractPlayer1.joinGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                players.length,
+                minFunds,
+                playerFunds[1],
+                playerInfos[1]
+            );
 
-        // player 1 joins another game with different metadata and minFunds (no game started)
-        const gameMetadataOther = "0x123456";
-        const minFundsOther = minFunds - 2;
-        await lobbyContractPlayer1.joinGame(
-            gameTemplateHash,
-            gameMetadataOther,
-            validators,
-            players.length,
-            minFundsOther,
-            playerFunds[1],
-            playerInfos[1]
-        );
+            // queue should be empty
+            expect(
+                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds)
+            ).to.eql([]);
 
-        // queue should have one player
-        let queuedPlayers = await lobbyContract.getQueue(
-            gameTemplateHash,
-            gameMetadata,
-            validators,
-            players.length,
-            minFunds
-        );
-        expect(queuedPlayers.length).to.eql(1);
+            // queue for other game should still have one player
+            queuedPlayers = await lobbyContract.getQueue(
+                gameTemplateHash,
+                gameMetadataOther,
+                validators,
+                players.length,
+                minFundsOther
+            );
+            expect(queuedPlayers.length).to.eql(1);
 
-        // mock now expecting to be called with these exact parameters
-        await mockGameContract.mock.startGame
-            .withArgs(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos)
-            .returns(0);
+            // mock now expecting to be called with parameters for other game (player1 is the first player in this case)
+            let playersOther = [players[1], players[0]];
+            let playerFundsOther = [playerFunds[1], playerFunds[0]];
+            let playerInfosOther = [playerInfos[1], playerInfos[0]];
+            await mockGameContract.mock.startGame
+                .withArgs(gameTemplateHash, gameMetadataOther, validators, playersOther, playerFundsOther, playerInfosOther)
+                .returns(1);
 
-        // player 1 joins the game and mock should be called
-        await lobbyContractPlayer1.joinGame(
-            gameTemplateHash,
-            gameMetadata,
-            validators,
-            players.length,
-            minFunds,
-            playerFunds[1],
-            playerInfos[1]
-        );
+            // player 0 joins the other game and mock should be called
+            await lobbyContract.joinGame(
+                gameTemplateHash,
+                gameMetadataOther,
+                validators,
+                players.length,
+                minFundsOther,
+                playerFunds[0],
+                playerInfos[0]
+            );
 
-        // queue should be empty
-        expect(
-            await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds)
-        ).to.eql([]);
-
-        // queue for other game should still have one player
-        queuedPlayers = await lobbyContract.getQueue(
-            gameTemplateHash,
-            gameMetadataOther,
-            validators,
-            players.length,
-            minFundsOther
-        );
-        expect(queuedPlayers.length).to.eql(1);
-
-        // mock now expecting to be called with parameters for other game (player1 is the first player in this case)
-        let playersOther = [players[1], players[0]];
-        let playerFundsOther = [playerFunds[1], playerFunds[0]];
-        let playerInfosOther = [playerInfos[1], playerInfos[0]];
-        await mockGameContract.mock.startGame
-            .withArgs(gameTemplateHash, gameMetadataOther, validators, playersOther, playerFundsOther, playerInfosOther)
-            .returns(1);
-
-        // player 0 joins the other game and mock should be called
-        await lobbyContract.joinGame(
-            gameTemplateHash,
-            gameMetadataOther,
-            validators,
-            players.length,
-            minFundsOther,
-            playerFunds[0],
-            playerInfos[0]
-        );
-
-        // queue for other game should now be empty
-        expect(
-            await lobbyContract.getQueue(gameTemplateHash, gameMetadataOther, validators, players.length, minFundsOther)
-        ).to.eql([]);
+            // queue for other game should now be empty
+            expect(
+                await lobbyContract.getQueue(gameTemplateHash, gameMetadataOther, validators, players.length, minFundsOther)
+            ).to.eql([]);
+        });
     });
 });

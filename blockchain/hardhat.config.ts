@@ -333,8 +333,7 @@ task("claim-result", "Claims a game has ended with a specified result")
 
         console.log("");
         console.log(
-            `Result '${JSON.stringify(result)}' claimed by '${player}' for game with index '${index}' (tx: ${
-                tx.hash
+            `Result '${JSON.stringify(result)}' claimed by '${player}' for game with index '${index}' (tx: ${tx.hash
             } ; blocknumber: ${tx.blockNumber})\n`
         );
     });
@@ -367,8 +366,7 @@ task("confirm-result", "Confirms a game result that was previously claimed")
                 const result = gameOverEvent.args._fundsShare;
                 const resultPrintable = result.map((v) => v.toNumber());
                 console.log(
-                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${
-                        tx.hash
+                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${tx.hash
                     } ; blocknumber: ${tx.blockNumber})\n`
                 );
                 break;
@@ -399,8 +397,7 @@ task("apply-result", "Applies the result of a game verified by Descartes")
                 const result = gameOverEvent.args._fundsShare;
                 const resultPrintable = result.map((v) => v.toNumber());
                 console.log(
-                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${
-                        tx.hash
+                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${tx.hash
                     } ; blocknumber: ${tx.blockNumber})\n`
                 );
                 break;
