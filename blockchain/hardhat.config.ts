@@ -212,7 +212,6 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
                 const turn = turns[iTurn];
                 console.log(`- turn ${iTurn}`);
                 console.log(`  - player: ${turn.player}`);
-                console.log(`  - stateHash: ${turn.stateHash}`);
                 for (let iChunk = 0; iChunk < turn.dataLogIndices.length; iChunk++) {
                     let index = turn.dataLogIndices[iChunk];
                     let data = undefined;
@@ -239,12 +238,6 @@ task("submit-turn", "Submits a game turn for a given player")
         types.string
     )
     .addOptionalParam(
-        "statehash",
-        "32-bit hash of the game state for which the turn applies",
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        types.string
-    )
-    .addOptionalParam(
         "data",
         "Turn data to submit, which must be an array of 64-bit words",
         "0x00000000000000010000000000000002",
@@ -256,13 +249,17 @@ task("submit-turn", "Submits a game turn for a given player")
         undefined,
         types.string
     )
-    .setAction(async ({ index, player, statehash, data, datafile }, hre) => {
+    .setAction(async ({ index, player, data, datafile }, hre) => {
         const { ethers } = hre;
         // retrieves account from configured named accounts, according to player's name
         const playerAccount = (await hre.getNamedAccounts())[player];
         // retrieves game contracts with signer configured for the specified account
         // - this means that any transaction submitted will be on behalf of that specified account
         const game = await ethers.getContract("TurnBasedGame", playerAccount);
+
+        // queries game contract to retrieve context for the specified game index
+        let context = await game.getContext(index);
+        const turns = context[6];
 
         console.log("");
         if (datafile) {
@@ -279,9 +276,9 @@ task("submit-turn", "Submits a game turn for a given player")
         }
 
         // submits turn for the specified player
-        await game.submitTurn(index, statehash, data);
+        await game.submitTurn(index, turns.length, data);
 
-        let context = await game.getContext(index);
+        context = await game.getContext(index);
         console.log(`Context: ${JSON.stringify(context)}\n`);
     });
 

@@ -23,8 +23,6 @@ import "./TurnBasedGameUtil.sol";
 struct Turn {
     // player that submitted the turn
     address player;
-    // game state for which the turn applies
-    bytes32 stateHash;
     // indices that identify the turn's data stored in the Logger
     uint256[] dataLogIndices;
 }
@@ -65,7 +63,7 @@ library TurnBasedGameContext {
 
     // events emitted    
     event GameReady(uint256 _index, GameContext _context);
-    event TurnOver(uint256 _index, Turn _turn);
+    event TurnOver(uint256 _index, uint256 _turnIndex, Turn _turn);
     event GameResultClaimed(uint256 _index, uint[] _fundsShare, address _author);
     event GameChallenged(uint256 _index, uint256 _descartesIndex, address _author);
     event GameOver(uint256 _index, uint[] _fundsShare);
@@ -74,11 +72,11 @@ library TurnBasedGameContext {
     /// @notice Submits a new turn for a given game
     /// @param _context game context
     /// @param _index index identifying the game
-    /// @param _stateHash game state for which the turn applies
+    /// @param _turnIndex a sequential number for the turn, which must be equal to the last submitted turn's index + 1
     /// @param _data game-specific turn data (array of 64-bit words)
     /// @param _logger Logger instance used for storing data in the event history
     /// @param _turnChunkLog2Size turn data log2size considering 64-bit words (i.e., how many 64-bit words are there in a chunk of turn data)
-    function submitTurn(GameContext storage _context, uint256 _index, bytes32 _stateHash, bytes calldata _data, Logger _logger, uint8 _turnChunkLog2Size) public
+    function submitTurn(GameContext storage _context, uint256 _index, uint256 _turnIndex, bytes calldata _data, Logger _logger, uint8 _turnChunkLog2Size) public
         onlyByPlayer(_context)
     {
         // ensures game is still ongoing
@@ -86,6 +84,9 @@ library TurnBasedGameContext {
         require(_context.claimer == address(0), "Game end has been claimed");
         // - game has not been challenged
         require(!_context.isDescartesInstantiated, "Game verification in progress");
+
+        // ensures tuen submission sequence is correct
+        require(_turnIndex == _context.turns.length, "Invalid turn submission sequence");
 
         // defines number of required chunks
         uint chunkSize = 2 ** _turnChunkLog2Size;
@@ -120,7 +121,6 @@ library TurnBasedGameContext {
         // instantiates new turn
         Turn memory turn = Turn({
             player: msg.sender,
-            stateHash: _stateHash,
             dataLogIndices: logIndices
         });
 
@@ -128,7 +128,7 @@ library TurnBasedGameContext {
         _context.turns.push(turn);
         
         // emits event for new turn
-        emit TurnOver(_index, turn);
+        emit TurnOver(_index, _turnIndex, turn);
     }
 
 
