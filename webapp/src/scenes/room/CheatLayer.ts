@@ -1,5 +1,6 @@
 import { RoomManager } from './RoomManager';
 import { GameConstants } from "../../GameConstants";
+import { GameVars } from '../../GameVars';
 
 export class CheatLayer extends Phaser.GameObjects.Container {
     
@@ -94,6 +95,8 @@ export class CheatLayer extends Phaser.GameObjects.Container {
             self.scene.input.keyboard.createCombo("CARTESI");
 
         });
+
+        this.midContainer.setScale(GameVars.scaleX, 1);
     }
 
     private onClickAces(): void {

@@ -1,4 +1,5 @@
 import { GameConstants } from "../../GameConstants";
+import { GameVars } from "../../GameVars";
 
 export class VerificationLayer extends Phaser.GameObjects.Container {
     
@@ -36,6 +37,17 @@ export class VerificationLayer extends Phaser.GameObjects.Container {
         title.setOrigin(.5);
         this.midContainer.add(title);
 
+        let loading = new Phaser.GameObjects.Image(this.scene, 0, -10, "texture_atlas_1", "loading");
+        this.midContainer.add(loading);
+
+        this.scene.tweens.add({
+            targets: loading,
+            angle: 360,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 1500,
+            repeat: -1
+        });
+
         title = new Phaser.GameObjects.Text(this.scene, 0, 105, "STATE", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#ffffff"});
         title.setOrigin(.5);
         this.midContainer.add(title);
@@ -43,6 +55,8 @@ export class VerificationLayer extends Phaser.GameObjects.Container {
         this.stateText = new Phaser.GameObjects.Text(this.scene, 0, 150, "", {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#ffffff"});
         this.stateText.setOrigin(.5);
         this.midContainer.add(this.stateText);
+
+        this.midContainer.setScale(GameVars.scaleX, 1);
     }
 
     public show(): void {

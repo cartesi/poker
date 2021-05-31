@@ -511,6 +511,19 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">texture_atlas_1/loading.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>29,28,57,55</rect>
+                <key>scale9Paddings</key>
+                <rect>29,28,57,55</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">texture_atlas_1/logo_main.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
