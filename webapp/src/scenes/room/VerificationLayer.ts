@@ -4,6 +4,7 @@ export class VerificationLayer extends Phaser.GameObjects.Container {
     
     private midContainer: Phaser.GameObjects.Container;
     private midBackground: Phaser.GameObjects.Graphics;
+    private stateText: Phaser.GameObjects.Text;
 
     constructor(scene: Phaser.Scene) {
 
@@ -34,15 +35,47 @@ export class VerificationLayer extends Phaser.GameObjects.Container {
         let title = new Phaser.GameObjects.Text(this.scene, 0, -140, "VERIFICATION", {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#ffffff"});
         title.setOrigin(.5);
         this.midContainer.add(title);
+
+        title = new Phaser.GameObjects.Text(this.scene, 0, 105, "STATE", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#ffffff"});
+        title.setOrigin(.5);
+        this.midContainer.add(title);
+
+        this.stateText = new Phaser.GameObjects.Text(this.scene, 0, 150, "", {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#ffffff"});
+        this.stateText.setOrigin(.5);
+        this.midContainer.add(this.stateText);
     }
 
     public show(): void {
 
         this.visible = true;
+        this.alpha = 0;
+
+        this.scene.tweens.add({
+            targets: this,
+            alpha: 1,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 500
+        });
     }
 
     public updateValue(value: number): void {
 
+        this.stateText.setText(GameConstants.VERIFICATION_STATES[value]);
+
         console.log("UPDATE VALUE " + value);
+
+        if (value === 5) {
+            this.scene.tweens.add({
+                targets: this,
+                alpha: 0,
+                ease: Phaser.Math.Easing.Linear,
+                duration: 500,
+                delay: 2000,
+                onComplete: () => {
+                    this.visible = false;
+                },
+                onCompleteScope: this
+            });
+        }
     }
 }
