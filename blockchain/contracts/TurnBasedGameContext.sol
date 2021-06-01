@@ -23,6 +23,8 @@ import "./TurnBasedGameUtil.sol";
 struct Turn {
     // player that submitted the turn
     address player;
+    // timestamp when turn was submitted
+    uint256 timestamp;
     // indices that identify the turn's data stored in the Logger
     uint256[] dataLogIndices;
 }
@@ -121,6 +123,7 @@ library TurnBasedGameContext {
         // instantiates new turn
         Turn memory turn = Turn({
             player: msg.sender,
+            timestamp: block.timestamp,
             dataLogIndices: logIndices
         });
 
@@ -319,37 +322,34 @@ library TurnBasedGameContext {
     {
         // builds input drives for the descartes computation
         DescartesInterface.Drive[] memory drives = new DescartesInterface.Drive[](5);
-        address provider = address(0);
 
         // 1st input drive: game metadata (3rd drive position after rootfs and dapp data)
-        drives[0] = buildDirectDrive(provider, _context.gameMetadata, 0xa000000000000000);
+        drives[0] = buildDirectDrive(_context.gameMetadata, 0xa000000000000000);
 
         // 2nd input drive: players data
-        bytes memory players = abi.encodePacked(_context.players);
-        drives[1] = buildDirectDrive(provider, players, 0xb000000000000000);
+        bytes memory players = abi.encodePacked(uint8(_context.players.length), _context.players, _context.playerFunds);
+        drives[1] = buildDirectDrive(players, 0xb000000000000000);
 
-        // 3rd input drive: player funds data
-        bytes memory playerFunds = abi.encodePacked(_context.playerFunds);
-        drives[2] = buildDirectDrive(provider, playerFunds, 0xc000000000000000);
+        // 3rd input drive: turns metadata
+        drives[3] = buildTurnsMetadataDrive(_context, _turnChunkLog2Size, 0xd000000000000000);
 
         // 4th input drive: turns data stored in the Logger
-        drives[3] = buildTurnsDrive(_context, _logger, _turnChunkLog2Size, _emptyDataLogIndex, 0xd000000000000000);
+        drives[3] = buildTurnsDataDrive(_context, _logger, _turnChunkLog2Size, _emptyDataLogIndex, 0xd000000000000000);
 
         // 5th input drive: verification info, specifying the challenger player and, if present, the claimer along with the claimed result
         // - this is important so that the Descartes computation can punish a false claimer or challenger accordingly in the resulting funds distribution
         bytes memory verificationInfo = abi.encodePacked(msg.sender, _context.claimer, _context.claimedFundsShare);
-        drives[4] = buildDirectDrive(provider, verificationInfo, 0xe000000000000000);
+        drives[4] = buildDirectDrive(verificationInfo, 0xe000000000000000);
 
         return drives;
     }
 
 
     /// @notice Builds a Descartes Drive using directly provided data
-    /// @param _provider address of the validator node responsible for providing the data
     /// @param _data drive data
     /// @param _drivePosition drive position in a 64-bit address space
     /// @return _drive the Descartes drive
-    function buildDirectDrive(address _provider, bytes memory _data, uint64 _drivePosition) internal pure
+    function buildDirectDrive(bytes memory _data, uint64 _drivePosition) internal pure
         returns (DescartesInterface.Drive memory _drive)
     {
         // minimum drive log2size is 5 (one 32-byte word)
@@ -363,17 +363,37 @@ library TurnBasedGameContext {
             _data,                 // directValue
             "",                    // loggerIpfsPath (empty)
             0x00,                  // loggerRootHash
-            _provider,             // provider
+            address(0),            // provider
             false,                 // waitsProvider
             false                  // needsLogger
         );
     }
 
+    /// @notice Builds a Descartes input drive with the metadata from the turns of a given game
+    /// @param _context game context
+    /// @param _drivePosition drive position in a 64-bit address space
+    /// @return _drive the Descartes drive
+    function buildTurnsMetadataDrive(GameContext storage _context, uint8 _turnChunkLog2Size, uint64 _drivePosition) internal view
+        returns (DescartesInterface.Drive memory _drive)
+    {
+        address[] memory players = new address[](_context.turns.length);
+        uint256[] memory timestamps = new uint256[](_context.turns.length);
+        uint256[] memory sizes = new uint256[](_context.turns.length);
+        for (uint i = 0; i < _context.turns.length; i++) {
+            players[i] = _context.turns[i].player;
+            timestamps[i] = _context.turns[i].timestamp;
+            sizes[i] = _context.turns[i].dataLogIndices.length * (2 ** _turnChunkLog2Size);
+        }
+        bytes memory turnsMetadata = abi.encodePacked(uint8(_context.turns.length), players, timestamps, sizes);
+        return buildDirectDrive(turnsMetadata, _drivePosition);
+    }
+
+
     /// @notice Builds a Descartes input drive with the data from the turns of a given game
     /// @param _context game context
     /// @param _drivePosition drive position in a 64-bit address space
     /// @return _drive the Descartes drive
-    function buildTurnsDrive(GameContext storage _context, Logger _logger, uint8 _turnChunkLog2Size, uint256 _emptyDataLogIndex, uint64 _drivePosition) internal
+    function buildTurnsDataDrive(GameContext storage _context, Logger _logger, uint8 _turnChunkLog2Size, uint256 _emptyDataLogIndex, uint64 _drivePosition) internal
         returns (DescartesInterface.Drive memory _drive)
     {
         // computes total number of turn chunk entries
