@@ -100,7 +100,7 @@ contract TurnBasedGameLobby {
             require(queuedPlayers[i].addr != msg.sender, "Player has already been enqueued to join this game");
         }
 
-        // Lock player tokens
+        // Token locking
         lockFundsUntilGameStart(msg.sender, _gameMinFunds);
 
         if (queuedPlayers.length < _gameNumPlayers - 1) {
@@ -122,13 +122,15 @@ contract TurnBasedGameLobby {
                 playerInfos[i] = queuedPlayers[i].info;
             }
 
-            //Tranfer players tokens to Game contract account
-            transferTokenToGameAccount();
-
             // - adds new player
             players[_gameNumPlayers - 1] = msg.sender;
             playerFunds[_gameNumPlayers - 1] = _playerFunds;
             playerInfos[_gameNumPlayers - 1] = _playerInfo;
+
+            //Tranfer tokens to game contract
+            uint256 tokensLocked = _gameNumPlayers * _gameMinFunds;
+            transferTokensToGameAccount(tokensLocked);
+
             // - starts game
             turnBasedGame.startGame(
                 _gameTemplateHash,
@@ -143,16 +145,16 @@ contract TurnBasedGameLobby {
         }
     }
 
-    /// @notice Lock player tokens in the lobby account until the game start
+    /// @notice Lock player tokens in the lobby contract until the game start
     /// @param _playerAddress address for the player whose tokens will be locked in lobby account
     /// @param _gameMinFunds minimum funds required to be staked in order to join the game
     function lockFundsUntilGameStart(address _playerAddress, uint256 _gameMinFunds) public {
         pokerToken.transferFrom(_playerAddress, address(this), _gameMinFunds);
     }
 
-    /// @notice Transfer tokens from lobby account to the game account
-    function transferTokenToGameAccount() public {
-        uint256 lobbyFunds = pokerToken.balanceOf(address(this));
-        pokerToken.transferFrom(address(this), address(turnBasedGame), lobbyFunds);
+    /// @notice Transfer players tokens locked in lobby contract to the game contract
+    /// @param _tokensToTransfer Amount of tokens locked in lobby contract that will be transfered to game contract
+    function transferTokensToGameAccount(uint256 _tokensToTransfer) public {
+        pokerToken.transfer(address(turnBasedGame), _tokensToTransfer);
     }
 }
