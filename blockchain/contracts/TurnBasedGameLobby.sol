@@ -101,7 +101,7 @@ contract TurnBasedGameLobby {
         }
 
         // Token locking
-        lockFundsUntilGameStart(msg.sender, _gameMinFunds);
+        lockFunds(msg.sender, _gameMinFunds);
 
         if (queuedPlayers.length < _gameNumPlayers - 1) {
             // not enough players queued yet, so we simply add this new one to the queue
@@ -148,7 +148,7 @@ contract TurnBasedGameLobby {
     /// @notice Lock player tokens in the lobby contract until the game start
     /// @param _playerAddress address for the player whose tokens will be locked in lobby account
     /// @param _gameMinFunds minimum funds required to be staked in order to join the game
-    function lockFundsUntilGameStart(address _playerAddress, uint256 _gameMinFunds) public {
+    function lockFunds(address _playerAddress, uint256 _gameMinFunds) public {
         pokerToken.transferFrom(_playerAddress, address(this), _gameMinFunds);
     }
 

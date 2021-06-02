@@ -49,7 +49,7 @@ describe("TurnBasedGameLobby", async () => {
     beforeEach(async () => {
         [signer, player1, nonPlayer] = await ethers.getSigners();
 
-        const { deployer, alice, bob } = await getNamedAccounts();
+        const { alice, bob } = await getNamedAccounts();
         players = [alice, bob];
         validators = players;
 
