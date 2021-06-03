@@ -21,8 +21,8 @@ import "./TurnBasedGame.sol";
 /// @title TurnBasedGameLobby
 /// @notice Entry point for players to join games handled by the TurnBasedGame contract
 contract TurnBasedGameLobby {
-    // Poker Token contract address
-    address pokerTokenAddress;
+    // Address for the allowed token provider
+    address allowedERC20Address;
 
     // TurnBasedGame contract used for starting games
     TurnBasedGame turnBasedGame;
@@ -36,10 +36,10 @@ contract TurnBasedGameLobby {
     mapping(bytes32 => QueuedPlayer[]) internal queues;
 
     /// @notice Constructor
-    /// @param _pokerTokenAddress Poker Token contract address used to ensure that this will be the only token provider (for now)
+    /// @param _allowedERC20Address Poker Token contract address used to ensure that this will be the only token provider (for now)
     /// @param _turnBasedGameAddress address of the TurnBasedGame contract used for starting games
-    constructor(address _pokerTokenAddress, address _turnBasedGameAddress) {
-        pokerTokenAddress = _pokerTokenAddress;
+    constructor(address _allowedERC20Address, address _turnBasedGameAddress) {
+        allowedERC20Address = _allowedERC20Address;
         turnBasedGame = TurnBasedGame(_turnBasedGameAddress);
     }
 
@@ -73,7 +73,7 @@ contract TurnBasedGameLobby {
     /// @param _gameNumPlayers number of players in the game
     /// @param _gameMinFunds minimum funds required to be staked in order to join the game
     /// @param _playerFunds amount being staked by the player joining the game
-    /// @param _erc20ProviderAddress Address for a ERC20 compatible token provider
+    /// @param _erc20Address Address for a ERC20 compatible token provider
     /// @param _playerInfo game-specific information for the player joining the game
     function joinGame(
         bytes32 _gameTemplateHash,
@@ -82,13 +82,13 @@ contract TurnBasedGameLobby {
         uint8 _gameNumPlayers,
         uint256 _gameMinFunds,
         uint256 _playerFunds,
-        address _erc20ProviderAddress,
+        address _erc20Address,
         bytes memory _playerInfo
     ) public {
         // ensures player is staking enough funds to participate in the game
         require(_playerFunds >= _gameMinFunds, "Player's staked funds is insufficient to join the game");
-        // ensures that CartesiPokerToken will be the only token provider (for now)
-        require(_erc20ProviderAddress == pokerTokenAddress, "PokerToken contract is the only token provider allowed");
+        // ensures that the token provider is the allowed one
+        require(_erc20Address == allowedERC20Address, "Unexpected token provider");
 
         // builds hash for game specification
         bytes32 queueHash =
@@ -105,7 +105,7 @@ contract TurnBasedGameLobby {
         }
 
         // Token locking
-        lockFunds(IERC20(_erc20ProviderAddress), msg.sender, _gameMinFunds);
+        lockFunds(IERC20(_erc20Address), msg.sender, _gameMinFunds);
 
         if (queuedPlayers.length < _gameNumPlayers - 1) {
             // not enough players queued yet, so we simply add this new one to the queue
@@ -133,7 +133,7 @@ contract TurnBasedGameLobby {
 
             //Tranfer tokens to game contract
             uint256 tokensLocked = _gameNumPlayers * _gameMinFunds;
-            transferTokensToGameAccount(IERC20(_erc20ProviderAddress), tokensLocked);
+            transferTokensToGameAccount(IERC20(_erc20Address), tokensLocked);
 
             // - starts game
             turnBasedGame.startGame(
