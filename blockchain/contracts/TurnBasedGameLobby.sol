@@ -21,6 +21,9 @@ import "./TurnBasedGame.sol";
 /// @title TurnBasedGameLobby
 /// @notice Entry point for players to join games handled by the TurnBasedGame contract
 contract TurnBasedGameLobby {
+    // Poker Token contract address
+    address pokerTokenAddress;
+
     // TurnBasedGame contract used for starting games
     TurnBasedGame turnBasedGame;
 
@@ -33,9 +36,11 @@ contract TurnBasedGameLobby {
     mapping(bytes32 => QueuedPlayer[]) internal queues;
 
     /// @notice Constructor
-    /// @param turnBasedGameAddress address of the TurnBasedGame contract used for starting games
-    constructor(address turnBasedGameAddress) {
-        turnBasedGame = TurnBasedGame(turnBasedGameAddress);
+    /// @param _pokerTokenAddress Poker Token contract address used to ensure that this will be the only token provider (for now)
+    /// @param _turnBasedGameAddress address of the TurnBasedGame contract used for starting games
+    constructor(address _pokerTokenAddress, address _turnBasedGameAddress) {
+        pokerTokenAddress = _pokerTokenAddress;
+        turnBasedGame = TurnBasedGame(_turnBasedGameAddress);
     }
 
     /// @notice Retrieves the current queue for a given game (specified by its template hash, metadata and number of players)
@@ -82,6 +87,8 @@ contract TurnBasedGameLobby {
     ) public {
         // ensures player is staking enough funds to participate in the game
         require(_playerFunds >= _gameMinFunds, "Player's staked funds is insufficient to join the game");
+        // ensures that CartesiPokerToken will be the only token provider (for now)
+        require(_erc20ProviderAddress == pokerTokenAddress, "PokerToken contract is the only token provider allowed");
 
         // builds hash for game specification
         bytes32 queueHash =

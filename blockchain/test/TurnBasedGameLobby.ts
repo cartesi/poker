@@ -67,7 +67,7 @@ describe("TurnBasedGameLobby", async () => {
         const TurnBasedGameLobby = await deploy("TurnBasedGameLobby", {
             from: signer.address,
             log: true,
-            args: [mockGameContract.address],
+            args: [pokerToken.address, mockGameContract.address],
         });
 
         // Get lobby contract instance
