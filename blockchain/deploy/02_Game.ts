@@ -20,14 +20,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         libraries: { TurnBasedGameContext: TurnBasedGameContext.address },
     });
 
-    // Get pokerToken contract previously deployed
-    const pokerToken = await deployments.get('PokerToken');
-
     // Deploy TurnBasedGameLobby
     await deploy("TurnBasedGameLobby", {
         from: deployer,
         log: true,
-        args: [pokerToken.address, TurnBasedGame.address],
+        args: [TurnBasedGame.address],
     });
 };
 

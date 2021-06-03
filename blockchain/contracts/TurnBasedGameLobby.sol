@@ -15,15 +15,12 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./TurnBasedGame.sol";
-import "./PokerToken.sol";
 
 /// @title TurnBasedGameLobby
 /// @notice Entry point for players to join games handled by the TurnBasedGame contract
 contract TurnBasedGameLobby {
-    // PokerToken contract used for obtaining players tokens
-    PokerToken pokerToken;
-
     // TurnBasedGame contract used for starting games
     TurnBasedGame turnBasedGame;
 
@@ -36,10 +33,8 @@ contract TurnBasedGameLobby {
     mapping(bytes32 => QueuedPlayer[]) internal queues;
 
     /// @notice Constructor
-    /// @param pokerTokenAddress address of the PokerToken contract used for obtaining players tokens
     /// @param turnBasedGameAddress address of the TurnBasedGame contract used for starting games
-    constructor(address pokerTokenAddress, address turnBasedGameAddress) {
-        pokerToken = PokerToken(pokerTokenAddress);
+    constructor(address turnBasedGameAddress) {
         turnBasedGame = TurnBasedGame(turnBasedGameAddress);
     }
 
@@ -73,6 +68,7 @@ contract TurnBasedGameLobby {
     /// @param _gameNumPlayers number of players in the game
     /// @param _gameMinFunds minimum funds required to be staked in order to join the game
     /// @param _playerFunds amount being staked by the player joining the game
+    /// @param _erc20ProviderAddress Address for a ERC20 compatible token provider
     /// @param _playerInfo game-specific information for the player joining the game
     function joinGame(
         bytes32 _gameTemplateHash,
@@ -81,6 +77,7 @@ contract TurnBasedGameLobby {
         uint8 _gameNumPlayers,
         uint256 _gameMinFunds,
         uint256 _playerFunds,
+        address _erc20ProviderAddress,
         bytes memory _playerInfo
     ) public {
         // ensures player is staking enough funds to participate in the game
@@ -101,7 +98,7 @@ contract TurnBasedGameLobby {
         }
 
         // Token locking
-        lockFunds(msg.sender, _gameMinFunds);
+        lockFunds(IERC20(_erc20ProviderAddress), msg.sender, _gameMinFunds);
 
         if (queuedPlayers.length < _gameNumPlayers - 1) {
             // not enough players queued yet, so we simply add this new one to the queue
@@ -129,7 +126,7 @@ contract TurnBasedGameLobby {
 
             //Tranfer tokens to game contract
             uint256 tokensLocked = _gameNumPlayers * _gameMinFunds;
-            transferTokensToGameAccount(tokensLocked);
+            transferTokensToGameAccount(IERC20(_erc20ProviderAddress), tokensLocked);
 
             // - starts game
             turnBasedGame.startGame(
@@ -146,15 +143,21 @@ contract TurnBasedGameLobby {
     }
 
     /// @notice Lock player tokens in the lobby contract until the game start
+    /// @param _tokenProvider ERC20 compatible token provider instance
     /// @param _playerAddress address for the player whose tokens will be locked in lobby account
     /// @param _gameMinFunds minimum funds required to be staked in order to join the game
-    function lockFunds(address _playerAddress, uint256 _gameMinFunds) public {
-        pokerToken.transferFrom(_playerAddress, address(this), _gameMinFunds);
+    function lockFunds(
+        IERC20 _tokenProvider,
+        address _playerAddress,
+        uint256 _gameMinFunds
+    ) public {
+        _tokenProvider.transferFrom(_playerAddress, address(this), _gameMinFunds);
     }
 
     /// @notice Transfer players tokens locked in lobby contract to the game contract
+    /// @param _tokenProvider ERC20 compatible token provider instance
     /// @param _tokensToTransfer Amount of tokens locked in lobby contract that will be transfered to game contract
-    function transferTokensToGameAccount(uint256 _tokensToTransfer) public {
-        pokerToken.transfer(address(turnBasedGame), _tokensToTransfer);
+    function transferTokensToGameAccount(IERC20 _tokenProvider, uint256 _tokensToTransfer) public {
+        _tokenProvider.transfer(address(turnBasedGame), _tokensToTransfer);
     }
 }

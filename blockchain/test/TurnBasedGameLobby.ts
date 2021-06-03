@@ -67,7 +67,7 @@ describe("TurnBasedGameLobby", async () => {
         const TurnBasedGameLobby = await deploy("TurnBasedGameLobby", {
             from: signer.address,
             log: true,
-            args: [pokerToken.address, mockGameContract.address],
+            args: [mockGameContract.address],
         });
 
         // Get lobby contract instance
@@ -111,6 +111,7 @@ describe("TurnBasedGameLobby", async () => {
                     players.length,
                     minFunds,
                     minFunds - 1,
+                    pokerTokenContract.address,
                     playerInfos[0]
                 )
             ).to.be.revertedWith("Player's staked funds is insufficient to join the game");
@@ -125,6 +126,7 @@ describe("TurnBasedGameLobby", async () => {
                     players.length,
                     minFunds,
                     minFunds,
+                    pokerTokenContract.address,
                     players[0]
                 )
             ).not.to.be.reverted;
@@ -138,6 +140,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFunds,
                 playerFunds[0],
+                pokerTokenContract.address,
                 playerInfos[0]
             );
 
@@ -149,6 +152,7 @@ describe("TurnBasedGameLobby", async () => {
                     players.length,
                     minFunds,
                     minFunds,
+                    pokerTokenContract.address,
                     playerInfos[0]
                 )
             ).to.be.revertedWith("Player has already been enqueued to join this game");
@@ -162,6 +166,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFunds,
                 playerFunds[0],
+                pokerTokenContract.address,
                 playerInfos[0]
             );
 
@@ -193,6 +198,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFunds,
                 playerFunds[0],
+                pokerTokenContract.address,
                 playerInfos[0]
             );
 
@@ -206,6 +212,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFundsOther,
                 playerFunds[1],
+                pokerTokenContract.address,
                 playerInfos[1]
             );
 
@@ -229,6 +236,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFunds,
                 playerFunds[0],
+                pokerTokenContract.address,
                 playerInfos[0]
             );
 
@@ -242,6 +250,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFundsOther,
                 playerFunds[1],
+                pokerTokenContract.address,
                 playerInfos[1]
             );
 
@@ -258,6 +267,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFunds,
                 playerFunds[1],
+                pokerTokenContract.address,
                 playerInfos[1]
             );
 
@@ -292,6 +302,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFundsOther,
                 playerFunds[0],
+                pokerTokenContract.address,
                 playerInfos[0]
             );
 
@@ -316,6 +327,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFunds,
                 playerFunds[0],
+                pokerTokenContract.address,
                 playerInfos[0]
             );
 
@@ -334,6 +346,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFunds,
                 playerFunds[0],
+                pokerTokenContract.address,
                 playerInfos[0]
             );
 
@@ -352,6 +365,7 @@ describe("TurnBasedGameLobby", async () => {
                 players.length,
                 minFunds,
                 playerFunds[1],
+                pokerTokenContract.address,
                 playerInfos[1]
             );
 
