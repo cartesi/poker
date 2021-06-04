@@ -12,7 +12,7 @@
 
 import { describe } from "mocha";
 import { expect, use } from "chai";
-import { deployments, ethers, getNamedAccounts } from "hardhat";
+import { deployments, ethers, getNamedAccounts, network } from "hardhat";
 import { MockContract, deployMockContract, solidity } from "ethereum-waffle";
 
 import { TurnBasedGame } from "../src/types/TurnBasedGame";
@@ -299,6 +299,10 @@ describe("TurnBasedGame", async () => {
     it("submitTurn: should emit TurnOver event", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
 
+        // forcing next block's timestamp, which is only allowed if it's in the future (must be larger than previous block's timestamp)
+        let timestampSeconds = Math.ceil(Date.now() / 1000) + 100;
+        await network.provider.send("evm_setNextBlockTimestamp", [timestampSeconds]);
+
         // turn from player 0
         let tx = await gameContract.submitTurn(0, 0, turnData);
         let turnOverEventRaw = (await tx.wait()).events[0];
@@ -313,11 +317,15 @@ describe("TurnBasedGame", async () => {
         expect(turnIndex).to.eql(ethers.BigNumber.from(0), "1st turn should refer to turnIndex 0");
         expect(turn[0]).to.eql(players[0], "1st turn should be emitted by player0");
         expect(turn[1]).to.eql(
+            ethers.BigNumber.from(timestampSeconds),
+            "1st turn should be emitted with the correct timestamp"
+        );
+        expect(turn[2]).to.eql(
             [ethers.BigNumber.from(EMPTY_DATA_LOG_INDEX)],
             "1st turn should refer to the appropriate log index"
         );
 
-        // turn from player 1 with different data (state hash and log hash/index)
+        // turn from player 1 with different data (log hash/index)
         const player1LogHash = ethers.utils.formatBytes32String("player1 log hash");
         const player1LogIndex = 3;
         await mockLogger.mock.calculateMerkleRootFromData.returns(player1LogHash);
@@ -334,7 +342,11 @@ describe("TurnBasedGame", async () => {
         expect(index).to.eql(ethers.BigNumber.from(0), "2nd turn should have game index 0");
         expect(turnIndex).to.eql(ethers.BigNumber.from(1), "2nd turn should refer to turnIndex 1");
         expect(turn[0]).to.eql(players[1], "2nd turn should be emitted by player1");
-        expect(turn[1]).to.eql(
+        expect(turn[1]).to.be.above(
+            ethers.BigNumber.from(timestampSeconds),
+            "2nd turn should be emitted with the correct timestamp"
+        );
+        expect(turn[2]).to.eql(
             [ethers.BigNumber.from(player1LogIndex)],
             "2nd turn should refer to the appropriate log index"
         );
