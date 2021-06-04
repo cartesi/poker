@@ -794,4 +794,44 @@ describe("TurnBasedGame", async () => {
             false
         );
     });
+
+    // GET STATE
+
+    it("getState: should only be allowed for active games", async () => {
+        await expect(gameContract.getState(0, players[0])).to.be.revertedWith("Index not instantiated");
+
+        await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+        await expect(gameContract.getState(0, players[0])).not.to.be.reverted;
+    });
+
+    it("getState: should return whether a Descartes computation is instantiated", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+        expect(await gameContract.getState(0, players[0])).to.equal(false);
+
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+        expect(await gameContract.getState(0, players[0])).to.equal(true);
+    });
+
+    // GET SUB-INSTANCES
+
+    it("getSubInstances: should only be allowed for active games", async () => {
+        await expect(gameContract.getSubInstances(0, players[0])).to.be.revertedWith("Index not instantiated");
+
+        await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+        await expect(gameContract.getSubInstances(0, players[0])).not.to.be.reverted;
+    });
+
+    it("getSubInstances: should return a Descartes computation if there is one", async () => {
+        await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+        let instances = await gameContract.getSubInstances(0, players[0]);
+        expect(instances[0]).to.eql([]);
+        expect(instances[1]).to.eql([]);
+
+        await prepareChallengeGame();
+        await gameContract.challengeGame(0);
+        instances = await gameContract.getSubInstances(0, players[0]);
+        expect(instances[0]).to.eql([mockDescartes.address]);
+        expect(instances[1]).to.eql([descartesIndex]);
+    });
 });
