@@ -300,7 +300,7 @@ describe("TurnBasedGame", async () => {
         await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
 
         // forcing next block's timestamp, which is only allowed if it's in the future (must be larger than previous block's timestamp)
-        let timestampSeconds = Math.ceil(Date.now() / 1000) + 100;
+        let timestampSeconds = Math.ceil(Date.now() / 1000) + 1000;
         await network.provider.send("evm_setNextBlockTimestamp", [timestampSeconds]);
 
         // turn from player 0
