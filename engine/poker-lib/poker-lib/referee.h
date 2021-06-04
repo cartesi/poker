@@ -15,7 +15,7 @@ public:
 
     game_state& game() { return _g; }
 
-    game_error step_init_game(money_t alice_money, money_t bob_money);
+    game_error step_init_game(money_t alice_money, money_t bob_money, money_t big_blind);
     game_error step_vtmf_group(blob& g);
     game_error step_load_keys(blob& bob_key, blob& alice_key, /* out */ blob& eve_key);
     game_error step_vsshe_group(blob& vsshe);

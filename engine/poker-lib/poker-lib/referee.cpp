@@ -10,14 +10,17 @@ referee::referee()
 referee::~referee() {
 }
 
-game_error referee::step_init_game(money_t alice_money, money_t bob_money) {
+game_error referee::step_init_game(money_t alice_money, money_t bob_money, money_t big_blind) {
     if (_g.error)
         return ERR_GAME_OVER;
     if (_g.step != game_step::BEGIN)
         return (_g.error = ERR_INVALID_MOVE);
 
-    _g.players[ALICE].total_funds = alice_money;
-    _g.players[BOB].total_funds = bob_money;
+    _g.players[ALICE].total_funds = alice_money - big_blind/2;
+    _g.players[ALICE].bets = big_blind/2;
+    _g.players[BOB].total_funds = bob_money - big_blind;
+    _g.players[BOB].bets = big_blind;
+    _g.big_blind = big_blind;
     // etc etc....
 
     _g.step = game_step::INIT_GAME;

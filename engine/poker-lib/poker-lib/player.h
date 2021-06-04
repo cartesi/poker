@@ -15,7 +15,7 @@ public:
     player(int id);
     ~player();
 
-    game_error init_game(money_t alice_money, money_t bob_money);
+    game_error init_game(money_t alice_money, money_t bob_money, money_t big_blind);
     game_error create_vtmf(blob &vtmf);
     game_error load_vtmf(blob &vtmf);
     game_error generate_key(blob &key);

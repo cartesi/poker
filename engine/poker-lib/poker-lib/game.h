@@ -74,6 +74,7 @@ public:
     int          winner;
     player_state players[NUM_PLAYERS];
     card_t       public_cards[NUM_PUBLIC_CARDS];
+    money_t      big_blind;
 
     game_error   call();
     game_error   raise(money_t amount);

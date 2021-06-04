@@ -17,8 +17,8 @@ void the_happy_path() {
     std::cout << "---- " TEST_SUITE_NAME << " - the_happy_path" << std::endl;
     player alice(ALICE);
     player bob(BOB);
-    ASSERT(alice.init_game(100,100));
-    ASSERT(bob.init_game(100,100));
+    ASSERT(alice.init_game(100,100,10));
+    ASSERT(bob.init_game(100,100,10));
     blob vtmf;
     ASSERT(alice.create_vtmf(vtmf));
     ASSERT(bob.load_vtmf(vtmf));

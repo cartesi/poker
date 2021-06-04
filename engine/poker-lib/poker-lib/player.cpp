@@ -8,9 +8,9 @@ player::player(int id) : _id(id), _opponent_id(_id==ALICE ? BOB : ALICE), _p(par
 player::~player() {
 }
 
-game_error player::init_game(money_t alice_money, money_t bob_money) {
+game_error player::init_game(money_t alice_money, money_t bob_money, money_t big_blind) {
     game_error res;
-    if (!(res=_e.step_init_game(alice_money, bob_money)))
+    if (!(res=_e.step_init_game(alice_money, bob_money, big_blind)))
         return res;
     return SUCCESS;
 }
