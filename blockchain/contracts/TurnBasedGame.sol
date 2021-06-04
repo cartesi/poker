@@ -176,13 +176,34 @@ contract TurnBasedGame is InstantiatorImpl {
     }
 
 
-    /// @notice Retrieves sub-instances of the game (required method for Instantiator).
+    /// @notice Returns state of the instance for offchain usage concerning given validator.
+    /// @param _index index identifying the game
+    /// @return _isDescartesInstantiated whether an offchain Descartes computation has been instantiated for this game
+    function getState(uint256 _index, address) public view
+        onlyInstantiated(_index)
+        returns (bool _isDescartesInstantiated)
+    {
+        GameContext storage context = instances[_index];
+        return context.isDescartesInstantiated;
+    }
+
+    /// @notice Retrieves sub-instances of the game (required method for Instantiator, used by offchain dispatcher code).
     /// @param _index index identifying the game
     function getSubInstances(uint256 _index, address) public view override
         onlyInstantiated(_index)
         returns (address[] memory _addresses, uint256[] memory _indices)
     {
-        // always empty (no sub-instances for the game)
-        return (new address[](0), new uint256[](0));
+        GameContext storage context = instances[_index];
+        if (context.isDescartesInstantiated) {
+            // sub-instance is the associated Descartes computation
+            address[] memory addresses = new address[](1);
+            uint256[] memory indices = new uint256[](1);
+            addresses[0] = address(descartes);
+            indices[0] = context.descartesIndex;
+            return (addresses, indices);
+        } else {
+            // no sub-instances
+            return (new address[](0), new uint256[](0));
+        }
     }    
 }
