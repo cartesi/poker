@@ -1,14 +1,11 @@
 import { task, types } from "hardhat/config";
 import * as fs from "fs";
 
+const defaultGameTemplateHash = "0xa4c9cc22be3cefe90f6a2332ffd3b12e4fcc327112a90dcc12207ad5154e8207";
+
 // START-GAME
 task("start-game", "Starts a TurnBasedGame instance")
-    .addOptionalParam(
-        "hash",
-        "Game template hash to use",
-        "0x7e2c0b7303a4c5f8af24bd6b3219e3b3b2b7a2df08305501b169b9ad5f9ff9ac",
-        types.string
-    )
+    .addOptionalParam("hash", "Game template hash to use", defaultGameTemplateHash, types.string)
     .setAction(async ({ hash }, hre) => {
         const { ethers } = hre;
         const game = await ethers.getContract("TurnBasedGame");
@@ -36,12 +33,7 @@ task("start-game", "Starts a TurnBasedGame instance")
 
 // JOIN-GAME
 task("join-game", "Registers player in the lobby in order to join a game")
-    .addOptionalParam(
-        "hash",
-        "Game template hash to use",
-        "0x7e2c0b7303a4c5f8af24bd6b3219e3b3b2b7a2df08305501b169b9ad5f9ff9ac",
-        types.string
-    )
+    .addOptionalParam("hash", "Game template hash to use", defaultGameTemplateHash, types.string)
     .addOptionalParam("metadata", "Metadata of the game", "0x", types.string)
     .addOptionalParam("validators", "Accounts names for game validator nodes", ["alice", "bob"], types.json)
     .addOptionalParam("numplayers", "Number of players in the game", 2, types.int)

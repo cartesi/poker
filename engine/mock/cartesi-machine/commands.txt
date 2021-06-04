@@ -2,39 +2,39 @@ cartesi-machine \
     --flash-drive="label:verifier,filename:mock-verifier.ext2" \
     --flash-drive="label:metadata,length:1<<12,filename:metadata.raw" \
     --flash-drive="label:players,length:1<<12,filename:players.raw" \
-    --flash-drive="label:playerFunds,length:1<<12,filename:playerFunds.raw" \
-    --flash-drive="label:turns,length:1<<20,filename:turns.raw" \
+    --flash-drive="label:turnsMetadata,length:1<<16,filename:turnsMetadata.raw" \
+    --flash-drive="label:turnsData,length:1<<20,filename:turnsData.raw" \
     --flash-drive="label:verificationInfo,length:1<<12,filename:verificationInfo.raw" \
     --flash-drive="label:output,length:1<<12,filename:output.raw,shared" \
     -- $'cd /mnt/verifier/ && ./mock-run.sh'
 
 
-- players
-echo "000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb9226600000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8" | xxd -r -p > players.raw
+- players: 2 players, addresses, funds (100/100)
+echo "00000002000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb9226600000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c800000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064" | xxd -r -p > players.raw
 
-- playerFunds (100/100)
-echo "00000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064" | xxd -r -p > playerFunds.raw
+- turnsMetadata: 2 turns, player addresses, timestamps, sizes (1K/4K)
+echo "00000002000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb9226600000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c80000000000000000000000000000000000000000000000000000000060ba29100000000000000000000000000000000000000000000000000000000060ba292400000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001000" | xxd -r -p > turnsMetadata.raw
 
 - turn1: "2^71 + 36^12"
 - turn2: "3^71 + 36^12"
-echo "325E3731202B2033365E313200000000" | xxd -r -p > turn1.raw
-echo "335E3731202B2033365E313200000000" | xxd -r -p > turn2.raw
+echo "325E3731202B2033365E313200000000" | xxd -r -p > turnData1.raw
+echo "335E3731202B2033365E313200000000" | xxd -r -p > turnData2.raw
 
-- verificationInfo with claim (120/80)
+- verificationInfo: challenger, claimer, claimedResult (120/80)
 echo "f39fd6e51aad88f6f4ce6ab8827279cfffb9226670997970c51812dc3a010c7d01b50e0d17dc79c800000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000050" | xxd -r -p > verificationInfo.raw
 
-- result
+- result (120/80)
 echo -n -e "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x78\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x50"  > output.raw
 
 
 
 truncate -s 4K metadata.raw
 truncate -s 4K players.raw
-truncate -s 4K playerFunds.raw
+truncate -s 64K turnsMetadata.raw
 truncate -s 4K verificationInfo.raw
 truncate -s 4K output.raw
 
-truncate -s 1K turn1.raw
-truncate -s 1K turn2.raw
-cat turn1.raw turn2.raw > turns.raw
-truncate -s 1M turns.raw
+truncate -s 1K turnData1.raw
+truncate -s 1K turnData2.raw
+cat turnData1.raw turnData2.raw > turnsData.raw
+truncate -s 1M turnsData.raw

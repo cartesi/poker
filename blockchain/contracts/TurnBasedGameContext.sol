@@ -327,11 +327,11 @@ library TurnBasedGameContext {
         drives[0] = buildDirectDrive(_context.gameMetadata, 0xa000000000000000);
 
         // 2nd input drive: players data
-        bytes memory players = abi.encodePacked(uint8(_context.players.length), _context.players, _context.playerFunds);
+        bytes memory players = abi.encodePacked(uint32(_context.players.length), _context.players, _context.playerFunds);
         drives[1] = buildDirectDrive(players, 0xb000000000000000);
 
         // 3rd input drive: turns metadata
-        drives[3] = buildTurnsMetadataDrive(_context, _turnChunkLog2Size, 0xd000000000000000);
+        drives[2] = buildTurnsMetadataDrive(_context, _turnChunkLog2Size, 0xc000000000000000);
 
         // 4th input drive: turns data stored in the Logger
         drives[3] = buildTurnsDataDrive(_context, _logger, _turnChunkLog2Size, _emptyDataLogIndex, 0xd000000000000000);
@@ -384,7 +384,7 @@ library TurnBasedGameContext {
             timestamps[i] = _context.turns[i].timestamp;
             sizes[i] = _context.turns[i].dataLogIndices.length * (2 ** _turnChunkLog2Size);
         }
-        bytes memory turnsMetadata = abi.encodePacked(uint8(_context.turns.length), players, timestamps, sizes);
+        bytes memory turnsMetadata = abi.encodePacked(uint32(_context.turns.length), players, timestamps, sizes);
         return buildDirectDrive(turnsMetadata, _drivePosition);
     }
 

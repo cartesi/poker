@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # evaluates turns data
-result=$(lua eval-turns.lua $(flashdrive turns))
+result=$(lua eval-turns.lua $(flashdrive turnsData))
 
 if [ -z "$result" ]; then
     echo "Player0 won"
