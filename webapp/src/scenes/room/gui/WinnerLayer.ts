@@ -28,12 +28,12 @@ export class WinnerLayer extends Phaser.GameObjects.Container {
 
         if (endData.isWinner[ALICE]) {
             text = "PLAYER WON!";
-            if (endData.hands) {
+            if (endData.hands && endData.hands[ALICE]) {
                 winnerHand = endData.hands[ALICE];
             } 
         } else if (endData.isWinner[BOB]) {
             text = "OPPONENT WON!";
-            if (endData.hands) {
+            if (endData.hands && endData.hands[BOB]) {
                 winnerHand = endData.hands[BOB];
             }
         }

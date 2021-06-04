@@ -116,11 +116,11 @@ export class Player extends Phaser.GameObjects.Container {
         let winnerHand = [];
 
         if (endData.isWinner[ALICE]) {
-            if (endData.hands) {
+            if (endData.hands && endData.hands[ALICE]) {
                 winnerHand = endData.hands[ALICE];
             } 
         } else if (endData.isWinner[BOB]) {
-            if (endData.hands) {
+            if (endData.hands && endData.hands[BOB]) {
                 winnerHand = endData.hands[BOB];
             }
         }
