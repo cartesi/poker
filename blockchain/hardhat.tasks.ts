@@ -136,6 +136,7 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
                 const turn = turns[iTurn];
                 console.log(`- turn ${iTurn}`);
                 console.log(`  - player: ${turn.player}`);
+                console.log(`  - timestamp: ${new Date(turn.timestamp * 1000).toISOString()}`);
                 for (let iChunk = 0; iChunk < turn.dataLogIndices.length; iChunk++) {
                     let index = turn.dataLogIndices[iChunk];
                     let data = undefined;
