@@ -414,7 +414,7 @@ describe("TurnBasedGame", async () => {
             // 8-byte entry
             const bytes8 = "325E3731202B2033";
 
-            // data with 10 * 8-byte entries (80 bytesShould fit into one chunk
+            // data with 10 * 8-byte entries (80 bytes should fit into one chunk)
             let turnData = "0x";
             for (let i = 0; i < 10; i++) {
                 turnData = turnData.concat(bytes8);
@@ -425,7 +425,7 @@ describe("TurnBasedGame", async () => {
             expect(turns.length).to.eql(1, "Should contain one turn");
             expect(turns[0].dataLogIndices.length).to.eql(1, "10 8-byte entries should fit into one chunk");
 
-            // data with 128 * 8-byte entries (1024 bytesShould fit into one chunk
+            // data with 128 * 8-byte entries (1024 bytes should fit into one chunk)
             turnData = "0x";
             for (let i = 0; i < 128; i++) {
                 turnData = turnData.concat(bytes8);
@@ -436,7 +436,7 @@ describe("TurnBasedGame", async () => {
             expect(turns.length).to.eql(2, "Should contain two turns");
             expect(turns[1].dataLogIndices.length).to.eql(1, "128 8-byte entries should fit into one chunk");
 
-            // data with 129 * 8-byte entries (1032 bytesShould need two chunks
+            // data with 129 * 8-byte entries (1032 bytes should need two chunks)
             turnData = "0x";
             for (let i = 0; i < 129; i++) {
                 turnData = turnData.concat(bytes8);
@@ -447,7 +447,7 @@ describe("TurnBasedGame", async () => {
             expect(turns.length).to.eql(3, "Should contain three turns");
             expect(turns[2].dataLogIndices.length).to.eql(2, "129 8-byte entries should require two chunks");
 
-            // data with 500 * 8-byte entries (4000 bytesShould need four chunks
+            // data with 500 * 8-byte entries (4000 bytes should need four chunks)
             turnData = "0x";
             for (let i = 0; i < 500; i++) {
                 turnData = turnData.concat(bytes8);
