@@ -17,7 +17,6 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./TurnBasedGame.sol";
-import "hardhat/console.sol";
 
 /// @title TurnBasedGameLobby
 /// @notice Entry point for players to join games handled by the TurnBasedGame contract
