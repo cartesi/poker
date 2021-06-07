@@ -94,7 +94,7 @@ describe("TurnBasedGameLobby", async () => {
     describe("getQueue", async () => {
         it("Should be empty at first", async () => {
             expect(
-                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds)
+                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds, pokerTokenContract.address)
             ).to.eql([]);
         });
     });
@@ -110,8 +110,8 @@ describe("TurnBasedGameLobby", async () => {
                     validators,
                     players.length,
                     minFunds,
-                    minFunds - 1,
                     pokerTokenContract.address,
+                    minFunds - 1,
                     playerInfos[0]
                 )
             ).to.be.revertedWith("Player's staked funds is insufficient to join the game");
@@ -125,8 +125,8 @@ describe("TurnBasedGameLobby", async () => {
                     validators,
                     players.length,
                     minFunds,
-                    minFunds,
                     pokerTokenContract.address,
+                    minFunds,
                     players[0]
                 )
             ).not.to.be.reverted;
@@ -139,8 +139,8 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFunds,
-                playerFunds[0],
                 pokerTokenContract.address,
+                playerFunds[0],
                 playerInfos[0]
             );
 
@@ -151,8 +151,8 @@ describe("TurnBasedGameLobby", async () => {
                     validators,
                     players.length,
                     minFunds,
-                    minFunds,
                     pokerTokenContract.address,
+                    minFunds,
                     playerInfos[0]
                 )
             ).to.be.revertedWith("Player has already been enqueued to join this game");
@@ -165,8 +165,8 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFunds,
-                playerFunds[0],
                 pokerTokenContract.address,
+                playerFunds[0],
                 playerInfos[0]
             );
 
@@ -176,7 +176,8 @@ describe("TurnBasedGameLobby", async () => {
                 gameMetadata,
                 validators,
                 players.length,
-                minFunds
+                minFunds,
+                pokerTokenContract.address,
             );
             expect(queuedPlayers.length).to.eql(1);
             expect(queuedPlayers[0][0]).to.eql(players[0]); // address
@@ -185,7 +186,7 @@ describe("TurnBasedGameLobby", async () => {
 
             // other queues (changing whatever parameter) should be empty
             expect(
-                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds + 1)
+                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds + 1, pokerTokenContract.address)
             ).to.eql([]);
         });
 
@@ -197,8 +198,8 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFunds,
-                playerFunds[0],
                 pokerTokenContract.address,
+                playerFunds[0],
                 playerInfos[0]
             );
 
@@ -211,8 +212,8 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFundsOther,
-                playerFunds[1],
                 pokerTokenContract.address,
+                playerFunds[1],
                 playerInfos[1]
             );
 
@@ -222,7 +223,8 @@ describe("TurnBasedGameLobby", async () => {
                 gameMetadata,
                 validators,
                 players.length,
-                minFunds
+                minFunds,
+                pokerTokenContract.address
             );
             expect(queuedPlayers.length).to.eql(1);
         });
@@ -235,8 +237,8 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFunds,
-                playerFunds[0],
                 pokerTokenContract.address,
+                playerFunds[0],
                 playerInfos[0]
             );
 
@@ -249,8 +251,8 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFundsOther,
-                playerFunds[1],
                 pokerTokenContract.address,
+                playerFunds[1],
                 playerInfos[1]
             );
 
@@ -266,14 +268,14 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFunds,
-                playerFunds[1],
                 pokerTokenContract.address,
+                playerFunds[1],
                 playerInfos[1]
             );
 
             // queue should be empty
             expect(
-                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds)
+                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds, pokerTokenContract.address)
             ).to.eql([]);
 
             // queue for other game should still have one player
@@ -282,7 +284,8 @@ describe("TurnBasedGameLobby", async () => {
                 gameMetadataOther,
                 validators,
                 players.length,
-                minFundsOther
+                minFundsOther,
+                pokerTokenContract.address
             );
             expect(queuedPlayers.length).to.eql(1);
 
@@ -301,14 +304,14 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFundsOther,
-                playerFunds[0],
                 pokerTokenContract.address,
+                playerFunds[0],
                 playerInfos[0]
             );
 
             // queue for other game should now be empty
             expect(
-                await lobbyContract.getQueue(gameTemplateHash, gameMetadataOther, validators, players.length, minFundsOther)
+                await lobbyContract.getQueue(gameTemplateHash, gameMetadataOther, validators, players.length, minFundsOther, pokerTokenContract.address)
             ).to.eql([]);
         });
     });
@@ -326,8 +329,8 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFunds,
-                playerFunds[0],
                 pokerTokenContract.address,
+                playerFunds[0],
                 playerInfos[0]
             );
 
@@ -345,8 +348,8 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFunds,
-                playerFunds[0],
                 pokerTokenContract.address,
+                playerFunds[0],
                 playerInfos[0]
             );
 
@@ -364,8 +367,8 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFunds,
-                playerFunds[1],
                 pokerTokenContract.address,
+                playerFunds[1],
                 playerInfos[1]
             );
 
