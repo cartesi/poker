@@ -250,8 +250,7 @@ class Game {
   }
 
   _cryptoStuffReceived(stuff) {
-    if (stuff == "VERIFICATION") {
-      this._verificationReceived();
+    if (this._handleVerificationPayload(stuff)) {
       return;
     }
     this.onEvent(`cryptoStuffReceived ${stuff}`)
@@ -262,8 +261,7 @@ class Game {
   }
   
   _keyReceived(key) {
-    if (key == "VERIFICATION") {
-      this._verificationReceived();
+    if (this._handleVerificationPayload(key)) {
       return;
     }
     this.onEvent(`keyReceived ${key}`)
@@ -272,8 +270,7 @@ class Game {
   }
 
   _deckReceived(deck) {
-    if (deck == "VERIFICATION") {
-      this._verificationReceived();
+    if (this._handleVerificationPayload(deck)) {
       return;
     }
     this.onEvent(`deckReceived ${JSON.stringify(deck)}`)
@@ -403,8 +400,7 @@ class Game {
   }
 
   _decryptedCardsReceived(cards) {
-    if (cards == "VERIFICATION") {
-      this._verificationReceived();
+    if (this._handleVerificationPayload(cards)) {
       return;
     }
     this.onEvent(`decryptedCardsReceived ${JSON.stringify(cards)}`)
@@ -421,7 +417,7 @@ class Game {
     for (const [index, card] of Object.entries(cards)) {
       if (!card.match(VALID_CARD_PATTERN)) {
         // cheat detected: triggers verification
-        this._triggerVerification();
+        this._triggerVerification("Failure to reveal card");
         return;
       }
       this.deck[index] = card;
@@ -465,13 +461,12 @@ class Game {
   }
 
   _resultReceived(opponentResult) {
-    if (opponentResult == "VERIFICATION") {
-      this._verificationReceived();
+    if (this._handleVerificationPayload(opponentResult)) {
       return;
     }
     if (JSON.stringify(this.result) !== JSON.stringify(opponentResult)) {
       // result mismatch: trigger a verification!
-      this._triggerVerification();
+      this._triggerVerification("Result mismatch");
     } else {
       // everything ok: sends confirmation and advances state (to END)
       this.tx.send(true);
@@ -480,8 +475,8 @@ class Game {
   }
 
   _resultConfirmationReceived(confirmation) {
-    if (confirmation == "VERIFICATION") {
-      this._verificationReceived();
+    if (this._handleVerificationPayload(confirmation)) {
+      return;
     } else {
       // everything ok: advances state (to END)
       this._advanceState();
@@ -512,8 +507,7 @@ class Game {
   }
 
   _betsReceived(opponentBets) {
-    if (opponentBets == "VERIFICATION") {
-      this._verificationReceived();
+    if (this._handleVerificationPayload(opponentBets)) {
       return;
     }
     this.onEvent(`betsReceived ${opponentBets}`)
@@ -644,20 +638,34 @@ class Game {
     return (this.cheat.didSwitchCards || this.cheat.didDisableCardCoop);
   }
 
-  _triggerVerification() {
-    this.onEvent("triggerVerification");
-    this.tx.send("VERIFICATION");
-    this.state = GameStates.VERIFICATION;
-    setTimeout(() => this._setVerificationState(VerificationStates.STARTED), 3000);
+  _buildVerificationPayload(message) {
+    return `VERIFICATION ${message}`;
   }
 
-  _verificationReceived() {
-    this.onEvent("verificationReceived");
-    this.state = GameStates.VERIFICATION;
-    setTimeout(() => this._setVerificationState(VerificationStates.STARTED), 3000);
+  _handleVerificationPayload(payload) {
+    if (payload.startsWith && payload.startsWith("VERIFICATION")) {
+      const message = payload.substr("VERIFICATION".length + 1);
+      this._verificationReceived(message);
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  _setVerificationState(newState) {
+  _triggerVerification(message) {
+    this.onEvent(`triggerVerification: ${message}`);
+    this.tx.send(this._buildVerificationPayload(message));
+    this.state = GameStates.VERIFICATION;
+    setTimeout(() => this._setVerificationState(VerificationStates.STARTED, message), 3000);
+  }
+
+  _verificationReceived(message) {
+    this.onEvent(`verificationReceived: ${message}`);
+    this.state = GameStates.VERIFICATION;
+    setTimeout(() => this._setVerificationState(VerificationStates.STARTED, message), 3000);
+  }
+
+  _setVerificationState(newState, message) {
     // ensures valid verification state
     if (newState < VerificationStates.NONE || newState > VerificationStates.ERROR) {
       throw `Invalid verification state ${newState}`;
@@ -665,7 +673,7 @@ class Game {
 
     // sets verification state and triggers callback
     this.verificationState = newState;
-    this.onVerification(this.verificationState);
+    this.onVerification(this.verificationState, message);
 
     if (newState == VerificationStates.ENDED) {
       // verification ended, game ends with cheater losing everything
@@ -678,7 +686,7 @@ class Game {
       if (newState == VerificationStates.RESULT_CHALLENGED) {
         newState++;
       }
-      setTimeout(() => this._setVerificationState(newState), 5000);
+      setTimeout(() => this._setVerificationState(newState, message), 5000);
     }
   }
 }
