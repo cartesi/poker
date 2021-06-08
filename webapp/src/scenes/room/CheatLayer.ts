@@ -85,14 +85,33 @@ export class CheatLayer extends Phaser.GameObjects.Container {
         this.midContainer.add(cardCooperationBtn);
         this.midContainer.add(cardCooperationText);
 
+        // EXIT
+
+        let exitBtn = new Phaser.GameObjects.Image(this.scene, 160, -160, "texture_atlas_1", "btn_close");
+        exitBtn.setOrigin(.5);
+        exitBtn.setInteractive();
+        exitBtn.on("pointerdown", () => {
+            exitBtn.setScale(1);
+        }, this);
+        exitBtn.on("pointerup", () => {
+            this.visible = false;
+        }, this);
+        exitBtn.on("pointerover", () => {
+            exitBtn.setScale(1.05);
+        }, this);
+        exitBtn.on("pointerout", () => {
+            exitBtn.setScale(1);
+        }, this);
+        this.midContainer.add(exitBtn);
+
         let self = this;
 
-        this.scene.input.keyboard.createCombo("CARTESI"); 
+        this.scene.input.keyboard.createCombo("CARTESICHEAT"); 
 
         this.scene.input.keyboard.on("keycombomatch", function (event) {
             console.log("CHEAT MODE");
             self.visible = !self.visible;
-            self.scene.input.keyboard.createCombo("CARTESI");
+            self.scene.input.keyboard.createCombo("CARTESICHEAT");
 
         });
 
