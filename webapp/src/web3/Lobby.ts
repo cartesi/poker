@@ -19,14 +19,25 @@ export class Lobby {
     private static readonly NUM_PLAYERS = 2;
     private static readonly MIN_FUNDS = 10;
 
+
     /**
      * Joins a new Texas Holdem game
      *
+     * @param playerFunds funds being brought to the game
      * @param playerInfo JSON object with descriptive information (name, avatar) about the player joining
-     * @param funds funds being brought to the game
      * @param gameReadyCallback callback to be called once game is ready to start, receiving two arguments: the new game's index and its full context (players involved, etc)
      */
-    public static async joinGame(playerInfo: object, funds: number, gameReadyCallback) {
+    public static joinGame(playerFunds: number, playerInfo: object, gameReadyCallback) {
+        // TODO: switch between mock and real web3 impl according to a config
+        // this.joinGameMock(playerFunds, playerInfo, gameReadyCallback);
+        this.joinGameWeb3(playerFunds, playerInfo, gameReadyCallback);
+    }
+
+
+    /**
+     * Joins a new Texas Holdem game using Web3
+     */
+    private static async joinGameWeb3(playerFunds: number, playerInfo: object, gameReadyCallback) {
         if (!window.ethereum) {
             console.error("Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?");
             return;
@@ -38,45 +49,80 @@ export class Lobby {
         // retrieves provider + signer (e.g., from metamask)
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
+        const playerAddress = await signer.getAddress();
 
         // connects to the TurnBasedGame and TurnBasedGameLobby contracts
         const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
         const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
         const lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobby.address, signer);
 
-        contextContract.on("GameReady", (index, context) => {
-            console.log(`index: ${index}`);
-            console.log(`context: ${JSON.stringify(context)}`);
+        
+        // listens to GameReady events indicating that a game has been created
+        const gameContextContract = contextContract.attach(gameContract.address);
+        gameContextContract.on("GameReady", (index, ctx) => {
+
+            // checks if player is participating in the newly created game
+            const playerIndex = ctx.players.indexOf(playerAddress);
+            if (playerIndex == -1) {
+                // player is not participating in the game: ignore it
+                return;
+            }
+
+            // copies relevant context data of the newly created game
+            const context:any = { 
+                gameTemplateHash: ctx.gameTemplateHash,
+                gameMetadata: ctx.gameMetadata,
+                players: ctx.players,
+                playerFunds: ctx.playerFunds,
+                playerInfos: new Array(ctx.players.length),
+                playerIndex: playerIndex,
+                opponentIndex: playerIndex == 0 ? 1 : 0
+            };
+
+            // decodes player infos
+            for (let i = 0; i < ctx.players.length; i ++) {
+                context.playerInfos[i] = JSON.parse(ethers.utils.toUtf8String(ctx.playerInfos[i]));
+            }
+
+            // cancels event listening and calls callback
+            gameContextContract.removeAllListeners();
+            gameReadyCallback(index, context);
         });
 
+
+        // joins game by calling Lobby smart contract
         lobbyContract.joinGame(
             Lobby.TEXAS_HODLEM_TEMPLATE_HASH,
             Lobby.TEXAS_HODLEM_METADATA,
             Lobby.VALIDATORS_LOCALHOST,
             Lobby.NUM_PLAYERS,
             Lobby.MIN_FUNDS,
-            funds,
+            playerFunds,
             PokerToken.address,
             ethers.utils.toUtf8Bytes(JSON.stringify(playerInfo))
         );
 
-        // FIXME: this is a mock implementation
-        // - the real impl should call TurnBasedGameLobby.joinGame() and wait for TurnBasedGame.GameReady event
+    }
 
-        if (funds < this.MIN_FUNDS) {
-            throw `Player's staked funds (${funds}) is insufficient to join the game (minimum is ${this.MIN_FUNDS}).`;
+    /**
+     * Joins a new Texas Holdem game using a mock implementation
+     */
+    private static async joinGameMock(playerFunds: number, playerInfo: object, gameReadyCallback) {
+        if (playerFunds < this.MIN_FUNDS) {
+            throw `Player's staked funds (${playerFunds}) is insufficient to join the game (minimum is ${this.MIN_FUNDS}).`;
         }
 
-        var index = 0;
+        var gameIndex = 0;
         var opponentAvatar = Math.ceil(Math.random() * 6);
-        console.log(`opponentAvatar: ${opponentAvatar}`);
         var context = {
             gameTemplateHash: Lobby.TEXAS_HODLEM_TEMPLATE_HASH,
             gameMetadata: Lobby.TEXAS_HODLEM_METADATA,
             players: Lobby.VALIDATORS_LOCALHOST,
-            playerFunds: [funds, 100],
+            playerFunds: [playerFunds, 100],
             playerInfos: [playerInfo, { name: "Bob", avatar: opponentAvatar }],
+            playerIndex: 0,
+            opponentIndex: 1
         };
-        setTimeout(() => gameReadyCallback(index, context), 6000);
+        setTimeout(() => gameReadyCallback(gameIndex, context), 6000);
     }
 }

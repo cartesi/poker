@@ -183,13 +183,16 @@ export class GameManager {
         GameVars.currentScene.scene.start("LobbyScene");
 
         const { name, avatar } = GameVars.gameData;
-        Lobby.joinGame({ name, avatar }, GameVars.playerFunds, (index, context) => {
-            console.log(index);
-            console.log(context);
+        const playerInfo = { name, avatar };
 
-            GameVars.opponentName = context.playerInfos[1].name;
-            GameVars.opponentAvatar = context.playerInfos[1].avatar;
-            GameVars.opponentFunds = context.playerFunds[1];
+        Lobby.joinGame(GameVars.playerFunds, playerInfo, (index, context) => {
+            console.log(`Joining game ${index} with context ${JSON.stringify(context)}`);
+
+            const opponentPlayerInfo = context.playerInfos[context.opponentIndex];
+            const opponentFunds = context.playerFunds[context.opponentIndex];
+            GameVars.opponentName = opponentPlayerInfo.name;
+            GameVars.opponentAvatar = opponentPlayerInfo.avatar;
+            GameVars.opponentFunds = opponentFunds;
 
             LobbyScene.currentInstance.onOpponentJoined();
         });
