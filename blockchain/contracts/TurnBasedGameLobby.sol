@@ -148,7 +148,7 @@ contract TurnBasedGameLobby {
             playerInfos[_gameNumPlayers - 1] = _playerInfo;
 
             // - tranfer tokens to game contract
-            transferTokensToGameAccount(IERC20(_gameERC20Address), playerFunds, _gameNumPlayers);
+            transferTokensToGameAccount(IERC20(_gameERC20Address), playerFunds);
 
             // - starts game
             turnBasedGame.startGame(
@@ -179,14 +179,9 @@ contract TurnBasedGameLobby {
     /// @notice Transfer players tokens locked in lobby contract to the game contract
     /// @param _tokenProvider ERC20 compatible token provider instance
     /// @param _playerFunds amount of tokens locked in lobby contract that will be transfered to game contract
-    /// @param _gameNumPlayers number of players in the game
-    function transferTokensToGameAccount(
-        IERC20 _tokenProvider,
-        uint256[] memory _playerFunds,
-        uint8 _gameNumPlayers
-    ) public {
+    function transferTokensToGameAccount(IERC20 _tokenProvider, uint256[] memory _playerFunds) public {
         uint256 tokensToTransfer;
-        for (uint256 i = 0; i < _gameNumPlayers; i++) {
+        for (uint256 i = 0; i < _playerFunds.length; i++) {
             tokensToTransfer += _playerFunds[i];
         }
         _tokenProvider.transfer(address(turnBasedGame), tokensToTransfer);

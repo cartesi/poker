@@ -43,6 +43,8 @@ task("join-game", "Registers player in the lobby in order to join a game")
     .addOptionalParam("playerinfo", "Additional information for the player joining the game", "0x", types.string)
     .setAction(async ({ hash, metadata, validators, numplayers, minfunds, player, playerfunds, playerinfo }, hre) => {
         const { ethers } = hre;
+
+        const [aliceSigner] = await ethers.getSigners();
         const accounts = await hre.getNamedAccounts();
 
         // retrieves validators according to their account names
@@ -51,10 +53,24 @@ task("join-game", "Registers player in the lobby in order to join a game")
         // retrieves account from configured named accounts, according to player's name
         const playerAccount = accounts[player];
 
+
         // retrieves lobby contract with signer configured for the specified account
         // - this means that any transaction submitted will be on behalf of that specified account
         const lobby = await ethers.getContract("TurnBasedGameLobby", playerAccount);
         const contextLib = await ethers.getContract("TurnBasedGameContext");
+
+
+        // deploy PokerToken contract
+        const pokerToken = await ethers.getContract("PokerToken");
+
+        // mint tokens for player
+        let mintTx = await pokerToken.mint(aliceSigner.address, playerfunds);
+        const mintTxEvents = (await mintTx.wait()).events;
+
+        // approve lobby to spent tokens in the behalf of the player
+        let approveTx = await pokerToken.connect(aliceSigner).approve(lobby.address, playerfunds);
+        const approveTxEvents = (await approveTx.wait()).events;
+
 
         // submits transaction to the lobby contract to join a game
         let tx = await lobby.joinGame(
@@ -63,6 +79,7 @@ task("join-game", "Registers player in the lobby in order to join a game")
             validatorAddresses,
             numplayers,
             minfunds,
+            pokerToken.address,
             playerfunds,
             playerinfo
         );
@@ -70,15 +87,9 @@ task("join-game", "Registers player in the lobby in order to join a game")
         // retrieves transaction's emitted events to report outcome
         const events = (await tx.wait()).events;
 
-        if (events && events.length) {
-            // a GameReady event is emitted by TurnBasedGame if a game starts
-            // - parse event using TurnBasedGame's contract interface
-            const gameReadyEvent = contextLib.interface.parseLog(events[0]);
-            const index = gameReadyEvent.args._index;
-            console.log(`\nGame started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
-        } else {
-            // no event emitted: show current queue to start a game
-            const queue = await lobby.getQueue(hash, metadata, validatorAddresses, numplayers, minfunds);
+        // no event emitted: show current queue to start a game
+        if (events.length == 0) {
+            const queue = await lobby.getQueue(hash, metadata, validatorAddresses, numplayers, minfunds, pokerToken.address);
             console.log(`\nPlayer '${player}' enqueued. Current queue is:`);
             if (queue && queue.length) {
                 for (let i = 0; i < queue.length; i++) {
@@ -90,7 +101,32 @@ task("join-game", "Registers player in the lobby in order to join a game")
                 }
             }
             console.log("");
+            return;
         }
+
+        // when there are events, show name an its source
+        for (let event of events) {
+            let eventName, sourceName;
+            if (event.address == pokerToken.address) {
+                const pokerTokenEvent = pokerToken.interface.parseLog(event);
+                eventName = pokerTokenEvent.name;
+                sourceName = "Token contract";
+                console.log("Received " + pokerTokenEvent.name + " event from token contract");
+            } else if (event.address == lobby.address) {
+                const lobbyEvent = lobby.interface.parseLog(event);
+                eventName = lobbyEvent.name;
+                console.log("Received " + lobbyEvent.name + " event from lobby contract");
+            } else if (event.address == contextLib.address) {
+                // a GameReady event is emitted by TurnBasedGame if a game starts
+                // - parse event using TurnBasedGame's contract interface
+                const gameReadyEvent = contextLib.interface.parseLog(events[0]);
+                const index = gameReadyEvent.args._index;
+                console.log(`\nGame started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
+            } else {
+                console.log("Received unknown event from unknown contract");
+            }
+        }
+        console.log("");
     });
 
 // GET-CONTEXT
@@ -250,8 +286,7 @@ task("claim-result", "Claims a game has ended with a specified result")
 
         console.log("");
         console.log(
-            `Result '${JSON.stringify(result)}' claimed by '${player}' for game with index '${index}' (tx: ${
-                tx.hash
+            `Result '${JSON.stringify(result)}' claimed by '${player}' for game with index '${index}' (tx: ${tx.hash
             } ; blocknumber: ${tx.blockNumber})\n`
         );
     });
@@ -284,8 +319,7 @@ task("confirm-result", "Confirms a game result that was previously claimed")
                 const result = gameOverEvent.args._fundsShare;
                 const resultPrintable = result.map((v) => v.toNumber());
                 console.log(
-                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${
-                        tx.hash
+                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${tx.hash
                     } ; blocknumber: ${tx.blockNumber})\n`
                 );
                 break;
@@ -316,8 +350,7 @@ task("apply-result", "Applies the result of a game verified by Descartes")
                 const result = gameOverEvent.args._fundsShare;
                 const resultPrintable = result.map((v) => v.toNumber());
                 console.log(
-                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${
-                        tx.hash
+                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${tx.hash
                     } ; blocknumber: ${tx.blockNumber})\n`
                 );
                 break;
