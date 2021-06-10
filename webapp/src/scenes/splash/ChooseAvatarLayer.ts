@@ -2,6 +2,7 @@ import { GameVars } from './../../GameVars';
 import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameManager } from "../../GameManager";
+import { Onboarding } from "../../web3/Onboarding";
 import { Avatar } from "./Avatar";
 
 export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
@@ -61,9 +62,17 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
             GameManager.setPlayerName(inputText.value);
             GameManager.enterLobbyScene();
         }, this);
+        this.playButton.setVisible(false);
         this.add(this.playButton);
 
         this.onAvatarDown(GameVars.gameData.avatar);
+
+        Onboarding.start(({label, onclick, error, ready}) => {
+            if (ready) {
+                this.playButton.setVisible(true);
+            }
+        });
+
     }
 
     public onAvatarDown(index: number): void {
