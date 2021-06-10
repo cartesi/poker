@@ -50,11 +50,6 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
             inputText.value = GameVars.gameData.name;
         }
 
-        this.onboardButton = new Phaser.GameObjects.Text(this.scene, 60, 385, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
-        this.onboardButton.setInteractive();
-        this.add(this.onboardButton);
-        Onboarding.start(this.onOnboardButtonClick.bind(this))
-
         this.playButton = new Phaser.GameObjects.Image(this.scene, 0, 355, "texture_atlas_1", "btn_play");
         this.playButton.setInteractive();
         this.playButton.on("pointerover", () => {
@@ -72,6 +67,11 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         this.add(this.playButton);
 
         this.onAvatarDown(GameVars.gameData.avatar);
+
+        this.onboardButton = new Phaser.GameObjects.Text(this.scene, 60, 385, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        this.onboardButton.setInteractive();
+        this.add(this.onboardButton);
+        Onboarding.start(this.onOnboardButtonClick.bind(this))
     }
 
     public onAvatarDown(index: number): void {
@@ -129,14 +129,10 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
             this.onboardButton.off("pointerup")
         }
 
-        if (error) {
-            // inform user an error has occurred
-            this.onboardButton.setScale(1.5);
-        }
+        // change style to inform user if an error has occurred
+        this.onboardButton.setScale(error ? 1.5 : 1);
 
-        if (ready) {
-            // good to go
-            this.playButton.setVisible(true);
-        }
+        // if ready, we're good to go        
+        this.playButton.setVisible(ready);
     }
 }
