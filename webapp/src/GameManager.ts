@@ -24,7 +24,7 @@ export class GameManager {
             GameVars.landscape = false;
         }
 
-        GameVars.playerFunds = 100;
+        GameVars.playerFunds = 0;
 
         GameVars.opponentAvatar = 5;
 
@@ -70,14 +70,16 @@ export class GameManager {
         const { name, avatar } = GameVars.gameData;
         const playerInfo = { name, avatar };
 
-        Lobby.joinGame(GameVars.playerFunds, playerInfo, (index, context) => {
+        Lobby.joinGame(playerInfo, (index, context) => {
             console.log(`Joining game ${index} with context ${JSON.stringify(context)}`);
 
             const opponentPlayerInfo = context.playerInfos[context.opponentIndex];
+            const playerFunds = context.playerFunds[context.playerIndex];
             const opponentFunds = context.playerFunds[context.opponentIndex];
+            GameVars.opponentFunds = playerFunds;
+            GameVars.opponentFunds = opponentFunds;
             GameVars.opponentName = opponentPlayerInfo.name;
             GameVars.opponentAvatar = opponentPlayerInfo.avatar;
-            GameVars.opponentFunds = opponentFunds;
 
             LobbyScene.currentInstance.onOpponentJoined();
         });

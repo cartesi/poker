@@ -3,21 +3,19 @@ import TurnBasedGame from "../abis/TurnBasedGame.json";
 import TurnBasedGameContext from "../abis/TurnBasedGameContext.json";
 import TurnBasedGameLobby from "../abis/TurnBasedGameLobby.json";
 import PokerToken from "../abis/PokerToken.json";
-import { TurnBasedGame__factory } from "../types/factories/TurnBasedGame__factory";
-import { TurnBasedGameContext__factory } from "../types/factories/TurnBasedGameContext__factory";
-import { TurnBasedGameLobby__factory } from "../types/factories/TurnBasedGameLobby__factory";
+import { PokerToken__factory, TurnBasedGame__factory, TurnBasedGameContext__factory, TurnBasedGameLobby__factory } from "../types";
 
 declare let window: any;
 export class Lobby {
-    private static readonly TEXAS_HODLEM_TEMPLATE_HASH =
+    public static readonly TEXAS_HODLEM_TEMPLATE_HASH =
         "0xa4c9cc22be3cefe90f6a2332ffd3b12e4fcc327112a90dcc12207ad5154e8207";
-    private static readonly TEXAS_HODLEM_METADATA = "0x";
-    private static readonly VALIDATORS_LOCALHOST = [
+    public static readonly TEXAS_HODLEM_METADATA = "0x";
+    public static readonly VALIDATORS_LOCALHOST = [
         "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
         "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
     ];
-    private static readonly NUM_PLAYERS = 2;
-    private static readonly MIN_FUNDS = 10;
+    public static readonly NUM_PLAYERS = 2;
+    public static readonly MIN_FUNDS = 10;
 
 
     /**
@@ -27,17 +25,17 @@ export class Lobby {
      * @param playerInfo JSON object with descriptive information (name, avatar) about the player joining
      * @param gameReadyCallback callback to be called once game is ready to start, receiving two arguments: the new game's index and its full context (players involved, etc)
      */
-    public static joinGame(playerFunds: number, playerInfo: object, gameReadyCallback) {
+    public static joinGame(playerInfo: object, gameReadyCallback) {
         // TODO: switch between mock and real web3 impl according to a config
-        // this.joinGameMock(playerFunds, playerInfo, gameReadyCallback);
-        this.joinGameWeb3(playerFunds, playerInfo, gameReadyCallback);
+        this.joinGameMock(playerInfo, gameReadyCallback);
+        // this.joinGameWeb3(playerInfo, gameReadyCallback);
     }
 
 
     /**
      * Joins a new Texas Holdem game using Web3
      */
-    private static async joinGameWeb3(playerFunds: number, playerInfo: object, gameReadyCallback) {
+    private static async joinGameWeb3(playerInfo: object, gameReadyCallback) {
         if (!window.ethereum) {
             console.error("Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?");
             return;
@@ -52,6 +50,7 @@ export class Lobby {
         const playerAddress = await signer.getAddress();
 
         // connects to the TurnBasedGame and TurnBasedGameLobby contracts
+        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
         const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
         const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
         const lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobby.address, signer);
@@ -92,6 +91,9 @@ export class Lobby {
         });
 
 
+        // retrieves player's balance to see how much he will bring to the table
+        const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
+
         // joins game by calling Lobby smart contract
         lobbyContract.joinGame(
             Lobby.TEXAS_HODLEM_TEMPLATE_HASH,
@@ -109,19 +111,15 @@ export class Lobby {
     /**
      * Joins a new Texas Holdem game using a mock implementation
      */
-    private static async joinGameMock(playerFunds: number, playerInfo: object, gameReadyCallback) {
-        if (playerFunds < this.MIN_FUNDS) {
-            throw `Player's staked funds (${playerFunds}) is insufficient to join the game (minimum is ${this.MIN_FUNDS}).`;
-        }
-
+    private static async joinGameMock(playerInfo: object, gameReadyCallback) {
         var gameIndex = 0;
         var opponentAvatar = Math.ceil(Math.random() * 6);
         var context = {
             gameTemplateHash: Lobby.TEXAS_HODLEM_TEMPLATE_HASH,
             gameMetadata: Lobby.TEXAS_HODLEM_METADATA,
             players: Lobby.VALIDATORS_LOCALHOST,
-            playerFunds: [playerFunds, 100],
-            playerInfos: [playerInfo, { name: "Bob", avatar: opponentAvatar }],
+            playerFunds: [100, 100],
+            playerInfos: [playerInfo, { name: "Sam", avatar: opponentAvatar }],
             playerIndex: 0,
             opponentIndex: 1
         };
