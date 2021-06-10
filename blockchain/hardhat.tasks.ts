@@ -62,14 +62,15 @@ task("join-game", "Registers player in the lobby in order to join a game")
 
         // deploy PokerToken contract
         const pokerToken = await ethers.getContract("PokerToken");
-
         // mint tokens for player
-        let mintTx = await pokerToken.mint(aliceSigner.address, playerfunds);
-        const mintTxEvents = (await mintTx.wait()).events;
+        await pokerToken.mint(playerAccount, playerfunds);
+        // approve lobby to spent tokens on behalf of the player
+        const playerPokerToken = await ethers.getContract("PokerToken", playerAccount);
+        await playerPokerToken.approve(lobby.address, playerfunds);
 
-        // approve lobby to spent tokens in the behalf of the player
-        let approveTx = await pokerToken.connect(aliceSigner).approve(lobby.address, playerfunds);
-        const approveTxEvents = (await approveTx.wait()).events;
+
+        // retrieve game contract just to check GameReady event
+        const game = await ethers.getContract("TurnBasedGame");
 
 
         // submits transaction to the lobby contract to join a game
@@ -87,45 +88,31 @@ task("join-game", "Registers player in the lobby in order to join a game")
         // retrieves transaction's emitted events to report outcome
         const events = (await tx.wait()).events;
 
-        // no event emitted: show current queue to start a game
-        if (events.length == 0) {
-            const queue = await lobby.getQueue(hash, metadata, validatorAddresses, numplayers, minfunds, pokerToken.address);
-            console.log(`\nPlayer '${player}' enqueued. Current queue is:`);
-            if (queue && queue.length) {
-                for (let i = 0; i < queue.length; i++) {
-                    player = queue[i];
-                    console.log(`- player ${i}`);
-                    console.log(`  - address: ${player.addr}`);
-                    console.log(`  - funds: ${player.funds}`);
-                    console.log(`  - info: ${player.info} ('${ethers.utils.toUtf8String(player.info)}')`);
-                }
-            }
-            console.log("");
-            return;
-        }
-
-        // when there are events, show name an its source
         for (let event of events) {
-            let eventName, sourceName;
-            if (event.address == pokerToken.address) {
-                const pokerTokenEvent = pokerToken.interface.parseLog(event);
-                eventName = pokerTokenEvent.name;
-                sourceName = "Token contract";
-                console.log("Received " + pokerTokenEvent.name + " event from token contract");
-            } else if (event.address == lobby.address) {
-                const lobbyEvent = lobby.interface.parseLog(event);
-                eventName = lobbyEvent.name;
-                console.log("Received " + lobbyEvent.name + " event from lobby contract");
-            } else if (event.address == contextLib.address) {
+            if (event.address == game.address) {
                 // a GameReady event is emitted by TurnBasedGame if a game starts
-                // - parse event using TurnBasedGame's contract interface
-                const gameReadyEvent = contextLib.interface.parseLog(events[0]);
+                // - parse event using contextLib because It's there where the event is emitted
+                const gameReadyEvent = contextLib.interface.parseLog(event);
                 const index = gameReadyEvent.args._index;
                 console.log(`\nGame started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
-            } else {
-                console.log("Received unknown event from unknown contract");
+                return;
+            }
+            // Other events (transferring tokens from player to lobby contract) will be ignored in this task
+        }
+
+        // print queue situation if game is not ready yet
+        const queue = await lobby.getQueue(hash, metadata, validatorAddresses, numplayers, minfunds, pokerToken.address);
+        console.log(`\nPlayer '${player}' enqueued. Current queue is:`);
+        if (queue && queue.length) {
+            for (let i = 0; i < queue.length; i++) {
+                player = queue[i];
+                console.log(`- player ${i}`);
+                console.log(`  - address: ${player.addr}`);
+                console.log(`  - funds: ${player.funds}`);
+                console.log(`  - info: ${player.info} ('${ethers.utils.toUtf8String(player.info)}')`);
             }
         }
+
         console.log("");
     });
 
