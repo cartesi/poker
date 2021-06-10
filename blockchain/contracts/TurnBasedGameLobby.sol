@@ -155,6 +155,7 @@ contract TurnBasedGameLobby {
                 _gameTemplateHash,
                 _gameMetadata,
                 _gameValidators,
+                _gameERC20Address,
                 players,
                 playerFunds,
                 playerInfos

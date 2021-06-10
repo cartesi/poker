@@ -3,15 +3,49 @@ import * as fs from "fs";
 
 const defaultGameTemplateHash = "0xa4c9cc22be3cefe90f6a2332ffd3b12e4fcc327112a90dcc12207ad5154e8207";
 
+// SHOW-BALANCES
+task("show-balances", "Show token balance for lobby, game, alice and bob accounts")
+    .setAction(async ({ hash }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves lobby contract
+        const lobby = await ethers.getContract("TurnBasedGameLobby");
+        // retrieve game contract
+        const game = await ethers.getContract("TurnBasedGame");
+        // retrieve alice and bob
+        const { alice, bob } = await hre.getNamedAccounts();
+
+        // retrieve PokerToken contract
+        const pokerToken = await ethers.getContract("PokerToken");
+
+        // balance for lobby account
+        let lobbyBalance = await pokerToken.balanceOf(lobby.address);
+        console.log("Lobby = " + lobbyBalance);
+        // balance for game account
+        let gameBalance = await pokerToken.balanceOf(game.address);
+        console.log("Game = " + gameBalance);
+        // balance for alice account
+        let aliceBalance = await pokerToken.balanceOf(alice);
+        console.log("Alice = " + aliceBalance);
+        // balance for bob account
+        let bobBalance = await pokerToken.balanceOf(bob);
+        console.log("Bob = " + bobBalance);
+
+        console.log("");
+    });
+
 // START-GAME
 task("start-game", "Starts a TurnBasedGame instance")
     .addOptionalParam("hash", "Game template hash to use", defaultGameTemplateHash, types.string)
     .setAction(async ({ hash }, hre) => {
         const { ethers } = hre;
-        const game = await ethers.getContract("TurnBasedGame");
-        const contextLibrary = await ethers.getContract("TurnBasedGameContext");
 
         const { alice, bob } = await hre.getNamedAccounts();
+
+        // retrieve contracts
+        const pokerToken = await ethers.getContract("PokerToken");
+        const game = await ethers.getContract("TurnBasedGame");
+        const contextLibrary = await ethers.getContract("TurnBasedGameContext");
 
         const gameTemplateHash = hash;
         const gameMetadata = "0x";
@@ -23,7 +57,7 @@ task("start-game", "Starts a TurnBasedGame instance")
             ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Bob")),
         ];
 
-        const tx = await game.startGame(gameTemplateHash, gameMetadata, validators, players, playerfunds, playerinfos);
+        const tx = await game.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerfunds, playerinfos);
         const gameReadyEventRaw = (await tx.wait()).events[0];
         const gameReadyEvent = contextLibrary.interface.parseLog(gameReadyEventRaw);
         const index = gameReadyEvent.args._index;
