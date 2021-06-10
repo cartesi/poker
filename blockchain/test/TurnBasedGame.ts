@@ -15,6 +15,7 @@ import { expect, use } from "chai";
 import { deployments, ethers, getNamedAccounts, network } from "hardhat";
 import { MockContract, deployMockContract, solidity } from "ethereum-waffle";
 
+import { PokerToken } from "../src/types/PokerToken";
 import { TurnBasedGame } from "../src/types/TurnBasedGame";
 import { TurnBasedGameContext } from "../src/types/TurnBasedGameContext";
 import { TurnBasedGame__factory } from "../src/types/factories/TurnBasedGame__factory";
@@ -23,6 +24,7 @@ import { TurnBasedGameContext__factory } from "../src/types/factories/TurnBasedG
 use(solidity);
 
 describe("TurnBasedGame", async () => {
+    let pokerToken;
     let gameContract: TurnBasedGame;
     let gameContractPlayer1: TurnBasedGame;
     let gameContractNonPlayer: TurnBasedGame;
@@ -52,6 +54,11 @@ describe("TurnBasedGame", async () => {
         const { alice, bob } = await getNamedAccounts();
         players = [alice, bob];
         validators = players;
+
+        await deployments.fixture(); // reset contracts to initial state
+
+        // Get previously deployed PokerToken contract
+        pokerToken = await deployments.get("PokerToken");
 
         const Descartes = await deployments.getArtifact("Descartes");
         const Logger = await deployments.getArtifact("Logger");
@@ -90,14 +97,13 @@ describe("TurnBasedGame", async () => {
     };
 
     // START GAME
-
     describe("startGame", async () => {
         it("Should activate game instance", async () => {
             expect(await gameContract.isActive(0), "1st game should be inactive before calling startGame").to.equal(
                 false
             );
 
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             expect(await gameContract.isActive(0), "1st game should be active after calling startGame once").to.equal(
                 true
             );
@@ -106,7 +112,7 @@ describe("TurnBasedGame", async () => {
                 "2nd game should be inactive before calling startGame twice"
             ).to.equal(false);
 
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             expect(await gameContract.isActive(0), "1st game should be active after calling startGame twice").to.equal(
                 true
             );
@@ -121,6 +127,7 @@ describe("TurnBasedGame", async () => {
                 gameTemplateHash,
                 gameMetadata,
                 validators,
+                pokerToken.address,
                 players,
                 playerFunds,
                 playerInfos
@@ -136,24 +143,26 @@ describe("TurnBasedGame", async () => {
             expect(context[0]).to.eql(gameTemplateHash, "1st game should emit event with appropriate context");
             expect(context[1]).to.eql(gameMetadata, "1st game should emit event with appropriate context");
             expect(context[2]).to.eql(validators, "1st game should emit event with appropriate context");
-            expect(context[3]).to.eql(players, "1st game should emit event with appropriate context");
-            expect(context[4]).to.eql(playerFunds, "1st game should emit event with appropriate context");
-            expect(context[5]).to.eql(playerInfos, "1st game should emit event with appropriate context");
-            expect(context[6]).to.eql([], "1st game should emit event with appropriate context"); // turns
-            expect(context[7]).to.eql(false, "1st game should emit event with appropriate context"); // null isDescartesInstantiated
-            expect(context[8]).to.eql(ethers.constants.Zero, "1st game should emit event with appropriate context"); // null descartesIndex
-            expect(context[9]).to.eql(
+            expect(context[4]).to.eql(players, "1st game should emit event with appropriate context");
+            // context[3] is the ERC20 compatible token provider
+            expect(context[5]).to.eql(playerFunds, "1st game should emit event with appropriate context");
+            expect(context[6]).to.eql(playerInfos, "1st game should emit event with appropriate context");
+            expect(context[7]).to.eql([], "1st game should emit event with appropriate context"); // turns
+            expect(context[8]).to.eql(false, "1st game should emit event with appropriate context"); // null isDescartesInstantiated
+            expect(context[9]).to.eql(ethers.constants.Zero, "1st game should emit event with appropriate context"); // null descartesIndex
+            expect(context[10]).to.eql(
                 ethers.constants.AddressZero,
                 "1st game should emit event with appropriate context"
             ); // null claimer
-            expect(context[10]).to.eql([], "1st game should emit event with appropriate context"); // null claimedFundsShare
-            expect(context[11]).to.eql(ethers.constants.Zero, "1st game should emit event with appropriate context"); // null claimAgreementMask
+            expect(context[11]).to.eql([], "1st game should emit event with appropriate context"); // null claimedFundsShare
+            expect(context[12]).to.eql(ethers.constants.Zero, "1st game should emit event with appropriate context"); // null claimAgreementMask
 
             // 2nd game: same params
             tx = await gameContract.startGame(
                 gameTemplateHash,
                 gameMetadata,
                 validators,
+                pokerToken.address,
                 players,
                 playerFunds,
                 playerInfos
@@ -169,18 +178,19 @@ describe("TurnBasedGame", async () => {
             expect(context[0]).to.eql(gameTemplateHash, "2nd game should emit event with appropriate context");
             expect(context[1]).to.eql(gameMetadata, "2nd game should emit event with appropriate context");
             expect(context[2]).to.eql(validators, "2nd game should emit event with appropriate context");
-            expect(context[3]).to.eql(players, "2nd game should emit event with appropriate context");
-            expect(context[4]).to.eql(playerFunds, "2nd game should emit event with appropriate context");
-            expect(context[5]).to.eql(playerInfos, "2nd game should emit event with appropriate context");
-            expect(context[6]).to.eql([], "2nd game should emit event with appropriate context"); // turns
-            expect(context[7]).to.eql(false, "2nd game should emit event with appropriate context"); // null isDescartesInstantiated
-            expect(context[8]).to.eql(ethers.constants.Zero, "2nd game should emit event with appropriate context"); // null descartesIndex
-            expect(context[9]).to.eql(
+            // context[3] is the ERC20 compatible token provider
+            expect(context[4]).to.eql(players, "2nd game should emit event with appropriate context");
+            expect(context[5]).to.eql(playerFunds, "2nd game should emit event with appropriate context");
+            expect(context[6]).to.eql(playerInfos, "2nd game should emit event with appropriate context");
+            expect(context[7]).to.eql([], "2nd game should emit event with appropriate context"); // turns
+            expect(context[8]).to.eql(false, "2nd game should emit event with appropriate context"); // null isDescartesInstantiated
+            expect(context[9]).to.eql(ethers.constants.Zero, "2nd game should emit event with appropriate context"); // null descartesIndex
+            expect(context[10]).to.eql(
                 ethers.constants.AddressZero,
                 "2nd game should emit event with appropriate context"
             ); // null claimer
-            expect(context[10]).to.eql([], "2nd game should emit event with appropriate context"); // null claimedFundsShare
-            expect(context[11]).to.eql(ethers.constants.Zero, "2nd game should emit event with appropriate context"); // null claimAgreementMask
+            expect(context[11]).to.eql([], "2nd game should emit event with appropriate context"); // null claimedFundsShare
+            expect(context[12]).to.eql(ethers.constants.Zero, "2nd game should emit event with appropriate context"); // null claimAgreementMask
 
             // 3rd game: different metadata
             const gameMetadata2 = "0x123456";
@@ -188,6 +198,7 @@ describe("TurnBasedGame", async () => {
                 gameTemplateHash,
                 gameMetadata2,
                 validators,
+                pokerToken.address,
                 players,
                 playerFunds,
                 playerInfos
@@ -203,18 +214,19 @@ describe("TurnBasedGame", async () => {
             expect(context[0]).to.eql(gameTemplateHash, "3rd game should emit event with appropriate context");
             expect(context[1]).to.eql(gameMetadata2, "3rd game should emit event with appropriate context");
             expect(context[2]).to.eql(validators, "3rd game should emit event with appropriate context");
-            expect(context[3]).to.eql(players, "3rd game should emit event with appropriate context");
-            expect(context[4]).to.eql(playerFunds, "3rd game should emit event with appropriate context");
-            expect(context[5]).to.eql(playerInfos, "3rd game should emit event with appropriate context");
-            expect(context[6]).to.eql([], "3rd game should emit event with appropriate context"); // turns
-            expect(context[7]).to.eql(false, "3rd game should emit event with appropriate context"); // null isDescartesInstantiated
-            expect(context[8]).to.eql(ethers.constants.Zero, "3rd game should emit event with appropriate context"); // null descartesIndex
-            expect(context[9]).to.eql(
+            // context[3] is the ERC20 compatible token provider
+            expect(context[4]).to.eql(players, "3rd game should emit event with appropriate context");
+            expect(context[5]).to.eql(playerFunds, "3rd game should emit event with appropriate context");
+            expect(context[6]).to.eql(playerInfos, "3rd game should emit event with appropriate context");
+            expect(context[7]).to.eql([], "3rd game should emit event with appropriate context"); // turns
+            expect(context[8]).to.eql(false, "3rd game should emit event with appropriate context"); // null isDescartesInstantiated
+            expect(context[9]).to.eql(ethers.constants.Zero, "3rd game should emit event with appropriate context"); // null descartesIndex
+            expect(context[10]).to.eql(
                 ethers.constants.AddressZero,
                 "3rd game should emit event with appropriate context"
             ); // null claimer
-            expect(context[10]).to.eql([], "3rd game should emit event with appropriate context"); // null claimedFundsShare
-            expect(context[11]).to.eql(ethers.constants.Zero, "3rd game should emit event with appropriate context"); // null claimAgreementMask
+            expect(context[11]).to.eql([], "3rd game should emit event with appropriate context"); // null claimedFundsShare
+            expect(context[12]).to.eql(ethers.constants.Zero, "3rd game should emit event with appropriate context"); // null claimAgreementMask
         });
     });
 
@@ -224,25 +236,26 @@ describe("TurnBasedGame", async () => {
         it("Should only be allowed for instantiated games", async () => {
             await expect(gameContract.getContext(0)).to.be.revertedWith("Index not instantiated");
 
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.getContext(0)).not.to.be.reverted;
         });
 
         it("Should return correct values", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             let context = await gameContract.getContext(0);
             expect(context[0]).to.eql(gameTemplateHash);
             expect(context[1]).to.eql(gameMetadata);
             expect(context[2]).to.eql(validators);
-            expect(context[3]).to.eql(players);
-            expect(context[4]).to.eql(playerFunds);
-            expect(context[5]).to.eql(playerInfos);
-            expect(context[6]).to.eql([]); // turns
-            expect(context[7]).to.eql(false); // null isDescartesInstantiated
-            expect(context[8]).to.eql(ethers.constants.Zero); // null descartesIndex
-            expect(context[9]).to.eql(ethers.constants.AddressZero); // null claimer
-            expect(context[10]).to.eql([]); // null claimedFundsShare
-            expect(context[11]).to.eql(ethers.constants.Zero); // null claimAgreementMask
+            // context[3] is the ERC20 compatible token provider
+            expect(context[4]).to.eql(players);
+            expect(context[5]).to.eql(playerFunds);
+            expect(context[6]).to.eql(playerInfos);
+            expect(context[7]).to.eql([]); // turns
+            expect(context[8]).to.eql(false); // null isDescartesInstantiated
+            expect(context[9]).to.eql(ethers.constants.Zero); // null descartesIndex
+            expect(context[10]).to.eql(ethers.constants.AddressZero); // null claimer
+            expect(context[11]).to.eql([]); // null claimedFundsShare
+            expect(context[12]).to.eql(ethers.constants.Zero); // null claimAgreementMask
 
             // 2nd game: different metadata should reflect in the context
             const gameMetadata2 = "0x123456";
@@ -250,6 +263,7 @@ describe("TurnBasedGame", async () => {
                 gameTemplateHash,
                 gameMetadata2,
                 validators,
+                pokerToken.address,
                 players,
                 playerFunds,
                 playerInfos
@@ -264,7 +278,7 @@ describe("TurnBasedGame", async () => {
     describe("submitTurn", async () => {
         it("Should only be allowed for active games", async () => {
             await expect(gameContract.submitTurn(0, 0, turnData)).to.be.revertedWith("Index not instantiated");
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.submitTurn(0, 0, turnData)).not.to.be.reverted;
         });
 
@@ -273,6 +287,7 @@ describe("TurnBasedGame", async () => {
                 gameTemplateHash,
                 gameMetadata,
                 validators,
+                pokerToken.address,
                 players,
                 playerFunds,
                 playerInfos
@@ -284,17 +299,17 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should not be allowed when game result has been claimed", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, playerFunds);
             await expect(gameContract.submitTurn(0, 0, turnData)).to.be.revertedWith("Game end has been claimed");
 
             // new games should be ok
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.submitTurn(1, 0, turnData)).not.to.be.reverted;
         });
 
         it("Should not be allowed when game verification is in progress", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
 
             // challenges game
             await prepareChallengeGame();
@@ -303,12 +318,12 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.submitTurn(0, 0, turnData)).to.be.revertedWith("Game verification in progress");
 
             // new games should be ok
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.submitTurn(1, 0, turnData)).not.to.be.reverted;
         });
 
         it("Should only be allowed with correct turnIndex sequence", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
 
             // 1st submission must have turnIndex 0
             await expect(gameContract.submitTurn(0, 1, turnData)).to.be.revertedWith(
@@ -333,7 +348,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should emit TurnOver event", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
 
             // forcing next block's timestamp, which is only allowed if it's in the future (must be larger than previous block's timestamp)
             let timestampSeconds = Math.ceil(Date.now() / 1000) + 1000;
@@ -389,7 +404,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should update context", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
 
             const turnData0 = "0x325E3731202B2033365E313200000000";
             const turnData1 = "0x325E3731202B2099365E313200000088365E3132000099";
@@ -400,7 +415,7 @@ describe("TurnBasedGame", async () => {
             await mockLogger.mock.getLogIndex.returns(logIndex1);
             await gameContractPlayer1.submitTurn(0, 1, turnData1);
             let context = await gameContract.getContext(0);
-            let turns = context[6];
+            let turns = context[7];
             expect(turns.length).to.eql(2);
             expect(turns[0].player).to.eql(players[0]);
             expect(turns[0].dataLogIndices[0]).to.eql(ethers.BigNumber.from(logIndex0));
@@ -409,7 +424,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should update context with large data", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
 
             // 8-byte entry
             const bytes8 = "325E3731202B2033";
@@ -421,7 +436,7 @@ describe("TurnBasedGame", async () => {
             }
             await gameContract.submitTurn(0, 0, turnData);
             let context = await gameContract.getContext(0);
-            let turns = context[6];
+            let turns = context[7];
             expect(turns.length).to.eql(1, "Should contain one turn");
             expect(turns[0].dataLogIndices.length).to.eql(1, "10 8-byte entries should fit into one chunk");
 
@@ -432,7 +447,7 @@ describe("TurnBasedGame", async () => {
             }
             await gameContract.submitTurn(0, 1, turnData);
             context = await gameContract.getContext(0);
-            turns = context[6];
+            turns = context[7];
             expect(turns.length).to.eql(2, "Should contain two turns");
             expect(turns[1].dataLogIndices.length).to.eql(1, "128 8-byte entries should fit into one chunk");
 
@@ -443,7 +458,7 @@ describe("TurnBasedGame", async () => {
             }
             await gameContract.submitTurn(0, 2, turnData);
             context = await gameContract.getContext(0);
-            turns = context[6];
+            turns = context[7];
             expect(turns.length).to.eql(3, "Should contain three turns");
             expect(turns[2].dataLogIndices.length).to.eql(2, "129 8-byte entries should require two chunks");
 
@@ -454,7 +469,7 @@ describe("TurnBasedGame", async () => {
             }
             await gameContract.submitTurn(0, 3, turnData);
             context = await gameContract.getContext(0);
-            turns = context[6];
+            turns = context[7];
             expect(turns.length).to.eql(4, "Should contain four turns");
             expect(turns[3].dataLogIndices.length).to.eql(4, "500 8-byte entries should require four chunks");
         });
@@ -467,7 +482,7 @@ describe("TurnBasedGame", async () => {
             await prepareChallengeGame();
             await expect(gameContract.challengeGame(0)).to.be.revertedWith("Index not instantiated");
 
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.challengeGame(0)).not.to.be.reverted;
         });
 
@@ -476,6 +491,7 @@ describe("TurnBasedGame", async () => {
                 gameTemplateHash,
                 gameMetadata,
                 validators,
+                pokerToken.address,
                 players,
                 playerFunds,
                 playerInfos
@@ -489,7 +505,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should not be allowed when Descartes verification is in progress", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
 
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -503,7 +519,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should not be allowed when Descartes verification has been fully performed", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
 
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -519,7 +535,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should emit GameChallenged event", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
 
             // game challenged by player 0
             await prepareChallengeGame();
@@ -528,7 +544,7 @@ describe("TurnBasedGame", async () => {
                 .withArgs(0, descartesIndex, players[0]);
 
             // another game challenged by player 1
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await mockDescartes.mock.instantiate.returns(descartesIndex.add(1));
             await expect(gameContractPlayer1.challengeGame(1))
                 .to.emit(contextLibrary, "GameChallenged")
@@ -536,12 +552,12 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should update context", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
             let context = await gameContract.getContext(0);
-            expect(context[7]).to.eql(true); // isDescartesInstantiated
-            expect(context[8]).to.eql(descartesIndex); // descartesIndex
+            expect(context[8]).to.eql(true); // isDescartesInstantiated
+            expect(context[9]).to.eql(descartesIndex); // descartesIndex
         });
     });
 
@@ -551,7 +567,7 @@ describe("TurnBasedGame", async () => {
         it("Should only be allowed for active games", async () => {
             await expect(gameContract.claimResult(0, playerFunds)).to.be.revertedWith("Index not instantiated");
 
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
         });
 
@@ -560,6 +576,7 @@ describe("TurnBasedGame", async () => {
                 gameTemplateHash,
                 gameMetadata,
                 validators,
+                pokerToken.address,
                 players,
                 playerFunds,
                 playerInfos
@@ -572,7 +589,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should not be allowed more than once", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
             await expect(gameContract.claimResult(0, playerFunds)).to.be.revertedWith(
                 "Result has already been claimed for this game: it must now be either confirmed or challenged"
@@ -580,7 +597,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should not be allowed when Descartes verification is in progress", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
 
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -591,7 +608,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should check if claimed result is valid", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.claimResult(0, [201, 0])).to.be.revertedWith(
                 "Resulting funds distribution exceeds amount locked by the players for the game"
             );
@@ -605,16 +622,16 @@ describe("TurnBasedGame", async () => {
                 "Resulting funds distribution does not match number of players in the game"
             );
             await expect(gameContract.claimResult(0, [30, 80])).not.to.be.reverted;
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.claimResult(1, [100, 100])).not.to.be.reverted;
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.claimResult(2, [101, 99])).not.to.be.reverted;
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.claimResult(3, [200, 0])).not.to.be.reverted;
         });
 
         it("Should emit GameResultClaimed event", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
 
             // result claimed by player 0
             await expect(gameContract.claimResult(0, [120, 80]))
@@ -622,7 +639,7 @@ describe("TurnBasedGame", async () => {
                 .withArgs(0, [120, 80], players[0]);
 
             // another game with result claimed by player 1
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContractPlayer1.claimResult(1, [0, 150]))
                 .to.emit(contextLibrary, "GameResultClaimed")
                 .withArgs(1, [0, 150], players[1]);
@@ -630,20 +647,20 @@ describe("TurnBasedGame", async () => {
 
         it("Should update context", async () => {
             // result claimed by player 0
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, [120, 80]);
             let context = await gameContract.getContext(0);
-            expect(context[9]).to.eql(players[0]); // claimer
-            expect(context[10]).to.eql([ethers.BigNumber.from(120), ethers.BigNumber.from(80)]); // claimedFundsShare
-            expect(context[11]).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with only last bit turned on (only player0 agrees)
+            expect(context[10]).to.eql(players[0]); // claimer
+            expect(context[11]).to.eql([ethers.BigNumber.from(120), ethers.BigNumber.from(80)]); // claimedFundsShare
+            expect(context[12]).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with only last bit turned on (only player0 agrees)
 
             // another game with result claimed by player 1
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContractPlayer1.claimResult(1, [70, 120]);
             context = await gameContract.getContext(1);
-            expect(context[9]).to.eql(players[1]); // claimer
-            expect(context[10]).to.eql([ethers.BigNumber.from(70), ethers.BigNumber.from(120)]); // claimedFundsShare
-            expect(context[11]).to.eql(ethers.BigNumber.from(2)); // claimAgreementMask with only before last bit turned on (only player1 agrees)
+            expect(context[10]).to.eql(players[1]); // claimer
+            expect(context[11]).to.eql([ethers.BigNumber.from(70), ethers.BigNumber.from(120)]); // claimedFundsShare
+            expect(context[12]).to.eql(ethers.BigNumber.from(2)); // claimAgreementMask with only before last bit turned on (only player1 agrees)
         });
     });
 
@@ -653,7 +670,7 @@ describe("TurnBasedGame", async () => {
         it("Should only be allowed for active games", async () => {
             await expect(gameContract.confirmResult(0)).to.be.revertedWith("Index not instantiated");
 
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, playerFunds);
             await expect(gameContract.confirmResult(0)).not.to.be.reverted;
         });
@@ -663,6 +680,7 @@ describe("TurnBasedGame", async () => {
                 gameTemplateHash,
                 gameMetadata,
                 validators,
+                pokerToken.address,
                 players,
                 playerFunds,
                 playerInfos
@@ -676,7 +694,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should only be allowed when a result was claimed before", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.confirmResult(0)).to.be.revertedWith(
                 "Result has not been claimed for this game yet"
             );
@@ -686,7 +704,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should not be allowed when Descartes verification is in progress", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, playerFunds);
 
             await prepareChallengeGame();
@@ -699,7 +717,7 @@ describe("TurnBasedGame", async () => {
 
         it("Should end game and emit GameOver event when called by all players", async () => {
             // result claimed by player 0 and confirmed by player 1
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, [120, 80]);
             expect(await gameContract.isActive(0), "1st game should be active before result is confirmed").to.equal(
                 true
@@ -712,7 +730,7 @@ describe("TurnBasedGame", async () => {
             );
 
             // another game with result claimed by player 1 and confirmed by player 0
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContractPlayer1.claimResult(1, [0, 150]);
             expect(await gameContract.isActive(1), "2nd game should be active before result is confirmed").to.equal(
                 true
@@ -724,14 +742,14 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should update context", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, [120, 80]);
             let context = await gameContract.getContext(0);
-            expect(context[11]).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with last bit turned on (only player0 agrees)
+            expect(context[12]).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with last bit turned on (only player0 agrees)
 
             await gameContractPlayer1.confirmResult(0);
             context = await gameContract.getContext(0);
-            expect(context[11]).to.eql(ethers.BigNumber.from(3)); // claimAgreementMask with last two bits turned on (player0 and player1 agree)
+            expect(context[12]).to.eql(ethers.BigNumber.from(3)); // claimAgreementMask with last two bits turned on (player0 and player1 agree)
         });
     });
 
@@ -742,7 +760,7 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.applyVerificationResult(0)).to.be.revertedWith("Index not instantiated");
 
             // challenge game and then set mockDescartes to inform that computation is complete and results are available
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
             await mockDescartes.mock.getResult
@@ -758,7 +776,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should not be allowed when result is not available", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, playerFunds);
 
             // no Descartes verification requested
@@ -806,7 +824,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should be allowed even when result is larger than required", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, playerFunds);
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -824,7 +842,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should end game and emit GameOver event", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, playerFunds);
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -862,12 +880,12 @@ describe("TurnBasedGame", async () => {
         it("Should only be allowed for active games", async () => {
             await expect(gameContract.getState(0, players[0])).to.be.revertedWith("Index not instantiated");
 
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.getState(0, players[0])).not.to.be.reverted;
         });
 
         it("Should return whether a Descartes computation is instantiated", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             expect(await gameContract.getState(0, players[0])).to.equal(false);
 
             await prepareChallengeGame();
@@ -882,12 +900,12 @@ describe("TurnBasedGame", async () => {
         it("Should only be allowed for active games", async () => {
             await expect(gameContract.getSubInstances(0, players[0])).to.be.revertedWith("Index not instantiated");
 
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await expect(gameContract.getSubInstances(0, players[0])).not.to.be.reverted;
         });
 
         it("Should return a Descartes computation if there is one", async () => {
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos);
+            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             let instances = await gameContract.getSubInstances(0, players[0]);
             expect(instances[0]).to.eql([]);
             expect(instances[1]).to.eql([]);
