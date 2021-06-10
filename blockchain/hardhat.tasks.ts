@@ -44,7 +44,6 @@ task("join-game", "Registers player in the lobby in order to join a game")
     .setAction(async ({ hash, metadata, validators, numplayers, minfunds, player, playerfunds, playerinfo }, hre) => {
         const { ethers } = hre;
 
-        const [aliceSigner] = await ethers.getSigners();
         const accounts = await hre.getNamedAccounts();
 
         // retrieves validators according to their account names
