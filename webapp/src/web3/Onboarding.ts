@@ -35,7 +35,15 @@ export class Onboarding {
     /**
      * Starts user onboarding using mock impl
      */
-    private static async startMock(onChange) {
-        setTimeout(() => onChange({ ready: true}), 0);
+    private static startMock(onChange) {
+        onChange({ label: "Connect to wallet", onclick: Onboarding.connectMock, error: false, ready: false });
+    }
+
+    private static connectMock(onChange) {
+        setTimeout(() => onChange({ label: "Approve allowance for POKER tokens", onclick: Onboarding.approveMock, error: false, ready: false }, 2000));
+    }
+
+    private static approveMock(onChange) {
+        setTimeout(() => onChange({ label: "Connected to Mock Testnet", onclick: undefined, error: false, ready: true }, 2000));
     }
 }

@@ -55,10 +55,12 @@ export class Lobby {
         const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
         const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
         const lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobby.address, signer);
-
-        
-        // listens to GameReady events indicating that a game has been created
         const gameContextContract = contextContract.attach(gameContract.address);
+
+        // cancels any current event listening
+        gameContextContract.removeAllListeners();
+
+        // listens to GameReady events indicating that a game has been created
         gameContextContract.on("GameReady", (index, ctx) => {
 
             // checks if player is participating in the newly created game

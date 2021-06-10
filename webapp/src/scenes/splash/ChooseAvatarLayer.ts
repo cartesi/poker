@@ -9,6 +9,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
 
     private chooseAvatarFrame: Phaser.GameObjects.Image;
     private chooseAvatar: Phaser.GameObjects.Image;
+    private onboardButton: Phaser.GameObjects.Text;
     private playButton: Phaser.GameObjects.Image;
     private avatars: Avatar[];
     private inputBackground: Phaser.GameObjects.Image;
@@ -49,6 +50,11 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
             inputText.value = GameVars.gameData.name;
         }
 
+        this.onboardButton = new Phaser.GameObjects.Text(this.scene, 60, 385, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        this.onboardButton.setInteractive();
+        this.add(this.onboardButton);
+        Onboarding.start(this.onOnboardButtonClick.bind(this))
+
         this.playButton = new Phaser.GameObjects.Image(this.scene, 0, 355, "texture_atlas_1", "btn_play");
         this.playButton.setInteractive();
         this.playButton.on("pointerover", () => {
@@ -66,13 +72,6 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         this.add(this.playButton);
 
         this.onAvatarDown(GameVars.gameData.avatar);
-
-        Onboarding.start(({label, onclick, error, ready}) => {
-            if (ready) {
-                this.playButton.setVisible(true);
-            }
-        });
-
     }
 
     public onAvatarDown(index: number): void {
@@ -113,5 +112,31 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         }
 
         this.onAvatarDown(GameVars.gameData.avatar);
+    }
+
+    private onOnboardButtonClick({label, onclick, error, ready}) {
+
+        // update button label
+        this.onboardButton.setText(label);
+
+        // update button action when user clicks (or remove any action)
+        if (onclick) {
+            this.onboardButton.on("pointerup", () => {
+                AudioManager.playSound("btn_click");
+                onclick(this.onOnboardButtonClick.bind(this));
+            }, this);
+        } else {
+            this.onboardButton.off("pointerup")
+        }
+
+        if (error) {
+            // inform user an error has occurred
+            this.onboardButton.setScale(1.5);
+        }
+
+        if (ready) {
+            // good to go
+            this.playButton.setVisible(true);
+        }
     }
 }
