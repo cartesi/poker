@@ -4,32 +4,18 @@ import * as fs from "fs";
 const defaultGameTemplateHash = "0xa4c9cc22be3cefe90f6a2332ffd3b12e4fcc327112a90dcc12207ad5154e8207";
 
 // SHOW-BALANCES
-task("show-balances", "Show token balance for lobby, game, alice and bob accounts")
-    .setAction(async ({ hash }, hre) => {
+task("show-balance", "Show token balance for a given address")
+    .addParam("address", "Address for which account you want to know the balance")
+    .addOptionalParam("erc20Name", "Name of the Token contract been used", "PokerToken")
+    .setAction(async ({ address, erc20Name }, hre) => {
         const { ethers } = hre;
 
-        // retrieves lobby contract
-        const lobby = await ethers.getContract("TurnBasedGameLobby");
-        // retrieve game contract
-        const game = await ethers.getContract("TurnBasedGame");
-        // retrieve alice and bob
-        const { alice, bob } = await hre.getNamedAccounts();
+        // retrieves PokerToken contract
+        const tokenProvider = await ethers.getContract(erc20Name);
 
-        // retrieve PokerToken contract
-        const pokerToken = await ethers.getContract("PokerToken");
-
-        // balance for lobby account
-        let lobbyBalance = await pokerToken.balanceOf(lobby.address);
-        console.log("Lobby = " + lobbyBalance);
-        // balance for game account
-        let gameBalance = await pokerToken.balanceOf(game.address);
-        console.log("Game = " + gameBalance);
-        // balance for alice account
-        let aliceBalance = await pokerToken.balanceOf(alice);
-        console.log("Alice = " + aliceBalance);
-        // balance for bob account
-        let bobBalance = await pokerToken.balanceOf(bob);
-        console.log("Bob = " + bobBalance);
+        // log balance
+        let balance = await tokenProvider.balanceOf(address);
+        console.log("\nAddress has " + balance + " tokens.");
 
         console.log("");
     });

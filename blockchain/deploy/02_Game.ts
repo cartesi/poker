@@ -10,7 +10,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const Logger = await get("Logger");
 
     // Get pokerToken contract previously deployed
-    const pokerToken = await deployments.get('PokerToken');
+    const PokerToken = await deployments.get('PokerToken');
 
     const TurnBasedGameContext = await deploy("TurnBasedGameContext", {
         from: deployer,
@@ -19,7 +19,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const TurnBasedGame = await deploy("TurnBasedGame", {
         from: deployer,
         log: true,
-        args: [pokerToken.address, Descartes.address, Logger.address],
+        args: [PokerToken.address, Descartes.address, Logger.address],
         libraries: { TurnBasedGameContext: TurnBasedGameContext.address },
     });
 
@@ -27,7 +27,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     await deploy("TurnBasedGameLobby", {
         from: deployer,
         log: true,
-        args: [pokerToken.address, TurnBasedGame.address],
+        args: [PokerToken.address, TurnBasedGame.address],
     });
 };
 

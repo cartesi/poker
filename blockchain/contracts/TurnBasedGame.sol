@@ -43,17 +43,17 @@ contract TurnBasedGame is InstantiatorImpl {
     mapping(uint256 => GameContext) internal instances;
 
     /// @notice Constructor
-    /// @param _allowedERC20Provider address of the ERC20 compatible token provider
-    /// @param descartesAddress address of the Descartes contract
-    /// @param loggerAddress address of the Logger contract
+    /// @param _allowedERC20Address address of the ERC20 compatible token provider
+    /// @param _descartesAddress address of the Descartes contract
+    /// @param _loggerAddress address of the Logger contract
     constructor(
-        address _allowedERC20Provider,
-        address descartesAddress,
-        address loggerAddress
+        address _allowedERC20Address,
+        address _descartesAddress,
+        address _loggerAddress
     ) {
-        allowedERC20Address = _allowedERC20Provider;
-        descartes = DescartesInterface(descartesAddress);
-        logger = Logger(loggerAddress);
+        allowedERC20Address = _allowedERC20Address;
+        descartes = DescartesInterface(_descartesAddress);
+        logger = Logger(_loggerAddress);
 
         // stores an empty chunk of data in the logger and records its index
         bytes8[] memory emptyData = new bytes8[](1);
