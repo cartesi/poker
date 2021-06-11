@@ -36,7 +36,7 @@ struct GameContext {
     // game-specific initial metadata/parameters
     bytes gameMetadata;
     // validator nodes to be used for descartes computations
-    address[] validators;
+    address[] gameValidators;
     // address for the ERC20 compatible token provider
     address gameERC20Address;
     // players involved
@@ -177,7 +177,7 @@ library TurnBasedGameContext {
             // FIXME: either enforce max of 4 players or make this variable
             10, // output drive size: 1K (should hold awarded amounts for up to 4 players)
             51, // round duration
-            _context.validators, // parties involved in the computation (validator nodes)
+            _context.gameValidators, // parties involved in the computation (validator nodes)
             drives
         );
 
