@@ -16,6 +16,8 @@ import { deployments, ethers, getNamedAccounts, network } from "hardhat";
 import { MockContract, deployMockContract, solidity } from "ethereum-waffle";
 
 import { PokerToken } from "../src/types/PokerToken";
+import { PokerToken__factory } from "../src/types/factories/PokerToken__factory";
+
 import { TurnBasedGame } from "../src/types/TurnBasedGame";
 import { TurnBasedGameContext } from "../src/types/TurnBasedGameContext";
 import { TurnBasedGame__factory } from "../src/types/factories/TurnBasedGame__factory";
@@ -23,9 +25,24 @@ import { TurnBasedGameContext__factory } from "../src/types/factories/TurnBasedG
 
 use(solidity);
 
+let tokenContract: PokerToken;
+let gameContract: TurnBasedGame;
+
+// Creates funds to game contract account according to players funds.
+// Typically, before a game starts, players funds are transferred to game contract 
+// from lobby contract.
+// For tests that call game contract directly (startGame function) this helpers functions
+// mint the tokens that will be distribute at the game end.
+function initGameFunds(playerFunds) {
+    let totalFunds = 0;
+    for (let i = 0; i < playerFunds.length; i++) {
+        totalFunds += playerFunds[i];
+    }
+    tokenContract.mint(gameContract.address, totalFunds);
+}
+
+
 describe("TurnBasedGame", async () => {
-    let pokerToken;
-    let gameContract: TurnBasedGame;
     let gameContractPlayer1: TurnBasedGame;
     let gameContractNonPlayer: TurnBasedGame;
     let contextLibrary: TurnBasedGameContext;
@@ -58,7 +75,8 @@ describe("TurnBasedGame", async () => {
         await deployments.fixture(); // reset contracts to initial state
 
         // Get previously deployed PokerToken contract
-        pokerToken = await deployments.get("PokerToken");
+        let pokerToken = await deployments.get("PokerToken");
+        tokenContract = PokerToken__factory.connect(pokerToken.address, signer);
 
         const Descartes = await deployments.getArtifact("Descartes");
         const Logger = await deployments.getArtifact("Logger");
@@ -716,6 +734,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should end game and emit GameOver event when called by all players", async () => {
+            initGameFunds(playerFunds);
             // result claimed by player 0 and confirmed by player 1
             await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, [120, 80]);
@@ -729,6 +748,7 @@ describe("TurnBasedGame", async () => {
                 false
             );
 
+            initGameFunds(playerFunds);
             // another game with result claimed by player 1 and confirmed by player 0
             await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContractPlayer1.claimResult(1, [0, 150]);
@@ -742,6 +762,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should update context", async () => {
+            initGameFunds(playerFunds);
             await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, [120, 80]);
             let context = await gameContract.getContext(0);
@@ -842,6 +863,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should end game and emit GameOver event", async () => {
+            initGameFunds(playerFunds);
             await gameContract.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, playerFunds);
             await prepareChallengeGame();
