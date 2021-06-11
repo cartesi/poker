@@ -24,6 +24,9 @@ import "./TurnBasedGameUtil.sol";
 /// @title TurnBasedGame
 /// @notice Generic contract for handling turn-based games validated by Descartes computations
 contract TurnBasedGame is InstantiatorImpl {
+    // Address for the allowed token provider
+    address allowedERC20Address;
+
     using TurnBasedGameContext for GameContext;
 
     // Descartes instance used for triggering verified computations
@@ -40,9 +43,15 @@ contract TurnBasedGame is InstantiatorImpl {
     mapping(uint256 => GameContext) internal instances;
 
     /// @notice Constructor
+    /// @param _allowedERC20Provider address of the ERC20 compatible token provider
     /// @param descartesAddress address of the Descartes contract
     /// @param loggerAddress address of the Logger contract
-    constructor(address descartesAddress, address loggerAddress) {
+    constructor(
+        address _allowedERC20Provider,
+        address descartesAddress,
+        address loggerAddress
+    ) {
+        allowedERC20Address = _allowedERC20Provider;
         descartes = DescartesInterface(descartesAddress);
         logger = Logger(loggerAddress);
 
@@ -70,6 +79,9 @@ contract TurnBasedGame is InstantiatorImpl {
         uint256[] memory _playerFunds,
         bytes[] memory _playerInfos
     ) public returns (uint256) {
+        // ensures that the token provider is the allowed one
+        require(_gameERC20Address == allowedERC20Address, "Unexpected token provider");
+
         // creates new context
         GameContext storage context = instances[currentIndex];
         context.gameTemplateHash = _gameTemplateHash;

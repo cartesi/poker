@@ -96,7 +96,7 @@ describe("TurnBasedGame", async () => {
         const TurnBasedGame = await deploy("TurnBasedGame", {
             from: signer.address,
             log: true,
-            args: [mockDescartes.address, mockLogger.address],
+            args: [tokenContract.address, mockDescartes.address, mockLogger.address],
             libraries: { TurnBasedGameContext: TurnBasedGameContext.address },
         });
 
