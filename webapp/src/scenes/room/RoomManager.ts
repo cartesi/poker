@@ -41,8 +41,10 @@ export class RoomManager {
             (msg) => {
                 console.log(msg);
 
-                if (msg === "verificationReceived" || msg === "triggerVerification") {
-                    RoomManager.showVerificationLayer();
+                console.log(msg.message);
+
+                if (msg.includes("verificationReceived") || msg.includes("triggerVerification")) {
+                    RoomManager.showVerificationLayer(msg);
                 }
             },
             (msg) => {
@@ -92,9 +94,9 @@ export class RoomManager {
         return RoomManager.games[ALICE].getPlayerFunds();
     }
 
-    public static showVerificationLayer(): void {
+    public static showVerificationLayer(msg: string): void {
 
-        RoomScene.currentInstance.showVerificationLayer();
+        RoomScene.currentInstance.showVerificationLayer(msg);
     }
 
     public static updateVerification(value: number): void {

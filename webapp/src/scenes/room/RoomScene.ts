@@ -68,9 +68,9 @@ export class RoomScene extends Phaser.Scene {
         this.settingsLayer.show();
     }
 
-    public showVerificationLayer(): void {
+    public showVerificationLayer(msg: string): void {
 
-        this.verificationLayer.show();
+        this.verificationLayer.show(msg);
     }
 
     public updateVerificationLayer(value: number): void {
