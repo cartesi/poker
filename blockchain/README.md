@@ -22,7 +22,7 @@ For instance:
 
 ```bash
 $ npx hardhat --network localhost start-game
-$ npx hardhat --network localhost submit-turn --index 0 --player alice --data '["0x0000000000000003","0x0000000000000004"]'
+$ npx hardhat --network localhost submit-turn --index 0 --player alice --data "0x00000000000000030000000000000004"
 $ npx hardhat --network localhost get-context --index 0
 $ npx hardhat --network localhost join-game --player alice
 $ npx hardhat --network localhost join-game --player bob

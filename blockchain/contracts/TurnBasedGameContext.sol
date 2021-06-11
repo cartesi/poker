@@ -62,12 +62,14 @@ struct GameContext {
 
 // models a turned-based game instance
 library TurnBasedGameContext {
-    // events emitted
-    event GameReady(uint256 _index, GameContext _context);
-    event TurnOver(uint256 _index, uint256 _turnIndex, Turn _turn);
-    event GameResultClaimed(uint256 _index, uint256[] _fundsShare, address _author);
-    event GameChallenged(uint256 _index, uint256 _descartesIndex, address _author);
-    event GameOver(uint256 _index, uint256[] _fundsShare);
+
+    // events emitted    
+    event GameReady(uint256 indexed _index, GameContext _context);
+    event TurnOver(uint256 indexed _index, uint256 indexed _turnIndex, Turn _turn);
+    event GameResultClaimed(uint256 indexed _index, uint[] _fundsShare, address indexed _author);
+    event GameChallenged(uint256 indexed _index, uint256 indexed _descartesIndex, address indexed _author);
+    event GameOver(uint256 indexed _index, uint[] _fundsShare);
+
 
     /// @notice Submits a new turn for a given game
     /// @param _context game context
