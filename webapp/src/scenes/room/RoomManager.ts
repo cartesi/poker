@@ -39,10 +39,6 @@ export class RoomManager {
                 RoomManager.onEnd();
             },
             (msg) => {
-                console.log(msg);
-
-                console.log(msg.message);
-
                 if (msg.includes("verificationReceived") || msg.includes("triggerVerification")) {
                     RoomManager.showVerificationLayer(msg);
                 }
