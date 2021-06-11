@@ -101,8 +101,8 @@ export class Lobby {
             Lobby.VALIDATORS_LOCALHOST,
             Lobby.NUM_PLAYERS,
             Lobby.MIN_FUNDS,
-            playerFunds,
             PokerToken.address,
+            playerFunds,
             ethers.utils.toUtf8Bytes(JSON.stringify(playerInfo))
         );
 
