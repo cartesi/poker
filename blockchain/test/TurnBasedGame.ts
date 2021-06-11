@@ -781,6 +781,7 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.applyVerificationResult(0)).to.be.revertedWith("Index not instantiated");
 
             // challenge game and then set mockDescartes to inform that computation is complete and results are available
+            initGameFunds(playerFunds);
             await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -797,6 +798,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should not be allowed when result is not available", async () => {
+            initGameFunds(playerFunds);
             await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, playerFunds);
 
@@ -845,6 +847,7 @@ describe("TurnBasedGame", async () => {
         });
 
         it("Should be allowed even when result is larger than required", async () => {
+            initGameFunds(playerFunds);
             await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
             await gameContract.claimResult(0, playerFunds);
             await prepareChallengeGame();
