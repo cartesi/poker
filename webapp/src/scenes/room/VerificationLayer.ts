@@ -51,11 +51,11 @@ export class VerificationLayer extends Phaser.GameObjects.Container {
         this.loadingBar.scaleX = 0;
         this.midContainer.add(this.loadingBar);
 
-        this.stateText = new Phaser.GameObjects.Text(this.scene, 0, 15, "", {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#ffffff"});
+        this.stateText = new Phaser.GameObjects.Text(this.scene, 0, 15, "", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#ffffff"});
         this.stateText.setOrigin(.5);
         this.midContainer.add(this.stateText);
 
-        this.verificationText = new Phaser.GameObjects.Text(this.scene, 0, 100, "Alleged cause: 'Failure to reveal cards'", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#ffffff"});
+        this.verificationText = new Phaser.GameObjects.Text(this.scene, 0, 100, "Alleged cause: 'Failure to reveal cards'", {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#ffffff"});
         this.verificationText.setOrigin(.5);
         this.midContainer.add(this.verificationText);
 
