@@ -70,17 +70,8 @@
             ALICE, alice_funds, bob_funds, metadata, alice_tx,
             () => onBetRequested(ALICE, "alice_newbet"),
             () => onEnd(ALICE, "alice_result"),
-            msg => 
-            {
-                console.log("1");
-                console.log(msg);
-                append_text('alice_div', msg)
-            },
-            msg => {
-                console.log("2");
-                console.log(msg);
-                append_text('alice_div', `verification: ${msg}`)
-            }
+            msg => append_text('alice_div', msg),
+            msg => append_text('alice_div', `verification: ${msg}`)
         );
         const bob = new Game(
             BOB, alice_funds, bob_funds, metadata, bob_tx,
