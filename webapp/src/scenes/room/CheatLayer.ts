@@ -63,7 +63,7 @@ export class CheatLayer extends Phaser.GameObjects.Container {
 
         // CARD COOPERATION
 
-        let cardCooperationText = new Phaser.GameObjects.Text(this.scene, 0, 120, "TOOGLE CARD\nCOOPERATION", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#183D62"});
+        let cardCooperationText = new Phaser.GameObjects.Text(this.scene, 0, 120, "TOGGLE CARD\nCOOPERATION", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#183D62"});
         cardCooperationText.setOrigin(.5);
 
         let cardCooperationBtn = new Phaser.GameObjects.Image(this.scene, 0, 120, "texture_atlas_1", "btn_long");
