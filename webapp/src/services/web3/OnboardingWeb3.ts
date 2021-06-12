@@ -82,7 +82,7 @@ export class OnboardingWeb3 {
             const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
             if (playerFunds < ethers.BigNumber.from(GameConstants.MIN_FUNDS)) {
                 onChange({
-                    label: "Account does not have enough POKER tokens",
+                    label: `Sorry, you need at least ${GameConstants.MIN_FUNDS} POKER tokens on ${chainName} to play`,
                     onclick: undefined,
                     error: true,
                     ready: false,
@@ -91,23 +91,7 @@ export class OnboardingWeb3 {
             }
 
             // checks player's allowance to see if the Lobby contract can manage the player's tokens
-            const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
-            if (allowance.lt(playerFunds)) {
-                onChange({
-                    label: "Approve allowance for POKER tokens",
-                    onclick: this.approve.bind(this),
-                    error: false,
-                    ready: false,
-                });
-                return;
-            }
-
-            onChange({
-                label: `Connected to ${chainName}`,
-                onclick: this.connectMetaMask.bind(this),
-                error: false,
-                ready: true,
-            });
+            this.checkAllowance(onChange, false);
         } catch (error) {
             console.error(error);
             onChange({
@@ -145,6 +129,36 @@ export class OnboardingWeb3 {
         const signer = provider.getSigner();
         const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
         await pokerTokenContract.approve(TurnBasedGameLobby.address, ethers.constants.MaxUint256);
-        this.update(onChange);
+        this.checkAllowance(onChange, true);
+    }
+
+    private static async checkAllowance(onChange, loading) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const playerAddress = await signer.getAddress();
+        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
+        const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
+        const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
+        const chainName = GameConstants.CHAINS[window.ethereum.chainId];
+        if (allowance.lt(playerFunds)) {
+            onChange({
+                label: `Approve allowance for POKER tokens on ${chainName}`,
+                onclick: this.approve.bind(this),
+                error: false,
+                ready: false,
+            });
+            if (loading) {
+                setTimeout(() => {
+                    this.checkAllowance(onChange, loading);
+                }, 1000);
+            }
+        } else {
+            onChange({
+                label: `You have ${playerFunds.toNumber()} POKER tokens available on ${chainName}`,
+                onclick: this.connectMetaMask.bind(this),
+                error: false,
+                ready: true,
+            });
+        }
     }
 }
