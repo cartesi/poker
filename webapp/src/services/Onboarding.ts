@@ -21,9 +21,11 @@ export class Onboarding {
      * Starts user onboarding
      */
     public static start(onChange) {
-        // TODO: switch between mock and real web3 impl according to a config
-        this.startMock(onChange);
-        // this.startWeb3(onChange);
+        if (window.location.search && window.location.search.includes("mock")) {
+            this.startMock(onChange);
+        } else {
+            this.startWeb3(onChange);
+        }
     }
 
     /**
@@ -58,70 +60,80 @@ export class Onboarding {
      * Main web3 update procedure
      */
     private static async updateWeb3(onChange) {
-        if (!MetaMaskOnboarding.isMetaMaskInstalled()) {
-            onChange({
-                label: "Install MetaMask",
-                onclick: this.installMetaMask.bind(this),
-                error: false,
-                ready: false,
-            });
-            return;
-        }
-        if (!this.accounts || !this.accounts.length) {
-            onChange({
-                label: "Connect to wallet",
-                onclick: this.connectMetaMask.bind(this),
-                error: false,
-                ready: false,
-            });
-            return;
-        }
-        this.metamaskOnboarding.stopOnboarding();
-        const chainName = this.chains[window.ethereum.chainId];
-        if (!chainName) {
-            onChange({
-                label: "Unsupported network",
-                onclick: this.connectMetaMask.bind(this),
-                error: true,
-                ready: false,
-            });
-            return;
-        }
+        try {
+            if (!MetaMaskOnboarding.isMetaMaskInstalled()) {
+                onChange({
+                    label: "Install MetaMask",
+                    onclick: this.installMetaMask.bind(this),
+                    error: false,
+                    ready: false,
+                });
+                return;
+            }
+            if (!this.accounts || !this.accounts.length) {
+                onChange({
+                    label: "Connect to wallet",
+                    onclick: this.connectMetaMask.bind(this),
+                    error: false,
+                    ready: false,
+                });
+                return;
+            }
+            this.metamaskOnboarding.stopOnboarding();
+            const chainName = this.chains[window.ethereum.chainId];
+            if (!chainName) {
+                onChange({
+                    label: "Unsupported network",
+                    onclick: this.connectMetaMask.bind(this),
+                    error: true,
+                    ready: false,
+                });
+                return;
+            }
 
-        // checks player's balance to see if he has enough tokens to play
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const playerAddress = await signer.getAddress();
-        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
-        const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
-        if (playerFunds < ethers.BigNumber.from(Lobby.MIN_FUNDS)) {
+            // checks player's balance to see if he has enough tokens to play
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const playerAddress = await signer.getAddress();
+            const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
+            const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
+            if (playerFunds < ethers.BigNumber.from(Lobby.MIN_FUNDS)) {
+                onChange({
+                    label: "Account does not have enough POKER tokens",
+                    onclick: undefined,
+                    error: true,
+                    ready: false,
+                });
+                return;
+            }
+
+            // checks player's allowance to see if the Lobby contract can manage the player's tokens
+            const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
+            if (allowance.lt(playerFunds)) {
+                onChange({
+                    label: "Approve allowance for POKER tokens",
+                    onclick: this.approve.bind(this),
+                    error: false,
+                    ready: false,
+                });
+                return;
+            }
+
             onChange({
-                label: "Account does not have enough POKER tokens",
+                label: `Connected to ${chainName}`,
+                onclick: this.connectMetaMask.bind(this),
+                error: false,
+                ready: true,
+            });
+        } catch (error) {
+            console.error(error);
+            onChange({
+                label: "Unexpected error",
                 onclick: undefined,
                 error: true,
                 ready: false,
             });
-            return;
         }
-
-        // checks player's allowance to see if the Lobby contract can manage the player's tokens
-        const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
-        if (allowance.lt(playerFunds)) {
-            onChange({
-                label: "Approve allowance for POKER tokens",
-                onclick: this.approve.bind(this),
-                error: false,
-                ready: false,
-            });
-            return;
-        }
-
-        onChange({
-            label: `Connected to ${chainName}`,
-            onclick: this.connectMetaMask.bind(this),
-            error: false,
-            ready: true,
-        });
     }
 
     private static installMetaMask(onChange) {

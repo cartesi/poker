@@ -28,9 +28,11 @@ export class Lobby {
      * @param gameReadyCallback callback to be called once game is ready to start, receiving two arguments: the new game's index and its full context (players involved, etc)
      */
     public static joinGame(playerInfo: object, gameReadyCallback) {
-        // TODO: switch between mock and real web3 impl according to a config
-        this.joinGameMock(playerInfo, gameReadyCallback);
-        // this.joinGameWeb3(playerInfo, gameReadyCallback);
+        if (window.location.search && window.location.search.includes("mock")) {
+            this.joinGameMock(playerInfo, gameReadyCallback);
+        } else {
+            this.joinGameWeb3(playerInfo, gameReadyCallback);
+        }
     }
 
     /**
