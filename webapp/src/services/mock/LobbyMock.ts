@@ -1,4 +1,4 @@
-import { Lobby } from "../Lobby";
+import { GameConstants } from "../../GameConstants";
 
 export class LobbyMock {
     /**
@@ -8,9 +8,9 @@ export class LobbyMock {
         var gameIndex = 0;
         var opponentAvatar = Math.ceil(Math.random() * 6);
         var context = {
-            gameTemplateHash: Lobby.TEXAS_HODLEM_TEMPLATE_HASH,
-            gameMetadata: Lobby.TEXAS_HODLEM_METADATA,
-            players: Lobby.VALIDATORS_LOCALHOST,
+            gameTemplateHash: GameConstants.GAME_TEMPLATE_HASH,
+            gameMetadata: GameConstants.GAME_METADATA,
+            players: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"],
             playerFunds: [100, 100],
             playerInfos: [playerInfo, { name: "Sam", avatar: opponentAvatar }],
             playerIndex: 0,

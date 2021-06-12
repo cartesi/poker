@@ -1,4 +1,3 @@
-import { Lobby } from "../Lobby";
 import { ethers } from "ethers";
 import TurnBasedGame from "../../abis/TurnBasedGame.json";
 import TurnBasedGameContext from "../../abis/TurnBasedGameContext.json";
@@ -8,6 +7,7 @@ import { TurnBasedGame__factory } from "../../types";
 import { TurnBasedGameContext__factory } from "../../types";
 import { TurnBasedGameLobby__factory } from "../../types";
 import { PokerToken__factory } from "../../types";
+import { GameConstants } from "../../GameConstants";
 
 declare let window: any;
 export class LobbyWeb3 {
@@ -71,13 +71,19 @@ export class LobbyWeb3 {
         // retrieves player's balance to see how much he will bring to the table
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
 
+        // retrieves validator addresses for the selected chain
+        const validators = GameConstants.VALIDATORS[window.ethereum.chainId];
+        if (!validators || !validators.length) {
+            console.error(`No validators defined for the selected chain with ID ${window.ethereum.chainId}`);
+        }
+
         // joins game by calling Lobby smart contract
         lobbyContract.joinGame(
-            Lobby.TEXAS_HODLEM_TEMPLATE_HASH,
-            Lobby.TEXAS_HODLEM_METADATA,
-            Lobby.VALIDATORS_LOCALHOST,
-            Lobby.NUM_PLAYERS,
-            Lobby.MIN_FUNDS,
+            GameConstants.GAME_TEMPLATE_HASH,
+            GameConstants.GAME_METADATA,
+            validators,
+            GameConstants.NUM_PLAYERS,
+            GameConstants.MIN_FUNDS,
             PokerToken.address,
             playerFunds,
             ethers.utils.toUtf8Bytes(JSON.stringify(playerInfo))

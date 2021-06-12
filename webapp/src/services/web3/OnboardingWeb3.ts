@@ -1,21 +1,15 @@
-import { Lobby } from "../Lobby";
 import { ethers } from "ethers";
 import MetaMaskOnboarding from "@metamask/onboarding";
 import PokerToken from "../../abis/PokerToken.json";
 import TurnBasedGameLobby from "../../abis/TurnBasedGameLobby.json";
 import { PokerToken__factory } from "../../types";
+import { GameConstants } from "../../GameConstants";
 
 declare let window: any;
 
 export class OnboardingWeb3 {
     private static metamaskOnboarding;
     private static accounts;
-
-    private static chains = {
-        "0x13881": "Matic Testnet",
-        "0x7a69": "Local Network",
-        "0x539": "Local Network",
-    };
 
     /**
      * Starts user onboarding using Web3
@@ -69,7 +63,7 @@ export class OnboardingWeb3 {
                 return;
             }
             this.metamaskOnboarding.stopOnboarding();
-            const chainName = this.chains[window.ethereum.chainId];
+            const chainName = GameConstants.CHAINS[window.ethereum.chainId];
             if (!chainName) {
                 onChange({
                     label: "Unsupported network",
@@ -86,7 +80,7 @@ export class OnboardingWeb3 {
             const playerAddress = await signer.getAddress();
             const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
             const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
-            if (playerFunds < ethers.BigNumber.from(Lobby.MIN_FUNDS)) {
+            if (playerFunds < ethers.BigNumber.from(GameConstants.MIN_FUNDS)) {
                 onChange({
                     label: "Account does not have enough POKER tokens",
                     onclick: undefined,
