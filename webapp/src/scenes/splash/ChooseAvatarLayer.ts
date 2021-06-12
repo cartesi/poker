@@ -2,7 +2,7 @@ import { GameVars } from './../../GameVars';
 import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameManager } from "../../GameManager";
-import { Onboarding } from "../../web3/Onboarding";
+import { Onboarding } from "../../services/Onboarding";
 import { Avatar } from "./Avatar";
 
 export class ChooseAvatarLayer extends Phaser.GameObjects.Container {

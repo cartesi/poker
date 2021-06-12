@@ -2,7 +2,7 @@ import { GameConstants } from "./GameConstants";
 import { GameVars } from "./GameVars";
 
 import { AudioManager } from "./AudioManager";
-import { Lobby } from "./web3/Lobby";
+import { Lobby } from "./services/Lobby";
 import { LobbyScene } from "./scenes/lobby/LobbyScene";
 
 export class GameManager {
