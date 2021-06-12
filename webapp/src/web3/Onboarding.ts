@@ -8,15 +8,14 @@ import { Lobby } from "./Lobby";
 declare let window: any;
 
 export class Onboarding {
-
     private static metamaskOnboarding;
     private static accounts;
 
     private static chains = {
         "0x13881": "Matic Testnet",
         "0x7a69": "Local Network",
-        "0x539": "Local Network"
-    }
+        "0x539": "Local Network",
+    };
 
     /**
      * Starts user onboarding
@@ -26,7 +25,6 @@ export class Onboarding {
         this.startMock(onChange);
         // this.startWeb3(onChange);
     }
-
 
     /**
      * Starts user onboarding using Web3
@@ -52,7 +50,7 @@ export class Onboarding {
             window.ethereum.on("chainChanged", () => {
                 this.updateWeb3(onChange);
             });
-        } 
+        }
         this.updateWeb3(onChange);
     }
 
@@ -61,17 +59,32 @@ export class Onboarding {
      */
     private static async updateWeb3(onChange) {
         if (!MetaMaskOnboarding.isMetaMaskInstalled()) {
-            onChange({ label: "Install MetaMask", onclick: this.installMetaMask.bind(this), error: false, ready: false });
+            onChange({
+                label: "Install MetaMask",
+                onclick: this.installMetaMask.bind(this),
+                error: false,
+                ready: false,
+            });
             return;
         }
         if (!this.accounts || !this.accounts.length) {
-            onChange({ label: "Connect to wallet", onclick: this.connectMetaMask.bind(this), error: false, ready: false });
+            onChange({
+                label: "Connect to wallet",
+                onclick: this.connectMetaMask.bind(this),
+                error: false,
+                ready: false,
+            });
             return;
         }
         this.metamaskOnboarding.stopOnboarding();
-        const chainName = this.chains[window.ethereum.chainId]
+        const chainName = this.chains[window.ethereum.chainId];
         if (!chainName) {
-            onChange({ label: "Unsupported network", onclick: this.connectMetaMask.bind(this), error: true, ready: false });
+            onChange({
+                label: "Unsupported network",
+                onclick: this.connectMetaMask.bind(this),
+                error: true,
+                ready: false,
+            });
             return;
         }
 
@@ -82,18 +95,33 @@ export class Onboarding {
         const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
         if (playerFunds < ethers.BigNumber.from(Lobby.MIN_FUNDS)) {
-            onChange({ label: "Account does not have enough POKER tokens", onclick: undefined, error: true, ready: false });
+            onChange({
+                label: "Account does not have enough POKER tokens",
+                onclick: undefined,
+                error: true,
+                ready: false,
+            });
             return;
         }
 
         // checks player's allowance to see if the Lobby contract can manage the player's tokens
         const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
         if (allowance.lt(playerFunds)) {
-            onChange({ label: "Approve allowance for POKER tokens", onclick: this.approve.bind(this), error: false, ready: false });
+            onChange({
+                label: "Approve allowance for POKER tokens",
+                onclick: this.approve.bind(this),
+                error: false,
+                ready: false,
+            });
             return;
         }
-        
-        onChange({ label: `Connected to ${chainName}`, onclick: this.connectMetaMask.bind(this), error: false, ready: true });
+
+        onChange({
+            label: `Connected to ${chainName}`,
+            onclick: this.connectMetaMask.bind(this),
+            error: false,
+            ready: true,
+        });
     }
 
     private static installMetaMask(onChange) {
@@ -104,7 +132,12 @@ export class Onboarding {
     private static async connectMetaMask(onChange) {
         if (!window.ethereum) {
             // ethereum not available
-            onChange({ label: "Cannot connect to window.ethereum, even though Metamask should be installed!", onclick: undefined, error: true, ready: false });
+            onChange({
+                label: "Cannot connect to window.ethereum, even though Metamask should be installed!",
+                onclick: undefined,
+                error: true,
+                ready: false,
+            });
         } else {
             // connect to ethereum
             this.accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -120,7 +153,6 @@ export class Onboarding {
         this.updateWeb3(onChange);
     }
 
-
     /**
      * Starts user onboarding using mock impl
      */
@@ -129,10 +161,22 @@ export class Onboarding {
     }
 
     private static connectMock(onChange) {
-        setTimeout(() => onChange({ label: "Approve allowance for POKER tokens", onclick: this.approveMock.bind(this), error: false, ready: false }, 2000));
+        setTimeout(() =>
+            onChange(
+                {
+                    label: "Approve allowance for POKER tokens",
+                    onclick: this.approveMock.bind(this),
+                    error: false,
+                    ready: false,
+                },
+                2000
+            )
+        );
     }
 
     private static approveMock(onChange) {
-        setTimeout(() => onChange({ label: "Connected to Mock Network", onclick: undefined, error: false, ready: true }, 2000));
+        setTimeout(() =>
+            onChange({ label: "Connected to Mock Network", onclick: undefined, error: false, ready: true }, 2000)
+        );
     }
 }

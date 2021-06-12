@@ -3,7 +3,10 @@ import TurnBasedGame from "../abis/TurnBasedGame.json";
 import TurnBasedGameContext from "../abis/TurnBasedGameContext.json";
 import TurnBasedGameLobby from "../abis/TurnBasedGameLobby.json";
 import PokerToken from "../abis/PokerToken.json";
-import { PokerToken__factory, TurnBasedGame__factory, TurnBasedGameContext__factory, TurnBasedGameLobby__factory } from "../types";
+import { TurnBasedGame__factory } from "../types";
+import { TurnBasedGameContext__factory } from "../types";
+import { TurnBasedGameLobby__factory } from "../types";
+import { PokerToken__factory } from "../types";
 
 declare let window: any;
 export class Lobby {
@@ -17,7 +20,6 @@ export class Lobby {
     public static readonly NUM_PLAYERS = 2;
     public static readonly MIN_FUNDS = 10;
 
-
     /**
      * Joins a new Texas Holdem game
      *
@@ -30,7 +32,6 @@ export class Lobby {
         this.joinGameMock(playerInfo, gameReadyCallback);
         // this.joinGameWeb3(playerInfo, gameReadyCallback);
     }
-
 
     /**
      * Joins a new Texas Holdem game using Web3
@@ -61,7 +62,6 @@ export class Lobby {
 
         // listens to GameReady events indicating that a game has been created
         gameContextContract.on("GameReady", (index, ctx) => {
-
             // checks if player is participating in the newly created game
             const playerIndex = ctx.players.indexOf(playerAddress);
             if (playerIndex == -1) {
@@ -70,18 +70,18 @@ export class Lobby {
             }
 
             // copies relevant context data of the newly created game
-            const context:any = { 
+            const context: any = {
                 gameTemplateHash: ctx.gameTemplateHash,
                 gameMetadata: ctx.gameMetadata,
                 players: ctx.players,
                 playerFunds: ctx.playerFunds,
                 playerInfos: new Array(ctx.players.length),
                 playerIndex: playerIndex,
-                opponentIndex: playerIndex == 0 ? 1 : 0
+                opponentIndex: playerIndex == 0 ? 1 : 0,
             };
 
             // decodes player infos
-            for (let i = 0; i < ctx.players.length; i ++) {
+            for (let i = 0; i < ctx.players.length; i++) {
                 context.playerInfos[i] = JSON.parse(ethers.utils.toUtf8String(ctx.playerInfos[i]));
             }
 
@@ -89,7 +89,6 @@ export class Lobby {
             gameContextContract.removeAllListeners();
             gameReadyCallback(index, context);
         });
-
 
         // retrieves player's balance to see how much he will bring to the table
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
@@ -105,7 +104,6 @@ export class Lobby {
             playerFunds,
             ethers.utils.toUtf8Bytes(JSON.stringify(playerInfo))
         );
-
     }
 
     /**
@@ -121,7 +119,7 @@ export class Lobby {
             playerFunds: [100, 100],
             playerInfos: [playerInfo, { name: "Sam", avatar: opponentAvatar }],
             playerIndex: 0,
-            opponentIndex: 1
+            opponentIndex: 1,
         };
         setTimeout(() => gameReadyCallback(gameIndex, context), 6000);
     }
