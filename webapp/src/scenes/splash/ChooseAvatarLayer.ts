@@ -51,7 +51,6 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         }
 
         this.playButton = new Phaser.GameObjects.Image(this.scene, 0, 355, "texture_atlas_1", "btn_play");
-        this.playButton.setInteractive();
         this.playButton.on("pointerover", () => {
             this.playButton.setScale(1.05);
         }, this);
@@ -63,7 +62,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
             GameManager.setPlayerName(inputText.value);
             GameManager.enterLobbyScene();
         }, this);
-        this.playButton.setVisible(false);
+        this.playButton.setAlpha(0.5);
         this.add(this.playButton);
 
         this.onAvatarDown(GameVars.gameData.avatar);
@@ -114,7 +113,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         this.onAvatarDown(GameVars.gameData.avatar);
     }
 
-    private onOnboardButtonClick({label, onclick, error, ready}) {
+    private onOnboardButtonClick({label, onclick, loading, error, ready}) {
 
         // update button label
         this.onboardButton.setText(label);
@@ -129,10 +128,21 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
             this.onboardButton.off("pointerup")
         }
 
+        if (loading) {
+            // TODO: show some "loading" feedback like a spinner
+        }
+
         // change style to inform user if an error has occurred
+        // TODO: choose better style
         this.onboardButton.setScale(error ? 1.5 : 1);
 
         // if ready, we're good to go        
-        this.playButton.setVisible(ready);
+        if (ready) {
+            this.playButton.setInteractive();
+            this.playButton.setAlpha(1);
+        } else {
+            this.playButton.disableInteractive();
+            this.playButton.setAlpha(0.5);
+        }
     }
 }
