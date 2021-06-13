@@ -70,7 +70,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         this.onboardButton = new Phaser.GameObjects.Text(this.scene, 60, 385, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
         this.onboardButton.setInteractive();
         this.add(this.onboardButton);
-        Onboarding.start(this.onOnboardButtonClick.bind(this))
+        Onboarding.start(this.onOnboardingChange.bind(this))
     }
 
     public onAvatarDown(index: number): void {
@@ -113,7 +113,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         this.onAvatarDown(GameVars.gameData.avatar);
     }
 
-    private onOnboardButtonClick({label, onclick, loading, error, ready}) {
+    private onOnboardingChange({label, onclick, loading, error, ready}) {
 
         // update button label
         this.onboardButton.setText(label);
@@ -122,7 +122,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         if (onclick) {
             this.onboardButton.on("pointerup", () => {
                 AudioManager.playSound("btn_click");
-                onclick(this.onOnboardButtonClick.bind(this));
+                onclick(this.onOnboardingChange.bind(this));
             }, this);
         } else {
             this.onboardButton.off("pointerup")
