@@ -27,14 +27,16 @@
         "web3": "1.0.0-beta.55"
     },
     "scripts": {
-        "start": "run-s clean contracts:deploy-dev contracts:copy-dev engine:copy && webpack --mode development && webpack-dev-server --mode development",
+        "start": "run-s clean contracts:deploy contracts:copy engine:copy && webpack --mode development && webpack-dev-server --mode development",
+        "start:matic_testnet": "run-s clean contracts:deploy:matic_testnet contracts:copy:matic_testnet engine:copy && webpack --mode development && webpack-dev-server --mode development",
         "dev": "run-s engine:copy && webpack --mode development && webpack-dev-server --mode development",
         "clean": "rimraf dist && rimraf src/abis && rimraf src/types",
-        "build": "run-s clean contracts:build contracts:copy-prod engine:copy && webpack --mode production",
+        "build": "run-s clean contracts:build contracts:copy:matic_testnet engine:copy && webpack --mode production",
         "contracts:build": "cd ../blockchain && yarn build",
-        "contracts:deploy-dev": "cd ../blockchain && yarn deploy",
-        "contracts:copy-dev": "mkdir -p src/abis && cp ../blockchain/deployments/localhost/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/localhost/Poker*.json ./src/abis/ && cp -ar ../blockchain/src/types/ ./src/types/",
-        "contracts:copy-prod": "mkdir -p src/abis && cp ../blockchain/deployments/matic_testnet/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/matic_testnet/Poker*.json ./src/abis/ && cp -ar ../blockchain/src/types/ ./src/types/",
+        "contracts:deploy": "cd ../blockchain && yarn deploy",
+        "contracts:deploy:matic_testnet": "cd ../blockchain && yarn deploy:matic_testnet",
+        "contracts:copy": "mkdir -p src/abis && cp ../blockchain/deployments/localhost/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/localhost/Poker*.json ./src/abis/ && cp -ar ../blockchain/src/types/ ./src/types/",
+        "contracts:copy:matic_testnet": "mkdir -p src/abis && cp ../blockchain/deployments/matic_testnet/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/matic_testnet/Poker*.json ./src/abis/ && cp -ar ../blockchain/src/types/ ./src/types/",
         "engine:copy": "mkdir -p dist && cp ../engine/mock/poker-api.js ./dist/"
     },
     "browserslist": [
