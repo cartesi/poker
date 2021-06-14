@@ -976,6 +976,27 @@
 					}
 				},
 				{
+					"filename": "loading",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 114,
+						"h": 110
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 114,
+						"h": 110
+					},
+					"frame": {
+						"x": 972,
+						"y": 1232,
+						"w": 114,
+						"h": 110
+					}
+				},
+				{
 					"filename": "avatar_01",
 					"rotated": false,
 					"trimmed": true,
@@ -990,8 +1011,8 @@
 						"h": 155
 					},
 					"frame": {
-						"x": 972,
-						"y": 1232,
+						"x": 830,
+						"y": 1301,
 						"w": 109,
 						"h": 155
 					}
@@ -1011,52 +1032,31 @@
 						"h": 30
 					},
 					"frame": {
-						"x": 830,
-						"y": 1301,
+						"x": 1853,
+						"y": 1170,
 						"w": 107,
 						"h": 30
 					}
 				},
 				{
-					"filename": "txt_box",
+					"filename": "txt_call",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 402,
-						"h": 126
+						"w": 79,
+						"h": 30
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 402,
-						"h": 126
+						"w": 79,
+						"h": 30
 					},
 					"frame": {
-						"x": 492,
-						"y": 1333,
-						"w": 402,
-						"h": 126
-					}
-				},
-				{
-					"filename": "btn_back",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 70,
-						"h": 70
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 70,
-						"h": 70
-					},
-					"frame": {
-						"x": 896,
-						"y": 1333,
-						"w": 70,
-						"h": 70
+						"x": 1962,
+						"y": 1170,
+						"w": 79,
+						"h": 30
 					}
 				},
 				{
@@ -1075,34 +1075,13 @@
 					},
 					"frame": {
 						"x": 1853,
-						"y": 1170,
+						"y": 1202,
 						"w": 104,
 						"h": 156
 					}
 				},
 				{
-					"filename": "txt_call",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 79,
-						"h": 30
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 79,
-						"h": 30
-					},
-					"frame": {
-						"x": 1959,
-						"y": 1170,
-						"w": 79,
-						"h": 30
-					}
-				},
-				{
-					"filename": "btn_reset",
+					"filename": "btn_back",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -1123,7 +1102,7 @@
 					}
 				},
 				{
-					"filename": "btn_sound_off",
+					"filename": "btn_reset",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -1139,6 +1118,27 @@
 					"frame": {
 						"x": 1959,
 						"y": 1274,
+						"w": 70,
+						"h": 70
+					}
+				},
+				{
+					"filename": "btn_sound_off",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 70,
+						"h": 70
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 70,
+						"h": 70
+					},
+					"frame": {
+						"x": 1959,
+						"y": 1346,
 						"w": 70,
 						"h": 70
 					}
@@ -1180,7 +1180,7 @@
 					},
 					"frame": {
 						"x": 1788,
-						"y": 1328,
+						"y": 1360,
 						"w": 94,
 						"h": 93
 					}
@@ -1201,7 +1201,7 @@
 					},
 					"frame": {
 						"x": 1884,
-						"y": 1328,
+						"y": 1360,
 						"w": 70,
 						"h": 70
 					}
@@ -1222,9 +1222,30 @@
 					},
 					"frame": {
 						"x": 1884,
-						"y": 1400,
+						"y": 1432,
 						"w": 93,
 						"h": 29
+					}
+				},
+				{
+					"filename": "txt_box",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 402,
+						"h": 126
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 402,
+						"h": 126
+					},
+					"frame": {
+						"x": 1088,
+						"y": 1310,
+						"w": 402,
+						"h": 126
 					}
 				}
 			]
@@ -1233,6 +1254,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:da0fe3f42de209afad5656bac4841ce5:55a19559a1185db25ae8ef892a3d6053:1bd3fbbbdaf54e41cf80e3e904578de4$"
+		"smartupdate": "$TexturePacker:SmartUpdate:3dd1f710ea17c17b6c4b6b72300c3059:c082ef455b62e176e83bfcd70f1bca5f:1bd3fbbbdaf54e41cf80e3e904578de4$"
 	}
 }

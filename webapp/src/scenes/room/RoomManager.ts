@@ -39,7 +39,12 @@ export class RoomManager {
                 RoomManager.onEnd();
             },
             (msg) => {
-                // console.log(msg);
+                if (msg.includes("verificationReceived") || msg.includes("triggerVerification")) {
+                    RoomManager.showVerificationLayer(msg);
+                }
+            },
+            (msg) => {
+                RoomManager.updateVerification(msg);
             }
         );
 
@@ -47,6 +52,12 @@ export class RoomManager {
             BOB, alice_funds, bob_funds, metadata, bob_tx,
             () => {
                 RoomManager.onAutomaticBet(BOB);
+            },
+            () => {
+                // 
+            },
+            (msg) => {
+                // console.log(msg);
             }
         );
 
@@ -79,6 +90,16 @@ export class RoomManager {
         return RoomManager.games[ALICE].getPlayerFunds();
     }
 
+    public static showVerificationLayer(msg: string): void {
+
+        RoomScene.currentInstance.showVerificationLayer(msg);
+    }
+
+    public static updateVerification(value: number): void {
+
+        RoomScene.currentInstance.updateVerificationLayer(value);
+    }
+
     public static getOpponentFunds(): number {
 
         return RoomManager.games[ALICE].getOpponentFunds();
@@ -89,6 +110,18 @@ export class RoomManager {
         let cards: string[] = RoomManager.games[ALICE].getPlayerCards();
 
         return cards.map(RoomManager.getCardSuitValue);
+    }
+
+    public static switchPlayerCards(card1: number, card2: number): void {
+
+        RoomManager.games[ALICE].cheat.switchCards(card1, card2);
+
+        RoomScene.currentInstance.updateBoard();
+    }
+
+    public static toogleCardCooperation(): void {
+
+        RoomManager.games[ALICE].cheat.toggleCardCooperation();
     }
 
     public static getOpponentCards(): {value: number, suit: number}[] {

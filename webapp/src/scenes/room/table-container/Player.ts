@@ -125,7 +125,7 @@ export class Player extends Phaser.GameObjects.Container {
             }
         }
 
-        if (winnerHand.length) {
+        if (winnerHand && winnerHand.length) {
 
             for (let i = 0; i < winnerHand.length; i++) {
                 let winnerHandCard = RoomManager.getCardSuitValue(winnerHand[i]);
@@ -193,6 +193,15 @@ export class Player extends Phaser.GameObjects.Container {
         this.setFunds();
         this.setBet();
         this.setHand();
+        this.setCards();
+    }
+
+    public setCards(): void {
+
+        let cards = this.isPlayer ? RoomManager.getPlayerCards() : RoomManager.getOpponentCards();
+
+        this.cards[0].setValue(cards[0]);
+        this.cards[1].setValue(cards[1]);
     }
 
     public setFunds(): void {

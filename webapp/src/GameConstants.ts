@@ -6,7 +6,17 @@ export class GameConstants {
     public static readonly GAME_WIDTH = 1280;
     public static readonly GAME_HEIGHT = 853;
 
-    public static readonly STATES = ["START", "PREFLOP", "FLOP", "TURN", "RIVER", "SHOWDOWN", "END"];
+    public static readonly STATES = ["START", "PREFLOP", "FLOP", "TURN", "RIVER", "SHOWDOWN", "END", "VERIFICATION"];
+
+    public static readonly VERIFICATION_STATES = [
+        "NONE",
+        "STARTED",
+        "RESULT SUBMITTED",
+        "RESULT CONFIRMED",
+        "RESULT CHALLENGED",
+        "ENDED",
+        "ERROR"
+    ];
     
     public static readonly ACTION_CALL = "CALL";
     public static readonly ACTION_CHECK = "CHECK";

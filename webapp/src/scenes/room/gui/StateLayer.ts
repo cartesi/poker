@@ -23,7 +23,7 @@ export class StateLayer extends Phaser.GameObjects.Container {
 
     public setText(text: string): void {
 
-        if (text === this.stateText.text || text === "END") {
+        if (text === this.stateText.text || text === "END" || text === "VERIFICATION") {
             return;
         }
 
