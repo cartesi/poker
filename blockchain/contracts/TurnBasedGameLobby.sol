@@ -36,7 +36,7 @@ contract TurnBasedGameLobby {
     mapping(bytes32 => QueuedPlayer[]) internal queues;
 
     /// @notice Constructor
-    /// @param _allowedERC20Address Poker Token contract address used to ensure that this will be the only token provider (for now)
+    /// @param _allowedERC20Address address of the ERC20 compatible token provider
     /// @param _turnBasedGameAddress address of the TurnBasedGame contract used for starting games
     constructor(address _allowedERC20Address, address _turnBasedGameAddress) {
         allowedERC20Address = _allowedERC20Address;
@@ -155,6 +155,7 @@ contract TurnBasedGameLobby {
                 _gameTemplateHash,
                 _gameMetadata,
                 _gameValidators,
+                _gameERC20Address,
                 players,
                 playerFunds,
                 playerInfos

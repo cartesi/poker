@@ -3,15 +3,35 @@ import * as fs from "fs";
 
 const defaultGameTemplateHash = "0xa4c9cc22be3cefe90f6a2332ffd3b12e4fcc327112a90dcc12207ad5154e8207";
 
+// SHOW-BALANCES
+task("show-balance", "Show token balance for a given address")
+    .addParam("address", "Address for which account you want to know the balance")
+    .addOptionalParam("erc20Name", "Name of the Token contract been used", "PokerToken")
+    .setAction(async ({ address, erc20Name }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves PokerToken contract
+        const tokenProvider = await ethers.getContract(erc20Name);
+
+        // log balance
+        let balance = await tokenProvider.balanceOf(address);
+        console.log("\nAddress has " + balance + " tokens.");
+
+        console.log("");
+    });
+
 // START-GAME
 task("start-game", "Starts a TurnBasedGame instance")
     .addOptionalParam("hash", "Game template hash to use", defaultGameTemplateHash, types.string)
     .setAction(async ({ hash }, hre) => {
         const { ethers } = hre;
-        const game = await ethers.getContract("TurnBasedGame");
-        const contextLibrary = await ethers.getContract("TurnBasedGameContext");
 
         const { alice, bob } = await hre.getNamedAccounts();
+
+        // retrieve contracts
+        const pokerToken = await ethers.getContract("PokerToken");
+        const game = await ethers.getContract("TurnBasedGame");
+        const contextLibrary = await ethers.getContract("TurnBasedGameContext");
 
         const gameTemplateHash = hash;
         const gameMetadata = "0x";
@@ -23,7 +43,7 @@ task("start-game", "Starts a TurnBasedGame instance")
             ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Bob")),
         ];
 
-        const tx = await game.startGame(gameTemplateHash, gameMetadata, validators, players, playerfunds, playerinfos);
+        const tx = await game.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerfunds, playerinfos);
         const gameReadyEventRaw = (await tx.wait()).events[0];
         const gameReadyEvent = contextLibrary.interface.parseLog(gameReadyEventRaw);
         const index = gameReadyEvent.args._index;

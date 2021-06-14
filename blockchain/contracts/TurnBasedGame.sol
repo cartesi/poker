@@ -24,6 +24,8 @@ import "./TurnBasedGameUtil.sol";
 /// @title TurnBasedGame
 /// @notice Generic contract for handling turn-based games validated by Descartes computations
 contract TurnBasedGame is InstantiatorImpl {
+    // Address for the allowed token provider
+    address allowedERC20Address;
 
     using TurnBasedGameContext for GameContext;
 
@@ -40,13 +42,18 @@ contract TurnBasedGame is InstantiatorImpl {
     // game instances
     mapping(uint256 => GameContext) internal instances;
 
-
     /// @notice Constructor
-    /// @param descartesAddress address of the Descartes contract
-    /// @param loggerAddress address of the Logger contract
-    constructor(address descartesAddress, address loggerAddress) {
-        descartes = DescartesInterface(descartesAddress);
-        logger = Logger(loggerAddress);
+    /// @param _allowedERC20Address address of the ERC20 compatible token provider
+    /// @param _descartesAddress address of the Descartes contract
+    /// @param _loggerAddress address of the Logger contract
+    constructor(
+        address _allowedERC20Address,
+        address _descartesAddress,
+        address _loggerAddress
+    ) {
+        allowedERC20Address = _allowedERC20Address;
+        descartes = DescartesInterface(_descartesAddress);
+        logger = Logger(_loggerAddress);
 
         // stores an empty chunk of data in the logger and records its index
         bytes8[] memory emptyData = new bytes8[](1);
@@ -54,11 +61,11 @@ contract TurnBasedGame is InstantiatorImpl {
         emptyDataLogIndex = logger.getLogIndex(logHash);
     }
 
-
     /// @notice Starts a new game
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
     /// @param _gameMetadata game-specific initial metadata/parameters
-    /// @param _validators addresses of the validator nodes that will run a Descartes verification should it be needed
+    /// @param _gameValidators addresses of the validator nodes that will run a Descartes verification should it be needed
+    /// @param _gameERC20Address address for a ERC20 compatible token provider
     /// @param _players addresses of the players involved
     /// @param _playerFunds funds/balances that each player is bringing into the game
     /// @param _playerInfos game-specific information for each player
@@ -66,82 +73,71 @@ contract TurnBasedGame is InstantiatorImpl {
     function startGame(
         bytes32 _gameTemplateHash,
         bytes memory _gameMetadata,
-        address[] memory _validators,
+        address[] memory _gameValidators,
+        address _gameERC20Address,
         address[] memory _players,
-        uint[] memory _playerFunds,
+        uint256[] memory _playerFunds,
         bytes[] memory _playerInfos
-    ) public
-        returns (uint256)
-    {
+    ) public returns (uint256) {
+        // ensures that the token provider is the allowed one
+        require(_gameERC20Address == allowedERC20Address, "Unexpected token provider");
+
         // creates new context
         GameContext storage context = instances[currentIndex];
         context.gameTemplateHash = _gameTemplateHash;
         context.gameMetadata = _gameMetadata;
-        context.validators = _validators;
-        // TODO: check/lock funds, preferrably use a token and not ether
+        context.gameValidators = _gameValidators;
+        context.gameERC20Address = _gameERC20Address;
         context.players = _players;
         context.playerFunds = _playerFunds;
         context.playerInfos = _playerInfos;
 
-        // emits event for new game        
+        // emits event for new game
         emit TurnBasedGameContext.GameReady(currentIndex, context);
 
         active[currentIndex] = true;
         return currentIndex++;
     }
 
-
     /// @notice Returns game context
     /// @param _index index identifying the game
     /// @return GameContext struct for the specified game
-    function getContext(uint256 _index) public view
-        onlyInstantiated(_index)
-        returns(GameContext memory)
-    {
+    function getContext(uint256 _index) public view onlyInstantiated(_index) returns (GameContext memory) {
         return instances[_index];
     }
-
 
     /// @notice Submits a new turn for a given game
     /// @param _index index identifying the game
     /// @param _turnIndex a sequential number for the turn, which must be equal to the last submitted turn's index + 1
     /// @param _data game-specific turn data (array of 64-bit words)
-    function submitTurn(uint256 _index, uint256 _turnIndex, bytes calldata _data) public
-        onlyActive(_index)
-    {
+    function submitTurn(
+        uint256 _index,
+        uint256 _turnIndex,
+        bytes calldata _data
+    ) public onlyActive(_index) {
         GameContext storage context = instances[_index];
         context.submitTurn(_index, _turnIndex, _data, logger, turnChunkLog2Size);
     }
 
-
     /// @notice Challenges game state, triggering a verification by a Descartes computation
     /// @param _index index identifying the game
     /// @return index of the Descartes computation
-    function challengeGame(uint256 _index) public
-        onlyActive(_index)
-        returns (uint256)
-    {
+    function challengeGame(uint256 _index) public onlyActive(_index) returns (uint256) {
         GameContext storage context = instances[_index];
         return context.challengeGame(_index, descartes, logger, turnChunkLog2Size, emptyDataLogIndex);
     }
 
-
     /// @notice Claims game has ended with the provided result (share of locked funds)
     /// @param _index index identifying the game
     /// @param _fundsShare result of the game given as a distribution of the funds previously locked
-    function claimResult(uint256 _index, uint[] memory _fundsShare) public
-        onlyActive(_index)
-    {
+    function claimResult(uint256 _index, uint256[] memory _fundsShare) public onlyActive(_index) {
         GameContext storage context = instances[_index];
         context.claimResult(_index, _fundsShare);
     }
-    
 
     /// @notice Confirms game results previously claimed
     /// @param _index index identifying the game
-    function confirmResult(uint256 _index) public
-        onlyActive(_index)
-    {
+    function confirmResult(uint256 _index) public onlyActive(_index) {
         GameContext storage context = instances[_index];
         bool isConsensus = context.confirmResult();
         if (isConsensus == true) {
@@ -150,36 +146,30 @@ contract TurnBasedGame is InstantiatorImpl {
             deactivate(_index);
         }
     }
-    
 
     /// @notice Applies the result of a game verified by Descartes, transferring funds according to the Descartes computation output
     /// @param _index index identifying the game
-    function applyVerificationResult(uint256 _index) public
-        onlyActive(_index)
-    {
+    function applyVerificationResult(uint256 _index) public onlyActive(_index) {
         GameContext storage context = instances[_index];
         context.applyVerificationResult(_index, descartes);
         deactivate(_index);
     }
 
-
     /// @notice Indicates whether a given player is concerned about a game
     /// @param _index index identifying the game
     /// @param _player a player's address
     /// @return true if the player is concerned about the game, false otherwise
-    function isConcerned(uint256 _index, address _player) public view override
-        onlyInstantiated(_index)
-        returns (bool)
-    {
+    function isConcerned(uint256 _index, address _player) public view override onlyInstantiated(_index) returns (bool) {
         GameContext storage context = instances[_index];
         return context.isConcerned(_player);
     }
 
-
     /// @notice Returns state of the instance for offchain usage concerning given validator.
     /// @param _index index identifying the game
     /// @return _isDescartesInstantiated whether an offchain Descartes computation has been instantiated for this game
-    function getState(uint256 _index, address) public view
+    function getState(uint256 _index, address)
+        public
+        view
         onlyInstantiated(_index)
         returns (bool _isDescartesInstantiated)
     {
@@ -189,7 +179,10 @@ contract TurnBasedGame is InstantiatorImpl {
 
     /// @notice Retrieves sub-instances of the game (required method for Instantiator, used by offchain dispatcher code).
     /// @param _index index identifying the game
-    function getSubInstances(uint256 _index, address) public view override
+    function getSubInstances(uint256 _index, address)
+        public
+        view
+        override
         onlyInstantiated(_index)
         returns (address[] memory _addresses, uint256[] memory _indices)
     {
@@ -205,5 +198,5 @@ contract TurnBasedGame is InstantiatorImpl {
             // no sub-instances
             return (new address[](0), new uint256[](0));
         }
-    }    
+    }
 }

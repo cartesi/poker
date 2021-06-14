@@ -258,7 +258,7 @@ describe("TurnBasedGameLobby", async () => {
 
             // mock now expecting to be called with these exact parameters
             await mockGameContract.mock.startGame
-                .withArgs(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos)
+                .withArgs(gameTemplateHash, gameMetadata, validators, pokerTokenContract.address, players, playerFunds, playerInfos)
                 .returns(0);
 
             // player 1 joins the game 1 and mock should be called
@@ -294,7 +294,7 @@ describe("TurnBasedGameLobby", async () => {
             let playerFundsOther = [playerFunds[1], playerFunds[0]];
             let playerInfosOther = [playerInfos[1], playerInfos[0]];
             await mockGameContract.mock.startGame
-                .withArgs(gameTemplateHash, gameMetadataOther, validators, playersOther, playerFundsOther, playerInfosOther)
+                .withArgs(gameTemplateHash, gameMetadataOther, validators, pokerTokenContract.address, playersOther, playerFundsOther, playerInfosOther)
                 .returns(1);
 
             // player 0 joins the other game and mock should be called
@@ -357,7 +357,7 @@ describe("TurnBasedGameLobby", async () => {
 
             // mock now expecting to be called with these exact parameters
             await mockGameContract.mock.startGame
-                .withArgs(gameTemplateHash, gameMetadata, validators, players, playerFunds, playerInfos)
+                .withArgs(gameTemplateHash, gameMetadata, validators, pokerTokenContract.address, players, playerFunds, playerInfos)
                 .returns(0);
 
             // player 1 joins the game 1
