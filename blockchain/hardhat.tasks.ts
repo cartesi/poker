@@ -219,7 +219,7 @@ task("submit-turn", "Submits a game turn for a given player")
 
         // queries game contract to retrieve context for the specified game index
         let context = await game.getContext(index);
-        const turns = context[6];
+        const turns = context[7];
 
         console.log("");
         if (datafile) {
