@@ -154,17 +154,18 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
         console.log(`gameTemplateHash: ${ret[0]}`);
         console.log(`gameMetadata: ${ret[1]}`);
         console.log(`validators: ${ret[2]}`);
-        console.log(`players: ${ret[3]}`);
-        console.log(`playerfunds: ${ret[4]}`);
-        console.log(`playerinfos: ${ret[5]}`);
-        console.log(`isDescartesInstantiated: ${ret[7]}`);
-        console.log(`descartesIndex: ${ret[8]}`);
-        console.log(`claimer: ${ret[9]}`);
-        console.log(`claimedFundsShare: ${ret[10]}`);
-        console.log(`claimAgreementMask: ${ret[11]}`);
+        console.log(`erc20Address: ${ret[3]}`);
+        console.log(`players: ${ret[4]}`);
+        console.log(`playerfunds: ${ret[5]}`);
+        console.log(`playerinfos: ${ret[6]}`);
+        console.log(`isDescartesInstantiated: ${ret[8]}`);
+        console.log(`descartesIndex: ${ret[9]}`);
+        console.log(`claimer: ${ret[10]}`);
+        console.log(`claimedFundsShare: ${ret[11]}`);
+        console.log(`claimAgreementMask: ${ret[12]}`);
 
         // displays turn info: data is retrieved from the corresponding logger events ("MerkleRootCalculatedFromData")
-        const turns = ret[6];
+        const turns = ret[7];
         if (turns && turns.length) {
             for (let iTurn = 0; iTurn < turns.length; iTurn++) {
                 const turn = turns[iTurn];
