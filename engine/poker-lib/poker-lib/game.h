@@ -93,17 +93,7 @@ public:
     player_state players[NUM_PLAYERS];
     card_t       public_cards[NUM_PUBLIC_CARDS];
     money_t      big_blind;
-    game_error   bet(bet_type type, money_t amt);
-    game_error   decide_winner();
     void         dump();
-private:
-    game_error get_player_hand(int player, card_t* hand);
-    game_error call();
-    game_error check();
-    game_error raise(money_t amount);
-    game_error fold();
-    game_error bet(money_t amount);
-    void       end_phase();
 };
 
 } // namespace poker

@@ -1,5 +1,7 @@
 #include "referee.h"
 
+#include "validator.h"
+
 namespace poker {
 
 referee::referee()
@@ -214,7 +216,7 @@ game_error referee::step_open_opponent_cards(int player_id, blob& alice_proofs, 
 }
 
 game_error referee::decide_winner() {
-    return _g.decide_winner();
+    return poker::decide_winner(_g);
 }
 
 

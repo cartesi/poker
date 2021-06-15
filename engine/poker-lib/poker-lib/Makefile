@@ -20,7 +20,7 @@ endif
 
 TESTS = test-solver \
     test-player \
-    test-game
+    test-validator
 
 PROGRAMS = hello \
     poker-lib-sample \
@@ -50,7 +50,8 @@ POKER_LIB_OBJS=solver.o \
             poker-lib.o \
             referee.o \
             player.o \
-            game.o
+            game.o \
+            validator.o
 
 poker-lib.a: $(POKER_LIB_OBJS)
 	ar rcs $@ $^
