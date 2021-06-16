@@ -82,6 +82,9 @@ contract TurnBasedGame is InstantiatorImpl {
         // ensures that the token provider is the allowed one
         require(_gameERC20Address == allowedERC20Address, "Unexpected token provider");
 
+        // tranfer tokens to game contract
+        transferTokensToGameAccount(IERC20(_gameERC20Address), msg.sender, _playerFunds);
+
         // creates new context
         GameContext storage context = instances[currentIndex];
         context.gameTemplateHash = _gameTemplateHash;
@@ -97,6 +100,22 @@ contract TurnBasedGame is InstantiatorImpl {
 
         active[currentIndex] = true;
         return currentIndex++;
+    }
+
+    /// @notice Transfer tokens to the game contract account
+    /// @param _tokenProvider ERC20 compatible token provider instance
+    /// @param _holder account from where tokens will be transferred to the game
+    /// @param _playerFunds amount of tokens from each player
+    function transferTokensToGameAccount(
+        IERC20 _tokenProvider,
+        address _holder,
+        uint256[] memory _playerFunds
+    ) public {
+        uint256 tokensToTransfer;
+        for (uint256 i = 0; i < _playerFunds.length; i++) {
+            tokensToTransfer += _playerFunds[i];
+        }
+        _tokenProvider.transferFrom(_holder, address(this), tokensToTransfer);
     }
 
     /// @notice Returns game context

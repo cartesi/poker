@@ -21,10 +21,13 @@ import "./TurnBasedGame.sol";
 /// @title TurnBasedGameLobby
 /// @notice Entry point for players to join games handled by the TurnBasedGame contract
 contract TurnBasedGameLobby {
-    // Address for the allowed token provider
+    // max number of tokens
+    uint256 public constant MAX_TOKEN_AMOUNT = type(uint256).max;
+
+    // address for the allowed token provider
     address allowedERC20Address;
 
-    // TurnBasedGame contract used for starting games
+    // turnBasedGame contract used for starting games
     TurnBasedGame turnBasedGame;
 
     // records queue information
@@ -41,6 +44,9 @@ contract TurnBasedGameLobby {
     constructor(address _allowedERC20Address, address _turnBasedGameAddress) {
         allowedERC20Address = _allowedERC20Address;
         turnBasedGame = TurnBasedGame(_turnBasedGameAddress);
+        // approve game contract to spend tokens in behalf of lobby
+        IERC20 tokenContract = IERC20(allowedERC20Address);
+        tokenContract.approve(_turnBasedGameAddress, MAX_TOKEN_AMOUNT);
     }
 
     /// @notice Retrieves the current queue for a given game (specified by its template hash, metadata and number of players)
@@ -120,7 +126,7 @@ contract TurnBasedGameLobby {
             require(queuedPlayers[i].addr != msg.sender, "Player has already been enqueued to join this game");
         }
 
-        // Token locking
+        // lock player tokens in the lobby
         lockFunds(IERC20(_gameERC20Address), msg.sender, _playerFunds);
 
         if (queuedPlayers.length < _gameNumPlayers - 1) {
@@ -147,9 +153,6 @@ contract TurnBasedGameLobby {
             playerFunds[_gameNumPlayers - 1] = _playerFunds;
             playerInfos[_gameNumPlayers - 1] = _playerInfo;
 
-            // - tranfer tokens to game contract
-            transferTokensToGameAccount(IERC20(_gameERC20Address), playerFunds);
-
             // - starts game
             turnBasedGame.startGame(
                 _gameTemplateHash,
@@ -175,16 +178,5 @@ contract TurnBasedGameLobby {
         uint256 _playerFunds
     ) public {
         _tokenProvider.transferFrom(_playerAddress, address(this), _playerFunds);
-    }
-
-    /// @notice Transfer players tokens locked in lobby contract to the game contract
-    /// @param _tokenProvider ERC20 compatible token provider instance
-    /// @param _playerFunds amount of tokens locked in lobby contract that will be transfered to game contract
-    function transferTokensToGameAccount(IERC20 _tokenProvider, uint256[] memory _playerFunds) public {
-        uint256 tokensToTransfer;
-        for (uint256 i = 0; i < _playerFunds.length; i++) {
-            tokensToTransfer += _playerFunds[i];
-        }
-        _tokenProvider.transfer(address(turnBasedGame), tokensToTransfer);
     }
 }

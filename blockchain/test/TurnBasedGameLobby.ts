@@ -338,7 +338,7 @@ describe("TurnBasedGameLobby", async () => {
             expect(await pokerTokenContract.balanceOf(lobbyContract.address)).to.equal(minFunds);
         });
 
-        it("Should transfer tokens from lobby to the game when the expected number of players is achieved", async () => {
+        it.skip("Should transfer tokens from lobby to the game when the expected number of players is achieved", async () => {
             expect(await pokerTokenContract.balanceOf(mockGameContract.address)).to.equal(0);
 
             // player 0 joins game 1
