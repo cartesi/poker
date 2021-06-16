@@ -14,8 +14,7 @@ import { describe } from "mocha";
 import { expect, use } from "chai";
 import { deployments, ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
-
-import { SignerWithAddress } from "hardhat-deploy-ethers/dist/src/signer-with-address";
+import { Signer } from "ethers";
 
 import { PokerToken } from "../src/types/PokerToken";
 import { PokerToken__factory } from "../src/types/factories/PokerToken__factory";
@@ -29,10 +28,10 @@ describe("PokerToken", () => {
     const ALLOWED_AMOUNT = 100;
 
     let pokerTokenContract: PokerToken;
-    let owner: SignerWithAddress;
-    let holder1: SignerWithAddress;
-    let holder2: SignerWithAddress;
-    let spender: SignerWithAddress;
+    let owner: Signer;
+    let holder1: Signer;
+    let holder2: Signer;
+    let spender: Signer;
 
     beforeEach(async () => {
         [owner, holder1, holder2, spender] = await ethers.getSigners();
@@ -112,11 +111,13 @@ describe("PokerToken", () => {
             await pokerTokenContract.connect(holder1).approve(await spender.getAddress(), ALLOWED_AMOUNT);
 
             // spender(lobby contract) account transfers tokens from holder1(player) to a holder2(game contract)
-            await pokerTokenContract.connect(spender).transferFrom(holder1.address, holder2.address, ALLOWED_AMOUNT);
+            await pokerTokenContract
+                .connect(spender)
+                .transferFrom(await holder1.getAddress(), await holder2.getAddress(), ALLOWED_AMOUNT);
 
-            expect(await pokerTokenContract.balanceOf(holder1.address)).to.equal(NO_AMOUNT);
-            expect(await pokerTokenContract.balanceOf(holder2.address)).to.equal(ALLOWED_AMOUNT);
-            expect(await pokerTokenContract.balanceOf(spender.address)).to.equal(NO_AMOUNT);
+            expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.equal(NO_AMOUNT);
+            expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.equal(ALLOWED_AMOUNT);
+            expect(await pokerTokenContract.balanceOf(await spender.getAddress())).to.equal(NO_AMOUNT);
         });
 
         it("Should NOT allow spender contract get tokens from an holder account BEYOND allowance limit", async () => {
@@ -125,9 +126,11 @@ describe("PokerToken", () => {
             await pokerTokenContract.connect(holder1).approve(await spender.getAddress(), ALLOWED_AMOUNT);
 
             await expect(
-                pokerTokenContract.connect(spender).transferFrom(holder1.address, spender.address, 2 * ALLOWED_AMOUNT)
+                pokerTokenContract
+                    .connect(spender)
+                    .transferFrom(await holder1.getAddress(), await spender.getAddress(), 2 * ALLOWED_AMOUNT)
             ).to.be.reverted;
-            expect(await pokerTokenContract.balanceOf(holder1.address)).to.equal(ALLOWED_AMOUNT);
+            expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.equal(ALLOWED_AMOUNT);
         });
     });
 });
