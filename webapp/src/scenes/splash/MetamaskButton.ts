@@ -6,6 +6,8 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
 
     private background: Phaser.GameObjects.Graphics;
     private text: Phaser.GameObjects.Text;
+    private img: Phaser.GameObjects.Image;
+    private loading: Phaser.GameObjects.Image;
 
     private chooseAvatarLayer: ChooseAvatarLayer;
 
@@ -27,9 +29,22 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
         }, this);
         this.add(this.background);
 
-        let img = new Phaser.GameObjects.Image(this.scene, -110, 0, "texture_atlas_1", "metamask");
-        img.setScale(.4);
-        this.add(img);
+        this.img = new Phaser.GameObjects.Image(this.scene, -110, 0, "texture_atlas_1", "metamask");
+        this.img.setScale(.4);
+        this.add(this.img);
+
+        this.loading = new Phaser.GameObjects.Image(this.scene, -110, 0, "texture_atlas_1", "loading");
+        this.loading.setScale(.3);
+        this.loading.visible = false;
+        this.add(this.loading);
+
+        this.scene.tweens.add({
+            targets: this.loading,
+            angle: 360,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 1000,
+            repeat: -1
+        });
 
         this.text = new Phaser.GameObjects.Text(this.scene, -80, 0, "", {fontFamily: "Oswald-Medium", fontSize: "22px", color: "#FFFFFF", align: "left"});
         this.text.setOrigin(0, .5);
@@ -61,8 +76,12 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
             // TODO: show some "loading" feedback like a spinner
             this.background.disableInteractive();
             this.setScale(1);
+            this.loading.visible = true;
+            this.img.visible = false;
         } else {
             this.background.setInteractive(new Phaser.Geom.Rectangle(-150, -35, this.text.width + 95, 70), Phaser.Geom.Rectangle.Contains);
+            this.loading.visible = false;
+            this.img.visible = true;
         }
 
         // change style to inform user if an error has occurred
