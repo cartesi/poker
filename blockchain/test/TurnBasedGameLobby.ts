@@ -320,7 +320,7 @@ describe("TurnBasedGameLobby", async () => {
     describe("TurnBasedGameLobby and PokerToken interaction", async () => {
         it("Should lock player tokens when joining a game", async () => {
             expect(await pokerTokenContract.balanceOf(lobbyContract.address)).to.equal(0);
-            expect(await pokerTokenContract.balanceOf(signer.address)).to.equal(2 * minFunds);
+            expect(await pokerTokenContract.balanceOf(players[0])).to.equal(2 * minFunds);
 
             // player 0 joins game 1 and lobby will lock minFunds
             await lobbyContract.joinGame(
@@ -334,31 +334,15 @@ describe("TurnBasedGameLobby", async () => {
                 playerInfos[0]
             );
 
-            expect(await pokerTokenContract.balanceOf(signer.address)).to.equal(minFunds);
+            expect(await pokerTokenContract.balanceOf(players[0])).to.equal(minFunds);
             expect(await pokerTokenContract.balanceOf(lobbyContract.address)).to.equal(minFunds);
-        });
-
-        it.skip("Should transfer tokens from lobby to the game when the expected number of players is achieved", async () => {
-            expect(await pokerTokenContract.balanceOf(mockGameContract.address)).to.equal(0);
-
-            // player 0 joins game 1
-            await lobbyContract.joinGame(
-                gameTemplateHash,
-                gameMetadata,
-                validators,
-                players.length,
-                minFunds,
-                pokerTokenContract.address,
-                playerFunds[0],
-                playerInfos[0]
-            );
-
-            expect(await pokerTokenContract.balanceOf(mockGameContract.address)).to.equal(0);
 
             // mock now expecting to be called with these exact parameters
             await mockGameContract.mock.startGame
                 .withArgs(gameTemplateHash, gameMetadata, validators, pokerTokenContract.address, players, playerFunds, playerInfos)
                 .returns(0);
+
+            expect(await pokerTokenContract.balanceOf(players[1])).to.equal(2 * minFunds);
 
             // player 1 joins the game 1
             await lobbyContractPlayer1.joinGame(
@@ -372,7 +356,8 @@ describe("TurnBasedGameLobby", async () => {
                 playerInfos[1]
             );
 
-            expect(await pokerTokenContract.balanceOf(mockGameContract.address)).to.equal(2 * minFunds);
+            expect(await pokerTokenContract.balanceOf(players[1])).to.equal(minFunds);
+            expect(await pokerTokenContract.balanceOf(lobbyContract.address)).to.equal(2 * minFunds);
         });
     });
 });
