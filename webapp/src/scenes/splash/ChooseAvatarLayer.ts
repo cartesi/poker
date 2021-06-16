@@ -1,8 +1,8 @@
+import { MetamaskButton } from './MetamaskButton';
 import { GameVars } from './../../GameVars';
 import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameManager } from "../../GameManager";
-import { Onboarding } from "../../services/Onboarding";
 import { Avatar } from "./Avatar";
 
 export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
@@ -67,10 +67,21 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
 
         this.onAvatarDown(GameVars.gameData.avatar);
 
-        this.onboardButton = new Phaser.GameObjects.Text(this.scene, 60, 385, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
-        this.onboardButton.setInteractive();
-        this.add(this.onboardButton);
-        Onboarding.start(this.onOnboardingChange.bind(this))
+        let metamaskButton = new MetamaskButton(this.scene, this);
+        metamaskButton.setPosition(250, 355);
+        this.add(metamaskButton);
+    }
+
+    public showPlay(): void {
+
+        this.playButton.setInteractive();
+        this.playButton.setAlpha(1);
+    }
+
+    public hidePlay(): void {
+
+        this.playButton.disableInteractive();
+        this.playButton.setAlpha(0.5);
     }
 
     public onAvatarDown(index: number): void {
@@ -111,38 +122,5 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         }
 
         this.onAvatarDown(GameVars.gameData.avatar);
-    }
-
-    private onOnboardingChange({label, onclick, loading, error, ready}) {
-
-        // update button label
-        this.onboardButton.setText(label);
-
-        // update button action when user clicks (or remove any action)
-        if (onclick) {
-            this.onboardButton.on("pointerup", () => {
-                AudioManager.playSound("btn_click");
-                onclick(this.onOnboardingChange.bind(this));
-            }, this);
-        } else {
-            this.onboardButton.off("pointerup")
-        }
-
-        if (loading) {
-            // TODO: show some "loading" feedback like a spinner
-        }
-
-        // change style to inform user if an error has occurred
-        // TODO: choose better style
-        this.onboardButton.setScale(error ? 1.5 : 1);
-
-        // if ready, we're good to go        
-        if (ready) {
-            this.playButton.setInteractive();
-            this.playButton.setAlpha(1);
-        } else {
-            this.playButton.disableInteractive();
-            this.playButton.setAlpha(0.5);
-        }
     }
 }
