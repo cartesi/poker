@@ -44,7 +44,7 @@ contract TurnBasedGameLobby {
     constructor(address _allowedERC20Address, address _turnBasedGameAddress) {
         allowedERC20Address = _allowedERC20Address;
         turnBasedGame = TurnBasedGame(_turnBasedGameAddress);
-        // approve game contract to spend tokens in behalf of lobby
+        // approve game contract to spend tokens on behalf of lobby
         IERC20 tokenContract = IERC20(allowedERC20Address);
         tokenContract.approve(_turnBasedGameAddress, MAX_TOKEN_AMOUNT);
     }
