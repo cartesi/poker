@@ -318,8 +318,9 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.submitTurn(0, 0, turnData)).not.to.be.reverted;
         });
 
-        it.skip("Should only be allowed from participating players", async () => {
-            await gameContractNonPlayer.startGame(
+        it("Should only be allowed from participating players", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
                 gameTemplateHash,
                 gameMetadata,
                 validators,
@@ -531,8 +532,9 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.challengeGame(0)).not.to.be.reverted;
         });
 
-        it.skip("Should only be allowed by participating players", async () => {
-            await gameContractNonPlayer.startGame(
+        it("Should only be allowed by participating players", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
                 gameTemplateHash,
                 gameMetadata,
                 validators,
@@ -622,8 +624,9 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
         });
 
-        it.skip("Should only be allowed by participating players", async () => {
-            await gameContractNonPlayer.startGame(
+        it("Should only be allowed by participating players", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
                 gameTemplateHash,
                 gameMetadata,
                 validators,
@@ -737,8 +740,9 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.confirmResult(0)).not.to.be.reverted;
         });
 
-        it.skip("Should only be allowed by participating players", async () => {
-            await gameContractNonPlayer.startGame(
+        it("Should only be allowed by participating players", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
                 gameTemplateHash,
                 gameMetadata,
                 validators,
