@@ -6,9 +6,15 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deploy } = deployments;
     const { deployer } = await getNamedAccounts();
 
-    await deploy("PokerToken", {
+    const PokerToken = await deploy("PokerToken", {
         from: deployer,
         log: true,
+    });
+
+    await deploy("PokerTokenFaucet", {
+        from: deployer,
+        log: true,
+        args: [PokerToken.address],
     });
 };
 
