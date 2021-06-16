@@ -19,7 +19,7 @@ import "@openzeppelin/contracts/presets/ERC20PresetMinterPauser.sol";
 /// @title PokerToken
 /// @notice Contract for handling tokens that will be distributed for the poker game players
 contract PokerToken is ERC20PresetMinterPauser {
-    constructor() public ERC20PresetMinterPauser("Cartesi Poker Token", "POKER") {
+    constructor() ERC20PresetMinterPauser("Cartesi Poker Token", "POKER") {
         // Users will only provide integer amount of tokens
         _setupDecimals(0);
     }
