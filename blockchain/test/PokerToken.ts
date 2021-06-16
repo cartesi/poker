@@ -49,7 +49,7 @@ describe("PokerToken", () => {
 
         it("Should have 'name', 'symbol' and decimals setup", async () => {
             expect(await pokerTokenContract.name()).to.equal("Cartesi Poker Token");
-            expect(await pokerTokenContract.symbol()).to.equal("CTPT");
+            expect(await pokerTokenContract.symbol()).to.equal("POKER");
             expect(await pokerTokenContract.decimals()).to.equal(NO_DECIMALS);
         });
 
