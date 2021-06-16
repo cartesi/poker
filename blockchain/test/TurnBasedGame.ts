@@ -15,7 +15,7 @@ import { expect, use } from "chai";
 import { deployments, ethers, getNamedAccounts, network } from "hardhat";
 import { MockContract, deployMockContract, solidity } from "ethereum-waffle";
 
-import { tryReturnEvent } from "./EventUtil";
+import { getEvent } from "./EventUtil";
 
 import { PokerToken } from "../src/types/PokerToken";
 import { PokerToken__factory } from "../src/types/factories/PokerToken__factory";
@@ -167,7 +167,7 @@ describe("TurnBasedGame", async () => {
             );
 
             let events = (await tx.wait()).events;
-            let gameReadyEvent = tryReturnEvent("GameReady", contextLibrary, events);
+            let gameReadyEvent = getEvent("GameReady", contextLibrary, events);
             expect(gameReadyEvent.args).not.equal(undefined, "Emitted event has no arguments (unknown event type?)");
             let index = gameReadyEvent.args._index;
             let context = gameReadyEvent.args._context;
@@ -201,7 +201,7 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             events = (await tx.wait()).events;
-            gameReadyEvent = tryReturnEvent("GameReady", contextLibrary, events);
+            gameReadyEvent = getEvent("GameReady", contextLibrary, events);
             expect(gameReadyEvent.args).not.equal(undefined, "Emitted event has no arguments (unknown event type?)");
             index = gameReadyEvent.args._index;
             context = gameReadyEvent.args._context;
@@ -237,7 +237,7 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             events = (await tx.wait()).events;
-            gameReadyEvent = tryReturnEvent("GameReady", contextLibrary, events);
+            gameReadyEvent = getEvent("GameReady", contextLibrary, events);
             expect(gameReadyEvent.args).not.equal(undefined, "Emitted event has no arguments (unknown event type?)");
             index = gameReadyEvent.args._index;
             context = gameReadyEvent.args._context;

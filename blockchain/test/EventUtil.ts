@@ -4,7 +4,7 @@
 // eventName expected event
 // parser contract that know the expected event definition
 // events array of events that will be evaluated 
-export function tryReturnEvent(eventName, parser, events) {
+export function getEvent(eventName, parser, events) {
     let expectedEvent = null;
     for (let i = 0; i < events.length; i++) {
         let found = false;
