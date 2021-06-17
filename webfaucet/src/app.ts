@@ -53,9 +53,9 @@ class PokerFaucet {
         const faucetContract = new ethers.Contract(PokerTokenFaucet.address, PokerTokenFaucet.abi, signer);
 
         await faucetContract.requestTokens();
-        // await tokenContract.mint(address, amount);
 
-        alert(`Requested 1000 POKER tokens for ${address}`);
+        const amount = await faucetContract.TOKEN_AMOUNT();
+        alert(`Requested ${amount} POKER tokens for ${address}`);
     }
 }
 
