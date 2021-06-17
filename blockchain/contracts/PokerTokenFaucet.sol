@@ -22,16 +22,22 @@ contract PokerTokenFaucet {
     uint256 public constant TOKEN_AMOUNT = 1000;
     PokerToken tokenInstance;
     
+    /// @notice Constructor
+    /// @param _pokerTokenAddress address of the PokerToken ERC20 contract
     constructor(address _pokerTokenAddress) {
         require(_pokerTokenAddress != address(0));
         tokenInstance = PokerToken(_pokerTokenAddress);
     }
 
+    /// @notice Requests a fixed amount of tokens
     function requestTokens() public {
         require(allowedToWithdraw(msg.sender));
         tokenInstance.transfer(msg.sender, TOKEN_AMOUNT);
     }
 
+    /// @notice Verifies if a given account address is allowed to withdraw tokens
+    /// @param _address address to verify
+    /// @return true if the account is allowed to withdraw, false otherwise
     function allowedToWithdraw(address _address) internal pure returns (bool) {
         // TODO: check using access control contract
         return true;
