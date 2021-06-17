@@ -27,7 +27,7 @@ contract TurnBasedGameLobby {
     // address for the allowed token provider
     address allowedERC20Address;
 
-    // turnBasedGame contract used for starting games
+    // TurnBasedGame contract used for starting games
     TurnBasedGame turnBasedGame;
 
     // records queue information
