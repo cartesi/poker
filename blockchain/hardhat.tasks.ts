@@ -9,15 +9,16 @@ const defaultGameTemplateHash = "0xa4c9cc22be3cefe90f6a2332ffd3b12e4fcc327112a90
 task("mint-token", "Mint token for a given address")
     .addParam("address", "Address for which account you want to mint tokens")
     .addParam("amount", "Amount of tokens to be minted")
-    .addOptionalParam("erc20name", "Name of the Token contract been used", "PokerToken")
-    .setAction(async ({ address, amount, erc20name }, hre) => {
+    .addOptionalParam("erc20", "Name of the Token contract been used", "PokerToken")
+    .setAction(async ({ address, amount, erc20 }, hre) => {
         const { ethers } = hre;
 
         // retrieves PokerToken contract
-        const tokenProvider = await ethers.getContract(erc20name);
+        const tokenProvider = await ethers.getContract(erc20);
         // mint tokens
         await tokenProvider.mint(address, amount);
-        console.log("\nTokens minted");
+        console.log("\n" + amount + " " + (await tokenProvider.symbol()) + " tokens minted for " + address);
+        console.log("\nCurrent balance is " + (await tokenProvider.balanceOf(address)));
 
         console.log("");
     });
@@ -27,21 +28,24 @@ task("mint-token", "Mint token for a given address")
 // the holder account from the holder account.
 // holder account calls -> spender contract -> spender contract transfer from holder account to any target account
 task("approve-spending", "Approve an account to spend tokens on behalf of other")
-    .addParam("holderaddress", "Address for the holder account")
-    .addParam("spenderaddress", "Address for the spender account")
+    .addParam("holder", "Address for the holder account")
+    .addParam("spender", "Address for the spender account")
     .addParam("amount", "Amount allowed", 100, types.int)
-    .addOptionalParam("erc20name", "Name of the Token contract been used", "PokerToken")
-    .setAction(async ({ holderaddress, spenderaddress, amount, erc20name }, hre) => {
+    .addOptionalParam("erc20", "Name of the Token contract been used", "PokerToken")
+    .setAction(async ({ holder, spender, amount, erc20 }, hre) => {
         const { ethers } = hre;
 
         // retrieves PokerToken contract
-        let tokenProvider = await ethers.getContract(erc20name);
-        await tokenProvider.mint(holderaddress, amount);
+        let tokenProvider = await ethers.getContract(erc20);
+        await tokenProvider.mint(holder, amount);
         // approve tokens spending
-        await tokenProvider.connect(holderaddress);
-        await tokenProvider.approve(spenderaddress, amount);
+        await tokenProvider.connect(holder);
+        await tokenProvider.approve(spender, amount);
 
-        console.log("\n" + spenderaddress + " can spend tokens on behalf of " + holderaddress);
+        let tokenSymbol = await tokenProvider.symbol();
+        let allowance = await tokenProvider.allowance(holder, spender);
+        console.log("\n" + spender + " can spend " + amount + " of " + tokenSymbol + " tokens on behalf of " + holder);
+        console.log("\nCurrent allowance is " + allowance);
 
         console.log("");
     });
