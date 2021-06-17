@@ -5,6 +5,49 @@ import { getEvent } from "./test/EventUtil";
 
 const defaultGameTemplateHash = "0xa4c9cc22be3cefe90f6a2332ffd3b12e4fcc327112a90dcc12207ad5154e8207";
 
+// MINT-TOKEN
+task("mint-token", "Mint token for a given address")
+    .addParam("address", "Address for which account you want to mint tokens")
+    .addParam("amount", "Amount of tokens to be minted")
+    .addOptionalParam("erc20name", "Name of the Token contract been used", "PokerToken")
+    .setAction(async ({ address, amount, erc20name }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves PokerToken contract
+        const tokenProvider = await ethers.getContract(erc20name);
+        // mint tokens
+        await tokenProvider.mint(address, amount);
+        console.log("\nTokens minted");
+
+        console.log("");
+    });
+
+// APPROVE-SPENDING
+// Note for when spenderaddress is contract: We should call the contract that will transferFrom 
+// the holder account from the holder account.
+// holder account calls -> spender contract -> spender contract transfer from holder account to any target account
+task("approve-spending", "Approve an account to spend tokens on behalf of other")
+    .addParam("holderaddress", "Address for the holder account")
+    .addParam("spenderaddress", "Address for the spender account")
+    .addParam("amount", "Amount allowed", 100, types.int)
+    .addOptionalParam("erc20name", "Name of the Token contract been used", "PokerToken")
+    .setAction(async ({ holderaddress, spenderaddress, amount, erc20name }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves PokerToken contract
+        let tokenProvider = await ethers.getContract(erc20name);
+        await tokenProvider.mint(holderaddress, amount);
+        // approve tokens spending
+        await tokenProvider.connect(holderaddress);
+        await tokenProvider.approve(spenderaddress, amount);
+
+        console.log("\n" + spenderaddress + " can spend tokens on behalf of " + holderaddress);
+
+        console.log("");
+    });
+
+
+
 // SHOW-BALANCES
 task("show-balance", "Show token balance for a given address")
     .addParam("address", "Address for which account you want to know the balance")
