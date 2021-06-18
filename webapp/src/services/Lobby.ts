@@ -1,7 +1,6 @@
 import { LobbyMock } from "./mock/LobbyMock";
 import { LobbyWeb3 } from "./web3/LobbyWeb3";
 
-declare let window: any;
 export class Lobby {
     /**
      * Joins a new Texas Holdem game
