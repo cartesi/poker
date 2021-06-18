@@ -56,11 +56,19 @@ const VerificationStates = {
   "ERROR": 6
 }
 
+// bet types
+const BetTypes = {
+  "CALL": 0,
+  "CHECK": 1,
+  "FOLD": 2,
+  "RAISE": 3
+}
+
 const VALID_CARD_PATTERN = /^s\d_\d{1,2}_\d{1,2}$|^\d{1,2}$/;
 
 class Game {
 
-  constructor(player, playerFunds, opponentFunds, metadata, tx, onBetRequested, onEnd, onEvent, onVerification) {
+  constructor(player, playerFunds, opponentFunds, metadata, tx, onBetRequested, onBetsReceived, onEnd, onEvent, onVerification) {
     this.player = player;
     this.opponent = (player == ALICE) ? BOB : ALICE;
     this.playerFunds = playerFunds;
@@ -72,6 +80,7 @@ class Game {
     this.onEvent = onEvent ? onEvent : ()=>{};
     this.onEnd = onEnd ? onEnd : ()=>{};
     this.onBetRequested = onBetRequested ? onBetRequested : ()=>{};
+    this.onBetsReceived = onBetsReceived ? onBetsReceived : ()=>{};
     this.onVerification = onVerification ? onVerification : ()=>{};
 
     // player leading the betting round
@@ -108,7 +117,7 @@ class Game {
     }
   }
   
-  start() {
+  start(onComplete) {
     if (this.player == ALICE) {
       this.playerBets = 1;
       this.opponentBets = 2;
@@ -124,38 +133,42 @@ class Game {
       this.opponentBets = 1;
       this.tx.receive(this._cryptoStuffReceived.bind(this))
     }
+    if (onComplete) onComplete();
   }
 
   getVerificationState() {
     return this.verificationState;
   }
 
-  call() {
+  call(onComplete) {
     const amount = this.opponentBets - this.playerBets;
     if (amount <= 0) {
       throw("Cannot call when opponent's bets are not higher");
     }
     this._increaseBets(amount);
+    if (onComplete) onComplete();
   }
 
-  check() {
+  check(onComplete) {
     if (this.opponentBets != this.playerBets) {
       throw("Cannot check when player and opponent's bets are not equal");
     }
     this._increaseBets(0);
+    if (onComplete) onComplete();
   }
 
-  fold() {
+  fold(onComplete) {
     if (this.opponentBets == this.playerBets && this.state != GameStates.SHOWDOWN) {
       throw("Fold not allowed because player and opponent bets are equal: use check instead");
     }
     this.tx.send("FOLD");
+    if (onComplete) onComplete();
     this.state = GameStates.END;
     this._computeResultPlayerFold();
     this.onEnd();
   }
 
-  raise(amount) {
+  raise(amount, onComplete) {
     if (isNaN(amount) || amount <= 0) {
       throw("Raise amount must be a positive number");
     }
@@ -164,6 +177,7 @@ class Game {
       throw("Cannot raise when opponent's bets are not higher");
     }
     this._increaseBets(callAmount + Number.parseFloat(amount));
+    if (onComplete) onComplete();
   }
 
   getPlayerCards() {
@@ -510,21 +524,33 @@ class Game {
     if (this._handleVerificationPayload(opponentBets)) {
       return;
     }
-    this.onEvent(`betsReceived ${opponentBets}`)
+
     if (opponentBets == "FOLD") {
       // opponent gave up
+      this.onBetsReceived(BetTypes.FOLD, 0);
       this.state = GameStates.END;
       this._computeResultOpponentFold();
       this.onEnd();
       return;
     }
 
+    if (opponentBets > this.playerBets) {
+      // opponent has raised and is now the bet leader
+      this.onBetsReceived(BetTypes.RAISE, opponentBets);
+      this.betLeader = this.opponent;
+    } else if (opponentBets == this.opponentBets) {
+      // opponent has kept the same amount of bets: it's a check
+      this.onBetsReceived(BetTypes.CHECK, opponentBets);
+    } else if (opponentBets == this.playerBets) {
+      // opponent has risen his bets, and now matches the player's bets: it's a call
+      this.onBetsReceived(BetTypes.CALL, opponentBets);
+    } else {
+      // opponent's bet is invalid
+      this._triggerVerification("Invalid bet");
+    }
+
     this.opponentBets = opponentBets;
 
-    if (this.opponentBets > this.playerBets) {
-      // opponent has raised and is now the bet leader
-      this.betLeader = this.opponent;
-    }
     if (this.player != this.betLeader) {
       // received bet leader's bet, now player needs to place his bet
       this.onBetRequested();

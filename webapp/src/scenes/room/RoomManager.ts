@@ -36,6 +36,10 @@ export class RoomManager {
                 // onBetRequested
                 RoomManager.onBetRequested();
             },
+            (betType, amount) => {
+                // onBetsReceived
+                console.log(`Bets received: type=${betType} ; amount=${amount}`);
+            },
             () => {
                 // onEnd
                 RoomManager.onEnd();
@@ -165,43 +169,58 @@ export class RoomManager {
 
     public static playerCall(): void {
 
-        RoomManager.games[ALICE].call();
+        RoomManager.games[ALICE].call(() => {
+            RoomManager.showBet(GameConstants.ACTION_CALL, ALICE);
 
-        RoomManager.showBet(GameConstants.ACTION_CALL, ALICE);
+            RoomManager.updateBoard();
+            RoomManager.removeBetButtons();
+            RoomManager.startOpponentTurn();
+        });
 
-        RoomManager.updateBoard();
-        RoomManager.removeBetButtons();
     }
 
     public static playerCheck(): void {
 
-        RoomManager.games[ALICE].check();
+        RoomManager.games[ALICE].check(() => {
+            RoomManager.showBet(GameConstants.ACTION_CHECK, ALICE);
 
-        RoomManager.showBet(GameConstants.ACTION_CHECK, ALICE);
+            RoomManager.updateBoard();
+            RoomManager.removeBetButtons();
+            RoomManager.startOpponentTurn();
+        });
 
-        RoomManager.updateBoard();
-        RoomManager.removeBetButtons();
     }
 
     public static playerFold(): void {
 
-        RoomManager.games[ALICE].fold();
+        RoomManager.games[ALICE].fold(() => {
+            RoomManager.showBet(GameConstants.ACTION_FOLD, ALICE);
 
-        RoomManager.showBet(GameConstants.ACTION_FOLD, ALICE);
+            RoomManager.updateBoard();
+            RoomManager.removeBetButtons();
+            RoomManager.startOpponentTurn();
+        });
 
-        RoomManager.updateBoard();
-        RoomManager.removeBetButtons();
     }
 
     public static playerRaise(value): void {
 
-        RoomManager.games[ALICE].raise(value);
+        RoomManager.games[ALICE].raise(value, () => {
+            RoomManager.showBet(GameConstants.ACTION_RAISE, ALICE);
 
-        RoomManager.showBet(GameConstants.ACTION_RAISE, ALICE);
+            RoomManager.updateBoard();
+            RoomManager.removeBetButtons();
+            RoomManager.startOpponentTurn();
+        });
 
-        RoomManager.updateBoard();
-        RoomManager.removeBetButtons();
     }
+
+    public static startOpponentTurn(): void {
+
+        setTimeout(() => {
+            RoomScene.currentInstance.startOpponentTurn();
+        }, 2000);
+}
 
     public static updateBoard(): void {
 
@@ -268,10 +287,6 @@ export class RoomManager {
     }
 
     private static onAutomaticBet(player): void {
-
-        setTimeout(() => {
-            RoomScene.currentInstance.startOpponentTurn();
-        }, 2000);
 
         setTimeout(() => {
             if (RoomManager.games[player]) {

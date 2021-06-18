@@ -69,6 +69,7 @@
         const alice = new Game(
             ALICE, alice_funds, bob_funds, metadata, alice_tx,
             () => onBetRequested(ALICE, "alice_newbet"),
+            (betType, amount) => append_text('alice_div', `betsReceived: type=${Object.keys(BetTypes)[betType]}, amount=${amount}`),
             () => onEnd(ALICE, "alice_result"),
             msg => append_text('alice_div', msg),
             msg => append_text('alice_div', `verification: ${msg}`)
