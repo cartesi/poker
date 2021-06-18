@@ -68,8 +68,7 @@ export class VerificationLayer extends Phaser.GameObjects.Container {
 
     public show(msg: string): void {
 
-        msg = msg.replace("verificationReceived", "Alleged cause");
-        msg = msg.replace("triggerVerification", "Alleged cause");
+        msg = `Alleged cause: ${msg}`;
 
         this.verificationText.setText(msg);
         this.stateText.setText("STATE: NONE");

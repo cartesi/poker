@@ -33,18 +33,23 @@ export class RoomManager {
         const alice = new Game(
             ALICE, alice_funds, bob_funds, metadata, alice_tx,
             () => {
+                // onBetRequested
                 RoomManager.onBetRequested();
             },
             () => {
+                // onEnd
                 RoomManager.onEnd();
             },
             (msg) => {
-                if (msg.includes("verificationReceived") || msg.includes("triggerVerification")) {
+                // onEvent: general event logging
+                console.log(msg);
+            },
+            (state, msg) => {
+                // onVerification
+                if (state == 1) {
                     RoomManager.showVerificationLayer(msg);
                 }
-            },
-            (msg) => {
-                RoomManager.updateVerification(msg);
+                RoomManager.updateVerification(state);
             }
         );
 
