@@ -18,9 +18,11 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
         this.chooseAvatarLayer = chooseAvatarLayer;
 
         this.background = new Phaser.GameObjects.Graphics(this.scene);
-        this.background.fillStyle(0x007bff);
-        this.background.fillRect(-150, -35, 300, 70);
-        this.background.setInteractive(new Phaser.Geom.Rectangle(-150, -50, 300, 100), Phaser.Geom.Rectangle.Contains);
+        this.background.fillStyle(0x0A2036);
+        this.background.fillRoundedRect(-150, -30, 300, 60, 10);
+        this.background.lineStyle(4, 0x47E8FC);
+        this.background.strokeRoundedRect(-150, -30, 300, 60, 10);
+        this.background.setInteractive(new Phaser.Geom.Rectangle(-150, -30, 300, 60), Phaser.Geom.Rectangle.Contains);
         this.background.on("pointerover", () => {
             this.setScale(1.05);
         }, this);
@@ -34,7 +36,7 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
         this.add(this.img);
 
         this.loading = new Phaser.GameObjects.Image(this.scene, -110, 0, "texture_atlas_1", "loading");
-        this.loading.setScale(.3);
+        this.loading.setScale(.28);
         this.loading.visible = false;
         this.add(this.loading);
 
@@ -58,9 +60,14 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
         // update button label
         this.text.setText(label);
         this.background.clear();
-        this.background.fillStyle(0x007bff);
-        this.background.fillRect(-150, -35, this.text.width + 95, 70);
-        this.background.setInteractive(new Phaser.Geom.Rectangle(-150, -35, this.text.width + 95, 70), Phaser.Geom.Rectangle.Contains);
+        this.background.fillStyle(0x0A2036);
+        this.background.fillRoundedRect(-(this.text.width + 95) / 2, -30, this.text.width + 95, 60, 10);
+        this.background.lineStyle(4, 0x47E8FC);
+        this.background.strokeRoundedRect(-(this.text.width + 95) / 2, -30, this.text.width + 95, 60, 10);
+        this.background.setInteractive(new Phaser.Geom.Rectangle(-(this.text.width + 95) / 2, -30, this.text.width + 95, 60), Phaser.Geom.Rectangle.Contains);
+        this.img.x = -(this.text.width + 95) / 2 + 40;
+        this.loading.x = -(this.text.width + 95) / 2 + 40;
+        this.text.x = this.img.x + 30;
 
         // update button action when user clicks (or remove any action)
         if (onclick) {
@@ -68,32 +75,35 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
                 AudioManager.playSound("btn_click");
                 onclick(this.onOnboardingChange.bind(this));
             }, this);
+            this.img.visible = true;
         } else {
-            this.text.off("pointerup");
+            this.background.off("pointerup");
+            this.img.visible = false;
         }
 
         if (loading) {
-            // TODO: show some "loading" feedback like a spinner
             this.background.disableInteractive();
             this.setScale(1);
             this.loading.visible = true;
             this.img.visible = false;
         } else {
-            this.background.setInteractive(new Phaser.Geom.Rectangle(-150, -35, this.text.width + 95, 70), Phaser.Geom.Rectangle.Contains);
+            this.background.setInteractive(new Phaser.Geom.Rectangle(-(this.text.width + 95) / 2, -35, this.text.width + 95, 70), Phaser.Geom.Rectangle.Contains);
             this.loading.visible = false;
-            this.img.visible = true;
+            if (onclick) {
+                this.img.visible = true;
+            } else {
+                this.text.x -= 20;
+            }
         }
-
-        // change style to inform user if an error has occurred
-        // TODO: choose better style
-        this.text.setScale(error ? 1.5 : 1);
 
         // if ready, we're good to go        
         if (ready) {
             this.background.disableInteractive();
             this.chooseAvatarLayer.showPlay();
         } else {
-            this.background.setInteractive(new Phaser.Geom.Rectangle(-150, -35, this.text.width + 95, 70), Phaser.Geom.Rectangle.Contains);
+            if (!loading) {
+                this.background.setInteractive(new Phaser.Geom.Rectangle(-(this.text.width + 95) / 2, -35, this.text.width + 95, 70), Phaser.Geom.Rectangle.Contains);
+            }
             this.chooseAvatarLayer.hidePlay();
         }
     }

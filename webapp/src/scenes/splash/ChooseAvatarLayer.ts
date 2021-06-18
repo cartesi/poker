@@ -9,7 +9,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
 
     private chooseAvatarFrame: Phaser.GameObjects.Image;
     private chooseAvatar: Phaser.GameObjects.Image;
-    private onboardButton: Phaser.GameObjects.Text;
+    private metamaskButton: MetamaskButton;
     private playButton: Phaser.GameObjects.Image;
     private avatars: Avatar[];
     private inputBackground: Phaser.GameObjects.Image;
@@ -21,7 +21,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
 
         this.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT / 2 - 30);
 
-        this.chooseAvatar = new Phaser.GameObjects.Image(this.scene, 0, 90, "texture_atlas_1", "choose_avatar_base_landscape");
+        this.chooseAvatar = new Phaser.GameObjects.Image(this.scene, 0, 70, "texture_atlas_1", "choose_avatar_base_landscape");
         this.chooseAvatar.scaleX = 1.05;
         this.add(this.chooseAvatar);
 
@@ -30,12 +30,12 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         for (let i = 0; i < 6; i++) {
 
             let avatar = new Avatar(this.scene, i + 1, this);
-            avatar.setPosition( -368 + 147 * i, 117);
+            avatar.setPosition( -368 + 147 * i, 97);
             this.add(avatar);
             this.avatars.push(avatar);
         }
 
-        this.chooseAvatarFrame = new Phaser.GameObjects.Image(this.scene, this.avatars[2].x, 130, "texture_atlas_1", "choose_avatar_frame");
+        this.chooseAvatarFrame = new Phaser.GameObjects.Image(this.scene, this.avatars[2].x, 110, "texture_atlas_1", "choose_avatar_frame");
         this.chooseAvatarFrame.setScale(1.2);
         this.add(this.chooseAvatarFrame);
 
@@ -67,9 +67,8 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
 
         this.onAvatarDown(GameVars.gameData.avatar);
 
-        let metamaskButton = new MetamaskButton(this.scene, this);
-        metamaskButton.setPosition(250, 355);
-        this.add(metamaskButton);
+        this.metamaskButton = new MetamaskButton(this.scene, this);
+        this.add(this.metamaskButton);
     }
 
     public showPlay(): void {
@@ -93,13 +92,14 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
     public setLandscapeMode(): void {
 
         this.chooseAvatar.setFrame("choose_avatar_base_landscape");
-        this.playButton.y = 355;
-        this.inputElement.y = 257;
-        this.inputBackground.y = 260;
+        this.playButton.y = 315;
+        this.inputElement.y = 227;
+        this.inputBackground.y = 230;
         this.chooseAvatar.scaleX = 1.05;
+        this.metamaskButton.setPosition(0, 410);
 
         for (let i = 0; i < 6; i++) {
-            this.avatars[i].setPosition( -368 + 147 * i, 117);
+            this.avatars[i].setPosition( -368 + 147 * i, 97);
         }
 
         this.onAvatarDown(GameVars.gameData.avatar);
@@ -108,17 +108,18 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
     public setPortraitMode(): void {
 
         this.chooseAvatar.setFrame("choose_avatar_base_portrait");
-        this.playButton.y = 435;
-        this.inputElement.y = 337;
-        this.inputBackground.y = 340;
+        this.playButton.y = 415;
+        this.inputElement.y = 317;
+        this.inputBackground.y = 320;
         this.chooseAvatar.scaleX = 1;
+        this.metamaskButton.setPosition(0, 510);
 
         for (let i = 0; i < 3; i++) {
-            this.avatars[i].setPosition( -152 + 152 * i, 40);
+            this.avatars[i].setPosition( -152 + 152 * i, 20);
         }
 
         for (let i = 0; i < 3; i++) {
-            this.avatars[i + 3].setPosition( -152 + 152 * i, 190);
+            this.avatars[i + 3].setPosition( -152 + 152 * i, 170);
         }
 
         this.onAvatarDown(GameVars.gameData.avatar);
