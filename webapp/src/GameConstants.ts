@@ -21,6 +21,12 @@ export class GameConstants {
     public static readonly ACTION_CHECK = "CHECK";
     public static readonly ACTION_RAISE = "RAISE";
     public static readonly ACTION_FOLD = "FOLD";
+    public static readonly ACTIONS = [
+        GameConstants.ACTION_CALL,
+        GameConstants.ACTION_CHECK,
+        GameConstants.ACTION_RAISE,
+        GameConstants.ACTION_FOLD,
+    ];
 
     public static readonly SAVED_GAME_DATA_KEY = "poker-data";
 

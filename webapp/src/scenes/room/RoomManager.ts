@@ -38,7 +38,7 @@ export class RoomManager {
             },
             (betType, amount) => {
                 // onBetsReceived
-                console.log(`Bets received: type=${betType} ; amount=${amount}`);
+                RoomManager.onBetsReceived(betType, amount);
             },
             () => {
                 // onEnd
@@ -58,7 +58,7 @@ export class RoomManager {
         );
 
         const bob = new Game(
-            BOB, alice_funds, bob_funds, metadata, bob_tx,
+            BOB, bob_funds, alice_funds, metadata, bob_tx,
             () => {
                 RoomManager.onAutomaticBet(BOB);
             },
@@ -274,6 +274,15 @@ export class RoomManager {
         RoomManager.showBetButtons();
     }
 
+    private static onBetsReceived(betType, amount): void {
+        
+        const action = GameConstants.ACTIONS[betType];
+        console.log(`Bets received: action=${action} ; amount=${amount}`);
+        RoomManager.showBet(GameConstants.ACTIONS[betType], BOB);
+        RoomScene.currentInstance.endOpponentTurn();
+        RoomManager.updateBoard();
+    }
+
     private static onEnd(): void {
 
         let endData = RoomManager.games[ALICE].getResult();
@@ -297,19 +306,14 @@ export class RoomManager {
                     try {
                         if (choice === 0) {
                             RoomManager.games[player].call();
-                            RoomManager.showBet(GameConstants.ACTION_CALL, player);
                         } else if (choice === 1) {
                             RoomManager.games[player].check();
-                            RoomManager.showBet(GameConstants.ACTION_CHECK, player);
                         } else if (choice === 2) {
                             RoomManager.games[player].fold();
-                            RoomManager.showBet(GameConstants.ACTION_FOLD, player);
                         } else if (choice === 3) {
                             let amount = Math.floor(Math.random() * 5);
                             RoomManager.games[player].raise(amount);
-                            RoomManager.showBet(GameConstants.ACTION_RAISE, player);
                         }
-                        RoomScene.currentInstance.endOpponentTurn();
                         break;
                     } catch (e) {
                         // bet choice not allowed, remove that possibility and try again

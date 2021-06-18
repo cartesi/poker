@@ -60,8 +60,8 @@ const VerificationStates = {
 const BetTypes = {
   "CALL": 0,
   "CHECK": 1,
-  "FOLD": 2,
-  "RAISE": 3
+  "RAISE": 2,
+  "FOLD": 3
 }
 
 const VALID_CARD_PATTERN = /^s\d_\d{1,2}_\d{1,2}$|^\d{1,2}$/;
