@@ -170,7 +170,7 @@ export class GUI extends Phaser.GameObjects.Container {
 
         console.log("STATE: " +  RoomManager.getState());
 
-        this.stateLayer.setText(GameConstants.STATES[RoomManager.getState()]);
+        this.stateLayer.setText(RoomManager.getState());
     }
 
     public setPotText(): void {

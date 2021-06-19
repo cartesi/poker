@@ -1,6 +1,7 @@
 import { RaiseButton } from './RaiseButton';
 import { GameVars } from './../../../GameVars';
 import { GameConstants } from './../../../GameConstants';
+import { BetType } from "../../../services/Game";
 import { BetButton } from './BetButton';
 import { RoomManager } from "../RoomManager";
 
@@ -56,10 +57,10 @@ export class BetsButtonsContainer extends Phaser.GameObjects.Container {
         if (RoomManager.getPlayerBets() < RoomManager.getOpponentBets()) {
 
             if (GameVars.landscape) {
-                let foldButton = new BetButton(this.scene, GameConstants.ACTION_FOLD, -555 / scaleX, 12 / scaleX);
+                let foldButton = new BetButton(this.scene, BetType.FOLD, -555 / scaleX, 12 / scaleX);
                 this.add(foldButton);
     
-                let callButton = new BetButton(this.scene, GameConstants.ACTION_CALL, -345 / scaleX, 18 / scaleX);
+                let callButton = new BetButton(this.scene, BetType.CALL, -345 / scaleX, 18 / scaleX);
                 this.add(callButton);
     
                 let raiseButton = new RaiseButton(this.scene, 210 / scaleX, 61.5 / scaleX);
@@ -71,10 +72,10 @@ export class BetsButtonsContainer extends Phaser.GameObjects.Container {
                 btn_divider = new Phaser.GameObjects.Image(this.scene, callButton.x + 125 / scaleX, -47, "texture_atlas_1", "btn_divider");
                 this.add(btn_divider);
             } else {
-                let foldButton = new BetButton(this.scene, GameConstants.ACTION_FOLD, -462, 10);
+                let foldButton = new BetButton(this.scene, BetType.FOLD, -462, 10);
                 this.add(foldButton);
     
-                let callButton = new BetButton(this.scene, GameConstants.ACTION_CALL, -288, 15);
+                let callButton = new BetButton(this.scene, BetType.CALL, -288, 15);
                 this.add(callButton);
     
                 let raiseButton = new RaiseButton(this.scene, 175, 51.5);
@@ -89,7 +90,7 @@ export class BetsButtonsContainer extends Phaser.GameObjects.Container {
         } else {
 
             if (GameVars.landscape) {
-                let checkButton = new BetButton(this.scene, GameConstants.ACTION_CHECK, -500 / scaleX, 20 / scaleX);
+                let checkButton = new BetButton(this.scene, BetType.CHECK, -500 / scaleX, 20 / scaleX);
                 this.add(checkButton);
         
                 let raiseButton = new RaiseButton(this.scene, 140 / scaleX, 71.5 / scaleX);
@@ -98,7 +99,7 @@ export class BetsButtonsContainer extends Phaser.GameObjects.Container {
                 let btn_divider = new Phaser.GameObjects.Image(this.scene, checkButton.x + 140 / scaleX, -47, "texture_atlas_1", "btn_divider");
                 this.add(btn_divider);
             } else {
-                let checkButton = new BetButton(this.scene, GameConstants.ACTION_CHECK, -420, 16);
+                let checkButton = new BetButton(this.scene, BetType.CHECK, -420, 16);
                 this.add(checkButton);
     
                 let raiseButton = new RaiseButton(this.scene, 113, 60.2);

@@ -1,6 +1,7 @@
 import { AudioManager } from './../../../AudioManager';
 import { RoomManager } from "../RoomManager";
 import { GameConstants } from "./../../../GameConstants";
+import { BetType } from "../../../services/Game";
 
 export class BetButton extends Phaser.GameObjects.Container {
 
@@ -30,7 +31,7 @@ export class BetButton extends Phaser.GameObjects.Container {
         this.add(icon);
 
         switch (betType) {
-            case GameConstants.ACTION_CALL:
+            case BetType.CALL:
 
                 text.x = -60;
                 icon.x = text.x + text.width / 2;
@@ -40,10 +41,10 @@ export class BetButton extends Phaser.GameObjects.Container {
                 textValue.setShadow(1, 1, "#000000", 5);
                 this.add(textValue);
                 break;
-            case GameConstants.ACTION_CHECK:
+            case BetType.CHECK:
                 text.x = -40;
                 break;
-            case GameConstants.ACTION_FOLD:
+            case BetType.FOLD:
                 icon.y = -36;
                 break;
             default:
@@ -57,13 +58,13 @@ export class BetButton extends Phaser.GameObjects.Container {
         AudioManager.playSound("btn_click");
 
         switch (this.betType) {
-            case GameConstants.ACTION_CALL:
+            case BetType.CALL:
                 RoomManager.playerCall();
                 break;
-            case GameConstants.ACTION_CHECK:
+            case BetType.CHECK:
                 RoomManager.playerCheck();
                 break;
-            case GameConstants.ACTION_FOLD:
+            case BetType.FOLD:
                 RoomManager.playerFold();
                 break;
             default:

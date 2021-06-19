@@ -1,6 +1,5 @@
 import { AudioManager } from "../../AudioManager";
-import { Game, GameFactory } from "../../services/Game";
-import { GameConstants } from "./../../GameConstants";
+import { BetType, Game, GameFactory, VerificationState } from "../../services/Game";
 import { GameVars } from "./../../GameVars";
 import { RoomScene } from "./RoomScene";
 
@@ -50,10 +49,7 @@ export class RoomManager {
             },
             (state, msg) => {
                 // onVerification
-                if (state == 1) {
-                    RoomManager.showVerificationLayer(msg);
-                }
-                RoomManager.updateVerification(state);
+                RoomManager.updateVerification(state, msg);
             }
         );
 
@@ -81,9 +77,12 @@ export class RoomManager {
         RoomScene.currentInstance.showVerificationLayer(msg);
     }
 
-    public static updateVerification(value: number): void {
+    public static updateVerification(state: string, msg: string): void {
 
-        RoomScene.currentInstance.updateVerificationLayer(value);
+        if (state == VerificationState.STARTED) {
+            RoomManager.showVerificationLayer(msg);
+        }
+        RoomScene.currentInstance.updateVerificationLayer(state);
     }
 
     public static getOpponentFunds(): number {
@@ -129,7 +128,7 @@ export class RoomManager {
         return Math.min(RoomManager.getPlayerFunds(), RoomManager.getOpponentFunds()) - RoomManager.getOpponentBets();
     }
 
-    public static getState(): number {
+    public static getState(): string {
 
         return RoomManager.game.getState();
     }
@@ -147,7 +146,7 @@ export class RoomManager {
     public static playerCall(): void {
 
         RoomManager.game.call(() => {
-            RoomManager.showBet(GameConstants.ACTION_CALL, GameVars.playerIndex);
+            RoomManager.showBet(BetType.CALL, GameVars.playerIndex);
 
             RoomManager.updateBoard();
             RoomManager.removeBetButtons();
@@ -159,7 +158,7 @@ export class RoomManager {
     public static playerCheck(): void {
 
         RoomManager.game.check(() => {
-            RoomManager.showBet(GameConstants.ACTION_CHECK, GameVars.playerIndex);
+            RoomManager.showBet(BetType.CHECK, GameVars.playerIndex);
 
             RoomManager.updateBoard();
             RoomManager.removeBetButtons();
@@ -171,7 +170,7 @@ export class RoomManager {
     public static playerFold(): void {
 
         RoomManager.game.fold(() => {
-            RoomManager.showBet(GameConstants.ACTION_FOLD, GameVars.playerIndex);
+            RoomManager.showBet(BetType.FOLD, GameVars.playerIndex);
 
             RoomManager.updateBoard();
             RoomManager.removeBetButtons();
@@ -183,7 +182,7 @@ export class RoomManager {
     public static playerRaise(value): void {
 
         RoomManager.game.raise(value, () => {
-            RoomManager.showBet(GameConstants.ACTION_RAISE, GameVars.playerIndex);
+            RoomManager.showBet(BetType.RAISE, GameVars.playerIndex);
 
             RoomManager.updateBoard();
             RoomManager.removeBetButtons();
@@ -253,9 +252,8 @@ export class RoomManager {
 
     private static onBetsReceived(betType, amount): void {
         
-        const action = GameConstants.ACTIONS[betType];
-        console.log(`Bets received: action=${action} ; amount=${amount}`);
-        RoomManager.showBet(GameConstants.ACTIONS[betType], GameVars.opponentIndex);
+        console.log(`Bets received: type=${betType} ; amount=${amount}`);
+        RoomManager.showBet(betType, GameVars.opponentIndex);
         RoomScene.currentInstance.endOpponentTurn();
         RoomManager.updateBoard();
     }

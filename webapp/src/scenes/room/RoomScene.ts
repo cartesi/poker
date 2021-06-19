@@ -73,9 +73,9 @@ export class RoomScene extends Phaser.Scene {
         this.verificationLayer.show(msg);
     }
 
-    public updateVerificationLayer(value: number): void {
+    public updateVerificationLayer(state: string): void {
 
-        this.verificationLayer.updateValue(value);
+        this.verificationLayer.updateValue(state);
     }
 
     public onOrientationChange(): void {

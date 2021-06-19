@@ -1,5 +1,6 @@
 import { GameConstants } from "../../GameConstants";
 import { GameVars } from "../../GameVars";
+import { VerificationState, VerificationStates } from "../../services/Game";
 
 export class VerificationLayer extends Phaser.GameObjects.Container {
     
@@ -85,20 +86,21 @@ export class VerificationLayer extends Phaser.GameObjects.Container {
         });
     }
 
-    public updateValue(value: number): void {
+    public updateValue(state: string): void {
 
-        this.stateText.setText("STATE: " + GameConstants.VERIFICATION_STATES[value]);
+        this.stateText.setText("STATE: " + state);
+        const stateIndex = VerificationStates.indexOf(state);
 
         this.scene.tweens.add({
             targets: this.loadingBar,
-            scaleX: value / 5,
+            scaleX: stateIndex / 5,
             ease: Phaser.Math.Easing.Linear,
             duration: 500
         });
 
-        console.log("UPDATE VALUE " + value);
+        console.log("UPDATE VALUE " + state);
 
-        if (value === 5) {
+        if (state === VerificationState.ENDED) {
             this.scene.tweens.add({
                 targets: this,
                 alpha: 0,

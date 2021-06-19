@@ -14,6 +14,16 @@ export const GameState = {
     END: "END",
     VERIFICATION: "VERIFICATION",
 };
+export const GameStates = [
+    GameState.START,
+    GameState.PREFLOP,
+    GameState.FLOP,
+    GameState.TURN,
+    GameState.RIVER,
+    GameState.SHOWDOWN,
+    GameState.END,
+    GameState.VERIFICATION,
+];
 
 // verification states
 export const VerificationState = {
@@ -25,6 +35,15 @@ export const VerificationState = {
     ENDED: "ENDED",
     ERROR: "ERROR",
 };
+export const VerificationStates = [
+    VerificationState.NONE,
+    VerificationState.STARTED,
+    VerificationState.RESULT_SUBMITTED,
+    VerificationState.RESULT_CONFIRMED,
+    VerificationState.RESULT_CHALLENGED,
+    VerificationState.ENDED,
+    VerificationState.ERROR,
+];
 
 // bet types
 export const BetType = {
@@ -82,10 +101,10 @@ export class GameFactory {
         opponentFunds: integer,
         metadata: any,
         onBetRequested: () => any,
-        onBetsReceived: (betType: integer, amount: integer) => any,
+        onBetsReceived: (betType: string, amount: integer) => any,
         onEnd: () => any,
         onEvent: (msg: string) => any,
-        onVerification: (state: integer, msg: string) => any
+        onVerification: (state: string, msg: string) => any
     ): Game {
         // creates an appropriate Transport
         let transport = TransportFactory.create();
@@ -146,10 +165,10 @@ export class GameFactory {
         metadata: any,
         transport: any,
         onBetRequested?: () => any,
-        onBetsReceived?: (betType: integer, amount: integer) => any,
+        onBetsReceived?: (betType: string, amount: integer) => any,
         onEnd?: () => any,
         onEvent?: (msg: string) => any,
-        onVerification?: (state: integer, msg: string) => any
+        onVerification?: (state: string, msg: string) => any
     ) {
         const impl = ServiceConfig.get(ServiceType.Engine);
         if (impl === ServiceImpl.Mock) {

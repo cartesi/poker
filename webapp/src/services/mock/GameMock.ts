@@ -1,4 +1,4 @@
-import { BetType, Game, GameState, VerificationState } from "../Game";
+import { BetType, Game, GameState, GameStates, VerificationState, VerificationStates } from "../Game";
 import { Transport } from "../Transport";
 
 // involved players
@@ -25,10 +25,10 @@ export class GameMock implements Game {
         metadata: any,
         transport: Transport,
         onBetRequested?: () => any,
-        onBetsReceived?: (betType: integer, amount: integer) => any,
+        onBetsReceived?: (betType: string, amount: integer) => any,
         onEnd?: () => any,
         onEvent?: (msg: string) => any,
-        onVerification?: (state: integer, msg: string) => any
+        onVerification?: (state: string, msg: string) => any
     ) {
         this.player = player;
         this.opponent = player == ALICE ? BOB : ALICE;
@@ -99,11 +99,14 @@ export class GameMock implements Game {
     }
 
     fold(onComplete?: () => any) {
-        if (this.opponentBets != this.playerBets) {
-            throw "Cannot check when player and opponent's bets are not equal";
+        if (this.opponentBets == this.playerBets && this.state != GameState.SHOWDOWN) {
+            throw "Fold not allowed because player and opponent bets are equal: use check instead";
         }
-        this._increaseBets(0);
+        this.tx.send("FOLD");
         if (onComplete) onComplete();
+        this.state = GameState.END;
+        this._computeResultPlayerFold();
+        this.onEnd();
     }
 
     raise(amount: number, onComplete?: () => any) {
@@ -546,19 +549,8 @@ export class GameMock implements Game {
     }
 
     _incrementGameState(state) {
-        // game states ordering
-        const states = [
-            GameState.START,
-            GameState.PREFLOP,
-            GameState.FLOP,
-            GameState.TURN,
-            GameState.RIVER,
-            GameState.SHOWDOWN,
-            GameState.END,
-            GameState.VERIFICATION,
-        ];
-        const newState = Math.min(states.indexOf(state) + 1, states.length - 1);
-        return states[newState];
+        const newState = Math.min(GameStates.indexOf(state) + 1, GameStates.length - 1);
+        return GameStates[newState];
     }
 
     _computeResult() {
@@ -699,16 +691,7 @@ export class GameMock implements Game {
 
     _incrementVerificationState(state) {
         // verification states ordering
-        const states = [
-            VerificationState.NONE,
-            VerificationState.STARTED,
-            VerificationState.RESULT_SUBMITTED,
-            VerificationState.RESULT_CONFIRMED,
-            VerificationState.RESULT_CHALLENGED,
-            VerificationState.ENDED,
-            VerificationState.ERROR,
-        ];
-        const newState = Math.min(states.indexOf(state) + 1, states.length - 1);
-        return states[newState];
+        const newState = Math.min(VerificationStates.indexOf(state) + 1, VerificationStates.length - 1);
+        return VerificationStates[newState];
     }
 }
