@@ -1,5 +1,6 @@
 import { Card } from "../table-container/Card";
 import { RoomManager } from "../RoomManager";
+import { GameVars } from "../../../GameVars";
 
 export class WinnerLayer extends Phaser.GameObjects.Container {
 
@@ -26,15 +27,15 @@ export class WinnerLayer extends Phaser.GameObjects.Container {
         let text = "DRAW!";
         let winnerHand = [];
 
-        if (endData.isWinner[ALICE]) {
+        if (endData.isWinner[GameVars.playerIndex]) {
             text = "PLAYER WON!";
-            if (endData.hands && endData.hands[ALICE]) {
-                winnerHand = endData.hands[ALICE];
+            if (endData.hands && endData.hands[GameVars.playerIndex]) {
+                winnerHand = endData.hands[GameVars.playerIndex];
             } 
-        } else if (endData.isWinner[BOB]) {
+        } else if (endData.isWinner[GameVars.opponentIndex]) {
             text = "OPPONENT WON!";
-            if (endData.hands && endData.hands[BOB]) {
-                winnerHand = endData.hands[BOB];
+            if (endData.hands && endData.hands[GameVars.opponentIndex]) {
+                winnerHand = endData.hands[GameVars.opponentIndex];
             }
         }
 

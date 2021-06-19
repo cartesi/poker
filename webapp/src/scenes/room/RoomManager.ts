@@ -1,11 +1,12 @@
 import { AudioManager } from "../../AudioManager";
+import { Game, GameFactory } from "../../services/Game";
 import { GameConstants } from "./../../GameConstants";
 import { GameVars } from "./../../GameVars";
 import { RoomScene } from "./RoomScene";
 
 export class RoomManager {
 
-    public static games: any[];
+    public static game: Game;
 
     public static init(): void {
 
@@ -24,14 +25,13 @@ export class RoomManager {
             return;
         }
 
-        const alice_tx = new Transport();
-        const bob_tx = new Transport();  
-        const alice_funds = GameVars.playerFunds;
-        const bob_funds = GameVars.opponentFunds;
         const metadata = "";  
-
-        const alice = new Game(
-            ALICE, alice_funds, bob_funds, metadata, alice_tx,
+        RoomManager.game = GameFactory.create(
+            GameVars.playerIndex,
+            GameVars.opponentIndex,
+            GameVars.playerFunds,
+            GameVars.opponentFunds,
+            metadata,
             () => {
                 // onBetRequested
                 RoomManager.onBetRequested();
@@ -57,46 +57,23 @@ export class RoomManager {
             }
         );
 
-        const bob = new Game(
-            BOB, bob_funds, alice_funds, metadata, bob_tx,
-            () => {
-                RoomManager.onAutomaticBet(BOB);
-            },
-            () => {
-                // 
-            },
-            (msg) => {
-                // console.log(msg);
-            }
-        );
-
-        alice_tx.connect(bob_tx);
-
-        RoomManager.games = [];
-        RoomManager.games.push(alice);
-        RoomManager.games.push(bob);
-
-        // simulate initial delay
+        // show waiting UI while game is starting
         RoomScene.currentInstance.showWaitingFirstCards();
 
-        setTimeout(() => {
-
-            alice.start();
-            bob.start();
-
+        this.game.start(() => {
             RoomScene.currentInstance.hideWaitingFirstCards();
 
             setTimeout(() => {
                 RoomScene.currentInstance.distributeFirstCards();
                 RoomScene.currentInstance.updateBoard();
             }, 1000);
+        });
 
-        }, 10000);
     }
 
     public static getPlayerFunds(): number {
 
-        return RoomManager.games[ALICE].getPlayerFunds();
+        return RoomManager.game.getPlayerFunds();
     }
 
     public static showVerificationLayer(msg: string): void {
@@ -111,38 +88,38 @@ export class RoomManager {
 
     public static getOpponentFunds(): number {
 
-        return RoomManager.games[ALICE].getOpponentFunds();
+        return RoomManager.game.getOpponentFunds();
     }
 
     public static getPlayerCards(): {value: number, suit: number}[] {
 
-        let cards: string[] = RoomManager.games[ALICE].getPlayerCards();
+        let cards: string[] = RoomManager.game.getPlayerCards();
 
         return cards.map(RoomManager.getCardSuitValue);
     }
 
     public static switchPlayerCards(card1: number, card2: number): void {
 
-        RoomManager.games[ALICE].cheat.switchCards(card1, card2);
+        RoomManager.game.cheat.switchCards(card1, card2);
 
         RoomScene.currentInstance.updateBoard();
     }
 
     public static toogleCardCooperation(): void {
 
-        RoomManager.games[ALICE].cheat.toggleCardCooperation();
+        RoomManager.game.cheat.toggleCardCooperation();
     }
 
     public static getOpponentCards(): {value: number, suit: number}[] {
 
-        let cards: string[] = RoomManager.games[ALICE].getOpponentCards();
+        let cards: string[] = RoomManager.game.getOpponentCards();
 
         return cards.map(RoomManager.getCardSuitValue);
     }
 
     public static getCommunityCards(): {value: number, suit: number}[] {
 
-        let cards: string[] = RoomManager.games[ALICE].getCommunityCards();
+        let cards: string[] = RoomManager.game.getCommunityCards();
 
         return cards.map(RoomManager.getCardSuitValue);
     }
@@ -154,23 +131,23 @@ export class RoomManager {
 
     public static getState(): number {
 
-        return RoomManager.games[ALICE].getState();
+        return RoomManager.game.getState();
     }
 
     public static getPlayerBets(): number {
 
-        return  RoomManager.games[ALICE].getPlayerBets();
+        return  RoomManager.game.getPlayerBets();
     }
 
     public static getOpponentBets(): number {
 
-        return  RoomManager.games[ALICE].getOpponentBets();
+        return  RoomManager.game.getOpponentBets();
     }
 
     public static playerCall(): void {
 
-        RoomManager.games[ALICE].call(() => {
-            RoomManager.showBet(GameConstants.ACTION_CALL, ALICE);
+        RoomManager.game.call(() => {
+            RoomManager.showBet(GameConstants.ACTION_CALL, GameVars.playerIndex);
 
             RoomManager.updateBoard();
             RoomManager.removeBetButtons();
@@ -181,8 +158,8 @@ export class RoomManager {
 
     public static playerCheck(): void {
 
-        RoomManager.games[ALICE].check(() => {
-            RoomManager.showBet(GameConstants.ACTION_CHECK, ALICE);
+        RoomManager.game.check(() => {
+            RoomManager.showBet(GameConstants.ACTION_CHECK, GameVars.playerIndex);
 
             RoomManager.updateBoard();
             RoomManager.removeBetButtons();
@@ -193,8 +170,8 @@ export class RoomManager {
 
     public static playerFold(): void {
 
-        RoomManager.games[ALICE].fold(() => {
-            RoomManager.showBet(GameConstants.ACTION_FOLD, ALICE);
+        RoomManager.game.fold(() => {
+            RoomManager.showBet(GameConstants.ACTION_FOLD, GameVars.playerIndex);
 
             RoomManager.updateBoard();
             RoomManager.removeBetButtons();
@@ -205,8 +182,8 @@ export class RoomManager {
 
     public static playerRaise(value): void {
 
-        RoomManager.games[ALICE].raise(value, () => {
-            RoomManager.showBet(GameConstants.ACTION_RAISE, ALICE);
+        RoomManager.game.raise(value, () => {
+            RoomManager.showBet(GameConstants.ACTION_RAISE, GameVars.playerIndex);
 
             RoomManager.updateBoard();
             RoomManager.removeBetButtons();
@@ -278,51 +255,20 @@ export class RoomManager {
         
         const action = GameConstants.ACTIONS[betType];
         console.log(`Bets received: action=${action} ; amount=${amount}`);
-        RoomManager.showBet(GameConstants.ACTIONS[betType], BOB);
+        RoomManager.showBet(GameConstants.ACTIONS[betType], GameVars.opponentIndex);
         RoomScene.currentInstance.endOpponentTurn();
         RoomManager.updateBoard();
     }
 
     private static onEnd(): void {
 
-        let endData = RoomManager.games[ALICE].getResult();
+        let endData = RoomManager.game.getResult();
 
         setTimeout(() => {
             RoomScene.currentInstance.onEnd(endData);
 
-            GameVars.playerFunds = endData.fundsShare[ALICE];
-            GameVars.opponentFunds = endData.fundsShare[BOB];
+            GameVars.playerFunds = endData.fundsShare[GameVars.playerIndex];
+            GameVars.opponentFunds = endData.fundsShare[GameVars.opponentIndex];
         }, 2000);
-    }
-
-    private static onAutomaticBet(player): void {
-
-        setTimeout(() => {
-            if (RoomManager.games[player]) {
-                let choices = [0, 1, 2, 3];
-                while (true) {
-                    let i = Math.floor(Math.random() * choices.length);
-                    let choice = choices[i];
-                    try {
-                        if (choice === 0) {
-                            RoomManager.games[player].call();
-                        } else if (choice === 1) {
-                            RoomManager.games[player].check();
-                        } else if (choice === 2) {
-                            RoomManager.games[player].fold();
-                        } else if (choice === 3) {
-                            let amount = Math.floor(Math.random() * 5);
-                            RoomManager.games[player].raise(amount);
-                        }
-                        break;
-                    } catch (e) {
-                        // bet choice not allowed, remove that possibility and try again
-                        choices.splice(i, 1);
-                    }
-                }
-            }
-
-            RoomManager.updateBoard();
-        }, 6000);
     }
 }

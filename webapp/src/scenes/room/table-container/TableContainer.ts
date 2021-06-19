@@ -83,7 +83,7 @@ export class TableContainer extends Phaser.GameObjects.Container {
 
     public showBet(value: string, player: number): void {
 
-        if (player === ALICE) {
+        if (player === GameVars.playerIndex) {
             this.player.showBet(value);
         } else {
             this.opponent.showBet(value);

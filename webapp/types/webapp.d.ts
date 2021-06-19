@@ -1,8 +1,3 @@
-declare var Transport: any;
-declare var Game: any;
-declare var ALICE: number;
-declare var BOB: number;
-
 declare interface GameData {
     muted: boolean;
     name: string;

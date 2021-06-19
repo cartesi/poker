@@ -44,13 +44,13 @@ export class CommunityCards extends Phaser.GameObjects.Container {
 
         let winnerHand = [];
 
-        if (endData.isWinner[ALICE]) {
-            if (endData.hands && endData.hands[ALICE]) {
-                winnerHand = endData.hands[ALICE];
+        if (endData.isWinner[GameVars.playerIndex]) {
+            if (endData.hands && endData.hands[GameVars.playerIndex]) {
+                winnerHand = endData.hands[GameVars.playerIndex];
             } 
-        } else if (endData.isWinner[BOB]) {
-            if (endData.hands && endData.hands[BOB]) {
-                winnerHand = endData.hands[BOB];
+        } else if (endData.isWinner[GameVars.opponentIndex]) {
+            if (endData.hands && endData.hands[GameVars.opponentIndex]) {
+                winnerHand = endData.hands[GameVars.opponentIndex];
             }
         }
 

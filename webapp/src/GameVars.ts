@@ -8,10 +8,12 @@ export class GameVars {
     public static aspectRatio: number;
     public static currentScene: Phaser.Scene;
 
+    public static playerIndex: number;
     public static playerFunds: number;
 
     public static opponentAvatar: number;
     public static opponentName: string;
+    public static opponentIndex: number;
     public static opponentFunds: number;
 
     public static raiseValue: number;
