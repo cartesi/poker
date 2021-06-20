@@ -3,9 +3,21 @@ import { TurnBasedGameMock } from "./mock/TurnBasedGameMock";
 // import { TurnBasedGameWeb3 } from "./web3/TurnBasedGameWeb3";
 
 export interface TurnBasedGame {
-    connect(other: TurnBasedGame);
-    send(data: any, callback?: (any) => any);
-    receive(callback: (any) => any);
+    // turn submission
+    submitTurn(data: any, onTurnSubmitted?: (any) => any);
+    receiveTurnOver(onTurnOverReceived: (any) => any);
+
+    // result claim and confirmation
+    claimResult(data: any, onResultClaimed?: (any) => any);
+    receiveResultClaimed(onResultClaimReceived: (any) => any);
+    confirmResult(onResultConfirmed?: (any) => any);
+    receiveGameOver(onGameOverReceived: (any) => any);
+
+    // challenge and verification
+    challengeGame(msg: string, onGameChallenged?: (string) => any);
+    receiveGameChallenged(onGameChallengeReceived: (string) => any);
+    receiveVerificationUpdate(onVerificationUpdate?: (VerificationState, string) => any);
+    applyVerificationResult(onApplyResultSent: (any) => any);
 }
 
 export class TurnBasedGameFactory {
