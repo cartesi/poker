@@ -1,12 +1,12 @@
-import { Transport } from "../Transport";
+import { TurnBasedGame } from "../TurnBasedGame";
 
 /**
- * Transport mock implementation
+ * TurnBasedGame mock implementation
  *
- * Expects to be connected to another instance of TransportMock
+ * Expects to be connected to another instance of TurnBasedGameMock
  */
-export class TransportMock implements Transport {
-    other: TransportMock;
+export class TurnBasedGameMock implements TurnBasedGame {
+    other: TurnBasedGameMock;
     queue: Array<any>;
     callbacks: Array<(any) => {}>;
 
@@ -15,7 +15,7 @@ export class TransportMock implements Transport {
         this.callbacks = [];
     }
 
-    connect(other: TransportMock) {
+    connect(other: TurnBasedGameMock) {
         this.other = other;
         other.other = this;
     }

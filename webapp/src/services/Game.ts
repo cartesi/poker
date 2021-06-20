@@ -1,7 +1,7 @@
 import { ServiceConfig, ServiceType, ServiceImpl } from "./ServiceConfig";
-import { TransportFactory } from "./Transport";
+import { TurnBasedGame, TurnBasedGameFactory } from "./TurnBasedGame";
 import { GameMock } from "./mock/GameMock";
-import { TransportMock } from "./mock/TransportMock";
+import { TurnBasedGameMock } from "./mock/TurnBasedGameMock";
 // import { GameWasm } from "./web3/GameWasm";
 
 // game states
@@ -108,7 +108,7 @@ export class GameFactory {
         onVerification: (state: VerificationState, msg: string) => any
     ): Game {
         // creates an appropriate Transport
-        let transport = TransportFactory.create();
+        let turnBasedGame = TurnBasedGameFactory.create();
 
         // creates Game instance
         const game = this.createInstance(
@@ -116,7 +116,7 @@ export class GameFactory {
             playerFunds,
             opponentFunds,
             metadata,
-            transport,
+            turnBasedGame,
             onBetRequested,
             onBetsReceived,
             onEnd,
@@ -124,19 +124,19 @@ export class GameFactory {
             onVerification
         );
 
-        if (transport instanceof TransportMock) {
+        if (turnBasedGame instanceof TurnBasedGameMock) {
             // if using a mock Transport, we need an internal game instance for the opponent, with automatic responses
-            // 1. creates the opponent's mock transport and connects it to the game's transport
-            const transportOpponent = TransportFactory.create();
-            transport.connect(transportOpponent as TransportMock);
+            // 1. creates the opponent's TurnBasedGameMock and connects it to the game's instance
+            const turnBasedGameOpponent = TurnBasedGameFactory.create();
+            turnBasedGame.connect(turnBasedGameOpponent as TurnBasedGameMock);
 
-            // 2. creates the opponent's game using the new transport and configuring automatic responses
+            // 2. creates the opponent's game using his own TurnBasedGameMock and configuring automatic responses
             game.gameOpponent = this.createInstance(
                 opponent,
                 opponentFunds,
                 playerFunds,
                 metadata,
-                transportOpponent,
+                turnBasedGameOpponent,
                 () => this.onOpponentAutomaticBet(game)
             );
         }
@@ -151,7 +151,7 @@ export class GameFactory {
      * @param playerFunds
      * @param opponentFunds
      * @param metadata
-     * @param transport
+     * @param turnBasedGame
      * @param onBetRequested
      * @param onBetsReceived
      * @param onEnd
@@ -164,7 +164,7 @@ export class GameFactory {
         playerFunds: integer,
         opponentFunds: integer,
         metadata: any,
-        transport: any,
+        turnBasedGame: TurnBasedGame,
         onBetRequested?: () => any,
         onBetsReceived?: (betType: string, amount: integer) => any,
         onEnd?: () => any,
@@ -179,7 +179,7 @@ export class GameFactory {
                 playerFunds,
                 opponentFunds,
                 metadata,
-                transport,
+                turnBasedGame,
                 onBetRequested,
                 onBetsReceived,
                 onEnd,
@@ -194,7 +194,7 @@ export class GameFactory {
             //     playerFunds,
             //     opponentFunds,
             //     metadata,
-            //     transport,
+            //     turnBasedGame,
             //     onBetRequested,
             //     onBetsReceived,
             //     onEnd,

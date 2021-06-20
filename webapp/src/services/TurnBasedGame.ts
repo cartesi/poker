@@ -1,28 +1,28 @@
 import { ServiceConfig, ServiceType, ServiceImpl } from "./ServiceConfig";
-import { TransportMock } from "./mock/TransportMock";
-// import { TransportWeb3 } from "./web3/TransportWeb3";
+import { TurnBasedGameMock } from "./mock/TurnBasedGameMock";
+// import { TurnBasedGameWeb3 } from "./web3/TurnBasedGameWeb3";
 
-export interface Transport {
-    connect(other: Transport);
+export interface TurnBasedGame {
+    connect(other: TurnBasedGame);
     send(data: any, callback?: (any) => any);
     receive(callback: (any) => any);
 }
 
-export class TransportFactory {
+export class TurnBasedGameFactory {
     /**
      * Creates a new Transport instance based on service configuration
      *
      * @returns the Transport instance
      */
-    public static create(): Transport {
+    public static create(): TurnBasedGame {
         const impl = ServiceConfig.get(ServiceType.Transport);
         if (impl === ServiceImpl.Mock) {
-            // mock transport
-            return new TransportMock();
+            // mock TurnBasedGame
+            return new TurnBasedGameMock();
         } else if (impl == ServiceImpl.Web3) {
-            // web3 transport
+            // web3 TurnBasedGame
             // TODO: Web3 Transport not supported yet!
-            return new TransportMock();
+            return new TurnBasedGameMock();
             // return new TransportWeb3();
         } else {
             // unknown implementation configured

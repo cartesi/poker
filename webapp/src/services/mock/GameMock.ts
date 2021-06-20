@@ -1,5 +1,5 @@
 import { BetType, Game, GameState, GameStates, VerificationState, VerificationStates } from "../Game";
-import { Transport } from "../Transport";
+import { TurnBasedGame } from "../TurnBasedGame";
 
 // involved players
 const ALICE = 0;
@@ -23,7 +23,7 @@ export class GameMock implements Game {
         playerFunds: integer,
         opponentFunds: integer,
         metadata: any,
-        transport: Transport,
+        turnBasedGame: TurnBasedGame,
         onBetRequested?: () => any,
         onBetsReceived?: (betType: string, amount: integer) => any,
         onEnd?: () => any,
@@ -37,7 +37,7 @@ export class GameMock implements Game {
         this.playerBets = 0;
         this.opponentBets = 0;
         this.metadata = metadata;
-        this.tx = transport;
+        this.tx = turnBasedGame;
         this.onEvent = onEvent ? onEvent : () => {};
         this.onEnd = onEnd ? onEnd : () => {};
         this.onBetRequested = onBetRequested ? onBetRequested : () => {};
