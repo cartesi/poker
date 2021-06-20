@@ -15,13 +15,14 @@ export class TransportFactory {
      * @returns the Transport instance
      */
     public static create(): Transport {
-        const impl = ServiceConfig.get(ServiceType.Engine);
+        const impl = ServiceConfig.get(ServiceType.Transport);
         if (impl === ServiceImpl.Mock) {
             // mock transport
             return new TransportMock();
         } else if (impl == ServiceImpl.Web3) {
             // web3 transport
-            throw "Web3 Transport not supported yet!";
+            // TODO: Web3 Transport not supported yet!
+            return new TransportMock();
             // return new TransportWeb3();
         } else {
             // unknown implementation configured
