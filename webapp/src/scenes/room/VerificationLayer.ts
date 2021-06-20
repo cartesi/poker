@@ -86,7 +86,7 @@ export class VerificationLayer extends Phaser.GameObjects.Container {
         });
     }
 
-    public updateValue(state: string): void {
+    public updateValue(state: VerificationState): void {
 
         this.stateText.setText("STATE: " + state);
         const stateIndex = VerificationStates.indexOf(state);

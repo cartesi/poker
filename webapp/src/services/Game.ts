@@ -5,16 +5,16 @@ import { TransportMock } from "./mock/TransportMock";
 // import { GameWasm } from "./web3/GameWasm";
 
 // game states
-export const GameState = {
-    START: "START",
-    PREFLOP: "PREFLOP",
-    FLOP: "FLOP",
-    TURN: "TURN",
-    RIVER: "RIVER",
-    SHOWDOWN: "SHOWDOWN",
-    END: "END",
-    VERIFICATION: "VERIFICATION",
-};
+export enum GameState {
+    START = "START",
+    PREFLOP = "PREFLOP",
+    FLOP = "FLOP",
+    TURN = "TURN",
+    RIVER = "RIVER",
+    SHOWDOWN = "SHOWDOWN",
+    END = "END",
+    VERIFICATION = "VERIFICATION",
+}
 export const GameStates = [
     GameState.START,
     GameState.PREFLOP,
@@ -27,15 +27,15 @@ export const GameStates = [
 ];
 
 // verification states
-export const VerificationState = {
-    NONE: "NONE",
-    STARTED: "STARTED",
-    RESULT_SUBMITTED: "RESULT_SUBMITTED",
-    RESULT_CONFIRMED: "RESULT_CONFIRMED",
-    RESULT_CHALLENGED: "RESULT_CHALLENGED",
-    ENDED: "ENDED",
-    ERROR: "ERROR",
-};
+export enum VerificationState {
+    NONE = "NONE",
+    STARTED = "STARTED",
+    RESULT_SUBMITTED = "RESULT_SUBMITTED",
+    RESULT_CONFIRMED = "RESULT_CONFIRMED",
+    RESULT_CHALLENGED = "RESULT_CHALLENGED",
+    ENDED = "ENDED",
+    ERROR = "ERROR",
+}
 export const VerificationStates = [
     VerificationState.NONE,
     VerificationState.STARTED,
@@ -47,12 +47,12 @@ export const VerificationStates = [
 ];
 
 // bet types
-export const BetType = {
-    CALL: "CALL",
-    CHECK: "CHECK",
-    RAISE: "RAISE",
-    FOLD: "FOLD",
-};
+export enum BetType {
+    CALL = "CALL",
+    CHECK = "CHECK",
+    RAISE = "RAISE",
+    FOLD = "FOLD",
+}
 
 export interface Game {
     start(onComplete?: () => any);
@@ -74,8 +74,8 @@ export interface Game {
     getOpponentFunds();
     getPlayerBets();
     getOpponentBets();
-    getState();
-    getVerificationState();
+    getState(): GameState;
+    getVerificationState(): VerificationState;
     getResult();
 }
 
@@ -102,10 +102,10 @@ export class GameFactory {
         opponentFunds: integer,
         metadata: any,
         onBetRequested: () => any,
-        onBetsReceived: (betType: string, amount: integer) => any,
+        onBetsReceived: (betType: BetType, amount: integer) => any,
         onEnd: () => any,
         onEvent: (msg: string) => any,
-        onVerification: (state: string, msg: string) => any
+        onVerification: (state: VerificationState, msg: string) => any
     ): Game {
         // creates an appropriate Transport
         let transport = TransportFactory.create();

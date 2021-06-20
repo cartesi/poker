@@ -6,9 +6,9 @@ import { RoomManager } from "./RoomManager";
 import { GUI } from "./gui/GUI";
 import { HUD } from "./hud/HUD";
 import { GameManager } from "../../GameManager";
-import { WinnerLayer } from "./gui/WinnerLayer";
 import { SettingsLayer } from "./SettingsLayer";
 import { SuffleCardsLayer } from "./SuffleCardsLayer";
+import { VerificationState } from '../../services/Game';
 
 export class RoomScene extends Phaser.Scene {
 
@@ -73,7 +73,7 @@ export class RoomScene extends Phaser.Scene {
         this.verificationLayer.show(msg);
     }
 
-    public updateVerificationLayer(state: string): void {
+    public updateVerificationLayer(state: VerificationState): void {
 
         this.verificationLayer.updateValue(state);
     }

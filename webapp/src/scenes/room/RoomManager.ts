@@ -75,7 +75,7 @@ export class RoomManager {
         RoomScene.currentInstance.showVerificationLayer(msg);
     }
 
-    public static updateVerification(state: string, msg: string): void {
+    public static updateVerification(state: VerificationState, msg: string): void {
 
         if (state == VerificationState.STARTED) {
             RoomManager.showVerificationLayer(msg);
@@ -248,7 +248,7 @@ export class RoomManager {
         RoomManager.showBetButtons();
     }
 
-    private static onBetsReceived(betType, amount): void {
+    private static onBetsReceived(betType: BetType, amount: number): void {
         
         console.log(`Bets received: type=${betType} ; amount=${amount}`);
         RoomManager.showBet(betType, GameVars.opponentIndex);
