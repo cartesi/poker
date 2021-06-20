@@ -9,8 +9,6 @@ export class RoomManager {
 
     public static init(): void {
 
-        GameVars.playerFunds = 100;
-        GameVars.opponentFunds = 100;
         GameVars.raiseValue = 1;
     }
 
