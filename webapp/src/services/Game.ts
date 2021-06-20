@@ -1,6 +1,7 @@
 import { ServiceConfig, ServiceType, ServiceImpl } from "./ServiceConfig";
 import { TransportFactory } from "./Transport";
 import { GameMock } from "./mock/GameMock";
+import { TransportMock } from "./mock/TransportMock";
 // import { GameWasm } from "./web3/GameWasm";
 
 // game states
@@ -123,11 +124,11 @@ export class GameFactory {
             onVerification
         );
 
-        if (ServiceConfig.get(ServiceType.Transport) === ServiceImpl.Mock) {
+        if (transport instanceof TransportMock) {
             // if using a mock Transport, we need an internal game instance for the opponent, with automatic responses
             // 1. creates the opponent's mock transport and connects it to the game's transport
             const transportOpponent = TransportFactory.create();
-            transport.connect(transportOpponent);
+            transport.connect(transportOpponent as TransportMock);
 
             // 2. creates the opponent's game using the new transport and configuring automatic responses
             game.gameOpponent = this.createInstance(
