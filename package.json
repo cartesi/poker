@@ -2,7 +2,8 @@
     "private": true,
     "workspaces": [
         "blockchain",
-        "webapp"
+        "webapp",
+        "webfaucet"
     ],
     "scripts": {
         "start": "cd webapp && yarn start"
