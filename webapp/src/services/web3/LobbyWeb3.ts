@@ -16,8 +16,7 @@ export class LobbyWeb3 {
      */
     public static async joinGame(playerInfo: object, gameReadyCallback) {
         if (!window.ethereum) {
-            console.error("Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?");
-            return;
+            throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
         }
 
         // connect to ethereum

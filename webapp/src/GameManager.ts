@@ -76,6 +76,7 @@ export class GameManager {
             const opponentPlayerInfo = context.playerInfos[context.opponentIndex];
             const playerFunds = context.playerFunds[context.playerIndex];
             const opponentFunds = context.playerFunds[context.opponentIndex];
+            GameVars.gameIndex = index;
             GameVars.playerIndex = context.playerIndex;
             GameVars.playerFunds = playerFunds;
             GameVars.opponentIndex = context.opponentIndex;

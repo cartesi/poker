@@ -71,12 +71,15 @@ export class GameMock implements Game {
                 self.playerBets = 1;
                 self.opponentBets = 2;
                 self.cryptoStuff = "xkdkeoejf";
-                self.turnBasedGame.submitTurn(self.cryptoStuff);
-                self.mykey = "ALICEKEY";
-                self.turnBasedGame.submitTurn(self.mykey);
-                self._shuffleDeck();
-                self.turnBasedGame.submitTurn(self.deck);
-                self.turnBasedGame.receiveTurnOver(self._keyReceived.bind(self));
+                self.turnBasedGame.submitTurn(self.cryptoStuff, () => {
+                    self.mykey = "ALICEKEY";
+                    self.turnBasedGame.submitTurn(self.mykey, () => {
+                        self._shuffleDeck();
+                        self.turnBasedGame.submitTurn(JSON.stringify(self.deck), () => {
+                            self.turnBasedGame.receiveTurnOver(self._keyReceived.bind(self));
+                        });
+                    });
+                });
             } else {
                 self.playerBets = 2;
                 self.opponentBets = 1;
@@ -263,12 +266,12 @@ export class GameMock implements Game {
         if (this._handleVerificationPayload(deck)) {
             return;
         }
-        this.onEvent(`deckReceived ${JSON.stringify(deck)}`);
-        this.deck = [...deck];
+        this.onEvent(`deckReceived ${deck}`);
+        this.deck = JSON.parse(deck);
         if (this.player == BOB) {
             // Bob must reshuffle the deck and send it back
             this._shuffleDeck();
-            this.turnBasedGame.submitTurn(this.deck);
+            this.turnBasedGame.submitTurn(JSON.stringify(this.deck));
         }
         this.onEvent(`myDeck ${JSON.stringify(this.deck)}`);
         this._advanceState();
@@ -332,7 +335,7 @@ export class GameMock implements Game {
             decryptedCards[cardIndex] = this.cheat.isCardCoopCheatOn ? card : this._decryptCard(card);
         }
 
-        this.turnBasedGame.submitTurn(decryptedCards);
+        this.turnBasedGame.submitTurn(JSON.stringify(decryptedCards));
     }
 
     _dealPrivateCards() {
@@ -404,6 +407,7 @@ export class GameMock implements Game {
         }
 
         // updates deck
+        cards = JSON.parse(cards);
         for (const [index, card] of Object.entries(cards)) {
             if (!(card as string).match(VALID_CARD_PATTERN)) {
                 // cheat detected: triggers verification

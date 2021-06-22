@@ -83,8 +83,9 @@ export class GameFactory {
     /**
      * Creates a new Texas Holdem game considering service configuration
      *
-     * @param player
-     * @param opponent
+     * @param gameIndex
+     * @param playerIndex
+     * @param opponentIndex
      * @param playerFunds
      * @param opponentFunds
      * @param metadata
@@ -96,8 +97,9 @@ export class GameFactory {
      * @returns
      */
     public static create(
-        player: integer,
-        opponent: integer,
+        gameIndex: integer,
+        playerIndex: integer,
+        opponentIndex: integer,
         playerFunds: integer,
         opponentFunds: integer,
         metadata: any,
@@ -107,12 +109,12 @@ export class GameFactory {
         onEvent: (msg: string) => any,
         onVerification: (state: VerificationState, msg: string) => any
     ): Game {
-        // creates an appropriate Transport
-        let turnBasedGame = TurnBasedGameFactory.create();
+        // creates an appropriate TurnBasedGame
+        let turnBasedGame = TurnBasedGameFactory.create(gameIndex);
 
         // creates Game instance
         const game = this.createInstance(
-            player,
+            playerIndex,
             playerFunds,
             opponentFunds,
             metadata,
@@ -127,12 +129,12 @@ export class GameFactory {
         if (turnBasedGame instanceof TurnBasedGameMock) {
             // if using a mock Transport, we need an internal game instance for the opponent, with automatic responses
             // 1. creates the opponent's TurnBasedGameMock and connects it to the game's instance
-            const turnBasedGameOpponent = TurnBasedGameFactory.create();
+            const turnBasedGameOpponent = TurnBasedGameFactory.create(gameIndex);
             turnBasedGame.connect(turnBasedGameOpponent as TurnBasedGameMock);
 
             // 2. creates the opponent's game using his own TurnBasedGameMock and configuring automatic responses
             game.gameOpponent = this.createInstance(
-                opponent,
+                opponentIndex,
                 opponentFunds,
                 playerFunds,
                 metadata,

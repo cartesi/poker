@@ -20,8 +20,7 @@ export class OnboardingWeb3 {
         }
         if (MetaMaskOnboarding.isMetaMaskInstalled()) {
             if (!window.ethereum) {
-                console.error("Cannot connect to window.ethereum, even though Metamask should be installed!");
-                return;
+                throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
             }
             // attempts to retrieve connected account
             if (window.ethereum.selectedAddress) {
