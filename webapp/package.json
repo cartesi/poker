@@ -37,7 +37,7 @@
         "contracts:deploy": "cd ../blockchain && yarn deploy",
         "contracts:deploy:matic_testnet": "cd ../blockchain && yarn deploy:matic_testnet",
         "contracts:copy": "mkdir -p src/abis && cp ../blockchain/deployments/localhost/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/localhost/Poker*.json ./src/abis/ && cp ../blockchain/descartes-env/deployments/localhost/Logger.json ./src/abis/ && ncp ../blockchain/src/types/ ./src/types/",
-        "contracts:copy:matic_testnet": "mkdir -p src/abis && cp ../blockchain/deployments/matic_testnet/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/matic_testnet/Poker*.json ./src/abis/ && cp ../node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json  && ncp ../blockchain/src/types/ ./src/types/",
+        "contracts:copy:matic_testnet": "mkdir -p src/abis && cp ../blockchain/deployments/matic_testnet/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/matic_testnet/Poker*.json ./src/abis/ && cp ../node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json ./src/abis/  && ncp ../blockchain/src/types/ ./src/types/",
         "engine:copy": "mkdir -p dist"
     },
     "browserslist": [
