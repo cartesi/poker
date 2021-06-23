@@ -34,7 +34,9 @@ export class TurnBasedGameFactory {
             return new TurnBasedGameMock();
         } else if (impl == ServiceImpl.Web3) {
             // web3 TurnBasedGame
-            return new TurnBasedGameWeb3(gameIndex);
+            // FIXME: use Web3 version when it's ready
+            return new TurnBasedGameMock();
+            // return new TurnBasedGameWeb3(gameIndex);
         } else {
             // unknown implementation configured
             throw `Unknown transport configuration '${impl}'!`;
