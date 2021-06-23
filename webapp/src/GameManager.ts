@@ -57,7 +57,7 @@ export class GameManager {
     public static onGameAssetsLoaded(): void {
 
         AudioManager.init();
-        GameManager.enterSplashScene();
+        GameManager.enterRoomScene();
     }
 
     public static enterSplashScene(): void {

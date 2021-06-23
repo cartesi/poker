@@ -4,11 +4,13 @@ import { GameConstants } from "../../../GameConstants";
 import { RoomManager } from "../RoomManager";
 import { WinnerLayer } from "./WinnerLayer";
 import { ErrorHandler } from "../../../services/ErrorHandler";
+import { Timer } from "./Timer";
 
 export class GUI extends Phaser.GameObjects.Container {
 
     private topContainer: Phaser.GameObjects.Container;
     private cartesi: Phaser.GameObjects.Text;
+    private timer: Timer;
 
     private midContainer: Phaser.GameObjects.Container; 
     private potText: Phaser.GameObjects.Text;
@@ -53,6 +55,9 @@ export class GUI extends Phaser.GameObjects.Container {
                 setTimeout(() => { if (errorText.active) { errorText.setText("") }}, ErrorHandler.getAttemptInterval());
             }
         });
+        
+        this.timer = new Timer(this.scene);
+        this.topContainer.add(this.timer);
 
         this.scene.tweens.add({
             targets: [title, this.cartesi],
@@ -134,6 +139,8 @@ export class GUI extends Phaser.GameObjects.Container {
 
             this.cartesi.setPosition(95, 60);
             this.cartesi.setOrigin(0, .5);
+
+            this.timer.x = (GameConstants.GAME_WIDTH / 2) / GameVars.scaleX;
         } else {
 
             this.midContainer.y = GameConstants.GAME_HEIGHT / 2 - 47;
@@ -145,6 +152,8 @@ export class GUI extends Phaser.GameObjects.Container {
 
             this.cartesi.setPosition(0, 120);
             this.cartesi.setOrigin(.5);
+
+            this.timer.x = (GameConstants.GAME_WIDTH / 2) / (1.3 + (0.55 - GameVars.scaleY) * 3);
         }
     }
 
