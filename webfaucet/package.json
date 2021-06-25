@@ -15,14 +15,15 @@
         "ts-loader": "7.0.5",
         "typescript": "^4.2.4",
         "webpack": "4.44.1",
-        "webpack-cli": "3.3.12"
+        "webpack-cli": "3.3.12",
+        "webpack-dev-server": "3.11.0"
     },
     "dependencies": {
         "ethers": "^5.1.0"
     },
     "scripts": {
-        "start": "run-s clean contracts:deploy contracts:copy && webpack --mode development && webpack serve --mode development --port 3100",
-        "start:matic_testnet": "run-s clean contracts:deploy:matic_testnet contracts:copy:matic_testnet && webpack --mode development && webpack serve --mode development --port 3100",
+        "start": "run-s clean contracts:deploy contracts:copy && webpack --mode development && webpack-dev-server --mode development --port 3100",
+        "start:matic_testnet": "run-s clean contracts:deploy:matic_testnet contracts:copy:matic_testnet && webpack --mode development && webpack-dev-server --mode development --port 3100",
         "clean": "rimraf dist && rimraf src/abis",
         "build": "run-s clean contracts:build contracts:copy:matic_testnet && webpack --mode production",
         "contracts:build": "cd ../blockchain && yarn build",
