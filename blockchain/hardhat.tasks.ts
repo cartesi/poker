@@ -228,13 +228,20 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
                 for (let iChunk = 0; iChunk < turn.dataLogIndices.length; iChunk++) {
                     let index = turn.dataLogIndices[iChunk];
                     let data = undefined;
-                    const filter = logger.filters.MerkleRootCalculatedFromData(index);
-                    const logEvents = await logger.queryFilter(filter);
-                    if (logEvents && logEvents.length) {
-                        data = logEvents[0].args._data;
+                    while (true) {
+                        try {
+                            const filter = logger.filters.MerkleRootCalculatedFromData(index);
+                            const logEvents = await logger.queryFilter(filter);
+                            if (logEvents && logEvents.length) {
+                                data = logEvents[0].args._data;
+                            }
+                            console.log(`  - index[${iChunk}]: ${index}`);
+                            console.log(`  - data[${iChunk}]: ${data}`);
+                            break;
+                        } catch (error) {
+                            console.error(`Error - will try again. ${error}`);
+                        }
                     }
-                    console.log(`  - index[${iChunk}]: ${index}`);
-                    console.log(`  - data[${iChunk}]: ${data}`);
                 }
             }
         }
