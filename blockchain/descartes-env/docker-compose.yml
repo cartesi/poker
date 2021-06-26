@@ -1,0 +1,173 @@
+version: '3'
+services:
+  hardhatnet:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: descartes-env_hardhatnet_poker:1.0.0
+    environment:
+      MNEMONIC: "test test test test test test test test test test test junk"
+    expose:
+      - 8545
+    ports:
+      - 8545:8545
+    volumes:
+      - ./deployments:/opt/cartesi/share/blockchain/deployments
+    networks:
+      - ethereum
+
+  alice_dispatcher:
+    image: cartesi/descartes:1.1.1
+    restart: always
+    environment:
+      MNEMONIC: "test test test test test test test test test test test junk"
+      ACCOUNT_INDEX: 0
+      RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=trace
+      WEB3_PROVIDER_URI: http://hardhatnet:8545
+      DEPLOYMENT_SEMAPHORE: http://hardhatnet:8545
+      ETHEREUM_HOST: hardhatnet
+      ETHEREUM_PORT: 8545
+      ETHEREUM_NETWORK: localhost
+      QUERY_PORT: 3001
+      MACHINE_MANAGER_HOST: machine-manager
+      MACHINE_MANAGER_PORT: 50051
+      LOGGER_HOST: logger
+      LOGGER_PORT: 50051
+      IPFS_HOST: ipfs
+      IPFS_PORT: 50051
+      DOCKER: "TRUE"
+      RUST_BACKTRACE: 1
+    volumes:
+      # remove deployments mapping to use supported testnets' deployment info
+      - ./deployments:/opt/cartesi/share/blockchain/deployments:ro
+      - ./alice_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ethereum: {}
+      alice:
+        aliases:
+          - dispatcher
+    ports:
+      - "3001:3001"
+
+  alice_logger:
+    image: cartesi/logger-server:0.7.1
+    command: [ "-c", "/opt/cartesi/share/blockchain/deployments/localhost/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
+    # command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/goerli/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
+    volumes:
+      # remove deployments mapping to use supported testnets' deployment info
+      - ./deployments:/opt/cartesi/share/blockchain/deployments:ro
+      - ./alice_data:/opt/cartesi/srv/descartes/flashdrive
+    environment:
+      MNEMONIC: "test test test test test test test test test test test junk"
+      ACCOUNT_INDEX: 0
+      WEB3_PROVIDER_URI: http://hardhatnet:8545
+      DEPLOYMENT_SEMAPHORE: http://hardhatnet:8545
+    networks:
+      ethereum: {}
+      alice:
+        aliases:
+          - logger
+
+  alice_ipfs:
+    image: cartesi/ipfs-server:0.2.0
+    volumes:
+      - ./alice_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ipfs: {}
+      alice:
+        aliases:
+          - ipfs
+    ports:
+        - "50051:50051"
+
+  alice_machine_manager:
+    image: cartesi/machine-manager:0.5.0
+    volumes:
+      - ./machines:/opt/cartesi/srv/descartes/cartesi-machine
+      - ./alice_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ethereum: {}
+      alice:
+        aliases:
+          - machine-manager
+
+  bob_dispatcher:
+    image: cartesi/descartes:1.1.1
+    restart: always
+    environment:
+      MNEMONIC: "test test test test test test test test test test test junk"
+      ACCOUNT_INDEX: 1
+      RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=trace
+      WEB3_PROVIDER_URI: http://hardhatnet:8545
+      DEPLOYMENT_SEMAPHORE: http://hardhatnet:8545
+      ETHEREUM_HOST: hardhatnet
+      ETHEREUM_PORT: 8545
+      ETHEREUM_NETWORK: localhost
+      QUERY_PORT: 3001
+      MACHINE_MANAGER_HOST: machine-manager
+      MACHINE_MANAGER_PORT: 50051
+      LOGGER_HOST: logger
+      LOGGER_PORT: 50051
+      IPFS_HOST: ipfs
+      IPFS_PORT: 50051
+      DOCKER: "TRUE"
+      RUST_BACKTRACE: 1
+    volumes:
+      # remove deployments mapping to use supported testnets' deployment info
+      - ./deployments:/opt/cartesi/share/blockchain/deployments:ro
+      - ./bob_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ethereum: {}
+      bob:
+        aliases:
+          - dispatcher
+    ports:
+      - "3002:3001"
+
+  bob_logger:
+    image: cartesi/logger-server:0.7.1
+    command: [ "-c", "/opt/cartesi/share/blockchain/deployments/localhost/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
+    # command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/goerli/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
+    volumes:
+      # remove deployments mapping to use supported testnets' deployment info
+      - ./deployments:/opt/cartesi/share/blockchain/deployments:ro
+      - ./bob_data:/opt/cartesi/srv/descartes/flashdrive
+    environment:
+      MNEMONIC: "test test test test test test test test test test test junk"
+      ACCOUNT_INDEX: 1
+      WEB3_PROVIDER_URI: http://hardhatnet:8545
+      DEPLOYMENT_SEMAPHORE: http://hardhatnet:8545
+    networks:
+      ethereum: {}
+      bob:
+        aliases:
+          - logger
+
+  bob_ipfs:
+    image: cartesi/ipfs-server:0.2.0
+    volumes:
+      - ./bob_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ipfs: {}
+      bob:
+        aliases:
+          - ipfs
+    ports:
+        - "50052:50051"
+
+  bob_machine_manager:
+    image: cartesi/machine-manager:0.5.0
+    volumes:
+      - ./machines:/opt/cartesi/srv/descartes/cartesi-machine
+      - ./bob_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ethereum: {}
+      bob:
+        aliases:
+          - machine-manager
+
+networks:
+  ipfs:
+  ethereum:
+  alice:
+  bob:

@@ -14,6 +14,7 @@ const config: HardhatUserConfig = {
     networks: {
         localhost: {
             url: "http://localhost:8545",
+            gas: 95000000
         },
         matic_testnet: {
             url: "https://matic-testnet-archive-rpc.bwarelabs.com",
