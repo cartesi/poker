@@ -16,7 +16,7 @@ const config: HardhatUserConfig = {
             url: "http://localhost:8545",
         },
         matic_testnet: {
-            url: "https://rpc-mumbai.matic.today",
+            url: "https://matic-testnet-archive-rpc.bwarelabs.com",
             chainId: 80001,
             accounts: mnemonic ? { mnemonic } : undefined,
         },
