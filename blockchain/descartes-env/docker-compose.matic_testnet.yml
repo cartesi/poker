@@ -1,0 +1,147 @@
+version: '3'
+services:
+  alice_dispatcher:
+    image: cartesi/descartes:1.1.1
+    restart: always
+    environment:
+      MNEMONIC: ${MNEMONIC}
+      ACCOUNT_INDEX: 0
+      RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=trace
+      WEB3_PROVIDER_URI: https://matic-mumbai.chainstacklabs.com
+      DEPLOYMENT_SEMAPHORE: https://matic-mumbai.chainstacklabs.com
+      ETHEREUM_HOST: matic-mumbai.chainstacklabs.com
+      ETHEREUM_PORT: 443
+      ETHEREUM_NETWORK: matic_testnet
+      QUERY_PORT: 3001
+      MACHINE_MANAGER_HOST: machine-manager
+      MACHINE_MANAGER_PORT: 50051
+      LOGGER_HOST: logger
+      LOGGER_PORT: 50051
+      IPFS_HOST: ipfs
+      IPFS_PORT: 50051
+      DOCKER: "TRUE"
+      RUST_BACKTRACE: 1
+    volumes:
+      - ./alice_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ethereum: {}
+      alice:
+        aliases:
+          - dispatcher
+    ports:
+      - "3001:3001"
+
+  alice_logger:
+    image: cartesi/logger-server:local
+    command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
+    volumes:
+      - ./alice_data:/opt/cartesi/srv/descartes/flashdrive
+    environment:
+      MNEMONIC: ${MNEMONIC}
+      ACCOUNT_INDEX: 0
+      WEB3_PROVIDER_URI: http://matic-mumbai.chainstacklabs.com
+      DEPLOYMENT_SEMAPHORE: https://matic-mumbai.chainstacklabs.com
+    networks:
+      ethereum: {}
+      alice:
+        aliases:
+          - logger
+
+  alice_ipfs:
+    image: cartesi/ipfs-server:0.2.0
+    volumes:
+      - ./alice_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ipfs: {}
+      alice:
+        aliases:
+          - ipfs
+    ports:
+        - "50051:50051"
+
+  alice_machine_manager:
+    image: cartesi/machine-manager:0.5.0
+    volumes:
+      - ./machines:/opt/cartesi/srv/descartes/cartesi-machine
+      - ./alice_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ethereum: {}
+      alice:
+        aliases:
+          - machine-manager
+
+  bob_dispatcher:
+    image: cartesi/descartes:1.1.1
+    restart: always
+    environment:
+      MNEMONIC: ${MNEMONIC}
+      ACCOUNT_INDEX: 1
+      RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=trace
+      WEB3_PROVIDER_URI: https://matic-mumbai.chainstacklabs.com
+      DEPLOYMENT_SEMAPHORE: https://matic-mumbai.chainstacklabs.com
+      ETHEREUM_HOST: matic-mumbai.chainstacklabs.com
+      ETHEREUM_PORT: 443
+      ETHEREUM_NETWORK: matic_testnet
+      QUERY_PORT: 3001
+      MACHINE_MANAGER_HOST: machine-manager
+      MACHINE_MANAGER_PORT: 50051
+      LOGGER_HOST: logger
+      LOGGER_PORT: 50051
+      IPFS_HOST: ipfs
+      IPFS_PORT: 50051
+      DOCKER: "TRUE"
+      RUST_BACKTRACE: 1
+    volumes:
+      - ./bob_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ethereum: {}
+      bob:
+        aliases:
+          - dispatcher
+    ports:
+      - "3002:3001"
+
+  bob_logger:
+    image: cartesi/logger-server:local
+    command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
+    volumes:
+      - ./bob_data:/opt/cartesi/srv/descartes/flashdrive
+    environment:
+      MNEMONIC: ${MNEMONIC}
+      ACCOUNT_INDEX: 1
+      WEB3_PROVIDER_URI: https://matic-mumbai.chainstacklabs.com
+      DEPLOYMENT_SEMAPHORE: https://matic-mumbai.chainstacklabs.com
+    networks:
+      ethereum: {}
+      bob:
+        aliases:
+          - logger
+
+  bob_ipfs:
+    image: cartesi/ipfs-server:0.2.0
+    volumes:
+      - ./bob_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ipfs: {}
+      bob:
+        aliases:
+          - ipfs
+    ports:
+        - "50052:50051"
+
+  bob_machine_manager:
+    image: cartesi/machine-manager:0.5.0
+    volumes:
+      - ./machines:/opt/cartesi/srv/descartes/cartesi-machine
+      - ./bob_data:/opt/cartesi/srv/descartes/flashdrive
+    networks:
+      ethereum: {}
+      bob:
+        aliases:
+          - machine-manager
+
+networks:
+  ipfs:
+  ethereum:
+  alice:
+  bob:
