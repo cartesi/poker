@@ -17,7 +17,7 @@ services:
       - ethereum
 
   alice_dispatcher:
-    image: cartesi/descartes:1.1.1
+    image: cartesi/descartes:1.2.0
     restart: always
     environment:
       MNEMONIC: "test test test test test test test test test test test junk"
@@ -92,7 +92,7 @@ services:
           - machine-manager
 
   bob_dispatcher:
-    image: cartesi/descartes:1.1.1
+    image: cartesi/descartes:1.2.0
     restart: always
     environment:
       MNEMONIC: "test test test test test test test test test test test junk"

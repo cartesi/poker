@@ -171,9 +171,7 @@ library TurnBasedGameContext {
 
         // instantiates the computation
         _context.descartesIndex = _descartes.instantiate(
-            // FIXME: using lower max cycles unti Descartes 1.2.0 is released (includes confirm tx to speed things up)
-            5e11, // max cycles allowed
-            // 1e13,                  // max cycles allowed
+            1e13, // max cycles allowed
             _context.gameTemplateHash, // hash identifying the computation template
             0xf000000000000000, // output drive position: 8th drive position after the rootfs, dapp data, and 5 input drives
             // FIXME: either enforce max of 4 players or make this variable
