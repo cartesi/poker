@@ -34,7 +34,7 @@ truncate -s 64K turnsMetadata.raw
 truncate -s 4K verificationInfo.raw
 truncate -s 4K output.raw
 
-truncate -s 1K turnData1.raw
-truncate -s 1K turnData2.raw
+truncate -s 4K turnData1.raw
+truncate -s 4K turnData2.raw
 cat turnData1.raw turnData2.raw > turnsData.raw
 truncate -s 1M turnsData.raw

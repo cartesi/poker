@@ -14,12 +14,12 @@ export class GameConstants {
     };
 
     // TurnBasedGame constants
-    public static readonly GAME_TEMPLATE_HASH = "0xa4c9cc22be3cefe90f6a2332ffd3b12e4fcc327112a90dcc12207ad5154e8207";
+    public static readonly GAME_TEMPLATE_HASH = "0xe0a48889a480a63147341e87411fb7c8981c759eb245fd53afb317b527915c93";
     public static readonly GAME_METADATA = "0x";
     public static readonly VALIDATORS = {
         // Matic validators: known accounts used by the validator nodes
         // TODO: setup real validator node accounts
-        "0x13881": ["0xF05D57a5BeD2d1B529C56001FC5810cc9afC0335", "0xc8c07A0801f7e72321631B2A7F187356e4407304"],
+        "0x13881": ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"],
         // Local validators: use default Hardhat accounts
         "0x7a69": ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"],
         "0x539": ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"],

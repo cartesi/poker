@@ -7,7 +7,7 @@ local isWinnerPlayer0 = true;
 local maxValue = 0;
 
 while true do
-    local expr = turns:read(1024)
+    local expr = turns:read(4096)
     if expr == nil then break end
 
     expr = string.unpack("z", expr)
