@@ -4,7 +4,7 @@ Smart contracts for the Poker game
 
 ## Getting Started
 
-The `Descartes Environment` should be set up as defined in the [general README.md](../README.md#Environment):
+The `Descartes Environment` should be set up as defined in the [general README.md](../README.md#Environment).
 
 
 ## Deploying and running
