@@ -31,7 +31,8 @@
         "test": "hardhat test",
         "deploy": "hardhat deploy --network localhost",
         "deploy:matic_testnet": "hardhat deploy --network matic_testnet",
-        "console": "hardhat console --network localhost"
+        "console": "hardhat console --network localhost",
+        "console:matic_testnet": "hardhat console --network matic_testnet"
     },
     "repository": {
         "type": "git",

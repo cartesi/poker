@@ -6,6 +6,7 @@
         "webfaucet"
     ],
     "scripts": {
-        "start": "cd webapp && yarn start"
+        "start": "cd webapp && yarn start",
+        "start:matic_testnet": "cd webapp && yarn start:matic_testnet"
     }
 }

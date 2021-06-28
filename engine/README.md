@@ -8,4 +8,4 @@ The engine's C++ code is in `poker-lib`, most notably, the use of [Heiko Stamer'
 
 ## Mock JS implementation
 
-A simple Javascript API intended to mimic the expected behavior of the real engine, in order to allow for testing the game's UI. It can be found in the [mock] directory.
+A simple Javascript API intended to mimic the expected behavior of the real engine, in order to allow for testing the game's workflow. It can be found in the [mock] directory.
