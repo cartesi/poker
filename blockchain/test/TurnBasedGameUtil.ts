@@ -12,8 +12,8 @@
 
 import { describe } from "mocha";
 import { expect, use } from "chai";
-import { deployments, ethers, getNamedAccounts, getUnnamedAccounts } from "hardhat";
-import { MockContract, deployMockContract, solidity } from "ethereum-waffle";
+import { deployments, ethers, getUnnamedAccounts } from "hardhat";
+import { solidity } from "ethereum-waffle";
 
 import { TestTurnBasedGameUtil } from "../src/types/TestTurnBasedGameUtil";
 import { TestTurnBasedGameUtil__factory } from "../src/types/factories/TestTurnBasedGameUtil__factory";

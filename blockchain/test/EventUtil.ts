@@ -3,7 +3,7 @@
 // Parameters:
 // eventName expected event
 // parser contract that know the expected event definition
-// events array of events that will be evaluated 
+// events array of events that will be evaluated
 export function getEvent(eventName, parser, events) {
     let expectedEvent = null;
     for (let i = 0; i < events.length; i++) {

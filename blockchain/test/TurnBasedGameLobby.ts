@@ -79,26 +79,32 @@ describe("TurnBasedGameLobby", async () => {
         // Mint tokens for signer(Alice) and player1(Bob)
         // Using 2xminFunds because a player can joinGame more than one game table.
         // Our tests explored only the situation when player join two game tables.
-        // If a test need a scenario with more than 2 game table, minting must be 
+        // If a test need a scenario with more than 2 game table, minting must be
         // adjusted to an appropriate amount.
         pokerTokenContract = PokerToken__factory.connect(pokerToken.address, signer);
-        await pokerTokenContract.mint(await signer.getAddress(), (2 * minFunds));
-        await pokerTokenContract.mint(await player1.getAddress(), (2 * minFunds));
+        await pokerTokenContract.mint(await signer.getAddress(), 2 * minFunds);
+        await pokerTokenContract.mint(await player1.getAddress(), 2 * minFunds);
 
         // Set up approval for lobby contract spend tokens on behalf of signer(Alice) and player1(Bob)
-        await pokerTokenContract.connect(signer).approve(TurnBasedGameLobby.address, (2 * minFunds));
-        await pokerTokenContract.connect(player1).approve(TurnBasedGameLobby.address, (2 * minFunds));
+        await pokerTokenContract.connect(signer).approve(TurnBasedGameLobby.address, 2 * minFunds);
+        await pokerTokenContract.connect(player1).approve(TurnBasedGameLobby.address, 2 * minFunds);
     });
 
     // GET QUEUE
     describe("getQueue", async () => {
         it("Should be empty at first", async () => {
             expect(
-                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds, pokerTokenContract.address)
+                await lobbyContract.getQueue(
+                    gameTemplateHash,
+                    gameMetadata,
+                    validators,
+                    players.length,
+                    minFunds,
+                    pokerTokenContract.address
+                )
             ).to.eql([]);
         });
     });
-
 
     // JOIN GAME
     describe("JoinGame", async () => {
@@ -177,7 +183,7 @@ describe("TurnBasedGameLobby", async () => {
                 validators,
                 players.length,
                 minFunds,
-                pokerTokenContract.address,
+                pokerTokenContract.address
             );
             expect(queuedPlayers.length).to.eql(1);
             expect(queuedPlayers[0][0]).to.eql(players[0]); // address
@@ -186,7 +192,14 @@ describe("TurnBasedGameLobby", async () => {
 
             // other queues (changing whatever parameter) should be empty
             expect(
-                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds + 1, pokerTokenContract.address)
+                await lobbyContract.getQueue(
+                    gameTemplateHash,
+                    gameMetadata,
+                    validators,
+                    players.length,
+                    minFunds + 1,
+                    pokerTokenContract.address
+                )
             ).to.eql([]);
         });
 
@@ -258,7 +271,15 @@ describe("TurnBasedGameLobby", async () => {
 
             // mock now expecting to be called with these exact parameters
             await mockGameContract.mock.startGame
-                .withArgs(gameTemplateHash, gameMetadata, validators, pokerTokenContract.address, players, playerFunds, playerInfos)
+                .withArgs(
+                    gameTemplateHash,
+                    gameMetadata,
+                    validators,
+                    pokerTokenContract.address,
+                    players,
+                    playerFunds,
+                    playerInfos
+                )
                 .returns(0);
 
             // player 1 joins the game 1 and mock should be called
@@ -275,7 +296,14 @@ describe("TurnBasedGameLobby", async () => {
 
             // queue should be empty
             expect(
-                await lobbyContract.getQueue(gameTemplateHash, gameMetadata, validators, players.length, minFunds, pokerTokenContract.address)
+                await lobbyContract.getQueue(
+                    gameTemplateHash,
+                    gameMetadata,
+                    validators,
+                    players.length,
+                    minFunds,
+                    pokerTokenContract.address
+                )
             ).to.eql([]);
 
             // queue for other game should still have one player
@@ -294,7 +322,15 @@ describe("TurnBasedGameLobby", async () => {
             let playerFundsOther = [playerFunds[1], playerFunds[0]];
             let playerInfosOther = [playerInfos[1], playerInfos[0]];
             await mockGameContract.mock.startGame
-                .withArgs(gameTemplateHash, gameMetadataOther, validators, pokerTokenContract.address, playersOther, playerFundsOther, playerInfosOther)
+                .withArgs(
+                    gameTemplateHash,
+                    gameMetadataOther,
+                    validators,
+                    pokerTokenContract.address,
+                    playersOther,
+                    playerFundsOther,
+                    playerInfosOther
+                )
                 .returns(1);
 
             // player 0 joins the other game and mock should be called
@@ -311,7 +347,14 @@ describe("TurnBasedGameLobby", async () => {
 
             // queue for other game should now be empty
             expect(
-                await lobbyContract.getQueue(gameTemplateHash, gameMetadataOther, validators, players.length, minFundsOther, pokerTokenContract.address)
+                await lobbyContract.getQueue(
+                    gameTemplateHash,
+                    gameMetadataOther,
+                    validators,
+                    players.length,
+                    minFundsOther,
+                    pokerTokenContract.address
+                )
             ).to.eql([]);
         });
     });
@@ -339,7 +382,15 @@ describe("TurnBasedGameLobby", async () => {
 
             // mock now expecting to be called with these exact parameters
             await mockGameContract.mock.startGame
-                .withArgs(gameTemplateHash, gameMetadata, validators, pokerTokenContract.address, players, playerFunds, playerInfos)
+                .withArgs(
+                    gameTemplateHash,
+                    gameMetadata,
+                    validators,
+                    pokerTokenContract.address,
+                    players,
+                    playerFunds,
+                    playerInfos
+                )
                 .returns(0);
 
             expect(await pokerTokenContract.balanceOf(players[1])).to.equal(2 * minFunds);

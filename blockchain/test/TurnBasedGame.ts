@@ -30,15 +30,14 @@ use(solidity);
 let tokenContract: PokerToken;
 let gameContract: TurnBasedGame;
 
-
 // Creates tokens for an account.
 // Used before calling startGame function on TurnBasedGame contract directly.
-// Normally startGame function is called by the joinGame function but it can 
+// Normally startGame function is called by the joinGame function but it can
 // be called directly.
 //
 // Parameters:
 // address account for whom tokens will be created
-// playerFunds array with each player funds that will determine how many tokens will be created 
+// playerFunds array with each player funds that will determine how many tokens will be created
 //
 async function initCallerFunds(address, playerFunds) {
     let totalFunds = 0;
@@ -48,7 +47,6 @@ async function initCallerFunds(address, playerFunds) {
     await tokenContract.mint(address, ethers.BigNumber.from(totalFunds));
     await tokenContract.approve(gameContract.address, ethers.BigNumber.from(totalFunds));
 }
-
 
 describe("TurnBasedGame", async () => {
     let gameContractPlayer1: TurnBasedGame;
@@ -134,7 +132,15 @@ describe("TurnBasedGame", async () => {
             );
 
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             expect(await gameContract.isActive(0), "1st game should be active after calling startGame once").to.equal(
                 true
             );
@@ -144,7 +150,15 @@ describe("TurnBasedGame", async () => {
             ).to.equal(false);
 
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             expect(await gameContract.isActive(0), "1st game should be active after calling startGame twice").to.equal(
                 true
             );
@@ -269,13 +283,29 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.getContext(0)).to.be.revertedWith("Index not instantiated");
 
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.getContext(0)).not.to.be.reverted;
         });
 
         it("Should return correct values", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             let context = await gameContract.getContext(0);
             expect(context[0]).to.eql(gameTemplateHash);
             expect(context[1]).to.eql(gameMetadata);
@@ -314,7 +344,15 @@ describe("TurnBasedGame", async () => {
         it("Should only be allowed for active games", async () => {
             await expect(gameContract.submitTurn(0, 0, turnData)).to.be.revertedWith("Index not instantiated");
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.submitTurn(0, 0, turnData)).not.to.be.reverted;
         });
 
@@ -337,19 +375,43 @@ describe("TurnBasedGame", async () => {
 
         it("Should not be allowed when game result has been claimed", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContract.claimResult(0, playerFunds);
             await expect(gameContract.submitTurn(0, 0, turnData)).to.be.revertedWith("Game end has been claimed");
 
             // new games should be ok
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.submitTurn(1, 0, turnData)).not.to.be.reverted;
         });
 
         it("Should not be allowed when game verification is in progress", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
 
             // challenges game
             await prepareChallengeGame();
@@ -359,13 +421,29 @@ describe("TurnBasedGame", async () => {
 
             // new games should be ok
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.submitTurn(1, 0, turnData)).not.to.be.reverted;
         });
 
         it("Should only be allowed with correct turnIndex sequence", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
 
             // 1st submission must have turnIndex 0
             await expect(gameContract.submitTurn(0, 1, turnData)).to.be.revertedWith(
@@ -391,7 +469,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should emit TurnOver event", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
 
             // forcing next block's timestamp, which is only allowed if it's in the future (must be larger than previous block's timestamp)
             let timestampSeconds = Math.ceil(Date.now() / 1000) + 1000;
@@ -448,7 +534,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should update context", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
 
             const turnData0 = "0x325E3731202B2033365E313200000000";
             const turnData1 = "0x325E3731202B2099365E313200000088365E3132000099";
@@ -469,7 +563,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should update context with large data", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
 
             // 8-byte entry
             const bytes8 = "325E3731202B2033";
@@ -528,7 +630,15 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.challengeGame(0)).to.be.revertedWith("Index not instantiated");
 
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.challengeGame(0)).not.to.be.reverted;
         });
 
@@ -553,7 +663,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should not be allowed when Descartes verification is in progress", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
 
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -568,7 +686,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should not be allowed when Descartes verification has been fully performed", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
 
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -585,7 +711,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should emit GameChallenged event", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
 
             // game challenged by player 0
             await prepareChallengeGame();
@@ -595,7 +729,15 @@ describe("TurnBasedGame", async () => {
 
             // another game challenged by player 1
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await mockDescartes.mock.instantiate.returns(descartesIndex.add(1));
             await expect(gameContractPlayer1.challengeGame(1))
                 .to.emit(contextLibrary, "GameChallenged")
@@ -604,7 +746,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should update context", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
             let context = await gameContract.getContext(0);
@@ -620,7 +770,15 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.claimResult(0, playerFunds)).to.be.revertedWith("Index not instantiated");
 
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
         });
 
@@ -644,7 +802,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should not be allowed more than once", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.claimResult(0, playerFunds)).not.to.be.reverted;
             await expect(gameContract.claimResult(0, playerFunds)).to.be.revertedWith(
                 "Result has already been claimed for this game: it must now be either confirmed or challenged"
@@ -653,7 +819,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should not be allowed when Descartes verification is in progress", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
 
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -665,7 +839,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should check if claimed result is valid", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.claimResult(0, [201, 0])).to.be.revertedWith(
                 "Resulting funds distribution exceeds amount locked by the players for the game"
             );
@@ -680,19 +862,51 @@ describe("TurnBasedGame", async () => {
             );
             await expect(gameContract.claimResult(0, [30, 80])).not.to.be.reverted;
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.claimResult(1, [100, 100])).not.to.be.reverted;
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.claimResult(2, [101, 99])).not.to.be.reverted;
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.claimResult(3, [200, 0])).not.to.be.reverted;
         });
 
         it("Should emit GameResultClaimed event", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
 
             // result claimed by player 0
             await expect(gameContract.claimResult(0, [120, 80]))
@@ -701,7 +915,15 @@ describe("TurnBasedGame", async () => {
 
             // another game with result claimed by player 1
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContractPlayer1.claimResult(1, [0, 150]))
                 .to.emit(contextLibrary, "GameResultClaimed")
                 .withArgs(1, [0, 150], players[1]);
@@ -710,7 +932,15 @@ describe("TurnBasedGame", async () => {
         it("Should update context", async () => {
             // result claimed by player 0
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContract.claimResult(0, [120, 80]);
             let context = await gameContract.getContext(0);
             expect(context[10]).to.eql(players[0]); // claimer
@@ -719,7 +949,15 @@ describe("TurnBasedGame", async () => {
 
             // another game with result claimed by player 1
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContractPlayer1.claimResult(1, [70, 120]);
             context = await gameContract.getContext(1);
             expect(context[10]).to.eql(players[1]); // claimer
@@ -735,7 +973,15 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.confirmResult(0)).to.be.revertedWith("Index not instantiated");
 
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContract.claimResult(0, playerFunds);
             await expect(gameContract.confirmResult(0)).not.to.be.reverted;
         });
@@ -761,7 +1007,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should only be allowed when a result was claimed before", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.confirmResult(0)).to.be.revertedWith(
                 "Result has not been claimed for this game yet"
             );
@@ -772,7 +1026,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should not be allowed when Descartes verification is in progress", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContract.claimResult(0, playerFunds);
 
             await prepareChallengeGame();
@@ -786,7 +1048,15 @@ describe("TurnBasedGame", async () => {
         it("Should end game and emit GameOver event when called by all players", async () => {
             // result claimed by player 0 and confirmed by player 1
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContract.claimResult(0, [120, 80]);
             expect(await gameContract.isActive(0), "1st game should be active before result is confirmed").to.equal(
                 true
@@ -800,7 +1070,15 @@ describe("TurnBasedGame", async () => {
 
             // another game with result claimed by player 1 and confirmed by player 0
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContractPlayer1.claimResult(1, [0, 150]);
             expect(await gameContract.isActive(1), "2nd game should be active before result is confirmed").to.equal(
                 true
@@ -813,7 +1091,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should update context", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContract.claimResult(0, [120, 80]);
             let context = await gameContract.getContext(0);
             expect(context[12]).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with last bit turned on (only player0 agrees)
@@ -832,7 +1118,15 @@ describe("TurnBasedGame", async () => {
 
             // challenge game and then set mockDescartes to inform that computation is complete and results are available
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
             await mockDescartes.mock.getResult
@@ -849,7 +1143,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should not be allowed when result is not available", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContract.claimResult(0, playerFunds);
 
             // no Descartes verification requested
@@ -898,7 +1200,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should be allowed even when result is larger than required", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContract.claimResult(0, playerFunds);
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -917,7 +1227,15 @@ describe("TurnBasedGame", async () => {
 
         it("Should end game and emit GameOver event", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await gameContract.claimResult(0, playerFunds);
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
@@ -956,13 +1274,29 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.getState(0, players[0])).to.be.revertedWith("Index not instantiated");
 
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.getState(0, players[0])).not.to.be.reverted;
         });
 
         it("Should return whether a Descartes computation is instantiated", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             expect(await gameContract.getState(0, players[0])).to.equal(false);
 
             await prepareChallengeGame();
@@ -978,13 +1312,29 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.getSubInstances(0, players[0])).to.be.revertedWith("Index not instantiated");
 
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             await expect(gameContract.getSubInstances(0, players[0])).not.to.be.reverted;
         });
 
         it("Should return a Descartes computation if there is one", async () => {
             await initCallerFunds(players[0], playerFunds);
-            await gameContract.startGame(gameTemplateHash, gameMetadata, validators, tokenContract.address, players, playerFunds, playerInfos);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
             let instances = await gameContract.getSubInstances(0, players[0]);
             expect(instances[0]).to.eql([]);
             expect(instances[1]).to.eql([]);
