@@ -485,7 +485,7 @@ describe("TurnBasedGame", async () => {
             expect(turns.length).to.eql(1, "Should contain one turn");
             expect(turns[0].dataLogIndices.length).to.eql(1, "10 8-byte entries should fit into one chunk");
 
-            // data with 128 * 8-byte entries (1024 bytes should fit into one chunk)
+            // data with 512 * 8-byte entries (4096 bytes should fit into one chunk)
             turnData = "0x";
             for (let i = 0; i < 128; i++) {
                 turnData = turnData.concat(bytes8);
@@ -494,29 +494,29 @@ describe("TurnBasedGame", async () => {
             context = await gameContract.getContext(0);
             turns = context[7];
             expect(turns.length).to.eql(2, "Should contain two turns");
-            expect(turns[1].dataLogIndices.length).to.eql(1, "128 8-byte entries should fit into one chunk");
+            expect(turns[1].dataLogIndices.length).to.eql(1, "512 8-byte entries should fit into one chunk");
 
-            // data with 129 * 8-byte entries (1032 bytes should need two chunks)
+            // data with 513 * 8-byte entries (4104 bytes should need two chunks)
             turnData = "0x";
-            for (let i = 0; i < 129; i++) {
+            for (let i = 0; i < 513; i++) {
                 turnData = turnData.concat(bytes8);
             }
             await gameContract.submitTurn(0, 2, turnData);
             context = await gameContract.getContext(0);
             turns = context[7];
             expect(turns.length).to.eql(3, "Should contain three turns");
-            expect(turns[2].dataLogIndices.length).to.eql(2, "129 8-byte entries should require two chunks");
+            expect(turns[2].dataLogIndices.length).to.eql(2, "513 8-byte entries should require two chunks");
 
-            // data with 500 * 8-byte entries (4000 bytes should need four chunks)
+            // data with 1750 * 8-byte entries (14000 bytes should need four chunks)
             turnData = "0x";
-            for (let i = 0; i < 500; i++) {
+            for (let i = 0; i < 1750; i++) {
                 turnData = turnData.concat(bytes8);
             }
             await gameContract.submitTurn(0, 3, turnData);
             context = await gameContract.getContext(0);
             turns = context[7];
             expect(turns.length).to.eql(4, "Should contain four turns");
-            expect(turns[3].dataLogIndices.length).to.eql(4, "500 8-byte entries should require four chunks");
+            expect(turns[3].dataLogIndices.length).to.eql(4, "1750 8-byte entries should require four chunks");
         });
     });
 
