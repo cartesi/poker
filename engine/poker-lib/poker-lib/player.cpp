@@ -102,7 +102,7 @@ game_error player::handle_vtmf(msg_vtmf* msgin, message** out) {
 
     msgout->alice_money = _alice_money;
     msgout->bob_money = _bob_money;
-    msgin->big_blind = _big_blind;
+    msgout->big_blind = _big_blind;
 
     if (_p.load_group(msgin->vtmf))
         return PRR_CREATE_VTMF;
