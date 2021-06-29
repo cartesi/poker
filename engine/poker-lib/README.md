@@ -19,12 +19,14 @@ The poker-lib source code is located under `poker-lib/`. It is compiled for 3 ta
 
 You must build the poker-library and its third party dependencies, for WASM and risc-v, as follows:
 ```bash
-$ cd platform/wasm
+$ cd platforms/wasm
+make toolchain
 make
 ```
 and
 ```bash
-cd platform/risc-v
+cd platforms/risc-v
+make toolchain
 make
 ```
 
@@ -36,7 +38,7 @@ The output artifacts for each platform are stored in `platforms/[plat]/build`.
 
 #### WebAssembly
 
-The WebAssembly artifacts used in the borwser are stored in `platform/wasm/build/poker-lib`:
+The WebAssembly artifacts used in the borwser are stored in `platforms/wasm/build/poker-lib`:
 - poker-lib-wasm.wasm : binary WebAssembly module.
 - poker-lib-wasm.js : JavaScript bindings for the WebAssembly module.
 - poker-lib.js: High-level JavaScript class wrapping the WebAssembly module.
@@ -56,7 +58,7 @@ cd platforms/risc-v
 
 For opening a shell prompt inside a platform build environment:
 ```bash
-$ cd platform/[plat]
+$ cd platforms/[plat]
 $ make shell
 ```
 
