@@ -63,10 +63,10 @@ When a game is challenged, a Descartes computation is triggered to determine the
 
 For the Descartes verification to work, the Cartesi Machine corresponding to the specified hash must be present inside the Descartes Environment's [machines](descartes-env/machines) directory. This machine basically encapsulates the logic of the application and is capable of defining the correct result given the input data provided by Descartes.
 
-At the moment, you can experiment with a mock Cartesi Machine by issuing the following commands:
+At the moment, you can experiment with a mock Verifier Cartesi Machine by issuing the following commands:
 ```bash
-$ cd ../engine/mock/cartesi-machine
-$ ./build-cartesi-machine.sh ../../../blockchain/descartes-env/machines
+$ cd verifier/mock
+$ ./build-cartesi-machine.sh ../../descartes-env/machines
 ```
 
 This will build the mock machine template and place it inside the appropriate `machines` directory within the Descartes Environment.
