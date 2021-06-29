@@ -27,7 +27,7 @@ export class TurnBasedGameFactory {
      *
      * @returns the Transport instance
      */
-    public static create(gameIndex: integer): TurnBasedGame {
+    public static create(gameIndex: number): TurnBasedGame {
         const impl = ServiceConfig.get(ServiceType.Transport);
         if (impl === ServiceImpl.Mock) {
             // mock TurnBasedGame

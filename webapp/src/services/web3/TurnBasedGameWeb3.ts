@@ -19,7 +19,7 @@ declare let window: any;
 export class TurnBasedGameWeb3 implements TurnBasedGame {
     private static readonly MAX_ATTEMPTS = 5;
 
-    gameIndex: integer;
+    gameIndex: number;
 
     gameContract: TurnBasedGameContract;
     loggerContract: LoggerContract;
@@ -36,7 +36,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     onGameChallengeReceived: (string) => any;
     onVerificationUpdate: (VerificationState, string) => any;
 
-    constructor(gameIndex: integer) {
+    constructor(gameIndex: number) {
         this.gameIndex = gameIndex;
         this.turnDataQueue = [];
         this.onTurnOverReceivedCallbacks = [];
@@ -139,7 +139,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         callback(data);
         this.dispatchTurn();
     }
-    async getLoggerData(logIndices: Array<integer>) {
+    async getLoggerData(logIndices: Array<number>) {
         let dataBytes8 = [];
         for (let index of logIndices) {
             const filter = this.loggerContract.filters.MerkleRootCalculatedFromData(index, null, null, null);

@@ -59,7 +59,7 @@ export interface Game {
     call(onComplete?: () => any);
     check(onComplete?: () => any);
     fold(onComplete?: () => any);
-    raise(amount: integer, onComplete?: () => any);
+    raise(amount: number, onComplete?: () => any);
 
     cheat: {
         switchCards: (card1: number, card2: number) => any;
@@ -97,14 +97,14 @@ export class GameFactory {
      * @returns
      */
     public static create(
-        gameIndex: integer,
-        playerIndex: integer,
-        opponentIndex: integer,
-        playerFunds: integer,
-        opponentFunds: integer,
+        gameIndex: number,
+        playerIndex: number,
+        opponentIndex: number,
+        playerFunds: number,
+        opponentFunds: number,
         metadata: any,
         onBetRequested: () => any,
-        onBetsReceived: (betType: BetType, amount: integer) => any,
+        onBetsReceived: (betType: BetType, amount: number) => any,
         onEnd: () => any,
         onEvent: (msg: string) => any,
         onVerification: (state: VerificationState, msg: string) => any
@@ -162,13 +162,13 @@ export class GameFactory {
      * @returns
      */
     private static createInstance(
-        player: integer,
-        playerFunds: integer,
-        opponentFunds: integer,
+        player: number,
+        playerFunds: number,
+        opponentFunds: number,
         metadata: any,
         turnBasedGame: TurnBasedGame,
         onBetRequested?: () => any,
-        onBetsReceived?: (betType: string, amount: integer) => any,
+        onBetsReceived?: (betType: string, amount: number) => any,
         onEnd?: () => any,
         onEvent?: (msg: string) => any,
         onVerification?: (state: string, msg: string) => any

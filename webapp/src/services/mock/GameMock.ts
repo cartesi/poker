@@ -22,13 +22,13 @@ export class GameMock implements Game {
     [x: string]: any;
 
     constructor(
-        player: integer,
-        playerFunds: integer,
-        opponentFunds: integer,
+        player: number,
+        playerFunds: number,
+        opponentFunds: number,
         metadata: any,
         turnBasedGame: TurnBasedGame,
         onBetRequested?: () => any,
-        onBetsReceived?: (betType: string, amount: integer) => any,
+        onBetsReceived?: (betType: string, amount: number) => any,
         onEnd?: () => any,
         onEvent?: (msg: string) => any,
         onVerification?: (state: string, msg: string) => any
@@ -142,7 +142,7 @@ export class GameMock implements Game {
         // Change the cards in the player's hand
         switchCards: (card1, card2) => {
             if (isNaN(card1) || isNaN(card2)) {
-                throw "Cards should be an integer from 0 to 51, inclusive";
+                throw "Cards should be an number from 0 to 51, inclusive";
             }
             this.deck.push(card1, card2);
             this.cheat.didSwitchCards = true;
