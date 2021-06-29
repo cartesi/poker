@@ -8,7 +8,8 @@ ifeq ($(POKER_BUILD_ENV),wasm)
 CXX = emcc
 CXXFLAGS += -O3 -s ALLOW_TABLE_GROWTH \
             -s ALLOW_MEMORY_GROWTH=1 \
-            -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap'] \
+            -s BUILD_AS_WORKER=1 \
+            -s EXPORTED_RUNTIME_METHODS=['cwrap, UTF8ToString, free'] \
             --bind -fexceptions -std=c++11
 LOADER = node
 endif
@@ -20,24 +21,22 @@ endif
 
 TESTS = test-solver \
     test-player \
+    test-codec \
+    test-verifier \
     test-validator
 
-PROGRAMS = hello \
-    poker-lib-sample \
-    $(TESTS)
+PROGRAMS = verify $(TESTS)
     
-INSTALL_FILES = $(PROGRAMS)
+INSTALL_FILES = $(PROGRAMS) \
+    test-verifier-fixture.bin
 
 ifeq ($(POKER_BUILD_ENV),wasm)
-PROGRAMS += poker-lib-wasm-thunk
-INSTALL_FILES += hello.wasm \
-    poker-lib-sample.wasm \
-    poker-lib-wasm-thunk \
-    poker-lib-wasm-thunk.wasm \
+PROGRAMS += poker-lib-wasm.js
+INSTALL_FILES += \
+    poker-lib-wasm.wasm \
+    poker-lib-wasm.js \
     poker-lib.js \
-    test-player-js.js \
-    poker-lib-js-sample.js \
-    index.html
+    test-poker-lib.html
 endif
 
 %.o: %.cpp
@@ -45,29 +44,29 @@ endif
 
 all: $(PROGRAMS)
 
-POKER_LIB_OBJS=solver.o \
+POKER_LIB_OBJS=common.o \
+            solver.o \
             participant.o \
             poker-lib.o \
             referee.o \
             player.o \
-            game.o \
+            game-state.o \
+            blob.o \
+            verifier.o \
+            codec.o \
             validator.o
 
 poker-lib.a: $(POKER_LIB_OBJS)
 	ar rcs $@ $^
 
-poker-lib-wasm-thunk: poker-lib.a poker-lib-wasm-thunk.cpp
+poker-lib-wasm.js: poker-lib.a poker-lib-wasm.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@
-
-hello: hello.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $^
-
-poker-lib-sample: poker-lib-sample.cpp poker-lib.a
-	$(CXX) $(CXXFLAGS) -o $@ $^ 
 
 test-%: test-%.cpp poker-lib.a
 	$(CXX) $(CXXFLAGS)  -o $@ $^
 
+verify: verify.cpp poker-lib.a
+	$(CXX) $(CXXFLAGS)  -o $@ $^
     
 install: $(PROGRAMS)
 	mkdir -p $(INSTALL_DIR) && \

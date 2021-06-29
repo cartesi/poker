@@ -5,7 +5,7 @@
 namespace poker {
 
 referee::referee()
-  : _eve(participant(1+NUM_PLAYERS, NUM_PLAYERS, true /* predictable */))
+  : _step(game_step::INIT_GAME), _eve(participant(1+NUM_PLAYERS, NUM_PLAYERS, true /* predictable */))
 {
 }
 
@@ -15,7 +15,7 @@ referee::~referee() {
 game_error referee::step_init_game(money_t alice_money, money_t bob_money, money_t big_blind) {
     if (_g.error)
         return ERR_GAME_OVER;
-    if (_g.step != game_step::BEGIN)
+    if (_step != game_step::INIT_GAME)
         return (_g.error = ERR_INVALID_MOVE);
 
     _g.players[ALICE].total_funds = alice_money - big_blind/2;
@@ -25,28 +25,28 @@ game_error referee::step_init_game(money_t alice_money, money_t bob_money, money
     _g.big_blind = big_blind;
     // etc etc....
 
-    _g.step = game_step::INIT_GAME;
+    _step = game_step::VTMF_GROUP;
     return SUCCESS;
 
 }
 
 game_error referee::step_vtmf_group(blob& g) {
-    if (_g.error)
-        return ERR_GAME_OVER;
-    if (_g.step != game_step::INIT_GAME)
+    std::cout << "step_vtmf_group..." << std::endl;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::VTMF_GROUP)
         return (_g.error = ERR_INVALID_MOVE);
 
     if (_eve.load_group(g))
         return (_g.error = ERR_VTMF_LOAD_FAILED);
 
-    _g.step = game_step::VTMF_GROUP;
+    _step = game_step::LOAD_KEYS;
     return SUCCESS;
 }
 
 game_error referee::step_load_keys(blob& bob_key, blob& alice_key, /* out */ blob& eve_key) {
-    if (_g.error)
-        return ERR_GAME_OVER;
-    if (_g.step != game_step::VTMF_GROUP)
+    std::cout << "step_load_keys..." << std::endl;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::LOAD_KEYS)
         return (_g.error = ERR_INVALID_MOVE);
 
     if (_eve.generate_key(eve_key))
@@ -58,14 +58,14 @@ game_error referee::step_load_keys(blob& bob_key, blob& alice_key, /* out */ blo
     if (_eve.finalize_key_generation())
         return (_g.error = ERR_FINALIZE_KEY_GENERATION);
 
-    _g.step = game_step::LOAD_KEYS;
+    _step = game_step::VSSHE_GROUP;
     return SUCCESS;
 }
 
 game_error referee::step_vsshe_group(blob& vsshe) {
-    if (_g.error)
-        return ERR_GAME_OVER;
-    if (_g.step != game_step::LOAD_KEYS)
+    std::cout << "step_vsshe_group..." << std::endl;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::VSSHE_GROUP)
         return (_g.error = ERR_INVALID_MOVE);
 
     if (_eve.load_vsshe_group(vsshe))
@@ -73,79 +73,269 @@ game_error referee::step_vsshe_group(blob& vsshe) {
     if (_eve.create_stack())
         return (_g.error = ERR_CREATE_STACK);
 
-    _g.step = game_step::VSSHE_GROUP;
+    _step = game_step::ALICE_MIX;
     return SUCCESS;
 }
 
 game_error referee::step_alice_mix(blob& mix, blob& proof) {
-    if (_g.error)
-        return ERR_GAME_OVER;
-    if (_g.step != game_step::VSSHE_GROUP)
+    std::cout << "step_alice_mix..." << std::endl;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::ALICE_MIX)
         return (_g.error = ERR_INVALID_MOVE);
 
     if (_eve.load_stack(mix, proof))
         return (_g.error = ERR_ALICE_MIX);
 
-    _g.step = game_step::ALICE_MIX;
+    _step = game_step::BOB_MIX;
     return SUCCESS;
 }
 
 game_error referee::step_bob_mix(blob& mix, blob& proof) {
-    if (_g.error)
-        return ERR_GAME_OVER;
-    if (_g.step != game_step::ALICE_MIX)
+    std::cout << "step_bob_mix..." << std::endl;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::BOB_MIX)
         return (_g.error = ERR_INVALID_MOVE);
 
     if (_eve.load_stack(mix, proof))
         return (_g.error = ERR_BOB_MIX);
 
-    _g.step = game_step::BOB_MIX;
+    _step = game_step::FINAL_MIX;
     return SUCCESS;
 }
 
 game_error referee::step_final_mix(blob& mix, blob& proof) {
-    if (_g.error)
-        return ERR_GAME_OVER;
-    if (_g.step != game_step::BOB_MIX)
+    std::cout << "step_final_mix..." << std::endl;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::FINAL_MIX)
         return (_g.error = ERR_INVALID_MOVE);
 
     if (_eve.shuffle_stack(mix, proof))
         return (_g.error = ERR_FINAL_MIX);
 
-    _g.step = game_step::FINAL_MIX;
-
+    _step = game_step::TAKE_CARDS_FROM_STACK;
     return SUCCESS;
 }
 
 game_error referee::step_take_cards_from_stack() {
-    if (_g.error)
-        return ERR_GAME_OVER;
-    if (_g.step != game_step::FINAL_MIX)
+    std::cout << "step_take_cards_from_stack..." << std::endl;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::TAKE_CARDS_FROM_STACK)
         return (_g.error = ERR_INVALID_MOVE);
 
     if (_eve.take_cards_from_stack(NUM_CARDS))
         return (_g.error = ERR_TAKE_CARDS_FROM_STACK);
 
-    _g.step = game_step::TAKE_CARDS_FROM_STACK;
+    _step = game_step::OPEN_PRIVATE_CARDS;
     return SUCCESS;
 }
 
 game_error referee::step_open_private_cards(int player_id, blob& alice_proofs, blob& bob_proofs) {
+    std::cout << "step_open_private_cards..." << std::endl;
     game_error res;
-    if (_g.error)
-        return ERR_GAME_OVER;
-    if (_g.step != game_step::TAKE_CARDS_FROM_STACK)
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::OPEN_PRIVATE_CARDS)
         return (_g.error = ERR_INVALID_MOVE);
 
-    if ((res=open_private_cards_impl(player_id, alice_proofs, bob_proofs)))
+    if (player_id != VERIFIER) {
+        if ((res=open_private_cards(player_id, alice_proofs, bob_proofs)))
+            return res;
+    }    
+
+    _step = game_step::PREFLOP_BET;
+    return SUCCESS;
+}
+
+game_error referee::step_preflop_bet(int player_id, bet_type type, money_t amt) {
+    std::cout << "step_preflop_bet..." << std::endl;
+    game_error res;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::PREFLOP_BET)
+        return (_g.error = ERR_INVALID_MOVE);
+    if (player_id != _g.current_player)
+        return (_g.error = ERR_NOT_PLAYER_TURN);
+    // TODO: incomplete rules. defer these decisions to game_state
+    _g.current_player = opponent_id(player_id);
+    if (type != BET_RAISE && (type != BET_CHECK || player_id==ALICE)) {
+        _step = game_step::OPEN_FLOP;
+        _g.current_player = BOB;
+    }
+    return SUCCESS;
+}
+
+game_error referee::step_open_flop(blob& alice_proofs, blob& bob_proofs) {
+    std::cout << "step_open_flop..." << std::endl;
+    game_error res;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::OPEN_FLOP)
+        return (_g.error = ERR_INVALID_MOVE);
+
+    if ((res=open_public_cards(alice_proofs, bob_proofs, flop_card_index(0), NUM_FLOP_CARDS)))
         return res;
     
-    _g.step = game_step::OPEN_PRIVATE_CARDS;
+    _step = game_step::FLOP_BET;
+    return SUCCESS;
+}
+
+game_error referee::step_flop_bet(int player_id, bet_type type, money_t amt) {
+    std::cout << "step_flop_bet..." << std::endl;
+    game_error res;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::FLOP_BET)
+        return (_g.error = ERR_INVALID_MOVE);
+    if (player_id != _g.current_player)
+        return (_g.error = ERR_NOT_PLAYER_TURN);
+
+    _g.current_player = opponent_id(player_id);
+    if (type != BET_RAISE && (type != BET_CHECK || player_id==ALICE)) {
+        _step = game_step::OPEN_TURN;
+        _g.current_player = BOB;
+    }
+    return SUCCESS;
+}
+
+game_error referee::step_open_turn(blob& alice_proofs, blob& bob_proofs) {
+    std::cout << "step_open_turn..." << std::endl;
+    game_error res;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::OPEN_TURN)
+        return (_g.error = ERR_INVALID_MOVE);
+
+    if ((res=open_public_cards(alice_proofs, bob_proofs, turn_card_index(), 1)))
+        return res;
+    
+    _step = game_step::TURN_BET;
+    return SUCCESS;
+}
+
+game_error referee::step_turn_bet(int player_id, bet_type type, money_t amt) {
+    std::cout << "step_turn_bet..." << std::endl;
+    game_error res;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::TURN_BET)
+        return (_g.error = ERR_INVALID_MOVE);
+    if (player_id != _g.current_player)
+        return (_g.error = ERR_NOT_PLAYER_TURN);
+
+    _g.current_player = opponent_id(player_id);
+    if (type != BET_RAISE && (type != BET_CHECK || player_id==ALICE)) {
+        _step = game_step::OPEN_RIVER;
+        _g.current_player = BOB;
+    }
+    return SUCCESS;
+}
+
+game_error referee::step_open_river(blob& alice_proofs, blob& bob_proofs) {
+    std::cout << "step_open_river..." << std::endl;
+    game_error res;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::OPEN_RIVER)
+        return (_g.error = ERR_INVALID_MOVE);
+
+    if ((res=open_public_cards(alice_proofs, bob_proofs, river_card_index(), 1)))
+        return res;
+    
+    _step = game_step::RIVER_BET;
+    return SUCCESS;
+}
+
+game_error referee::step_river_bet(int player_id, bet_type type, money_t amt) {
+    std::cout << "step_river_bet..." << std::endl;
+    game_error res;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::RIVER_BET)
+        return (_g.error = ERR_INVALID_MOVE);
+    if (player_id != _g.current_player)
+        return (_g.error = ERR_NOT_PLAYER_TURN);
+
+    _g.current_player = opponent_id(player_id);
+    if (type != BET_RAISE && (type != BET_CHECK || player_id==ALICE)) {
+        _step = game_step::OPEN_OPONENT_CARDS;
+        _g.current_player = BOB;
+    }
+    return SUCCESS;
+}
+
+game_error referee::bet(int player_id, bet_type type, money_t amt) {
+    switch(_step) {
+        case game_step::PREFLOP_BET:
+            return step_preflop_bet(player_id, type, amt);
+        case game_step::FLOP_BET:
+            return step_flop_bet(player_id, type, amt);
+        case game_step::TURN_BET:
+            return step_turn_bet(player_id, type, amt);
+        case game_step::RIVER_BET:
+            return step_river_bet(player_id, type, amt);
+        default:
+            return ERR_BET_NOT_ALLOWED;
+    }
+}
+
+game_error referee::step_open_opponent_cards(int player_id, blob& alice_proofs, blob& bob_proofs) {
+    std::cout << "step_open_opponent_cards..." << std::endl;
+    game_error res;
+    if (_g.error) return ERR_GAME_OVER;
+    if (_step != game_step::OPEN_OPONENT_CARDS)
+        return (_g.error = ERR_INVALID_MOVE);
+
+    if ((res=open_private_cards(player_id, alice_proofs, bob_proofs)))
+        return res;
+
+    if ((res=decide_winner()))
+        return res;
+    
+    _step = game_step::GAME_OVER;
+    
+    _g.dump();
 
     return SUCCESS;
 }
 
-game_error referee::open_private_cards_impl(int player_id, blob& alice_proofs, blob& bob_proofs) {
+game_error referee::open_public_cards(blob& alice_proofs, blob& bob_proofs, int first_card_index, int card_count) {
+    std::cout << "open_public_cards(" << first_card_index << "," << card_count << ") ..." << std::endl;
+    alice_proofs.set_auto_rewind(false);
+    bob_proofs.set_auto_rewind(false);    
+    alice_proofs.rewind();
+    bob_proofs.rewind();
+    auto first_pc = public_card_index(0);
+    for(int i=0; i < card_count; i++) {
+        auto card_index = i + first_card_index;
+        if (_eve.self_card_secret(card_index))
+            return (_g.error = ERR_OPEN_PUBLIC_SELF_SECRET);
+        if (_eve.verify_card_secret(card_index, alice_proofs))
+            return (_g.error = ERR_OPEN_PUBLIC_VERIFY_ALICE_SECRET);
+        if (_eve.verify_card_secret(card_index, bob_proofs))
+            return (_g.error = ERR_OPEN_PUBLIC_VERIFY_BOB_SECRET);
+        if (_eve.open_card(card_index))
+            return (_g.error = ERR_OPEN_PUBLIC_OPEN_CARD);
+        
+        _g.public_cards[card_index - first_pc] = _eve.get_open_card(card_index);
+    }
+    return SUCCESS;
+}
+
+game_error referee::open_public_cards(game_step step, blob& alice_proof, blob bob_proof) {
+    game_error res;
+    switch(step) {
+        case OPEN_FLOP:
+            if ((res=step_open_flop(alice_proof, bob_proof)))
+                return res;
+            break;
+        case OPEN_TURN:
+            if ((res=step_open_turn(alice_proof, bob_proof)))
+                return res;
+            break;
+        case OPEN_RIVER:
+            if ((res=step_open_river(alice_proof, bob_proof)))
+                return res;
+            break;
+        default:
+            return ERR_INVALID_OPEN_CARDS_STEP;
+    }
+    return SUCCESS;
+
+}
+
+game_error referee::open_private_cards(int player_id, blob& alice_proofs, blob& bob_proofs) {
     alice_proofs.set_auto_rewind(false);
     bob_proofs.set_auto_rewind(false);    
     alice_proofs.rewind();
@@ -156,62 +346,13 @@ game_error referee::open_private_cards_impl(int player_id, blob& alice_proofs, b
         if (_eve.self_card_secret(card_index))
             return (_g.error = ERR_OPEN_PRIVATE_SELF_SECRET);
         if (_eve.verify_card_secret(card_index, alice_proofs))
-            return ERR_OPEN_PRIVATE_VERIFY_ALICE_SECRET;
+            return (_g.error = ERR_OPEN_PRIVATE_VERIFY_ALICE_SECRET);
         if (_eve.verify_card_secret(card_index, bob_proofs))
-            return ERR_OPEN_PRIVATE_VERIFY_BOB_SECRET;
+            return (_g.error = ERR_OPEN_PRIVATE_VERIFY_BOB_SECRET);
         if (_eve.open_card(card_index))
-            return ERR_OPEN_PRIVATE_OPEN_CARD;
+            return (_g.error = ERR_OPEN_PRIVATE_OPEN_CARD);
         player.cards[i] = _eve.get_open_card(card_index);
     }
-    return SUCCESS;
-}
-
-game_error referee::step_open_public_cards(blob& alice_proofs, blob& bob_proofs) {
-    if (_g.error)
-        return ERR_GAME_OVER;
-    if (_g.step != game_step::OPEN_PRIVATE_CARDS)
-        return (_g.error = ERR_INVALID_MOVE);
-
-    alice_proofs.set_auto_rewind(false);
-    bob_proofs.set_auto_rewind(false);    
-    alice_proofs.rewind();
-    bob_proofs.rewind();
-
-    for(auto i=0; i<NUM_PUBLIC_CARDS; i++) {
-        auto card_index = public_card_index(i);
-        if (_eve.self_card_secret(card_index))
-            return (_g.error = ERR_OPEN_PUBLIC_SELF_SECRET);
-        if (_eve.verify_card_secret(card_index, alice_proofs))
-            return ERR_OPEN_PUBLIC_VERIFY_ALICE_SECRET;
-        if (_eve.verify_card_secret(card_index, bob_proofs))
-            return ERR_OPEN_PUBLIC_VERIFY_BOB_SECRET;
-        if (_eve.open_card(card_index))
-            return ERR_OPEN_PUBLIC_OPEN_CARD;
-        _g.public_cards[i] = _eve.get_open_card(card_index);
-    }
-    
-    _g.step = game_step::OPEN_PUBLIC_CARDS;
-
-    return SUCCESS;
-}
-
-game_error referee::step_open_opponent_cards(int player_id, blob& alice_proofs, blob& bob_proofs) {
-    game_error res;
-    if (_g.error)
-        return ERR_GAME_OVER;
-    if (_g.step != game_step::OPEN_PUBLIC_CARDS)
-        return (_g.error = ERR_INVALID_MOVE);
-
-    if ((res=open_private_cards_impl(player_id, alice_proofs, bob_proofs)))
-        return res;
-
-    if ((res=decide_winner()))
-        return res;
-    
-    _g.step = game_step::GAME_OVER;
-    
-    _g.dump();
-
     return SUCCESS;
 }
 

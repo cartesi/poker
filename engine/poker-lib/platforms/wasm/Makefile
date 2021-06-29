@@ -25,20 +25,8 @@ all: $(LIBS)
 $(LIBS): toolchain $(BUILD_BASE)
 	$(RUN_TOOLCHAIN) /bin/bash -c 'source /root/.bashrc; make -C /poker/src/$@'
 
-run-hello:
-	$(RUN_TOOLCHAIN) /bin/bash -c 'cd /poker/build/poker-lib; time node hello'
-
-run-test-solver:
-	$(RUN_TOOLCHAIN) /bin/bash -c 'cd /poker/build/poker-lib; time node test-solver'
-
-run-poker-lib-sample:
-	$(RUN_TOOLCHAIN) /bin/bash -c 'cd /poker/build/poker-lib; time node poker-lib-sample'
-
-run-poker-lib-js-sample:
-	$(RUN_TOOLCHAIN) /bin/bash -c 'cd /poker/build/poker-lib; time node poker-lib-js-sample.js'
-
 run-server:
-	$(RUN_TOOLCHAIN) /bin/bash -c 'source /root/.bashrc; emrun --no_browser --port 1234 /poker/build/poker-lib/poker-lib-sample.html'
+	$(RUN_TOOLCHAIN) /bin/bash -c 'source /root/.bashrc; emrun --no_browser --port 1234 /poker/build/poker-lib/test-poker-lib.html'
 
 shell: $(BUILD_BASE)
 	$(RUN_TOOLCHAIN) /bin/bash

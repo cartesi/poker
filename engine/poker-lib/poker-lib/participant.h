@@ -3,13 +3,15 @@
 
 #include <libTMCG.hh>
 #include <string>
-#include "errors.h"
-#include "s-stream.h"
+#include "common.h"
+#include "blob.h"
 
 namespace poker {
 
-class blob;
 
+/*
+* A participant of the game that contributes to stack shufling  and card revealing
+*/
 class participant {
     const int decksize = 52;
     
@@ -34,55 +36,30 @@ public:
     bool predictable() { return _predictable; }
 
     // initial group generation
-    int create_group(blob& group);
-    int load_group(blob& group);
+    game_error create_group(blob& group);
+    game_error load_group(blob& group);
 
     // Key generation protocol
-    int generate_key(blob& key);
-    int load_their_key(blob& key);
-    int finalize_key_generation();
+    game_error generate_key(blob& key);
+    game_error load_their_key(blob& key);
+    game_error finalize_key_generation();
 
     // VSSHE - Verifiable Secret Shuffle of Homomorphic Encryptions.}@*
-    int create_vsshe_group(blob& group);
-    int load_vsshe_group(blob& group);
+    game_error create_vsshe_group(blob& group);
+    game_error load_vsshe_group(blob& group);
 
     // Stack
-    int create_stack();
-    int shuffle_stack(blob& mixed_stack, blob& stack_proof);
-    int load_stack(blob& mixed_stack, blob& mixed_stack_proof);
+    game_error create_stack();
+    game_error shuffle_stack(blob& mixed_stack, blob& stack_proof);
+    game_error load_stack(blob& mixed_stack, blob& mixed_stack_proof);
 
     // Cards
-    int take_cards_from_stack(int count);
-    int prove_card_secret(int card_index, blob& my_proof);
-    int self_card_secret(int card_index);
-    int verify_card_secret(int card_index, blob& their_proof);
-    int open_card(int card_index);
+    game_error take_cards_from_stack(int count);
+    game_error prove_card_secret(int card_index, blob& my_proof);
+    game_error self_card_secret(int card_index);
+    game_error verify_card_secret(int card_index, blob& their_proof);
+    game_error open_card(int card_index);
     size_t get_open_card(int card_index);
-};
-
-class blob {
-    std::string _data;
-    osstream _out;
-    isstream _in;
-    bool _auto_rewind;
-public:
-    blob() : _out(_data), _in(_data), _auto_rewind(true) { }
-    blob(const blob &other) : _data(other._data), _out(_data), _in(_data) { }
-    void set_data(const char* d) { _data = d;}
-    const char* get_data() { return _data.c_str(); }
-    int size() { return _data.size(); }
-    void clear() { _data.clear(); }
-    void rewind() { _in.rewind(); }
-    void set_auto_rewind(bool v) { _auto_rewind=v; }
-    std::ostream& out() { return _out; }
-    std::istream& in() { 
-        if (_auto_rewind)
-            rewind();
-        return _in;
-    }
-
-    operator std::string () { return _data; }
-    
 };
 
 } // namespace poker

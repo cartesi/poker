@@ -1,58 +1,63 @@
 # poker-lib
 
-Mental poker game library.
+This is the root of the mental poker game library: poker-lib. It provides the following functionality:
+- Game flow control
+- Deck shufling 
+- Card dealing
+- Betting rules
+- Hand evaluation
+- Game result verification
+- Message encoding and decoding
+- WebWorker interface
 
-## Reqirements
+### Building
 
-Refer to platforms-specific README file in `platforms/`.
+The poker-lib source code is located under `poker-lib/`. It is compiled for 3 targets:
+- WebAssembly: executed in web browser during the live play
+- RISC-V: executed in Cartesi Machine for verifying a game result
+- x86/64: Optional. Used during development phase - faster build/testing cycles.
 
-## Directory structure
-- poker-lib - Our mental poker source code
-- platforms - Platform-specific 3rd party code and  build environments
-
-## Target Platforms
-The library builds for 3 platforms:
-- x64
-- WASM
-- RISC-V
-
-For platform-specific information, refer to the platform's README.
-
-## Building
-
-Build all platforms:
-
+You must build the poker-library and its third party dependencies, for WASM and risc-v, as follows:
 ```bash
-$ make
+$ cd platform/wasm
+make
 ```
-
-Build artifacts are stored in 
-
-```
-<platform-dir>/build
-```
-
-You can build individual platforms as follows:
-
+and
 ```bash
-$ cd platforms/<platform>
-$ make
-```
-## Running
-From the platform directory, use the script `platform-run.sh` to run programs.
-```bash
-$ cd wasm
-$ ./platform-run.sh run-hello
-$ ./platform-run.sh run-poker-lib-sample
-$ ./platform-run.sh run-poker-lib-js-sample
-$ ./platform-run.sh run-server
+cd platform/risc-v
+make
 ```
 
-For opening a shell prompt inside the platform's build environment 
+This will fetch the source, configure, patch, compile and install the code of all dependencies as well as the poker-lib.
+
+### Running
+
+The output artifacts for each platform are stored in `platforms/[plat]/build`.
+
+#### WebAssembly
+
+The WebAssembly artifacts used in the borwser are stored in `platform/wasm/build/poker-lib`:
+- poker-lib-wasm.wasm : binary WebAssembly module.
+- poker-lib-wasm.js : JavaScript bindings for the WebAssembly module.
+- poker-lib.js: High-level JavaScript class wrapping the WebAssembly module.
+
+These files are copied to the wep app directory and used in the web browser.
+
+#### RISC-V
+
+The RISC-V game verification program is written to `platforms/risc-v/poker-lib/verify`.
+You can run a test game verification in the Cartesi Machine as follows:
 ```bash
-$ cd wasm
+cd platforms/risc-v
+./platform-run.sh test-verifier
+```
+
+#### Miscelaneous
+
+For opening a shell prompt inside a platform build environment:
+```bash
+$ cd platform/[plat]
 $ make shell
 ```
-
 
 

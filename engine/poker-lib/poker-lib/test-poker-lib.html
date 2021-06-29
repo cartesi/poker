@@ -1,0 +1,71 @@
+<html>
+<head><style>
+body, button {
+    font-size: 16pt;
+}    
+</style></head>
+<body>
+    <h1>Poker WASM</h1>
+    <button onclick="test()">Test</button>
+    <div style='font-size:10pt; font-family: courier; text-align: left' id=res></div>    
+</body>
+</html>
+<script language="javascript" src="poker-lib.js"></script>
+<script>
+    const assert_eql = function(expected, actual) {
+      if (expected != actual)
+        throw Error(`*** Assertion error. Expected: ${expected}, actual:${actual}`);
+      return actual;
+    }
+
+    const SUCCESS = 0;
+    const CONTINUED = 1;
+    const ALICE = 0;
+    const BOB = 1;
+    const BET_FOLD = 1;
+    const BET_CALL = 2;
+    const BET_RAISE = 3;
+    const BET_CHECK = 4;
+    
+    async function test() {
+        var start = new Date();
+
+        const alice = new Player(ALICE);
+        await alice.init(100, 200, 10);
+
+        const bob = new Player(BOB);
+        await bob.init(100, 200, 10);
+
+        var { res, msg_out } = await alice.create_handshake();
+        var { res, msg_out } = await bob.process_handshake(msg_out)
+        var { res, msg_out } = await alice.process_handshake(msg_out)
+        var { res, msg_out } = await bob.process_handshake(msg_out)
+        var { res, msg_out } = await alice.process_handshake(msg_out)
+        assert_eql(SUCCESS, res);
+        var { res, msg_out } = await bob.process_handshake(msg_out)
+        assert_eql(SUCCESS, res);
+
+        var alice_state =  await alice.game_state();
+        console.log('alice_state', alice_state)
+        var bob_state =  await bob.game_state();
+        console.log('bob_state', bob_state)
+        document.getElementById('res').innerText = `alice: ${JSON.stringify(alice_state)} bob: ${JSON.stringify(bob_state)}`
+
+        var { res, msg_out } = await alice.create_bet(BET_CALL, 100);
+        assert_eql(CONTINUED, res);
+        var { res, msg_out } = await bob.process_bet(msg_out);
+        assert_eql(SUCCESS, res);
+        var { res, msg_out } = await alice.process_bet(msg_out);
+        assert_eql(SUCCESS, res);
+
+        var alice_state =  await alice.game_state();
+        console.log('alice_state', alice_state)
+        var bob_state =  await bob.game_state();
+        console.log('bob_state', bob_state)
+
+        var elapsed = new Date() - start;
+        console.log('OK elapsed', elapsed)
+        return;
+    }
+
+</script>

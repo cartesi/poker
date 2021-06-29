@@ -4,21 +4,21 @@
 #include <cstdint>
 #include <vector>
 
+#include "common.h"
 #include "solver.h"
-#include "errors.h"
 
 using namespace poker;
 using namespace poker::cards;
 
-int32_t failures = 0;
-int32_t testCount = 0;
+int failures = 0;
+int testCount = 0;
 
 bool assert_compare_n(
-    int32_t n,
+    int n,
     const char* name,
-    int32_t expected,
-    std::vector<int32_t> h1,
-    std::vector<int32_t> h2)
+    int expected,
+    std::vector<int> h1,
+    std::vector<int> h2)
 {
   testCount++;
   solver sol;
@@ -37,10 +37,10 @@ bool assert_compare_n(
 }
 
 bool assert_hand_name(
-    int32_t n,
+    int n,
     const char* name,
     const char* expected,
-    std::vector<int32_t> h)
+    std::vector<int> h)
 {
   testCount++;
   solver sol;
@@ -58,7 +58,7 @@ bool assert_hand_name(
   return true;
 }
 
-int32_t main(int32_t argc, char **argv) {
+int main(int argc, char **argv) {
   solver sol;
   failures = 0;
   testCount = 0;

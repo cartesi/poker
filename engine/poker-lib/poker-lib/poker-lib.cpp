@@ -1,7 +1,6 @@
 #include "poker-lib.h"
 #include <libTMCG.hh>
-
-#include "game.h"
+#include "game-state.h"
 
 namespace poker {
 

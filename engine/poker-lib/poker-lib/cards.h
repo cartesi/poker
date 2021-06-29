@@ -3,7 +3,7 @@
 
 namespace poker {
 
-typedef int32_t card_t;
+typedef int card_t;
 
 /*
     Theses constants help to refer to a specific card without having to 

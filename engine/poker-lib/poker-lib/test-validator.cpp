@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "cards.h"
-#include "game.h"
+#include "game-state.h"
 #include "test-util.h"
 #include "validator.h"
 

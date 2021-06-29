@@ -1,4 +1,4 @@
 # poker-lib
 
-Mental poker library
+Poker engine library
 

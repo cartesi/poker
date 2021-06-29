@@ -4,6 +4,10 @@
 #include "participant.h"
 #include "solver.h"
 
+/*
+* Library initialization and configuration
+*/
+
 namespace poker {
 
 int init_poker_lib();

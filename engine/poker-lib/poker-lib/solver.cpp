@@ -5,7 +5,6 @@
 #include <cstdint>
 
 #include "solver.h"
-#include "errors.h"
 
 namespace poker {
 
@@ -13,7 +12,7 @@ namespace poker {
 
     solver::~solver(){}
 
-    game_error convert_hand_to_mask(const card_t *hand, int32_t hand_size, CardMask& mask) {
+    game_error convert_hand_to_mask(const card_t *hand, int hand_size, CardMask& mask) {
         CardMask_RESET(mask);
 
         for (auto i=0; i < hand_size; i++) {
@@ -34,9 +33,9 @@ namespace poker {
         return SUCCESS;
     }
 
-    int32_t eval(const CardMask& hand1, const CardMask& hand2, int32_t hand_size) {
-        int32_t value1 = StdDeck_StdRules_EVAL_N(hand1, hand_size);
-        int32_t value2 = StdDeck_StdRules_EVAL_N(hand2, hand_size);
+    int eval(const CardMask& hand1, const CardMask& hand2, int hand_size) {
+        int value1 = StdDeck_StdRules_EVAL_N(hand1, hand_size);
+        int value2 = StdDeck_StdRules_EVAL_N(hand2, hand_size);
 
         if (value1 > value2) {
             return 1;
@@ -47,7 +46,7 @@ namespace poker {
         }
     }
 
-    game_error solver::compare_hands(const card_t *hand1, const card_t *hand2, int32_t hand_size, int* result) {
+    game_error solver::compare_hands(const card_t *hand1, const card_t *hand2, int hand_size, int* result) {
         CardMask hand1_mask, hand2_mask;
         game_error res;
 
@@ -61,11 +60,11 @@ namespace poker {
         return SUCCESS;
     }
 
-    const char* solver::get_hand_name(const card_t *hand, int32_t hand_size) {
+    const char* solver::get_hand_name(const card_t *hand, int hand_size) {
         CardMask mask;
 
         if (convert_hand_to_mask(hand, hand_size, mask) == SUCCESS) {
-            int32_t type = StdDeck_StdRules_EVAL_TYPE(mask, hand_size);
+            int type = StdDeck_StdRules_EVAL_TYPE(mask, hand_size);
             return handTypeNames[type];
         } else {
             return 0;

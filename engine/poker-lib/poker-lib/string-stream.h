@@ -1,10 +1,16 @@
 #ifndef SSTREAM_H
 #define SSTREAM_H
 
+#include <iostream>
+#include <cstring>
+#include <memory.h>
+
 namespace poker {
 
-#include <iostream>
 
+/*
+* convenience stream to help inspect libTMCG IO
+*/
 class string_stream {
     int _r;
 public:
@@ -160,7 +166,6 @@ class osstream : public std::ostream {
 	public:
 		osstream(std::string& out) : s(out), buf(s), std::ostream(&buf) {	}
 };
-
 
 class isstream : public std::istream {
 	protected:

@@ -8,20 +8,7 @@ RISC-V build environment of the mental poker library
 2. Cartesi machine toolchain docker image: `cartesi/toolchain:latest`
 3. cartesi-machine.lua 
 
-## Build artifacts
-
-### hello
-
-Simple console app for sanity check
+### Building
 ```bash
-$ ./platform-run.sh run-hello
+$ make
 ```
-
-### poker-lib-sample
-
-Poker-lib sample program
-```bash
-$ ./platform-run.sh run-poker-lib-sample
-```
-
-

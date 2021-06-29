@@ -1,8 +1,5 @@
-#include "validator.h"
-
 #include <iostream>
-
-#include "game.h"
+#include "validator.h"
 #include "solver.h"
 
 #define IS_DEALER(pid) pid == ALICE ? true : false
@@ -16,7 +13,6 @@ static game_error call(game_state& g);
 static game_error raise(game_state& g, money_t amount);
 static game_error check(game_state& g);
 static game_error fold(game_state& g);
-
 
 game_error place_bet(game_state& g, bet_type type, money_t amt) {
     switch (type) {
@@ -38,7 +34,7 @@ game_error place_bet(game_state& g, bet_type type, money_t amt) {
 
 static game_error call(game_state& g) {
     player_state& player = g.players[g.current_player];
-    player_state& opponent = g.players[opponent_of(player.id)];
+    player_state& opponent = g.players[opponent_id(player.id)];
     money_t difference = opponent.bets - player.bets;
 
     if (difference <= 0)
@@ -61,7 +57,7 @@ static game_error call(game_state& g) {
 
 static game_error raise(game_state& g, money_t amount) {
     player_state& player = g.players[g.current_player];
-    player_state& opponent = g.players[opponent_of(player.id)];
+    player_state& opponent = g.players[opponent_id(player.id)];
     money_t last_raise = opponent.bets - player.bets;
 
     if (player.bets > opponent.bets)
@@ -83,7 +79,7 @@ static game_error raise(game_state& g, money_t amount) {
 
 static game_error check(game_state& g) {
     player_state& player = g.players[g.current_player];
-    player_state& opponent = g.players[opponent_of(player.id)];
+    player_state& opponent = g.players[opponent_id(player.id)];
 
     if (player.bets != opponent.bets)
         return (g.error = GRR_BETS_NOT_EQUAL);
@@ -100,7 +96,7 @@ static game_error check(game_state& g) {
 }
 
 static game_error fold(game_state& g) {
-    g.winner = opponent_of(g.current_player);
+    g.winner = opponent_id(g.current_player);
     g.phase = PHS_SHOWDOWN;
     g.current_player = g.winner;
     return SUCCESS;
@@ -136,7 +132,7 @@ static void end_phase(game_state& g) {
 
 static game_error bet(game_state& g, money_t amount) {
     player_state& player = g.players[g.current_player];
-    player_state& opponent = g.players[opponent_of(player.id)];
+    player_state& opponent = g.players[opponent_id(player.id)];
 
     if (player.bets + amount > player.total_funds)
         return (g.error = GRR_INSUFFICIENT_FUNDS);

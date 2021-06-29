@@ -1,77 +1,179 @@
 #include <iostream>
+#include <sstream>
 #include "player.h"
+#include "verifier.h"
+#include "test-util.h"
 
 using namespace poker;
+using namespace poker::cards;
 
 #define TEST_SUITE_NAME "Test player"
 
-#define ASSERT(cmd) { \
-    std::cerr <<  "..." #cmd << std::endl; \
-    auto r = cmd; \
-    if (r) { \
-        std::cerr << "Assertion failed. Expected:0, got:" << r << " on " #cmd << std::endl; \
-        exit(65); \
-    }}
+#define FLOP(n) (n)
+#define TURN    FLOP(2)+1
+#define RIVER   FLOP(2)+2
 
 void the_happy_path() {
-    std::cout << "---- " TEST_SUITE_NAME << " - the_happy_path" << std::endl;
     player alice(ALICE);
+    assert_eql(SUCCESS, alice.init(100, 100, 10));
+    assert_eql(-1, alice.winner());
+    assert_eql(uk, alice.private_card(0));
+    assert_eql(uk, alice.private_card(1));
+    assert_eql(uk, alice.opponent_card(0));
+    assert_eql(uk, alice.opponent_card(1));
+    assert_eql(uk, alice.public_card(FLOP(0)));
+    assert_eql(uk, alice.public_card(FLOP(1)));
+    assert_eql(uk, alice.public_card(FLOP(2)));
+    assert_eql(uk, alice.public_card(TURN));
+    assert_eql(uk, alice.public_card(RIVER));
+
     player bob(BOB);
-    ASSERT(alice.init_game(100,100,10));
-    ASSERT(bob.init_game(100,100,10));
-    blob vtmf;
-    ASSERT(alice.create_vtmf(vtmf));
-    ASSERT(bob.load_vtmf(vtmf));
-    
-    blob alice_key, bob_key;
-    ASSERT(alice.generate_key(alice_key));
-    ASSERT(bob.generate_key(bob_key));
-    ASSERT(bob.load_opponent_key(alice_key));
-    ASSERT(alice.load_opponent_key(bob_key));
+    assert_eql(SUCCESS, bob.init(100, 100, 10));
+    assert_eql(-1, bob.winner());
+    assert_eql(uk, bob.private_card(0));
+    assert_eql(uk, bob.private_card(1));
+    assert_eql(uk, bob.opponent_card(0));
+    assert_eql(uk, bob.opponent_card(1));
+    assert_eql(uk, bob.public_card(FLOP(0)));
+    assert_eql(uk, bob.public_card(FLOP(1)));
+    assert_eql(uk, bob.public_card(FLOP(2)));
+    assert_eql(uk, bob.public_card(TURN));
+    assert_eql(uk, bob.public_card(RIVER));
 
-    blob vsshe;
-    ASSERT(alice.create_vsshe(vsshe));
-    ASSERT(bob.load_vsshe(vsshe));
+    std::map<int, blob> msg; // messages exchanged during game
 
-    blob alice_mix, alice_proof, bob_mix, bob_proof;
-    ASSERT(alice.shuffle_stack(alice_mix, alice_proof));
-    ASSERT(bob.load_stack(alice_mix, alice_proof));
-    ASSERT(bob.shuffle_stack(bob_mix, bob_proof));   
-    ASSERT(alice.load_stack(bob_mix, bob_proof));
+    // Start handshake
+    assert_eql(SUCCESS, alice.create_handshake(msg[0]));
+    assert_eql(CONTINUED, bob.process_handshake(msg[0], msg[1]));
+    assert_eql(CONTINUED, alice.process_handshake(msg[1], msg[2]));
+    assert_eql(CONTINUED, bob.process_handshake(msg[2], msg[3]));
+    assert_eql(SUCCESS, alice.process_handshake(msg[3], msg[4]));
+    assert_eql(SUCCESS, bob.process_handshake(msg[4], msg[5]));
+    assert_eql(true, msg[5].empty());
+    // Handhsake finished
+    assert_neq(uk, alice.private_card(0));
+    assert_neq(uk, alice.private_card(1));
+    assert_neq(uk, bob.private_card(0));
+    assert_neq(uk, bob.private_card(1));
 
-    ASSERT(alice.deal_cards());
-    ASSERT(bob.deal_cards());
+    // Start betting rounds
+    assert_eql(ALICE, alice.current_player());
+    assert_eql(ALICE, bob.current_player());
+    assert_eql(game_step::PREFLOP_BET, alice.step());
+    assert_eql(game_step::PREFLOP_BET, bob.step());
 
-    blob alice_private_proofs, bob_private_proofs;
-    ASSERT(bob.prove_opponent_cards(alice_private_proofs));
-    ASSERT(alice.open_private_cards(alice_private_proofs));
-    std::cout << "### ALICE PRIVATE CARD[0]=" << alice.private_card(0) << std::endl;
-    std::cout << "### ALICE PRIVATE CARD[1]=" << alice.private_card(1) << std::endl;
-    
-    ASSERT(alice.prove_opponent_cards(bob_private_proofs));
-    ASSERT(bob.open_private_cards(bob_private_proofs));
-    std::cout << "### BOB PRIVATE CARD[0]=" << bob.private_card(0) << std::endl;
-    std::cout << "### BOB PRIVATE CARD[1]=" << bob.private_card(1) << std::endl;
+    // Preflop: Alice calls
+    assert_eql(CONTINUED, alice.create_bet(BET_CALL, 0, msg[5]));
+    assert_eql(game_step::OPEN_FLOP, alice.step()); // waiting card proofs
+    assert_eql(SUCCESS, bob.process_bet(msg[5], msg[6]));
+    assert_neq(uk, bob.public_card(FLOP(0)));
+    assert_neq(uk, bob.public_card(FLOP(1)));
+    assert_neq(uk, bob.public_card(FLOP(2)));
+    assert_eql(SUCCESS, alice.process_bet(msg[6], msg[7]));
+    assert_eql(true, msg[7].empty());
+    assert_neq(uk, alice.public_card(FLOP(0)));
+    assert_neq(uk, alice.public_card(FLOP(1)));
+    assert_neq(uk, alice.public_card(FLOP(2)));
 
-    blob bob_public_proofs, alice_public_proofs;
-    ASSERT(bob.prove_public_cards(bob_public_proofs));
-    ASSERT(alice.open_public_cards(bob_public_proofs));
-    for(auto i=0; i<NUM_PUBLIC_CARDS; i++)
-        std::cout << "### ALICE PUBLIC CARD[" << i << "]=" << alice.public_card(i) << std::endl;
+    assert_eql(game_step::FLOP_BET, alice.step());
+    assert_eql(game_step::FLOP_BET, bob.step());
+    assert_eql(BOB, alice.current_player());
+    assert_eql(BOB, bob.current_player());
 
-    ASSERT(alice.prove_public_cards(alice_public_proofs));
-    ASSERT(bob.open_public_cards(alice_public_proofs));
-    for(auto i=0; i<NUM_PUBLIC_CARDS; i++)
-        std::cout << "### BOB PUBLIC CARD[" << i << "]=" << bob.public_card(i) << std::endl;
+    // Flop: Bob checks
+    assert_eql(SUCCESS, bob.create_bet(BET_CHECK, 0, msg[7]));
+    assert_eql(SUCCESS, alice.process_bet(msg[7], msg[8]));
+    assert_eql(true, msg[8].empty());
+    assert_eql(game_step::FLOP_BET, alice.step());
+    assert_eql(game_step::FLOP_BET, bob.step());
+    assert_eql(ALICE, alice.current_player());
+    assert_eql(ALICE, bob.current_player());
 
-    blob alice_private_proofs2, bob_public_proofs2;
-    ASSERT(bob.prove_my_cards(bob_public_proofs2));
-    ASSERT(alice.open_opponent_cards(bob_public_proofs2));
-    ASSERT(alice.prove_my_cards(alice_private_proofs2));
-    ASSERT(bob.open_opponent_cards(alice_private_proofs2));
+    // Flop: Alice checks
+    assert_eql(CONTINUED, alice.create_bet(BET_CHECK, 0, msg[8]));
+    assert_eql(SUCCESS, bob.process_bet(msg[8], msg[9]));
+    assert_neq(uk, bob.public_card(TURN));
+    assert_eql(SUCCESS, alice.process_bet(msg[9], msg[10]));
+    assert_neq(uk, alice.public_card(TURN));
+    assert_eql(true, msg[10].empty());
+    assert_eql(game_step::TURN_BET, alice.step());
+    assert_eql(game_step::TURN_BET, bob.step());
+    assert_eql(BOB, alice.current_player());
+    assert_eql(BOB, bob.current_player());
 
+    // Turn: Bob raises
+    assert_eql(SUCCESS, bob.create_bet(BET_RAISE, 0, msg[10]));
+    assert_eql(SUCCESS, alice.process_bet(msg[10], msg[11]));
+    assert_eql(true, msg[11].empty());
+    assert_eql(game_step::TURN_BET, alice.step());
+    assert_eql(game_step::TURN_BET, bob.step());
+    assert_eql(ALICE, alice.current_player());
+    assert_eql(ALICE, bob.current_player());
+
+
+    // Turn: Alice raises
+    assert_eql(SUCCESS, alice.create_bet(BET_RAISE, 0, msg[11]));
+    assert_eql(SUCCESS, bob.process_bet(msg[11], msg[12]));
+    assert_eql(true, msg[12].empty());
+    assert_eql(game_step::TURN_BET, alice.step());
+    assert_eql(game_step::TURN_BET, bob.step());
+    assert_eql(BOB, alice.current_player());
+    assert_eql(BOB, bob.current_player());
+
+    // Turn: Bob calls
+    assert_eql(CONTINUED, bob.create_bet(BET_CALL, 0, msg[12]));
+    assert_eql(SUCCESS, alice.process_bet(msg[12], msg[13]));
+    assert_neq(uk, alice.public_card(RIVER));
+    assert_eql(RIVER_BET, alice.step());
+    assert_eql(SUCCESS, bob.process_bet(msg[13], msg[14]));
+    assert_neq(uk, bob.public_card(RIVER));
+    assert_eql(true, msg[14].empty());
+    assert_eql(game_step::RIVER_BET, bob.step());
+    assert_eql(BOB, alice.current_player());
+    assert_eql(BOB, bob.current_player());
+
+    // River: Bob checks
+    assert_eql(SUCCESS, bob.create_bet(BET_CHECK, 0, msg[14]));
+    assert_eql(SUCCESS, alice.process_bet(msg[14], msg[15]));
+    assert_eql(true, msg[15].empty());
+    assert_eql(game_step::RIVER_BET, alice.step());
+    assert_eql(game_step::RIVER_BET, bob.step());
+    assert_eql(ALICE, alice.current_player());
+    assert_eql(ALICE, bob.current_player());
+
+    // River: Alice checks -> GAME OVER
+    assert_eql(CONTINUED, alice.create_bet(BET_CHECK, 0, msg[15]));
+    assert_eql(SUCCESS, bob.process_bet(msg[15], msg[16]));
+    assert_eql(SUCCESS, alice.process_bet(msg[16], msg[17]));
+    assert_eql(true, msg[17].empty());
+
+    assert_eql(game_step::GAME_OVER, alice.step());
+    assert_neq(uk, alice.opponent_card(0));
+    assert_neq(uk, alice.opponent_card(1));
+    assert_eql(game_step::GAME_OVER, bob.step());
+    assert_neq(uk, bob.opponent_card(0));
+    assert_neq(uk, bob.opponent_card(1));
+    assert_neq(-1, alice.winner());
+    assert_neq(-1, bob.winner());
+    assert_eql(alice.winner(), bob.winner());
+
+    std::stringstream ss;
+    for(auto&& i: msg) {
+        assert_eql(0, i.second.size() % padding_size);
+        ss << i.second.get_data();
+    }
+
+    poker::verifier v;
+    v.verify(ss);
+
+    /*
+    // SAVE GAME LOG
+    auto qs = ss.str();
+    FILE *fp = fopen("test-game-data.bin","w");
+    fwrite(qs.c_str(), qs.size(),1, fp);
+    fclose(fp);
+    */
 }
-
 
 int main(int argc, char** argv) {
     the_happy_path();
