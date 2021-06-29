@@ -2,7 +2,7 @@
 
 Decentralized Texas Hold'em poker game using Cartesi.
 
-## Getting Started
+## Getting started
 
 This project is divided into four sub-modules:
 - [blockhain](blockchain/README.md): holds the smart contracts and blockchain deployment  configurations

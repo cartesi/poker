@@ -2,7 +2,7 @@
 
 Auxiliary web application to provide a faucet for POKER tokens used in the [Texas HODL'em Poker project](../README.md).
 
-## Getting Started
+## Getting started
 
 To interact with the project's smart contracts, the `Descartes Environment` should be set up as defined in the [general README.md](../README.md#Environment).
 

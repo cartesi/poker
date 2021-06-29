@@ -1,8 +1,8 @@
 # Poker Blockchain
 
-Smart contracts for the Poker game
+Smart contracts for the [Texas HODL'em Poker](../README.md) game.
 
-## Getting Started
+## Getting started
 
 The `Descartes Environment` should be set up as defined in the [general README.md](../README.md#Environment).
 
@@ -59,9 +59,9 @@ $ npx hardhat --network localhost confirm-result --player bob --index 1
 
 At any time, a game can be _challenged_ by any one of the players by calling the `challengeGame` method of the [TurnBasedGame](contracts/TurnBasedGame.sol) contract. That situation can be simulated in the command line by using the `challenge-game` task.
 
-When a game is challenged, a Descartes computation is triggered to determine the final outcome of the game. This computation will use the _machine template hash_ defined when the game was started. In the command line, this can be configured by defining the `--hash` option when using the `start-game` task.
+When a game is challenged, a Descartes computation is triggered to determine the final outcome of the game. This computation to run will be determined by the _machine template hash_ that was specified when the game was started. In the command line, this can be configured by defining the `--hash` option when using the `start-game` task.
 
-For the Descartes verification to work, the Cartesi Machine corresponding to the specified hash must be present inside the Descartes Environment's [machines](descartes-env/machines) directory. This machine basically encapsulates the logic of the application and is capable of defining the correct result given the input data provided by Descartes.
+For the Descartes verification to work, the Cartesi Machine corresponding to the specified hash must be present inside the Descartes Environment's [machines](descartes-env/machines) directory. This machine basically encapsulates the logic of the application and is capable of defining the correct result given the input data provided by Descartes. In the case of the TurnBasedGame contract, this input data will correspond to the game's parameters along with the full log of the data exchanged between the players.
 
 At the moment, you can experiment with a mock Verifier Cartesi Machine by issuing the following commands:
 ```bash
@@ -71,6 +71,6 @@ $ ./build-cartesi-machine.sh ../../descartes-env/machines
 
 This will build the mock machine template and place it inside the appropriate `machines` directory within the Descartes Environment.
 
-When Descartes reaches its final state (e.g., "ConsensusResult"), a `DescartesFinished` event is emitted. The computed outcome can then be made effective by calling [TurnBasedGame](contracts/TurnBasedGame.sol)'s `applyVerificationResult` method. In the command line, that can be achieved by calling the `apply-result` task.
+When Descartes reaches its final state (e.g., "ConsensusResult"), a `DescartesFinished` event is emitted. The computed outcome can then be made effective by calling TurnBasedGame's `applyVerificationResult` method. In the command line, that can be achieved by calling the `apply-result` task.
 
 **NOTE**: the `start-game` and `join-game` tasks currently use the mock verifier machine's template hash as default

@@ -2,7 +2,7 @@
 
 Web application for the [Texas HODL'em Poker project](../README.md), representing the front-end that users will access to play the game.
 
-## Getting Started
+## Getting started
 
 To interact with the project's smart contracts, the `Descartes Environment` should be set up as defined in the [general README.md](../README.md#Environment).
 
