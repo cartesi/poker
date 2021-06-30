@@ -38,4 +38,13 @@ $(BUILD_BASE):
 toolchain:
 	docker build -t $(IMGNAME):$(TAG) .
 
+LIBSCLEAN := $(addsuffix .clean,$(LIBS))
+
+clean: $(LIBSCLEAN)
+	rm -rf build
+
+$(LIBSCLEAN): %.clean:
+	$(MAKE) -C $* clean
+
+
 .PHONY: shell $(LIBS)

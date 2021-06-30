@@ -37,4 +37,12 @@ $(BUILD_BASE):
 toolchain:
 	docker build -t $(IMGNAME):$(TAG) .
 
+LIBSCLEAN := $(addsuffix .clean,$(LIBS))
+
+clean: $(LIBSCLEAN)
+	rm -rf build
+
+$(LIBSCLEAN): %.clean:
+	$(MAKE) -C $* clean
+
 .PHONY: shell $(LIBS) run-hello run-poker-lib-sample run-poker-lib-js-sample run-server
