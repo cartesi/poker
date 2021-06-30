@@ -55,28 +55,28 @@ export enum BetType {
 }
 
 export interface Game {
-    start(onComplete?: () => any);
-    call(onComplete?: () => any);
-    check(onComplete?: () => any);
-    fold(onComplete?: () => any);
-    raise(amount: number, onComplete?: () => any);
+    start(): Promise<void>;
+    call(): Promise<void>;
+    check(): Promise<void>;
+    fold(): Promise<void>;
+    raise(amount: number): Promise<void>;
 
     cheat: {
         switchCards: (card1: number, card2: number) => any;
         toggleCardCooperation: () => any;
     };
 
-    getPlayerCards();
-    getOpponentCards();
-    getCommunityCards();
-    getPlayer();
-    getPlayerFunds();
-    getOpponentFunds();
-    getPlayerBets();
-    getOpponentBets();
-    getState(): GameState;
-    getVerificationState(): VerificationState;
-    getResult();
+    getPlayerCards(): Promise<any>;
+    getOpponentCards(): Promise<any>;
+    getCommunityCards(): Promise<any>;
+    getPlayer(): Promise<any>;
+    getPlayerFunds(): Promise<any>;
+    getOpponentFunds(): Promise<any>;
+    getPlayerBets(): Promise<any>;
+    getOpponentBets(): Promise<any>;
+    getState(): Promise<GameState>;
+    getVerificationState(): Promise<VerificationState>;
+    getResult(): Promise<any>;
 }
 
 export class GameFactory {
