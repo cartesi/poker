@@ -17,10 +17,10 @@ export class PokerSolverJs {
         winners: Array<boolean>;
     } {
         const handsStr = hands.map(PokerSolverJs.getCardsAsStrings);
-        const handsSolved: Array<Hand> = handsStr.map(Hand.solve);
-        const winningHands: Array<Hand> = Hand.winners(handsSolved);
-        const bestHands: Array<Array<Card>> = handsSolved.map((h) => h.cards);
-        const bestHandsDescriptions: Array<string> = handsSolved.map((h) => h.descr);
+        const handsSolved: Array<Hand> = handsStr.map(PokerSolverJs.solveHand);
+        const winningHands: Array<Hand> = Hand.winners(handsSolved.filter(Boolean));
+        const bestHands: Array<Array<Card>> = handsSolved.map((h) => (h ? h.cards : []));
+        const bestHandsDescriptions: Array<string> = handsSolved.map((h) => (h ? h.descr : ""));
 
         const result = {
             bestHands: bestHands.map(PokerSolverJs.getCardsAsTuples),
@@ -32,13 +32,26 @@ export class PokerSolverJs {
     }
 
     /**
+     * Solves a single hand using the "pokersolver" javascript library
+     * @param cards an array of string representations of cards, such as "As" for the ace of spades.
+     * @returns a "pokersolver" solved Hand instance, or `undefined` if no cards were given as input.
+     */
+    public static solveHand(cards: Array<string>): Hand {
+        if (cards && cards.length) {
+            return Hand.solve(cards);
+        } else {
+            return undefined;
+        }
+    }
+
+    /**
      * Converts an array of cards as `<value, suit>` tuples into an array of cards using a string representation
      * suitable for use in the "pokersolver" javascript library.
      * @param cards an array of <value, suit>` tuples as numbers, such <0,3> for the ace of spades.
      * @returns an array of string representations of cards, such as "As" for the ace of spades.
      */
     public static getCardsAsStrings(cards: Array<{ value: number; suit: number }>): Array<string> {
-        return cards.filter((c) => (c ? true : false)).map(PokerSolverJs.getCardAsString);
+        return cards.filter(Boolean).map(PokerSolverJs.getCardAsString);
     }
 
     /**
@@ -47,7 +60,7 @@ export class PokerSolverJs {
      * @returns an array of <value, suit>` tuples as numbers, such <0,3> for the ace of spades.
      */
     public static getCardsAsTuples(cards: Array<Card>): Array<{ value: number; suit: number }> {
-        return cards.filter((c) => (c ? true : false)).map(PokerSolverJs.getCardAsTuple);
+        return cards.filter(Boolean).map(PokerSolverJs.getCardAsTuple);
     }
 
     /**
