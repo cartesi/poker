@@ -1,8 +1,8 @@
 import { GameVars } from "../../../GameVars";
 import { RoomManager } from "../RoomManager";
 import { Card } from "./Card";
-import {Hand} from "pokersolver";
 import { AudioManager } from "../../../AudioManager";
+import { PokerSolver } from "../../../services/PokerSolver";
 
 export class Player extends Phaser.GameObjects.Container {
 
@@ -215,17 +215,12 @@ export class Player extends Phaser.GameObjects.Container {
 
     public setHand(): void {
 
-        let auxCards = (this.isPlayer ? RoomManager.getPlayerCards() : RoomManager.getOpponentCards()).concat(RoomManager.getCommunityCards());
-        let cards = [];
-        for (let i = 0; i < auxCards.length; i++) {
-            if (auxCards[i]) {
-                cards.push(this.getCardString(auxCards[i]));
-            }
-        }
+        let cards = (this.isPlayer ? RoomManager.getPlayerCards() : RoomManager.getOpponentCards()).concat(RoomManager.getCommunityCards());
 
-        if (cards.length) {
-            var hand = Hand.solve(cards);
-            this.hand.setText(hand.descr);
+        let result = PokerSolver.solve([cards]);
+
+        if (result.bestHandsDescriptions && result.bestHandsDescriptions[0]) {
+            this.hand.setText(result.bestHandsDescriptions[0]);
         } else {
             this.hand.setText("");
         }
