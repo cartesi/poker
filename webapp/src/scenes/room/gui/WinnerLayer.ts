@@ -48,7 +48,7 @@ export class WinnerLayer extends Phaser.GameObjects.Container {
                 let card = new Card(this.scene, -130 + 65 * i, -55);
                 card.alpha = 0;
                 card.setScale(.55);
-                card.setValue(RoomManager.getCardSuitValue(winnerHand[i]));
+                card.setValue(winnerHand[i]);
                 this.add(card);
     
                 this.scene.tweens.add({

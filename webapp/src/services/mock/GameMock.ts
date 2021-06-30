@@ -1,4 +1,5 @@
 import { BetType, Game, GameState, GameStates, VerificationState, VerificationStates } from "../Game";
+import { PokerSolver } from "../PokerSolver";
 import { TurnBasedGame } from "../TurnBasedGame";
 
 // involved players
@@ -158,7 +159,7 @@ export class GameMock implements Game {
 
     getPlayerCards() {
         if (!this.deck) {
-            return ["?", "?"];
+            return ["?", "?"].map(PokerSolver.getCardSuitValue);
         }
         let cards = [];
         if (this.cheat.didSwitchCards) {
@@ -170,12 +171,12 @@ export class GameMock implements Game {
             cards.push(this._getCard(2));
             cards.push(this._getCard(3));
         }
-        return cards;
+        return cards.map(PokerSolver.getCardSuitValue);
     }
 
     getOpponentCards() {
         if (!this.deck) {
-            return ["?", "?"];
+            return ["?", "?"].map(PokerSolver.getCardSuitValue);
         }
         let cards = [];
         if (this.opponent == ALICE) {
@@ -185,12 +186,12 @@ export class GameMock implements Game {
             cards.push(this._getCard(2));
             cards.push(this._getCard(3));
         }
-        return cards;
+        return cards.map(PokerSolver.getCardSuitValue);
     }
 
     getCommunityCards() {
         if (!this.deck) {
-            return ["?", "?", "?", "?", "?"];
+            return ["?", "?", "?", "?", "?"].map(PokerSolver.getCardSuitValue);
         }
         let cards = [];
         cards.push(this._getCard(4));
@@ -198,7 +199,7 @@ export class GameMock implements Game {
         cards.push(this._getCard(6));
         cards.push(this._getCard(7));
         cards.push(this._getCard(8));
-        return cards;
+        return cards.map(PokerSolver.getCardSuitValue);
     }
 
     getPlayer() {
@@ -565,22 +566,13 @@ export class GameMock implements Game {
         if (this.state != GameState.SHOWDOWN && this.state != GameState.END) {
             return;
         }
-        const hands = this._computeHands();
-        let playerScore = hands[this.player].reduce((total, card) => Number.parseInt(total) + Number.parseInt(card), 0);
-        let opponentScore = hands[this.opponent].reduce(
-            (total, card) => Number.parseInt(total) + Number.parseInt(card),
-            0
-        );
-
-        const isWinner = Array(2);
-        isWinner[this.player] = playerScore >= opponentScore;
-        isWinner[this.opponent] = opponentScore >= playerScore;
+        const result = this._computePokerResult();
 
         const fundsShare = Array(2);
-        if (playerScore == opponentScore) {
+        if (result.winners[this.player] && result.winners[this.opponent]) {
             fundsShare[this.player] = this.playerFunds;
             fundsShare[this.opponent] = this.opponentFunds;
-        } else if (playerScore > opponentScore) {
+        } else if (result.winners[this.player]) {
             fundsShare[this.player] = this.playerFunds + this.opponentBets;
             fundsShare[this.opponent] = this.opponentFunds - this.opponentBets;
         } else {
@@ -588,7 +580,7 @@ export class GameMock implements Game {
             fundsShare[this.opponent] = this.opponentFunds + this.playerBets;
         }
 
-        this.result = { isWinner, fundsShare, hands };
+        this.result = { isWinner: result.winners, fundsShare, hands: result.bestHands };
     }
 
     _computeResultPlayerFold() {
@@ -598,7 +590,7 @@ export class GameMock implements Game {
         const fundsShare = Array(2);
         fundsShare[this.player] = this.playerFunds - this.playerBets;
         fundsShare[this.opponent] = this.opponentFunds + this.playerBets;
-        const hands = this._computeHands();
+        const hands = this._computePokerResult().bestHands;
         this.result = { isWinner, fundsShare, hands };
     }
 
@@ -609,7 +601,7 @@ export class GameMock implements Game {
         const fundsShare = Array(2);
         fundsShare[this.player] = this.playerFunds + this.opponentBets;
         fundsShare[this.opponent] = this.opponentFunds - this.opponentBets;
-        const hands = this._computeHands();
+        const hands = this._computePokerResult().bestHands;
         this.result = { isWinner, fundsShare, hands };
     }
 
@@ -627,23 +619,23 @@ export class GameMock implements Game {
         const fundsShare = Array(2);
         fundsShare[winner] = winnerFunds;
         fundsShare[loser] = 0;
-        const hands = this._computeHands();
+        const hands = this._computePokerResult().bestHands;
         this.result = { isWinner, fundsShare, hands };
     }
 
-    _computeHands() {
+    _computePokerResult() {
         const hands = Array(2);
         const communityCards = this.getCommunityCards();
-        if (communityCards.includes("?")) {
-            return hands;
+        if (!communityCards.includes(null)) {
+            const playerHand = this.getPlayerCards().concat(communityCards);
+            const opponentHand = this.getOpponentCards().concat(communityCards);
+            hands[this.player] = playerHand;
+            if (!opponentHand.includes(null)) {
+                hands[this.opponent] = opponentHand;
+            }
         }
-        const playerHand = this.getPlayerCards().concat(communityCards.slice(0, 3));
-        const opponentHand = this.getOpponentCards().concat(communityCards.slice(0, 3));
-        hands[this.player] = playerHand;
-        if (!opponentHand.includes("?")) {
-            hands[this.opponent] = opponentHand;
-        }
-        return hands;
+        const result = PokerSolver.solve(hands);
+        return result;
     }
 
     _isCheater() {

@@ -32,4 +32,18 @@ export class PokerSolver {
             throw `Unknown engine configuration '${impl}'!`;
         }
     }
+
+    /**
+     * Returns a card representation as a tuple <value, suit>
+     * @param card an index from 0 to 51, or `?` for an unknown card
+     * @returns a `<value, suit>` tuple as numbers, such <0,3> for the ace of spades.
+     */
+    public static getCardSuitValue(card: string): {value: number, suit: number} {
+
+        if (card === "?") {
+            return null;
+        }
+
+        return {value: parseInt(card) % 13, suit: Math.floor(parseInt(card) / 13)};
+    }
 }

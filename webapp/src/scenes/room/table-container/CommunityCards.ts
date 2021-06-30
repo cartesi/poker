@@ -57,7 +57,7 @@ export class CommunityCards extends Phaser.GameObjects.Container {
         if (winnerHand && winnerHand.length) {
 
             for (let i = 0; i < winnerHand.length; i++) {
-                let winnerHandCard = RoomManager.getCardSuitValue(winnerHand[i]);
+                let winnerHandCard = winnerHand[i];
                 for (let j = 0; j < this.cards.length; j++) {
                     if (winnerHandCard.value === this.cards[j].info.value && winnerHandCard.suit === this.cards[j].info.suit) {
                         this.cards[j].showMark();

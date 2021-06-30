@@ -91,9 +91,7 @@ export class RoomManager {
 
     public static getPlayerCards(): {value: number, suit: number}[] {
 
-        let cards: string[] = RoomManager.game.getPlayerCards();
-
-        return cards.map(RoomManager.getCardSuitValue);
+        return RoomManager.game.getPlayerCards();
     }
 
     public static switchPlayerCards(card1: number, card2: number): void {
@@ -110,16 +108,12 @@ export class RoomManager {
 
     public static getOpponentCards(): {value: number, suit: number}[] {
 
-        let cards: string[] = RoomManager.game.getOpponentCards();
-
-        return cards.map(RoomManager.getCardSuitValue);
+        return RoomManager.game.getOpponentCards();
     }
 
     public static getCommunityCards(): {value: number, suit: number}[] {
 
-        let cards: string[] = RoomManager.game.getCommunityCards();
-
-        return cards.map(RoomManager.getCardSuitValue);
+        return RoomManager.game.getCommunityCards();
     }
 
     public static getMaxRaise(): number {
@@ -225,15 +219,6 @@ export class RoomManager {
 
         AudioManager.playSound("btn_click");
     } 
-
-    public static getCardSuitValue(card: string): {value: number, suit: number} {
-
-        if (card === "?") {
-            return null;
-        }
-
-        return {value: parseInt(card) % 13, suit: Math.floor(parseInt(card) / 13)};
-    }
 
     public static onClickNext(): void {
 
