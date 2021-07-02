@@ -210,7 +210,7 @@ export class GameFactory {
     }
 
     private static onOpponentAutomaticBet(game) {
-        setTimeout(() => {
+        setTimeout(async () => {
             if (!game.gameOpponent) {
                 return;
             }
@@ -220,14 +220,14 @@ export class GameFactory {
                 let choice = choices[i];
                 try {
                     if (choice === 0) {
-                        game.gameOpponent.call();
+                        await game.gameOpponent.call();
                     } else if (choice === 1) {
-                        game.gameOpponent.check();
+                        await game.gameOpponent.check();
                     } else if (choice === 2) {
-                        game.gameOpponent.fold();
+                        await game.gameOpponent.fold();
                     } else if (choice === 3) {
                         let amount = Math.floor(Math.random() * 5);
-                        game.gameOpponent.raise(amount);
+                        await game.gameOpponent.raise(amount);
                     }
                     break;
                 } catch (e) {

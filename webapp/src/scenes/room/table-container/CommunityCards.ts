@@ -74,9 +74,9 @@ export class CommunityCards extends Phaser.GameObjects.Container {
         }
     }
 
-    public setCards(): void {
+    public async setCards(): Promise<void> {
 
-        let cards = RoomManager.getCommunityCards();
+        let cards = await RoomManager.getCommunityCards();
 
         for (let i = 0; i < 5; i++) {
             this.cards[i].showCard(cards[i], i * 100 + 1000);

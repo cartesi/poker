@@ -24,19 +24,23 @@ export class WinnerLayer extends Phaser.GameObjects.Container {
             duration: 500,
         });
 
-        let text = "DRAW!";
+        let text = "";
         let winnerHand = [];
 
-        if (endData.isWinner[GameVars.playerIndex]) {
+        const isPlayerWinner = endData.isWinner[GameVars.playerIndex];
+        const isOpponentWinner = endData.isWinner[GameVars.opponentIndex];
+        const playerHand = (endData.hands && endData.hands[GameVars.playerIndex]) ? endData.hands[GameVars.playerIndex] : [];
+        const opponentHand = (endData.hands && endData.hands[GameVars.opponentIndex]) ? endData.hands[GameVars.opponentIndex] : [];
+
+        if (isPlayerWinner && isOpponentWinner) {
+            text = "IT'S A TIE!";
+            winnerHand = playerHand;
+        } else if (isPlayerWinner) {
             text = "PLAYER WON!";
-            if (endData.hands && endData.hands[GameVars.playerIndex]) {
-                winnerHand = endData.hands[GameVars.playerIndex];
-            } 
-        } else if (endData.isWinner[GameVars.opponentIndex]) {
+            winnerHand = playerHand;
+        } else {
             text = "OPPONENT WON!";
-            if (endData.hands && endData.hands[GameVars.opponentIndex]) {
-                winnerHand = endData.hands[GameVars.opponentIndex];
-            }
+            winnerHand = opponentHand;
         }
 
         let title = new Phaser.GameObjects.Text(this.scene, 0, -122, text, {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#FFFFFF"});

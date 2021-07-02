@@ -138,9 +138,9 @@ export class Player extends Phaser.GameObjects.Container {
         }
     }
 
-    public distributeFirstCards(): void {
+    public async distributeFirstCards(): Promise<void> {
 
-        let cards = this.isPlayer ? RoomManager.getPlayerCards() : RoomManager.getOpponentCards();
+        let cards = this.isPlayer ? await RoomManager.getPlayerCards() : await RoomManager.getOpponentCards();
 
         this.cards[0].setValue(cards[0]);
         this.cards[1].setValue(cards[1]);
@@ -180,9 +180,9 @@ export class Player extends Phaser.GameObjects.Container {
         });
     }
 
-    public showCards(): void {
+    public async showCards(): Promise<void> {
 
-        let cards = this.isPlayer ? RoomManager.getPlayerCards() : RoomManager.getOpponentCards();
+        let cards = this.isPlayer ? await RoomManager.getPlayerCards() : await RoomManager.getOpponentCards();
 
         this.cards[0].showCard(cards[0], 0);
         this.cards[1].showCard(cards[1], 0);
@@ -196,26 +196,29 @@ export class Player extends Phaser.GameObjects.Container {
         this.setCards();
     }
 
-    public setCards(): void {
+    public async setCards(): Promise<void> {
 
-        let cards = this.isPlayer ? RoomManager.getPlayerCards() : RoomManager.getOpponentCards();
+        let cards = this.isPlayer ? await RoomManager.getPlayerCards() : await RoomManager.getOpponentCards();
 
         this.cards[0].setValue(cards[0]);
         this.cards[1].setValue(cards[1]);
     }
 
-    public setFunds(): void {
+    public async setFunds(): Promise<void> {
 
         if (this.showingBet) {
             return;
         }
-
-        this.funds.text = (this.isPlayer ? (RoomManager.getPlayerFunds() - RoomManager.getPlayerBets()).toString() : (RoomManager.getOpponentFunds() - RoomManager.getOpponentBets()).toString());
+        const playerFunds = await RoomManager.getPlayerFunds();
+        const playerBets = await RoomManager.getPlayerBets();
+        const opponentFunds = await RoomManager.getOpponentFunds();
+        const opponentBets = await RoomManager.getOpponentBets();
+        this.funds.text = (this.isPlayer ? (playerFunds - playerBets).toString() : (opponentFunds - opponentBets).toString());
     }
 
-    public setHand(): void {
+    public async setHand(): Promise<void> {
 
-        let cards = (this.isPlayer ? RoomManager.getPlayerCards() : RoomManager.getOpponentCards()).concat(RoomManager.getCommunityCards());
+        let cards = (this.isPlayer ? await RoomManager.getPlayerCards() : await RoomManager.getOpponentCards()).concat(await RoomManager.getCommunityCards());
 
         let result = PokerSolver.solve([cards]);
 
@@ -237,11 +240,13 @@ export class Player extends Phaser.GameObjects.Container {
         }, 2000);
     }
 
-    public setBet(): void {
+    public async setBet(): Promise<void> {
 
         this.betContainer.visible = true;
 
-        let newBet = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
+        const playerBets = await RoomManager.getPlayerBets();
+        const opponentBets = await RoomManager.getOpponentBets();
+        let newBet = this.isPlayer ? playerBets.toString() : opponentBets.toString();
 
         if (newBet.toString() !== this.bet.text) {
             
@@ -272,7 +277,7 @@ export class Player extends Phaser.GameObjects.Container {
                 duration: 200,
                 onComplete: () => {
 
-                    this.bet.text = this.isPlayer ? RoomManager.getPlayerBets().toString() : RoomManager.getOpponentBets().toString();
+                    this.bet.text = this.isPlayer ? playerBets.toString() : opponentBets.toString();
     
                     this.betBck.clear();
                     this.betBck.fillStyle(0x000000, .5);

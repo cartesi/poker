@@ -11,7 +11,10 @@ export class RaiseButton extends Phaser.GameObjects.Container {
     constructor(scene: Phaser.Scene, x: number, scaleX: number) {
 
         super(scene);
+        this.init(x, scaleX);
+    }
 
+    private async init(x: number, scaleX: number): Promise<void> {
         this.setPosition(x, 0);
 
         let bckImage = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "btn_raise");
@@ -30,7 +33,7 @@ export class RaiseButton extends Phaser.GameObjects.Container {
         icon.setOrigin(0, .5);
         this.add(icon);
 
-        this.raiseValue = new Phaser.GameObjects.Text(this.scene, icon.x + icon.width + 30, -42, " " + (RoomManager.getOpponentBets() + GameVars.raiseValue  - RoomManager.getPlayerBets()).toString() + " ", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
+        this.raiseValue = new Phaser.GameObjects.Text(this.scene, icon.x + icon.width + 30, -42, " " + (await RoomManager.getOpponentBets() + GameVars.raiseValue  - await RoomManager.getPlayerBets()).toString() + " ", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
         this.raiseValue.setOrigin(.5);
         this.raiseValue.setShadow(1, 1, "#000000", 5);
         this.add(this.raiseValue);
@@ -39,7 +42,7 @@ export class RaiseButton extends Phaser.GameObjects.Container {
         this.add(this.raiseSlider);
     }
 
-    public onMinusDown(): void {
+    public async onMinusDown(): Promise<void> {
 
         AudioManager.playSound("btn_click");
 
@@ -49,28 +52,28 @@ export class RaiseButton extends Phaser.GameObjects.Container {
             GameVars.raiseValue = 1;
         }
 
-        this.raiseValue.text = " " + (RoomManager.getOpponentBets() + GameVars.raiseValue - RoomManager.getPlayerBets()).toString() + " ";
+        this.raiseValue.text = " " + (await RoomManager.getOpponentBets() + GameVars.raiseValue - await RoomManager.getPlayerBets()).toString() + " ";
         this.raiseSlider.updateMarker();
     }
 
-    public onPlusDown(): void {
+    public async onPlusDown(): Promise<void> {
 
         AudioManager.playSound("btn_click");
 
         GameVars.raiseValue ++;
 
-        if (GameVars.raiseValue > RoomManager.getMaxRaise()) {
+        if (GameVars.raiseValue > await RoomManager.getMaxRaise()) {
             GameVars.raiseValue = 1;
         }
 
-        this.raiseValue.text = " " + (RoomManager.getOpponentBets() + GameVars.raiseValue  - RoomManager.getPlayerBets()).toString() + " ";
+        this.raiseValue.text = " " + (await RoomManager.getOpponentBets() + GameVars.raiseValue - await RoomManager.getPlayerBets()).toString() + " ";
         this.raiseSlider.updateMarker();
     }
 
-    public updateRaiseValue(value: number) {
+    public async updateRaiseValue(value: number): Promise<void> {
 
         GameVars.raiseValue = value;
-        this.raiseValue.text = " " + (RoomManager.getOpponentBets() + GameVars.raiseValue  - RoomManager.getPlayerBets()).toString() + " ";
+        this.raiseValue.text = " " + (await RoomManager.getOpponentBets() + GameVars.raiseValue  - await RoomManager.getPlayerBets()).toString() + " ";
     }
 
     private onDown(): void {

@@ -65,64 +65,65 @@ export class GameMock implements Game {
         // this.turnBasedGame.receiveVerificationUpdate(this._verificationReceived.bind(this));
     }
 
-    start(onComplete?: () => any) {
+    start(): Promise<void>{
         var self = this;
-        setTimeout(() => {
-            if (self.player == ALICE) {
-                self.playerBets = 1;
-                self.opponentBets = 2;
-                self.cryptoStuff = "xkdkeoejf";
-                self.turnBasedGame.submitTurn(self.cryptoStuff, () => {
-                    self.mykey = "ALICEKEY";
-                    self.turnBasedGame.submitTurn(self.mykey, () => {
-                        self._shuffleDeck();
-                        self.turnBasedGame.submitTurn(JSON.stringify(self.deck), () => {
-                            self.turnBasedGame.receiveTurnOver(self._keyReceived.bind(self));
+        const promise = new Promise<void>((resolve) => {
+            setTimeout(() => {
+                if (self.player == ALICE) {
+                    self.playerBets = 1;
+                    self.opponentBets = 2;
+                    self.cryptoStuff = "xkdkeoejf";
+                    self.turnBasedGame.submitTurn(self.cryptoStuff, () => {
+                        self.mykey = "ALICEKEY";
+                        self.turnBasedGame.submitTurn(self.mykey, () => {
+                            self._shuffleDeck();
+                            self.turnBasedGame.submitTurn(JSON.stringify(self.deck), () => {
+                                self.turnBasedGame.receiveTurnOver(self._keyReceived.bind(self));
+                            });
                         });
                     });
-                });
-            } else {
-                self.playerBets = 2;
-                self.opponentBets = 1;
-                self.turnBasedGame.receiveTurnOver(self._cryptoStuffReceived.bind(self));
-            }
-            if (self.gameOpponent) {
-                self.gameOpponent.start(onComplete);
-            } else {
-                if (onComplete) onComplete();
-            }
-        }, 5000);
+                } else {
+                    self.playerBets = 2;
+                    self.opponentBets = 1;
+                    self.turnBasedGame.receiveTurnOver(self._cryptoStuffReceived.bind(self));
+                }
+                if (self.gameOpponent) {
+                    self.gameOpponent.start().then(() => resolve());
+                } else {
+                    resolve();
+                }
+            }, 5000);
+    
+        });
+        return promise;
     }
 
-    call(onComplete?: () => any) {
+    async call() {
         const amount = this.opponentBets - this.playerBets;
         if (amount <= 0) {
             throw "Cannot call when opponent's bets are not higher";
         }
         this._increaseBets(amount);
-        if (onComplete) onComplete();
     }
 
-    check(onComplete?: () => any) {
+    async check() {
         if (this.opponentBets != this.playerBets) {
             throw "Cannot check when player and opponent's bets are not equal";
         }
         this._increaseBets(0);
-        if (onComplete) onComplete();
     }
 
-    fold(onComplete?: () => any) {
+    async fold() {
         if (this.opponentBets == this.playerBets && this.state != GameState.SHOWDOWN) {
             throw "Fold not allowed because player and opponent bets are equal: use check instead";
         }
         this.turnBasedGame.submitTurn("FOLD");
-        if (onComplete) onComplete();
         this.state = GameState.END;
         this._computeResultPlayerFold();
         this.onEnd();
     }
 
-    raise(amount: number, onComplete?: () => any) {
+    async raise(amount: number) {
         if (isNaN(amount) || amount <= 0) {
             throw "Raise amount must be a positive number";
         }
@@ -131,7 +132,6 @@ export class GameMock implements Game {
             throw "Cannot raise when opponent's bets are not higher";
         }
         this._increaseBets(callAmount + amount);
-        if (onComplete) onComplete();
     }
 
     // Methods that maliciously alter game state on purpose
@@ -157,7 +157,51 @@ export class GameMock implements Game {
         },
     };
 
-    getPlayerCards() {
+    async getPlayerCards() {
+        return this._getPlayerCards();
+    }
+
+    async getOpponentCards() {
+        return this._getOpponentCards();
+    }
+
+    async getCommunityCards() {
+        return this._getCommunityCards();
+    }
+
+    async getPlayer() {
+        return this.player;
+    }
+
+    async getPlayerFunds() {
+        return this.playerFunds;
+    }
+
+    async getOpponentFunds() {
+        return this.opponentFunds;
+    }
+
+    async getPlayerBets() {
+        return this.playerBets;
+    }
+
+    async getOpponentBets() {
+        return this.opponentBets;
+    }
+
+    async getState() {
+        return this.state;
+    }
+
+    async getVerificationState() {
+        return this.verificationState;
+    }
+
+    async getResult() {
+        return this.result;
+    }
+
+    _getPlayerCards() {
         if (!this.deck) {
             return ["?", "?"].map(PokerSolver.getCardSuitValue);
         }
@@ -174,7 +218,7 @@ export class GameMock implements Game {
         return cards.map(PokerSolver.getCardSuitValue);
     }
 
-    getOpponentCards() {
+    _getOpponentCards() {
         if (!this.deck) {
             return ["?", "?"].map(PokerSolver.getCardSuitValue);
         }
@@ -189,7 +233,7 @@ export class GameMock implements Game {
         return cards.map(PokerSolver.getCardSuitValue);
     }
 
-    getCommunityCards() {
+    _getCommunityCards() {
         if (!this.deck) {
             return ["?", "?", "?", "?", "?"].map(PokerSolver.getCardSuitValue);
         }
@@ -200,38 +244,6 @@ export class GameMock implements Game {
         cards.push(this._getCard(7));
         cards.push(this._getCard(8));
         return cards.map(PokerSolver.getCardSuitValue);
-    }
-
-    getPlayer() {
-        return this.player;
-    }
-
-    getPlayerFunds() {
-        return this.playerFunds;
-    }
-
-    getOpponentFunds() {
-        return this.opponentFunds;
-    }
-
-    getPlayerBets() {
-        return this.playerBets;
-    }
-
-    getOpponentBets() {
-        return this.opponentBets;
-    }
-
-    getState() {
-        return this.state;
-    }
-
-    getVerificationState() {
-        return this.verificationState;
-    }
-
-    getResult() {
-        return this.result;
     }
 
     _getCard(index) {
@@ -625,10 +637,10 @@ export class GameMock implements Game {
 
     _computePokerResult() {
         const hands = Array(2);
-        const communityCards = this.getCommunityCards();
+        const communityCards = this._getCommunityCards();
         if (!communityCards.includes(null)) {
-            const playerHand = this.getPlayerCards().concat(communityCards);
-            const opponentHand = this.getOpponentCards().concat(communityCards);
+            const playerHand = this._getPlayerCards().concat(communityCards);
+            const opponentHand = this._getOpponentCards().concat(communityCards);
             hands[this.player] = playerHand;
             if (!opponentHand.includes(null)) {
                 hands[this.opponent] = opponentHand;

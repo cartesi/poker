@@ -10,6 +10,10 @@ export class BetButton extends Phaser.GameObjects.Container {
     constructor(scene: Phaser.Scene, betType: string, x: number, scaleX: number) {
 
         super(scene);
+        this.init(betType, x, scaleX);
+    }
+
+    private async init(betType: string, x: number, scaleX: number): Promise<void> {
 
         this.setPosition(x, 0);
         this.betType = betType;
@@ -35,7 +39,7 @@ export class BetButton extends Phaser.GameObjects.Container {
 
                 text.x = -60;
                 icon.x = text.x + text.width / 2;
-                let betValue = (RoomManager.getOpponentBets() - RoomManager.getPlayerBets());
+                let betValue = (await RoomManager.getOpponentBets() - await RoomManager.getPlayerBets());
                 let textValue = new Phaser.GameObjects.Text(this.scene, icon.x + icon.width / 2 + 55, -42, " " + betValue + " ", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
                 textValue.setOrigin(.5);
                 textValue.setShadow(1, 1, "#000000", 5);
@@ -50,7 +54,6 @@ export class BetButton extends Phaser.GameObjects.Container {
             default:
                 break;
         }
-
     }
 
     private onDown(): void {

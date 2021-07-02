@@ -166,19 +166,21 @@ export class GUI extends Phaser.GameObjects.Container {
         this.setPotText();
     }
 
-    public setStateText(): void {
+    public async setStateText(): Promise<void> {
+        const state = await RoomManager.getState();
+        console.log("STATE: " +  state);
 
-        console.log("STATE: " +  RoomManager.getState());
-
-        this.stateLayer.setText(RoomManager.getState());
+        this.stateLayer.setText(state);
     }
 
-    public setPotText(): void {
+    public async setPotText(): Promise<void> {
 
         this.potText.visible = true;
         this.potImage.visible = true;
 
-        this.potText.text = "POT: " + (RoomManager.getPlayerBets() + RoomManager.getOpponentBets());
+        const playerBets = await RoomManager.getPlayerBets();
+        const opponentBets = await RoomManager.getOpponentBets();
+        this.potText.text = "POT: " + (playerBets + opponentBets);
         this.potImage.x = this.potText.x + this.potText.width / 2 + 10;
     }
 

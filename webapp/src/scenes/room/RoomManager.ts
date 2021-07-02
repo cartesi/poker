@@ -55,7 +55,7 @@ export class RoomManager {
         // show waiting UI while game is starting
         RoomScene.currentInstance.showWaitingFirstCards();
 
-        this.game.start(() => {
+        this.game.start().then(() => {
             RoomScene.currentInstance.hideWaitingFirstCards();
 
             setTimeout(() => {
@@ -66,7 +66,7 @@ export class RoomManager {
 
     }
 
-    public static getPlayerFunds(): number {
+    public static async getPlayerFunds(): Promise<number> {
 
         return RoomManager.game.getPlayerFunds();
     }
@@ -84,12 +84,12 @@ export class RoomManager {
         RoomScene.currentInstance.updateVerificationLayer(state);
     }
 
-    public static getOpponentFunds(): number {
+    public static async getOpponentFunds(): Promise<number> {
 
         return RoomManager.game.getOpponentFunds();
     }
 
-    public static getPlayerCards(): {value: number, suit: number}[] {
+    public static async getPlayerCards(): Promise<{value: number, suit: number}[]> {
 
         return RoomManager.game.getPlayerCards();
     }
@@ -106,39 +106,39 @@ export class RoomManager {
         RoomManager.game.cheat.toggleCardCooperation();
     }
 
-    public static getOpponentCards(): {value: number, suit: number}[] {
+    public static async getOpponentCards(): Promise<{value: number, suit: number}[]> {
 
         return RoomManager.game.getOpponentCards();
     }
 
-    public static getCommunityCards(): {value: number, suit: number}[] {
+    public static async getCommunityCards(): Promise<{value: number, suit: number}[]> {
 
         return RoomManager.game.getCommunityCards();
     }
 
-    public static getMaxRaise(): number {
+    public static async getMaxRaise(): Promise<number> {
 
-        return Math.min(RoomManager.getPlayerFunds(), RoomManager.getOpponentFunds()) - RoomManager.getOpponentBets();
+        return Math.min(await RoomManager.getPlayerFunds(), await RoomManager.getOpponentFunds()) - (await RoomManager.getOpponentBets());
     }
 
-    public static getState(): string {
+    public static async getState(): Promise<string> {
 
         return RoomManager.game.getState();
     }
 
-    public static getPlayerBets(): number {
+    public static async getPlayerBets(): Promise<number> {
 
         return  RoomManager.game.getPlayerBets();
     }
 
-    public static getOpponentBets(): number {
+    public static async getOpponentBets(): Promise<number> {
 
         return  RoomManager.game.getOpponentBets();
     }
 
     public static playerCall(): void {
 
-        RoomManager.game.call(() => {
+        RoomManager.game.call().then(() => {
             RoomManager.showBet(BetType.CALL, GameVars.playerIndex);
 
             RoomManager.updateBoard();
@@ -150,7 +150,7 @@ export class RoomManager {
 
     public static playerCheck(): void {
 
-        RoomManager.game.check(() => {
+        RoomManager.game.check().then(() => {
             RoomManager.showBet(BetType.CHECK, GameVars.playerIndex);
 
             RoomManager.updateBoard();
@@ -162,7 +162,7 @@ export class RoomManager {
 
     public static playerFold(): void {
 
-        RoomManager.game.fold(() => {
+        RoomManager.game.fold().then(() => {
             RoomManager.showBet(BetType.FOLD, GameVars.playerIndex);
 
             RoomManager.updateBoard();
@@ -174,7 +174,7 @@ export class RoomManager {
 
     public static playerRaise(value): void {
 
-        RoomManager.game.raise(value, () => {
+        RoomManager.game.raise(value).then(() => {
             RoomManager.showBet(BetType.RAISE, GameVars.playerIndex);
 
             RoomManager.updateBoard();
@@ -242,9 +242,9 @@ export class RoomManager {
         RoomManager.updateBoard();
     }
 
-    private static onEnd(): void {
+    private static async onEnd(): Promise<void> {
 
-        let endData = RoomManager.game.getResult();
+        let endData = await RoomManager.game.getResult();
 
         setTimeout(() => {
             RoomScene.currentInstance.onEnd(endData);

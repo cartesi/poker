@@ -76,7 +76,7 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
         this.scene.sys.updateList.add(this);
     }
 
-    public preUpdate(time: number, delta: number): void {
+    public async preUpdate(time: number, delta: number): Promise<void> {
 
         if (this.isDown) {
 
@@ -101,7 +101,7 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
             this.btnMarker.x = x;
 
             let min = 1;
-            let max = RoomManager.getMaxRaise();
+            let max = await RoomManager.getMaxRaise();
 
             let minBar = this.btnMinus.x + this.btnMinus.width;
             let maxBar = this.btnPlus.x - this.btnPlus.width;
@@ -117,10 +117,10 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
         }
     }
 
-    public updateMarker(): void {
+    public async updateMarker(): Promise<void> {
 
         let min = 1;
-        let max = RoomManager.getMaxRaise();
+        let max = await RoomManager.getMaxRaise();
 
         let minBar = this.btnMinus.x + this.btnMinus.width;
         let maxBar = this.btnPlus.x - this.btnPlus.width;
