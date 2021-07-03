@@ -253,9 +253,6 @@ export class GameMock implements Game {
     }
 
     _cryptoStuffReceived(stuff) {
-        if (this._handleVerificationPayload(stuff)) {
-            return;
-        }
         this.onEvent(`cryptoStuffReceived ${stuff}`);
         this.cryptoStuff = stuff;
         this.mykey = "BOBKEY";
@@ -264,18 +261,12 @@ export class GameMock implements Game {
     }
 
     _keyReceived(key) {
-        if (this._handleVerificationPayload(key)) {
-            return;
-        }
         this.onEvent(`keyReceived ${key}`);
         this.key = key;
         this.turnBasedGame.receiveTurnOver(this._deckReceived.bind(this));
     }
 
     _deckReceived(deck) {
-        if (this._handleVerificationPayload(deck)) {
-            return;
-        }
         this.onEvent(`deckReceived ${deck}`);
         this.deck = JSON.parse(deck);
         if (this.player == BOB) {
@@ -403,9 +394,6 @@ export class GameMock implements Game {
     }
 
     _decryptedCardsReceived(cards) {
-        if (this._handleVerificationPayload(cards)) {
-            return;
-        }
         this.onEvent(`decryptedCardsReceived ${JSON.stringify(cards)}`);
 
         if (cards == "FOLD") {
@@ -456,13 +444,10 @@ export class GameMock implements Game {
                 // player lost: folds without revealing his cards
                 this.fold();
             }
-        }            
+        }
     }
 
     _resultReceived(opponentResult) {
-        if (this._handleVerificationPayload(opponentResult)) {
-            return;
-        }
         if (JSON.stringify(this.result) !== JSON.stringify(opponentResult)) {
             // result mismatch: trigger a verification!
             this._triggerVerification("Result mismatch");
@@ -474,12 +459,8 @@ export class GameMock implements Game {
     }
 
     _resultConfirmationReceived(confirmation) {
-        if (this._handleVerificationPayload(confirmation)) {
-            return;
-        } else {
-            // everything ok: advances state (to END)
-            this._advanceState();
-        }
+        // advances state (to END)
+        this._advanceState();
     }
 
     _increaseBets(amount) {
@@ -506,10 +487,6 @@ export class GameMock implements Game {
     }
 
     _betsReceived(opponentBets) {
-        if (this._handleVerificationPayload(opponentBets)) {
-            return;
-        }
-
         if (opponentBets == "FOLD") {
             // opponent gave up
             this.onBetsReceived(BetType.FOLD, 0);
@@ -649,20 +626,6 @@ export class GameMock implements Game {
 
     _isCheater() {
         return this.cheat.didSwitchCards || this.cheat.didDisableCardCoop;
-    }
-
-    _buildVerificationPayload(message) {
-        return `VERIFICATION ${message}`;
-    }
-
-    _handleVerificationPayload(payload) {
-        if (payload.startsWith && payload.startsWith("VERIFICATION")) {
-            const message = payload.substr("VERIFICATION".length + 1);
-            this._verificationReceived(message);
-            return true;
-        } else {
-            return false;
-        }
     }
 
     _triggerVerification(message) {
