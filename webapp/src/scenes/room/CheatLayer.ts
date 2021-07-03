@@ -1,6 +1,7 @@
 import { RoomManager } from './RoomManager';
 import { GameConstants } from "../../GameConstants";
 import { GameVars } from '../../GameVars';
+import { Card } from '../../services/Card';
 
 export class CheatLayer extends Phaser.GameObjects.Container {
     
@@ -120,7 +121,7 @@ export class CheatLayer extends Phaser.GameObjects.Container {
 
     private onClickAces(): void {
 
-        RoomManager.switchPlayerCards(13, 26);
+        RoomManager.switchPlayerCards(new Card("Ah"), new Card("As"));
         this.visible = false;
     }
 

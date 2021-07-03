@@ -1,8 +1,9 @@
 import { AudioManager } from "../../../AudioManager";
+import { Card as CardInfo } from "../../../services/Card";
 
 export class Card extends Phaser.GameObjects.Container {
 
-    public info: {value: number, suit: number};
+    public info: CardInfo;
 
     private image: Phaser.GameObjects.Image;
     private mark: Phaser.GameObjects.Image;
@@ -21,17 +22,17 @@ export class Card extends Phaser.GameObjects.Container {
         this.mark.visible = false;
         this.add(this.mark);
 
-        this.info = {value: -1, suit : -1};
+        this.info = null;
         
     }
 
-    public setValue(card: {value: number, suit: number}) {
+    public setValue(card: CardInfo) {
 
         if (!card) {
             this.image.setFrame("card-back");
-            this.info = {value: -1, suit : -1};
+            this.info = null;
         } else {
-            this.image.setFrame(card.suit + "_" + (card.value + 1));
+            this.image.setFrame(card.toString());
             this.info = card;
         }
     }
@@ -42,18 +43,18 @@ export class Card extends Phaser.GameObjects.Container {
         this.alpha = 0;
         this.mark.visible = false;
         this.image.setFrame("card-back");
-        this.info = {value: -1, suit : -1};
+        this.info = null;
     }
 
-    public showCard(card: {value: number, suit: number}, delay: number) {
+    public showCard(card: CardInfo, delay: number) {
 
         if (!card) {
             this.visible = false;
             this.alpha = 0;
             this.image.setFrame("card-back");
-            this.info = {value: -1, suit : -1};
+            this.info = null;
         } else {
-            if (this.image.frame.name === (card.suit + "_" + (card.value + 1))) {
+            if (this.image.frame.name === (card.toString())) {
                 return;
             }
     
@@ -71,7 +72,7 @@ export class Card extends Phaser.GameObjects.Container {
                 duration: 100,
                 delay: delay,
                 onComplete: () => {
-                    this.image.setFrame(card.suit + "_" + (card.value + 1));
+                    this.image.setFrame(card.toString());
                     this.scene.tweens.add({
                         targets: this,
                         scaleX: initScale,

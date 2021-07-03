@@ -2,6 +2,7 @@ import { ServiceConfig, ServiceType, ServiceImpl } from "./ServiceConfig";
 import { TurnBasedGame, TurnBasedGameFactory } from "./TurnBasedGame";
 import { GameMock } from "./mock/GameMock";
 import { TurnBasedGameMock } from "./mock/TurnBasedGameMock";
+import { Card } from "./Card";
 // import { GameWasm } from "./web3/GameWasm";
 
 // game states
@@ -30,9 +31,9 @@ export const GameStates = [
 export enum VerificationState {
     NONE = "NONE",
     STARTED = "STARTED",
-    RESULT_SUBMITTED = "RESULT_SUBMITTED",
-    RESULT_CONFIRMED = "RESULT_CONFIRMED",
-    RESULT_CHALLENGED = "RESULT_CHALLENGED",
+    RESULT_SUBMITTED = "RESULT SUBMITTED",
+    RESULT_CONFIRMED = "RESULT CONFIRMED",
+    RESULT_CHALLENGED = "RESULT CHALLENGED",
     ENDED = "ENDED",
     ERROR = "ERROR",
 }
@@ -62,13 +63,13 @@ export interface Game {
     raise(amount: number): Promise<void>;
 
     cheat: {
-        switchCards: (card1: number, card2: number) => any;
+        switchCards: (card1: Card, card2: Card) => any;
         toggleCardCooperation: () => any;
     };
 
-    getPlayerCards(): Promise<any>;
-    getOpponentCards(): Promise<any>;
-    getCommunityCards(): Promise<any>;
+    getPlayerCards(): Promise<Array<Card>>;
+    getOpponentCards(): Promise<Array<Card>>;
+    getCommunityCards(): Promise<Array<Card>>;
     getPlayer(): Promise<any>;
     getPlayerFunds(): Promise<any>;
     getOpponentFunds(): Promise<any>;

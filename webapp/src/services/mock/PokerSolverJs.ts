@@ -1,29 +1,29 @@
-import { Hand, Card } from "pokersolver";
+import { Hand, Card as PokerSolverCard } from "pokersolver";
+import { Card } from "../Card";
 
 export class PokerSolverJs {
     /**
      * Returns information about the best Poker hand available for each player, as well as the final winner(s).
      *
-     * @param hands an array of player hands, where each hand corresponds to an array of cards represented
-     * by a tuple `<value, suit>`.
+     * @param hands an array of player hands, where each hand corresponds to an array of card indices.
      * @returns an object `{ bestHands, bestHandsDescriptions, winners }` representing the best hands available
      * for each player, their corresponding descriptions, and whether each player has a winning hand.
      */
     public static solve(
-        hands: Array<Array<{ value: number; suit: number }>>
+        hands: Array<Array<Card>>
     ): {
-        bestHands: Array<Array<{ value: number; suit: number }>>;
+        bestHands: Array<Array<Card>>;
         bestHandsDescriptions: Array<string>;
         winners: Array<boolean>;
     } {
-        const handsStr = hands.map(PokerSolverJs.getCardsAsStrings);
-        const handsSolved: Array<Hand> = handsStr.map(PokerSolverJs.solveHand);
+        const handsPS = hands.map(PokerSolverJs.toPokerSolverCards);
+        const handsSolved: Array<Hand> = handsPS.map(PokerSolverJs.solveHand);
         const winningHands: Array<Hand> = Hand.winners(handsSolved.filter(Boolean));
-        const bestHands: Array<Array<Card>> = handsSolved.map((h) => (h ? h.cards : []));
+        const bestHands: Array<Array<PokerSolverCard>> = handsSolved.map((h) => (h ? h.cards : []));
         const bestHandsDescriptions: Array<string> = handsSolved.map((h) => (h ? h.descr : ""));
 
         const result = {
-            bestHands: bestHands.map(PokerSolverJs.getCardsAsTuples),
+            bestHands: bestHands.map(this.fromPokerSolverCards),
             bestHandsDescriptions: bestHandsDescriptions,
             winners: handsSolved.map((h) => winningHands.includes(h)),
         };
@@ -32,11 +32,12 @@ export class PokerSolverJs {
     }
 
     /**
-     * Solves a single hand using the "pokersolver" javascript library
+     * Solves a single hand using the "pokersolver" javascript library.
+     *
      * @param cards an array of string representations of cards, such as "As" for the ace of spades.
      * @returns a "pokersolver" solved Hand instance, or `undefined` if no cards were given as input.
      */
-    public static solveHand(cards: Array<string>): Hand {
+    public static solveHand(cards: Array<PokerSolverCard>): Hand {
         if (cards && cards.length) {
             return Hand.solve(cards);
         } else {
@@ -45,124 +46,22 @@ export class PokerSolverJs {
     }
 
     /**
-     * Converts an array of cards as `<value, suit>` tuples into an array of cards using a string representation
-     * suitable for use in the "pokersolver" javascript library.
-     * @param cards an array of <value, suit>` tuples as numbers, such <0,3> for the ace of spades.
-     * @returns an array of string representations of cards, such as "As" for the ace of spades.
+     * Converts an array of Cards into an array of "pokersolver" Cards
+     *
+     * @param cards an array of Card instances.
+     * @returns an array of corresponding "pokersolver" Card instances.
      */
-    public static getCardsAsStrings(cards: Array<{ value: number; suit: number }>): Array<string> {
-        return cards.filter(Boolean).map(PokerSolverJs.getCardAsString);
+    public static toPokerSolverCards(cards: Array<Card>): Array<PokerSolverCard> {
+        return cards.filter(Boolean).map((c) => new PokerSolverCard(c.toString()));
     }
 
     /**
-     * Converts an array of cards as string representations into an array of cards as `<value, suit>` tuples.
+     * Converts an array of "pokersolver" Cards into an array of Card instances.
+     *
      * @param cards an array of pokersolver Card objects.
-     * @returns an array of <value, suit>` tuples as numbers, such <0,3> for the ace of spades.
+     * @returns an array of corresponding Card instances.
      */
-    public static getCardsAsTuples(cards: Array<Card>): Array<{ value: number; suit: number }> {
-        return cards.filter(Boolean).map(PokerSolverJs.getCardAsTuple);
-    }
-
-    /**
-     * Converts a card `<value, suit>` tuple into a string representation suitable for use in the
-     * `pokersolver` javascript library.
-     * @param card a `<value, suit>` tuple as numbers, such <0,3> for the ace of spades.
-     * @returns a string representation such as "As" for the ace of spades.
-     */
-    private static getCardAsString(card: { value: number; suit: number }) {
-        if (!card) return;
-
-        let str = "";
-
-        switch (card.value) {
-            case 0:
-                str += "A";
-                break;
-            case 9:
-                str += "T";
-                break;
-            case 10:
-                str += "J";
-                break;
-            case 11:
-                str += "Q";
-                break;
-            case 12:
-                str += "K";
-                break;
-            default:
-                str += card.value + 1;
-                break;
-        }
-
-        switch (card.suit) {
-            case 0:
-                str += "c";
-                break;
-            case 1:
-                str += "d";
-                break;
-            case 2:
-                str += "h";
-                break;
-            case 3:
-                str += "s";
-                break;
-            default:
-                break;
-        }
-
-        return str;
-    }
-
-    /**
-     * Converts a `pokersolver` Card into a `<value, suit>` tuple
-     * @param card a `pokersolver` Card.
-     * @returns a `<value, suit>` tuple as numbers, such <0,3> for the ace of spades.
-     */
-    public static getCardAsTuple(card: Card): { value: number; suit: number } {
-        if (!card) return;
-
-        const tuple = { value: 0, suit: 0 };
-
-        switch (card.value) {
-            case "A":
-                tuple.value = 0;
-                break;
-            case "T":
-                tuple.value = 9;
-                break;
-            case "J":
-                tuple.value = 10;
-                break;
-            case "Q":
-                tuple.value = 11;
-                break;
-            case "K":
-                tuple.value = 12;
-                break;
-            default:
-                if (!isNaN(card.value)) tuple.value = card.value - 1;
-                break;
-        }
-
-        switch (card.suit) {
-            case "c":
-                tuple.suit = 0;
-                break;
-            case "d":
-                tuple.suit = 1;
-                break;
-            case "h":
-                tuple.suit = 2;
-                break;
-            case "s":
-                tuple.suit = 3;
-                break;
-            default:
-                break;
-        }
-
-        return tuple;
+    public static fromPokerSolverCards(cards: Array<PokerSolverCard>): Array<Card> {
+        return cards.filter(Boolean).map((c) => new Card(c.value + c.suit));
     }
 }

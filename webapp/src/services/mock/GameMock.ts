@@ -1,3 +1,4 @@
+import { Card } from "../Card";
 import { BetType, Game, GameState, GameStates, VerificationState, VerificationStates } from "../Game";
 import { PokerSolver } from "../PokerSolver";
 import { TurnBasedGame } from "../TurnBasedGame";
@@ -65,7 +66,7 @@ export class GameMock implements Game {
         // this.turnBasedGame.receiveVerificationUpdate(this._verificationReceived.bind(this));
     }
 
-    start(): Promise<void>{
+    start(): Promise<void> {
         var self = this;
         const promise = new Promise<void>((resolve) => {
             setTimeout(() => {
@@ -93,7 +94,6 @@ export class GameMock implements Game {
                     resolve();
                 }
             }, 5000);
-    
         });
         return promise;
     }
@@ -141,11 +141,8 @@ export class GameMock implements Game {
         isCardCoopCheatOn: false,
 
         // Change the cards in the player's hand
-        switchCards: (card1, card2) => {
-            if (isNaN(card1) || isNaN(card2)) {
-                throw "Cards should be an number from 0 to 51, inclusive";
-            }
-            this.deck.push(card1, card2);
+        switchCards: (card1: Card, card2: Card) => {
+            this.deck.push(card1.toIndex(), card2.toIndex());
             this.cheat.didSwitchCards = true;
         },
 
@@ -203,7 +200,7 @@ export class GameMock implements Game {
 
     _getPlayerCards() {
         if (!this.deck) {
-            return ["?", "?"].map(PokerSolver.getCardSuitValue);
+            return [99, 99].map(Card.fromIndex);
         }
         let cards = [];
         if (this.cheat.didSwitchCards) {
@@ -215,12 +212,12 @@ export class GameMock implements Game {
             cards.push(this._getCard(2));
             cards.push(this._getCard(3));
         }
-        return cards.map(PokerSolver.getCardSuitValue);
+        return cards.map(Card.fromIndex);
     }
 
     _getOpponentCards() {
         if (!this.deck) {
-            return ["?", "?"].map(PokerSolver.getCardSuitValue);
+            return [99, 99].map(Card.fromIndex);
         }
         let cards = [];
         if (this.opponent == ALICE) {
@@ -230,12 +227,12 @@ export class GameMock implements Game {
             cards.push(this._getCard(2));
             cards.push(this._getCard(3));
         }
-        return cards.map(PokerSolver.getCardSuitValue);
+        return cards.map(Card.fromIndex);
     }
 
     _getCommunityCards() {
         if (!this.deck) {
-            return ["?", "?", "?", "?", "?"].map(PokerSolver.getCardSuitValue);
+            return [99, 99, 99, 99, 99].map(Card.fromIndex);
         }
         let cards = [];
         cards.push(this._getCard(4));
@@ -243,13 +240,13 @@ export class GameMock implements Game {
         cards.push(this._getCard(6));
         cards.push(this._getCard(7));
         cards.push(this._getCard(8));
-        return cards.map(PokerSolver.getCardSuitValue);
+        return cards.map(Card.fromIndex);
     }
 
     _getCard(index) {
         let card = this._decryptCard(this.deck[index]);
         if (isNaN(card)) {
-            return "?";
+            return 99;
         } else {
             return card;
         }
@@ -459,7 +456,7 @@ export class GameMock implements Game {
                 // player lost: folds without revealing his cards
                 this.fold();
             }
-        }
+        }            
     }
 
     _resultReceived(opponentResult) {
@@ -670,9 +667,10 @@ export class GameMock implements Game {
 
     _triggerVerification(message) {
         this.onEvent(`triggerVerification: ${message}`);
-        this.turnBasedGame.submitTurn(this._buildVerificationPayload(message));
-        this.state = GameState.VERIFICATION;
-        setTimeout(() => this._setVerificationState(VerificationState.STARTED, message), 3000);
+        this.turnBasedGame.challengeGame(message, () => {
+            this.state = GameState.VERIFICATION;
+            setTimeout(() => this._setVerificationState(VerificationState.STARTED, message), 3000);
+        });
     }
 
     _verificationReceived(message) {

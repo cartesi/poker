@@ -130,7 +130,7 @@ export class Player extends Phaser.GameObjects.Container {
             for (let i = 0; i < winnerHand.length; i++) {
                 let winnerHandCard = winnerHand[i];
                 for (let j = 0; j < this.cards.length; j++) {
-                    if (winnerHandCard.value === this.cards[j].info.value && winnerHandCard.suit === this.cards[j].info.suit) {
+                    if (winnerHandCard && this.cards[j].info && winnerHandCard.toIndex() === this.cards[j].info.toIndex()) {
                         this.cards[j].showMark();
                     }
                 }
@@ -363,50 +363,5 @@ export class Player extends Phaser.GameObjects.Container {
         });
 
         AudioManager.playSound("cards_out");
-    }
-
-    private getCardString(card: {value: number, suit: number}) {
-
-        let str = "";
-
-        switch (card.value) {
-            case 0:
-                str += "A";
-                break;
-            case 9:
-                str += "T";
-                break;
-            case 10:
-                str += "J";
-                break;
-            case 11:
-                str += "Q";
-                break;
-            case 12:
-                str += "K";
-                break;
-            default:
-                str += (card.value + 1);
-                break;
-        }
-
-        switch (card.suit) {
-            case 0:
-                str += "c";
-                break;
-            case 1:
-                str += "d";
-                break;
-            case 2:
-                str += "h";
-                break;
-            case 3:
-                str += "s";
-                break;
-            default:
-                break;
-        }
-
-        return str;
     }
 }

@@ -1,4 +1,5 @@
 import { AudioManager } from "../../AudioManager";
+import { Card } from "../../services/Card";
 import { BetType, Game, GameFactory, VerificationState } from "../../services/Game";
 import { GameVars } from "./../../GameVars";
 import { RoomScene } from "./RoomScene";
@@ -89,12 +90,12 @@ export class RoomManager {
         return RoomManager.game.getOpponentFunds();
     }
 
-    public static async getPlayerCards(): Promise<{value: number, suit: number}[]> {
+    public static async getPlayerCards(): Promise<Array<Card>> {
 
         return RoomManager.game.getPlayerCards();
     }
 
-    public static switchPlayerCards(card1: number, card2: number): void {
+    public static switchPlayerCards(card1: Card, card2: Card): void {
 
         RoomManager.game.cheat.switchCards(card1, card2);
 
@@ -106,12 +107,12 @@ export class RoomManager {
         RoomManager.game.cheat.toggleCardCooperation();
     }
 
-    public static async getOpponentCards(): Promise<{value: number, suit: number}[]> {
+    public static async getOpponentCards(): Promise<Array<Card>> {
 
         return RoomManager.game.getOpponentCards();
     }
 
-    public static async getCommunityCards(): Promise<{value: number, suit: number}[]> {
+    public static async getCommunityCards(): Promise<Array<Card>> {
 
         return RoomManager.game.getCommunityCards();
     }
