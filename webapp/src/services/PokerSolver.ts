@@ -7,7 +7,7 @@ export class PokerSolver {
     /**
      * Returns information about the best Poker hand available for each player, as well as the final winner(s).
      *
-     * @param hands an array of player hands, where each hand corresponds to an array of card indices.
+     * @param hands an array of player hands, where each hand corresponds to an array of cards.
      * @returns an object `{ bestHands, bestHandsDescriptions, winners }` representing the best hands available
      * for each player, their corresponding descriptions, and whether each player has a winning hand.
      */
