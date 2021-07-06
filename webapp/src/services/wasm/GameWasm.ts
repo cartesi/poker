@@ -1,5 +1,5 @@
 import { Card } from "../Card";
-import { Engine } from "../Engine";
+import { Engine, EngineResult, StatusCode } from "../Engine";
 import { BetType, Game, GameState, VerificationState } from "../Game";
 import { TurnBasedGame } from "../TurnBasedGame";
 import { PokerEngine } from "./PokerEngine";
@@ -27,7 +27,19 @@ export class GameWasm implements Game {
     }
 
     start(): Promise<void> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve, reject) => {
+            try {
+                console.log(`### [Player ${this.playerId}] Init engine ###`);
+                await this.engine.init(this.playerFunds, this.opponentFunds, this.bigBlind);
+                console.log(`### [Player ${this.playerId}] Engine started ###`);
+                if (this._isDealer()) await this._createHandshake();
+                await this._processHandshake();
+                resolve();
+                if (this._isDealer()) this.onBetRequested();
+            } catch (error) {
+                reject(new Error(`Failed to start game. ${error}`));
+            }
+        });
     }
 
     call(): Promise<void> {
@@ -93,5 +105,34 @@ export class GameWasm implements Game {
 
     getResult(): Promise<any> {
         throw new Error("Method not implemented.");
+    }
+
+    async _createHandshake(): Promise<string> {
+        console.log(`### [Player ${this.playerId}] Create Handshake ###`);
+        let result = await this.engine.create_handshake();
+        console.log(`### [Player ${this.playerId}] Submit turn ###`);
+        return this.turnBasedGame.submitTurn(result.message_out);
+    }
+
+    async _processHandshake(): Promise<void> {
+        console.log(`### [Player ${this.playerId}] Process Handshake ###`);
+        let p2: EngineResult;
+        do {
+            let message_in = await this.turnBasedGame.receiveTurnOver();
+            console.log(`### [Player ${this.playerId}] On turn received ###`);
+            p2 = await this.engine.process_handshake(message_in);
+
+            if (p2.message_out.length > 0) {
+                console.log(`### [Player ${this.playerId}] Submit turn ###`);
+                this.turnBasedGame.submitTurn(p2.message_out);
+            }
+        } while (p2.status == StatusCode.CONTINUED);
+
+        return Promise.resolve();
+    }
+
+    // TODO: Maybe ask Engine who is Dealer/Small Blind/Big Blind?
+    _isDealer(): Boolean {
+        return this.playerId == 0;
     }
 }
