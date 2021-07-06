@@ -1,3 +1,6 @@
+import { ethers } from "ethers";
+import { GameConstants } from "../GameConstants";
+
 export enum ServiceType {
     Transport = "transport",
     Engine = "engine",
@@ -8,6 +11,8 @@ export enum ServiceImpl {
     Web3 = "web3",
     Wasm = "wasm",
 }
+
+declare let window: any;
 
 export class ServiceConfig {
     /**
@@ -32,5 +37,31 @@ export class ServiceConfig {
             // no specific configuration set: use service type's default implementation
             return defaultImpl[type];
         }
+    }
+
+    /**
+     * Retrieves the configuration needed by web3 services to make calls to the smart contracts.
+     * 
+     * @returns json with the web3 provider to be used by services and the chainId
+     */
+    public static getProviderConfiguration() {
+        let provider;
+        let chainId;
+        if (typeof window !== "undefined") { // Normal webapp usage
+            if (!window.ethereum) {
+                throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
+            } else {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                chainId = window.ethereum.chainId;
+            }
+        } else { // Automated test usage
+            provider = new ethers.providers.JsonRpcProvider();
+            chainId = GameConstants.CHAINS["0x7a69"];
+        }
+
+        return {
+            provider: provider,
+            chainId: chainId
+        };
     }
 }

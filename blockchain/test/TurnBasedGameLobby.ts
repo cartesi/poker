@@ -20,7 +20,6 @@ import { PokerToken__factory } from "../src/types/factories/PokerToken__factory"
 
 import { TurnBasedGameLobby } from "../src/types/TurnBasedGameLobby";
 import { TurnBasedGameLobby__factory } from "../src/types/factories/TurnBasedGameLobby__factory";
-import { SignerWithAddress } from "hardhat-deploy-ethers/dist/src/signer-with-address";
 
 use(solidity);
 
@@ -39,9 +38,9 @@ describe("TurnBasedGameLobby", async () => {
     ];
     const minFunds = 100;
 
-    let signer: SignerWithAddress;
-    let player1: SignerWithAddress;
-    let nonPlayer: SignerWithAddress;
+    let signer;
+    let player1;
+    let nonPlayer;
 
     let players;
     let validators;

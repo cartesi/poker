@@ -8,22 +8,17 @@ import { TurnBasedGameContext__factory } from "../../types";
 import { TurnBasedGameLobby__factory } from "../../types";
 import { PokerToken__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
+import { ServiceConfig } from "../ServiceConfig";
 
 declare let window: any;
+
 export class LobbyWeb3 {
     /**
      * Joins a new Texas Holdem game using Web3
      */
     public static async joinGame(playerInfo: object, gameReadyCallback) {
-        if (!window.ethereum) {
-            throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
-        }
-
-        // connect to ethereum
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-
         // retrieves provider + signer (e.g., from metamask)
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const { provider, chainId } = ServiceConfig.getProviderConfiguration();
         const signer = provider.getSigner();
         const playerAddress = await signer.getAddress();
 
@@ -71,9 +66,9 @@ export class LobbyWeb3 {
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
 
         // retrieves validator addresses for the selected chain
-        const validators = GameConstants.VALIDATORS[window.ethereum.chainId];
+        const validators = GameConstants.VALIDATORS[chainId];
         if (!validators || !validators.length) {
-            console.error(`No validators defined for the selected chain with ID ${window.ethereum.chainId}`);
+            console.error('No validators defined for the selected chain with ID ' + chainId);
         }
 
         // joins game by calling Lobby smart contract

@@ -31,6 +31,7 @@
         "start": "run-s clean contracts:deploy contracts:copy engine:copy && webpack --mode development && webpack-dev-server --mode development",
         "start:matic_testnet": "run-s clean contracts:deploy:matic_testnet contracts:copy:matic_testnet engine:copy && webpack --mode development && webpack-dev-server --mode development",
         "dev": "run-s contracts:build contracts:copy:matic_testnet engine:copy && webpack --mode development && webpack-dev-server --mode development",
+        "test": "run-s contracts:deploy contracts:copy && mocha",
         "clean": "rimraf dist && rimraf src/abis && rimraf src/types",
         "build": "run-s clean contracts:build contracts:copy:matic_testnet engine:copy && webpack --mode production",
         "contracts:build": "cd ../blockchain && yarn build",
