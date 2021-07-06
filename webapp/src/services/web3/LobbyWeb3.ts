@@ -72,7 +72,7 @@ export class LobbyWeb3 {
         }
 
         // joins game by calling Lobby smart contract
-        lobbyContract.joinGame(
+        await lobbyContract.joinGame(
             GameConstants.GAME_TEMPLATE_HASH,
             GameConstants.GAME_METADATA,
             validators,

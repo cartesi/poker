@@ -56,7 +56,7 @@ export class ServiceConfig {
             }
         } else { // Automated test usage
             provider = new ethers.providers.JsonRpcProvider();
-            chainId = GameConstants.CHAINS["0x7a69"];
+            chainId = "0x7a69";
         }
 
         return {
