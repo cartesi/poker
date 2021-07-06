@@ -1,7 +1,7 @@
 /**
  * Card class that knows how to translate between card indices and string representations
  * <p>
- * Card index: value between 0 and 51, with 0 being the 2 of clubs and 51 being the ace of spades.
+ * Card index: value between 0 and 51, with 0 being the 2 of hearts and 51 being the ace of spades.
  * Card string: represents a card with value and suit, such as "2c" for the 2 of clubs and "As" for the ace of spades.
  */
 export class Card {
@@ -24,7 +24,7 @@ export class Card {
     /**
      * Retrieves the card's index representation.
      *
-     * @returns a number from 0 to 51, with 0 being the 2 of clubs and 51 being the ace of spades.
+     * @returns a number from 0 to 51, with 0 being the 2 of hearts and 51 being the ace of spades.
      */
     public toIndex(): number {
         return this.cardIndex;
@@ -43,7 +43,7 @@ export class Card {
     /**
      * Creates a Card from a card index.
      *
-     * @param cardIndex a number from 0 to 51, with 0 being the 2 of clubs and 51 being the ace of spades.
+     * @param cardIndex a number from 0 to 51, with 0 being the 2 of hearts and 51 being the ace of spades.
      * @returns the corresponding Card instance.
      */
     public static fromIndex(cardIndex: number): Card {
@@ -68,7 +68,7 @@ export class Card {
     /**
      * Converts the provided card index to a card string representation.
      *
-     * @param cardIndex a number from 0 to 51, with 0 being the 2 of clubs and 51 being the ace of spades.
+     * @param cardIndex a number from 0 to 51, with 0 being the 2 of hearts and 51 being the ace of spades.
      * @returns the corresponding card string representation, such as "2c" and "As"; or null if card index is invalid.
      */
     public static indexToString(cardIndex: number): string {
@@ -87,7 +87,7 @@ export class Card {
      * Converts the provided card string representation into a card index
      *
      * @param cardStr a card string representation, such as "2c" and "As".
-     * @returns a number from 0 to 51, with 0 being the 2 of clubs and 51 being the ace of spades; or 99 if card string is invalid.
+     * @returns a number from 0 to 51, with 0 being the 2 of hearts and 51 being the ace of spades; or 99 if card string is invalid.
      */
     public static stringToIndex(cardStr: string): number {
         if (!cardStr || cardStr.length != 2) {
