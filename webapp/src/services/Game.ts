@@ -3,8 +3,9 @@ import { TurnBasedGame, TurnBasedGameFactory } from "./TurnBasedGame";
 import { GameMock } from "./mock/GameMock";
 import { TurnBasedGameMock } from "./mock/TurnBasedGameMock";
 import { Card } from "./Card";
+import { GameWasm } from "./wasm/GameWasm";
+import { GameConstants } from "../GameConstants";
 import { BigNumber } from "ethers";
-// import { GameWasm } from "./web3/GameWasm";
 
 // game states
 export enum GameState {
@@ -118,8 +119,8 @@ export class GameFactory {
         const game = this.createInstance(
             playerIndex,
             playerFunds,
+            opponentIndex,
             opponentFunds,
-            metadata,
             turnBasedGame,
             onBetRequested,
             onBetsReceived,
@@ -138,8 +139,8 @@ export class GameFactory {
             game.gameOpponent = this.createInstance(
                 opponentIndex,
                 opponentFunds,
+                playerIndex,
                 playerFunds,
-                metadata,
                 turnBasedGameOpponent,
                 () => this.onOpponentAutomaticBet(game)
             );
@@ -154,7 +155,6 @@ export class GameFactory {
      * @param player
      * @param playerFunds
      * @param opponentFunds
-     * @param metadata
      * @param turnBasedGame
      * @param onBetRequested
      * @param onBetsReceived
@@ -166,8 +166,8 @@ export class GameFactory {
     private static createInstance(
         player: number,
         playerFunds: BigNumber,
+        opponent: number,
         opponentFunds: BigNumber,
-        metadata: any,
         turnBasedGame: TurnBasedGame,
         onBetRequested?: () => any,
         onBetsReceived?: (betType: string, amount: BigNumber) => any,
@@ -182,7 +182,6 @@ export class GameFactory {
                 player,
                 playerFunds,
                 opponentFunds,
-                metadata,
                 turnBasedGame,
                 onBetRequested,
                 onBetsReceived,
@@ -192,19 +191,19 @@ export class GameFactory {
             );
         } else if (impl === ServiceImpl.Wasm) {
             // real game engine in WebAssembly
-            throw "WASM Game Engine not supported yet!";
-            // return new GameWasm(
-            //     player,
-            //     playerFunds,
-            //     opponentFunds,
-            //     metadata,
-            //     turnBasedGame,
-            //     onBetRequested,
-            //     onBetsReceived,
-            //     onEnd,
-            //     onEvent,
-            //     onVerification
-            // );
+            return new GameWasm(
+                player,
+                playerFunds,
+                opponent,
+                opponentFunds,
+                GameConstants.BIG_BLIND,
+                turnBasedGame,
+                onBetRequested,
+                onBetsReceived,
+                onEnd,
+                onEvent,
+                onVerification
+            );
         } else {
             // unknown implementation configured
             throw `Unknown game engine configuration '${impl}'!`;

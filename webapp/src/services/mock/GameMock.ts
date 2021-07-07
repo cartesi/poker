@@ -32,7 +32,6 @@ export class GameMock implements Game {
         private player: number,
         private playerFunds: BigNumber,
         private opponentFunds: BigNumber,
-        private metadata: any,
         private turnBasedGame: TurnBasedGame,
         onBetRequested?: () => any,
         onBetsReceived?: (betType: string, amount: BigNumber) => any,

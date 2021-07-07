@@ -29,6 +29,9 @@ export class GameWasm implements Game {
     start(): Promise<void> {
         return new Promise(async (resolve, reject) => {
             try {
+			    // FIXME: figure out how to use GameWasm with TurnBasedGameMock properly
+		        if (this.gameOpponent) this.gameOpponent.start();
+
                 console.log(`### [Player ${this.playerId}] Init engine ###`);
                 await this.engine.init(this.playerFunds, this.opponentFunds, this.bigBlind);
                 console.log(`### [Player ${this.playerId}] Engine started ###`);
