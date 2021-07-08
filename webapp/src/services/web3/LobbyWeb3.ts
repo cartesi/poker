@@ -7,8 +7,10 @@ import { TurnBasedGame__factory } from "../../types";
 import { TurnBasedGameContext__factory } from "../../types";
 import { TurnBasedGameLobby__factory } from "../../types";
 import { PokerToken__factory } from "../../types";
+import { GameRequest } from "./GameRequest";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
+import { Web3Utils } from "./Web3Utils";
 
 declare let window: any;
 
@@ -16,10 +18,10 @@ export class LobbyWeb3 {
     /**
      * Joins a new Texas Holdem game using Web3
      */
-    public static async joinGame(playerInfo: object, gameReadyCallback) {
+    public static async joinGame(gameRequest: GameRequest, gameReadyCallback) {
         // retrieves provider + signer (e.g., from metamask)
         const { provider, chainId } = ServiceConfig.getProviderConfiguration();
-        const signer = provider.getSigner();
+        const signer = provider.getSigner(gameRequest.accountIndex);
         const playerAddress = await signer.getAddress();
 
         // connects to the TurnBasedGame and TurnBasedGameLobby contracts
@@ -71,6 +73,9 @@ export class LobbyWeb3 {
             console.error('No validators defined for the selected chain with ID ' + chainId);
         }
 
+        // Encode player infos
+        let playerInfo = Web3Utils.toUint8Array(gameRequest.getPlayerInfo());
+
         // joins game by calling Lobby smart contract
         await lobbyContract.joinGame(
             GameConstants.GAME_TEMPLATE_HASH,
@@ -80,7 +85,7 @@ export class LobbyWeb3 {
             GameConstants.MIN_FUNDS,
             PokerToken.address,
             playerFunds,
-            ethers.utils.toUtf8Bytes(JSON.stringify(playerInfo))
+            playerInfo
         );
     }
 }

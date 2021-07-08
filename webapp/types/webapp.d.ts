@@ -1,10 +1,10 @@
-declare interface GameData {
+export declare interface GameData {
     muted: boolean;
     name: string;
     avatar: number;
 }
 
-declare interface AppState {
+export declare interface AppState {
     web3: any;
     account: string;
     ethBalance: string;
