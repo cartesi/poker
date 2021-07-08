@@ -1,6 +1,6 @@
 {
     "name": "@cartesi/poker-webfaucet",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "description": "Cartesi Poker Faucet Web Application",
     "author": "Milton Jonathan <milton.jonathan@cartesi.io>",
     "license": "Apache-2.0",
