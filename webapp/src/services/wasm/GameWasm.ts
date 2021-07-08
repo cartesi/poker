@@ -1,5 +1,5 @@
 import { Card } from "../Card";
-import { Engine, EngineResult, StatusCode } from "../Engine";
+import { Engine, EnginePlayer, EngineResult, StatusCode } from "../Engine";
 import { BetType, Game, GameState, VerificationState } from "../Game";
 import { TurnBasedGame } from "../TurnBasedGame";
 import { PokerEngine } from "./PokerEngine";
@@ -29,8 +29,8 @@ export class GameWasm implements Game {
     start(): Promise<void> {
         return new Promise(async (resolve, reject) => {
             try {
-			    // FIXME: figure out how to use GameWasm with TurnBasedGameMock properly
-		        if (this.gameOpponent) this.gameOpponent.start();
+                // FIXME: figure out how to use GameWasm with TurnBasedGameMock properly
+                if (this.gameOpponent) this.gameOpponent.start();
 
                 console.log(`### [Player ${this.playerId}] Init engine ###`);
                 await this.engine.init(this.playerFunds, this.opponentFunds, this.bigBlind);
@@ -67,39 +67,85 @@ export class GameWasm implements Game {
     };
 
     getPlayerCards(): Promise<Array<Card>> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            let player = await this._getPlayer(this.playerId);
+            let cards = player.cards.map(Card.fromIndex);
+            resolve(cards);
+        });
     }
 
     getOpponentCards(): Promise<Array<Card>> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            let opponent = await this._getPlayer(this.opponentId);
+            let cards = opponent.cards.map(Card.fromIndex);
+            resolve(cards);
+        });
     }
 
     getCommunityCards(): Promise<Array<Card>> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            let gameState = await this.engine.game_state();
+            let cards = gameState.public_cards.map(Card.fromIndex);
+            resolve(cards);
+        });
     }
 
-    getPlayer(): Promise<number> {
-        throw new Error("Method not implemented.");
+    getCurrentPlayerId(): Promise<number> {
+        return new Promise(async (resolve) => {
+            let gameState = await this.engine.game_state();
+            resolve(gameState.current_player);
+        });
     }
 
     getPlayerFunds(): Promise<BigNumber> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            let player = await this._getPlayer(this.playerId);
+            resolve(player.total_funds);
+        });
     }
 
     getOpponentFunds(): Promise<BigNumber> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            let opponent = await this._getPlayer(this.opponentId);
+            resolve(opponent.total_funds);
+        });
     }
 
     getPlayerBets(): Promise<BigNumber> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            let player = await this._getPlayer(this.playerId);
+            resolve(player.bets);
+        });
     }
 
     getOpponentBets(): Promise<BigNumber> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            let opponent = await this._getPlayer(this.opponentId);
+            resolve(opponent.bets);
+        });
     }
 
     getState(): Promise<GameState> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve, reject) => {
+            let state = await this.engine.game_state();
+            if (state.step >= 0 && state.step < 9) {
+                resolve(GameState.START);
+            } else if (state.step == 9) {
+                resolve(GameState.PREFLOP);
+            } else if (state.step < 12) {
+                resolve(GameState.FLOP);
+            } else if (state.step < 14) {
+                resolve(GameState.TURN);
+            } else if (state.step < 16) {
+                resolve(GameState.RIVER);
+            } else if (state.step == 16) {
+                resolve(GameState.SHOWDOWN);
+            } else if (state.step == 17) {
+                resolve(GameState.END);
+            } else {
+                reject(new Error("Unknown engine state"));
+            }
+        });
     }
 
     getVerificationState(): Promise<VerificationState> {
@@ -137,5 +183,10 @@ export class GameWasm implements Game {
     // TODO: Maybe ask Engine who is Dealer/Small Blind/Big Blind?
     _isDealer(): Boolean {
         return this.playerId == 0;
+    }
+
+    async _getPlayer(playerId: number): Promise<EnginePlayer> {
+        let state = await this.engine.game_state();
+        return state.players[playerId];
     }
 }

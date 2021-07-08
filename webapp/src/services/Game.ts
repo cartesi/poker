@@ -72,7 +72,7 @@ export interface Game {
     getPlayerCards(): Promise<Array<Card>>;
     getOpponentCards(): Promise<Array<Card>>;
     getCommunityCards(): Promise<Array<Card>>;
-    getPlayer(): Promise<number>;
+    getCurrentPlayerId(): Promise<number>;
     getPlayerFunds(): Promise<BigNumber>;
     getOpponentFunds(): Promise<BigNumber>;
     getPlayerBets(): Promise<BigNumber>;

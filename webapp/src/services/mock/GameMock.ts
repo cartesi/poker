@@ -196,7 +196,7 @@ export class GameMock implements Game {
         return this._getCommunityCards();
     }
 
-    async getPlayer() {
+    async getCurrentPlayerId() {
         return this.player;
     }
 
