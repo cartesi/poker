@@ -1,0 +1,3 @@
+cartesi-machine \
+    --flash-drive="label:verifier,filename:chess-verifier.ext2" \
+    -- $'cd /mnt/verifier/ && qjs ./chess-run.js'
