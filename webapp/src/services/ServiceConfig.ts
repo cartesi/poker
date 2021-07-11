@@ -1,5 +1,4 @@
 import { ethers } from "ethers";
-import { GameConstants } from "../GameConstants";
 
 export enum ServiceType {
     Transport = "transport",
@@ -15,6 +14,16 @@ export enum ServiceImpl {
 declare let window: any;
 
 export class ServiceConfig {
+    // Unique instance for the service's configurator
+    public static currentInstance: ServiceConfig;
+    // Index for the account which will be signer for transactions
+    public signerIndex: number;
+
+    constructor() {
+        ServiceConfig.currentInstance = this;
+        this.signerIndex = 0;
+    }
+
     /**
      * Retrieves the implementation configured for a specified service type
      *
@@ -39,29 +48,51 @@ export class ServiceConfig {
         }
     }
 
+
     /**
-     * Retrieves the configuration needed by web3 services to make calls to the smart contracts.
-     * 
-     * @returns json with the web3 provider to be used by services and the chainId
+     * @returns true if Metamask was detected or false otherwise
      */
-    public static getProviderConfiguration() {
-        let provider;
-        let chainId;
-        if (typeof window !== "undefined") { // Normal webapp usage
-            if (!window.ethereum) {
-                throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
-            } else {
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                chainId = window.ethereum.chainId;
-            }
-        } else { // Automated test usage
-            provider = new ethers.providers.JsonRpcProvider();
-            chainId = "0x7a69";
+    public static isMetamask() {
+        if (typeof window !== "undefined" && window.ethereum) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static getChainId() {
+        if (typeof window !== "undefined" && !ServiceConfig.isMetamask()) {
+            throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
         }
 
-        return {
-            provider: provider,
-            chainId: chainId
-        };
+        if (ServiceConfig.isMetamask()) { // Normal webapp usage
+            return window.ethereum.chainId;
+        } else { // Automated tests usage
+            return "0x7a69";
+        }
+    }
+
+    public static getSigner() {
+        if (typeof window !== "undefined" && !ServiceConfig.isMetamask()) {
+            throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
+        }
+
+        let provider;
+        if (ServiceConfig.isMetamask()) { // Normal webapp usage
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+        } else { // Automated test usage
+            provider = new ethers.providers.JsonRpcProvider();
+        }
+        let signerIndex = ServiceConfig.currentInstance.signerIndex;
+
+        return provider.getSigner(signerIndex);
+    }
+
+    /**
+     * Sets the account which will interact with the network
+     * @param _signerIndex Account index (default index is 0)
+     */
+    public setSigner(_signerIndex: number) {
+        this.signerIndex = _signerIndex;
     }
 }

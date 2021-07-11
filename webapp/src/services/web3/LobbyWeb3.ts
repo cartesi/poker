@@ -18,10 +18,11 @@ export class LobbyWeb3 {
     /**
      * Joins a new Texas Holdem game using Web3
      */
-    public static async joinGame(gameRequest: GameRequest, gameReadyCallback) {
-        // retrieves provider + signer (e.g., from metamask)
-        const { provider, chainId } = ServiceConfig.getProviderConfiguration();
-        const signer = provider.getSigner(gameRequest.accountIndex);
+    public static async joinGame(playerInfo: Object, gameReadyCallback) {
+        // retrieves signer + chainId (e.g., from metamask)
+        const signer = ServiceConfig.getSigner();
+        const chainId = ServiceConfig.getChainId();
+
         const playerAddress = await signer.getAddress();
 
         // connects to the TurnBasedGame and TurnBasedGameLobby contracts
@@ -74,7 +75,7 @@ export class LobbyWeb3 {
         }
 
         // Encode player infos
-        let playerInfo = Web3Utils.toUint8Array(gameRequest.getPlayerInfo());
+        let encodedPlayerInfo = Web3Utils.toUint8Array(playerInfo);
 
         // joins game by calling Lobby smart contract
         await lobbyContract.joinGame(
@@ -85,7 +86,7 @@ export class LobbyWeb3 {
             GameConstants.MIN_FUNDS,
             PokerToken.address,
             playerFunds,
-            playerInfo
+            encodedPlayerInfo
         );
     }
 }

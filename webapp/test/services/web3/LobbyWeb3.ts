@@ -11,17 +11,19 @@ import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
 import { GameRequest } from "../../../src/services/web3/GameRequest";
 
 describe('LobbyWeb3', () => {
+    // creates a service config instance
+    const serviceConfig: ServiceConfig = new ServiceConfig();
 
     const aliceAccountIndex: number = 0;
     const bobAccountIndex: number = 1;
 
     beforeEach(async () => {
-        const { provider } = ServiceConfig.getProviderConfiguration();
-
-        const aliceSigner = provider.getSigner(aliceAccountIndex);
+        ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
+        const aliceSigner = ServiceConfig.getSigner();
         const aliceAddress = await aliceSigner.getAddress();
 
-        const bobSigner = provider.getSigner(bobAccountIndex);
+        ServiceConfig.currentInstance.setSigner(bobAccountIndex);
+        const bobSigner = ServiceConfig.getSigner();
         const bobAddress = await bobSigner.getAddress();
 
         const pokerTokenContractAlice = PokerToken__factory.connect(PokerToken.address, aliceSigner);
@@ -40,42 +42,28 @@ describe('LobbyWeb3', () => {
         await pokerTokenContractBob.approve(TurnBasedGameLobby.address, bobFunds);
     });
 
-    it.skip('should allow a player to join a game', async () => {
-        const gameData: GameData = { name: "Alice", avatar: 1, muted: false };
-        const gameRequest: GameRequest = new GameRequest(gameData, aliceAccountIndex);
-
-        let gameReadyStatus: boolean = false;
-        let gameReadyCallback = function (index, context) {
-            gameReadyStatus = true;
-        };
-
-        await LobbyWeb3.joinGame(gameRequest, gameReadyCallback);
-        setTimeout(() => { }, 1500);
-        expect(gameReadyStatus).to.be.false;
-    });
-
     it('should notify game ready when the correct number of players have joined', async () => {
-        const player1Info: GameData = { name: "Alice", avatar: 1, muted: false };
-        const player1Request: GameRequest = new GameRequest(player1Info, aliceAccountIndex);
-
-        const player2Info: GameData = { name: "Bob", avatar: 2, muted: false };
-        const player2Request: GameRequest = new GameRequest(player2Info, bobAccountIndex);
+        const player1Info = { name: "Alice", avatar: 1 };
+        const player2Info = { name: "Bob", avatar: 2 };
 
         // Player 1 joins the game
+        ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
         let gameReadyStatusPlayer1: boolean = false;
         let gameReadyCallbackPlayer1 = function (index, context) {
             console.log("gameReadyCallbackPlayer1 was called");
             gameReadyStatusPlayer1 = true;
         };
-        await LobbyWeb3.joinGame(player1Request, gameReadyCallbackPlayer1);
+        await LobbyWeb3.joinGame(player1Info, gameReadyCallbackPlayer1);
 
-        // Player 2 joing the game
+        // Player 2 joins the game
+        ServiceConfig.currentInstance.setSigner(bobAccountIndex);
+
         let gameReadyStatusPlayer2: boolean = false;
         let gameReadyCallbackPlayer2 = function (index, context) {
             console.log("gameReadyCallbackPlayer2 was called");
             gameReadyStatusPlayer2 = true;
         };
-        await LobbyWeb3.joinGame(player2Request, gameReadyCallbackPlayer2);
+        await LobbyWeb3.joinGame(player2Info, gameReadyCallbackPlayer2);
 
         setTimeout(() => {
             // Alice and Bob must receive the gameReady event
