@@ -7,7 +7,6 @@ import { TurnBasedGame__factory } from "../../types";
 import { TurnBasedGameContext__factory } from "../../types";
 import { TurnBasedGameLobby__factory } from "../../types";
 import { PokerToken__factory } from "../../types";
-import { GameRequest } from "./GameRequest";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
 import { Web3Utils } from "./Web3Utils";

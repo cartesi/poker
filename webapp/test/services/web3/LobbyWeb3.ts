@@ -1,14 +1,11 @@
 import { describe } from "mocha";
 import { expect } from 'chai';
-import { GameVars } from "../../../src/GameVars";
 import { GameConstants } from "../../../src/GameConstants";
-import { GameData } from "@cartesi/poker-webapp/types/webapp";
 import { ServiceConfig } from "../../../src/services/ServiceConfig";
 import { PokerToken__factory } from "../../../src/types";
 import PokerToken from "../../../src/abis/PokerToken.json";
 import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
 import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
-import { GameRequest } from "../../../src/services/web3/GameRequest";
 
 describe('LobbyWeb3', () => {
     // creates a service config instance
