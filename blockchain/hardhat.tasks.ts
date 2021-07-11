@@ -264,12 +264,18 @@ task("submit-turn", "Submits a game turn for a given player")
         types.string
     )
     .addOptionalParam(
+        "datastr",
+        "Turn data to submit as an UTF-8 string",
+        undefined,
+        types.string
+    )
+    .addOptionalParam(
         "datafile",
         "File containing turn data to submit, whose content must be a JSON array of 64-bit words",
         undefined,
         types.string
     )
-    .setAction(async ({ index, player, data, datafile }, hre) => {
+    .setAction(async ({ index, player, data, datastr, datafile }, hre) => {
         const { ethers } = hre;
         // retrieves account from configured named accounts, according to player's name
         const playerAccount = (await hre.getNamedAccounts())[player];
@@ -287,6 +293,11 @@ task("submit-turn", "Submits a game turn for a given player")
                 `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data from file '${datafile}'\n`
             );
             data = fs.readFileSync(datafile).toString();
+        } else if (datastr) {
+            console.log(
+                `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data converted from string '${datastr}'\n`
+            );
+            data = ethers.utils.toUtf8Bytes(datastr);
         } else {
             console.log(
                 `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data '${JSON.stringify(
