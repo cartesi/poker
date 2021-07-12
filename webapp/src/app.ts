@@ -9,8 +9,10 @@ import { RoomScene } from "./scenes/room/RoomScene";
 import { GameVars } from "./GameVars";
 import { LobbyScene } from "./scenes/lobby/LobbyScene";
 import { SplashScene } from "./scenes/splash/SplashScene";
+import { ServiceConfig } from "./services/ServiceConfig";
 
 let game: Game;
+let serviceConfig: ServiceConfig;
 
 window.onload = () => {
 
@@ -29,7 +31,7 @@ window.onload = () => {
             width: GameConstants.GAME_WIDTH,
             height: GameConstants.GAME_HEIGHT
         },
-        scene:  [
+        scene: [
             BootScene,
             PreloadScene,
             RoomScene,
@@ -43,39 +45,42 @@ window.onload = () => {
     };
 
     game = new Game(gameConfig);
+    serviceConfig = new ServiceConfig();
 
     window.addEventListener("resize", onResize, false);
     window.addEventListener("orientationchange", onOrientationChange, false);
 
     function onOrientationChange(): void {
-    
-        GameVars.currentScene.time.addEvent({delay: 100, callback: () => {
-    
-            if (window.innerHeight < window.innerWidth) {
-                let aspectRatio = window.innerWidth / window.innerHeight;
-                GameVars.scaleX = (GameConstants.GAME_WIDTH / GameConstants.GAME_HEIGHT) / aspectRatio;
-                GameVars.scaleY = 1;
-                GameVars.landscape = true;
-            } else {
-                let aspectRatio = window.innerHeight / window.innerWidth;
-                GameVars.scaleY = (GameConstants.GAME_HEIGHT / GameConstants.GAME_WIDTH) / aspectRatio;
-                GameVars.scaleX = 1;
-                GameVars.landscape = false;
-            }
-            
-            if (GameVars.currentScene === SplashScene.currentInstance) {
-                SplashScene.currentInstance.onOrientationChange();
-            } else if (GameVars.currentScene === RoomScene.currentInstance) {
-                RoomScene.currentInstance.onOrientationChange();
-            } else if (GameVars.currentScene === LobbyScene.currentInstance) {
-                LobbyScene.currentInstance.onOrientationChange();
-            }
-            
-        }, callbackScope: GameVars.currentScene});
+
+        GameVars.currentScene.time.addEvent({
+            delay: 100, callback: () => {
+
+                if (window.innerHeight < window.innerWidth) {
+                    let aspectRatio = window.innerWidth / window.innerHeight;
+                    GameVars.scaleX = (GameConstants.GAME_WIDTH / GameConstants.GAME_HEIGHT) / aspectRatio;
+                    GameVars.scaleY = 1;
+                    GameVars.landscape = true;
+                } else {
+                    let aspectRatio = window.innerHeight / window.innerWidth;
+                    GameVars.scaleY = (GameConstants.GAME_HEIGHT / GameConstants.GAME_WIDTH) / aspectRatio;
+                    GameVars.scaleX = 1;
+                    GameVars.landscape = false;
+                }
+
+                if (GameVars.currentScene === SplashScene.currentInstance) {
+                    SplashScene.currentInstance.onOrientationChange();
+                } else if (GameVars.currentScene === RoomScene.currentInstance) {
+                    RoomScene.currentInstance.onOrientationChange();
+                } else if (GameVars.currentScene === LobbyScene.currentInstance) {
+                    LobbyScene.currentInstance.onOrientationChange();
+                }
+
+            }, callbackScope: GameVars.currentScene
+        });
     }
 
     function onResize(): void {
-        
+
         if (window.innerHeight < window.innerWidth) {
             let aspectRatio = window.innerWidth / window.innerHeight;
             GameVars.scaleX = (GameConstants.GAME_WIDTH / GameConstants.GAME_HEIGHT) / aspectRatio;
@@ -87,7 +92,7 @@ window.onload = () => {
             GameVars.scaleX = 1;
             GameVars.landscape = false;
         }
-        
+
         if (GameVars.currentScene === SplashScene.currentInstance) {
             SplashScene.currentInstance.onOrientationChange();
         } else if (GameVars.currentScene === RoomScene.currentInstance) {
