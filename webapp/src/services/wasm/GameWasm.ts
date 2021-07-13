@@ -1,5 +1,5 @@
 import { Card } from "../Card";
-import { Engine, EnginePlayer, EngineResult, StatusCode } from "../Engine";
+import { Engine, EngineBetType, EnginePlayer, EngineResult, EngineStep, StatusCode } from "../Engine";
 import { BetType, Game, GameState, VerificationState } from "../Game";
 import { TurnBasedGame } from "../TurnBasedGame";
 import { PokerEngine } from "./PokerEngine";
@@ -35,10 +35,14 @@ export class GameWasm implements Game {
                 console.log(`### [Player ${this.playerId}] Init engine ###`);
                 await this.engine.init(this.playerFunds, this.opponentFunds, this.bigBlind);
                 console.log(`### [Player ${this.playerId}] Engine started ###`);
+
                 if (this._isDealer()) await this._createHandshake();
+
                 await this._processHandshake();
                 resolve();
+
                 if (this._isDealer()) this.onBetRequested();
+                else this._waitOpponentBet();
             } catch (error) {
                 reject(new Error(`Failed to start game. ${error}`));
             }
@@ -46,19 +50,39 @@ export class GameWasm implements Game {
     }
 
     call(): Promise<void> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            console.log(`### [Player ${this.playerId}] CALL ###`);
+            await this._createBet(EngineBetType.BET_CALL);
+            resolve();
+            this._waitOpponentBet();
+        });
     }
 
     check(): Promise<void> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            console.log(`### [Player ${this.playerId}] CHECK ###`);
+            await this._createBet(EngineBetType.BET_CHECK);
+            resolve();
+            this._waitOpponentBet();
+        });
     }
 
     fold(): Promise<void> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            console.log(`### [Player ${this.playerId}] FOLD ###`);
+            await this._createBet(EngineBetType.BET_FOLD);
+            resolve();
+            //TODO: handle player fold
+        });
     }
 
     raise(amount: BigNumber): Promise<void> {
-        throw new Error("Method not implemented.");
+        return new Promise(async (resolve) => {
+            console.log(`### [Player ${this.playerId}] RAISE ###`);
+            await this._createBet(EngineBetType.BET_RAISE, amount);
+            resolve();
+            this._waitOpponentBet();
+        });
     }
 
     cheat: {
@@ -156,14 +180,14 @@ export class GameWasm implements Game {
         throw new Error("Method not implemented.");
     }
 
-    async _createHandshake(): Promise<string> {
+    private async _createHandshake(): Promise<string> {
         console.log(`### [Player ${this.playerId}] Create Handshake ###`);
         let result = await this.engine.create_handshake();
         console.log(`### [Player ${this.playerId}] Submit turn ###`);
         return this.turnBasedGame.submitTurn(result.message_out);
     }
 
-    async _processHandshake(): Promise<void> {
+    private async _processHandshake(): Promise<void> {
         console.log(`### [Player ${this.playerId}] Process Handshake ###`);
         let p2: EngineResult;
         do {
@@ -180,13 +204,87 @@ export class GameWasm implements Game {
         return Promise.resolve();
     }
 
+    private async _createBet(type: EngineBetType, amount: BigNumber = BigNumber.from(0)): Promise<any> {
+        console.log(`### [Player ${this.playerId}] Created bet ###`);
+        let bet = await this.engine.create_bet(type, amount);
+        console.log(`### [Player ${this.playerId}] Submit turn ###`);
+        await this.turnBasedGame.submitTurn(bet.message_out);
+
+        if (bet.status == StatusCode.CONTINUED) {
+            await this._processBet();
+        }
+
+        console.log(`### [Player ${this.playerId}] Bet Resolved ###`);
+        Promise.resolve();
+    }
+
+    private async _processBet(): Promise<Bet> {
+        console.log(`### [Player ${this.playerId}] Process bet ###`);
+        let receivedBet: EngineResult;
+        do {
+            let message_in = await this.turnBasedGame.receiveTurnOver();
+            console.log(`### [Player ${this.playerId}] On turn received ###`);
+            receivedBet = await this.engine.process_bet(message_in);
+
+            if (receivedBet.message_out.length > 0) {
+                console.log(`### [Player ${this.playerId}] Submit turn ###`);
+                this.turnBasedGame.submitTurn(receivedBet.message_out);
+            }
+        } while (receivedBet.status == StatusCode.CONTINUED);
+
+        return Promise.resolve({
+            type: receivedBet.betType,
+            amount: receivedBet.amount,
+        });
+    }
+
+    private _waitOpponentBet() {
+        this._processBet().then(async (bet) => {
+            let type = this._convertBetType(bet.type);
+            this.onBetsReceived(type, bet.amount);
+
+            let state = await this.engine.game_state();
+            if (state.step == EngineStep.GAME_OVER) {
+                if (type == BetType.FOLD || this._isDealer()) {
+                    let fundsShare = state.funds_share;
+                    console.log(`### [Player ${this.playerId}] Claim Result ###`);
+                    await this.turnBasedGame.claimResult(fundsShare);
+                }
+            } else if (state.current_player == this.playerId) {
+                this.onBetRequested();
+            } else {
+                //TODO: handle opponent fold
+            }
+        });
+    }
+
+    private _convertBetType(engineType: EngineBetType): BetType {
+        switch (engineType) {
+            case EngineBetType.BET_CALL:
+                return BetType.CALL;
+            case EngineBetType.BET_CHECK:
+                return BetType.CHECK;
+            case EngineBetType.BET_RAISE:
+                return BetType.RAISE;
+            case EngineBetType.BET_FOLD:
+                return BetType.FOLD;
+            default:
+                return null;
+        }
+    }
+
     // TODO: Maybe ask Engine who is Dealer/Small Blind/Big Blind?
-    _isDealer(): Boolean {
+    private _isDealer(): Boolean {
         return this.playerId == 0;
     }
 
-    async _getPlayer(playerId: number): Promise<EnginePlayer> {
+    private async _getPlayer(playerId: number): Promise<EnginePlayer> {
         let state = await this.engine.game_state();
         return state.players[playerId];
     }
+}
+
+interface Bet {
+    type: EngineBetType;
+    amount: BigNumber;
 }

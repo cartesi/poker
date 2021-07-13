@@ -211,6 +211,7 @@ export class GameFactory {
     }
 
     private static onOpponentAutomaticBet(game) {
+        console.log(`### [Player 1] AUTOMATIC BET ###`);
         setTimeout(async () => {
             if (!game.gameOpponent) {
                 return;
