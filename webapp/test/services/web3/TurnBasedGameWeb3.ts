@@ -46,7 +46,7 @@ describe('TurnBasedGameWeb3', () => {
         await pokerTokenContractBob.approve(TurnBasedGameLobby.address, bobFunds);
     });
 
-    it.skip('should notify game ready when the correct number of players have joined', async () => {
+    it.skip('should allow a player to submit a turn', async () => {
         const aliceInfo = { name: "Alice", avatar: 1 };
         const bobInfo = { name: "Bob", avatar: 2 };
 
@@ -56,7 +56,7 @@ describe('TurnBasedGameWeb3', () => {
         let aliceGameReadyCallback = function (index, context) {
             gameIndex = index;
             aliceGameReadyStatus = true;
-            console.log("gameReadyCallbackPlayer1 was called");
+            console.log("gameReadyCallbackPlayer1 was called with index=" + index);
         };
         await LobbyWeb3.joinGame(aliceInfo, aliceGameReadyCallback);
 
@@ -66,28 +66,28 @@ describe('TurnBasedGameWeb3', () => {
         let bobGameReadyStatus: boolean = false;
         let bobGameReadyCallback = function (index, context) {
             bobGameReadyStatus = true;
-            console.log("gameReadyCallbackPlayer2 was called");
+            console.log("gameReadyCallbackPlayer2 was called with index=" + index);
         };
         await LobbyWeb3.joinGame(bobInfo, bobGameReadyCallback);
 
-        setTimeout(() => {
+        setTimeout(async () => {
             // Alice and Bob must receive the gameReady event
             expect(aliceGameReadyStatus).to.be.true;
             expect(bobGameReadyStatus).to.be.true;
+
+            ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
+            gameContractAlice = new TurnBasedGameWeb3(gameIndex);
+            await gameContractAlice.initWeb3();
+
+            ServiceConfig.currentInstance.setSigner(bobAccountIndex);
+            gameContractBob = new TurnBasedGameWeb3(gameIndex);
+            await gameContractBob.initWeb3();
+
+            let gameData: string = "0x00000000000000010000000000000002";
+            await gameContractAlice.submitTurn(gameData);
+
+            //Expects Bob receive turnOver event
         }, 5000);
 
-
-        ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
-        gameContractAlice = new TurnBasedGameWeb3(gameIndex);
-        await gameContractAlice.initWeb3();
-
-        ServiceConfig.currentInstance.setSigner(bobAccountIndex);
-        gameContractBob = new TurnBasedGameWeb3(gameIndex);
-        await gameContractBob.initWeb3();
-
-        let gameData: string = "0x00000000000000010000000000000002";
-        gameContractAlice.submitTurn(gameData);
-
-        //Expects Bob receive turnOver event
     });
 });
