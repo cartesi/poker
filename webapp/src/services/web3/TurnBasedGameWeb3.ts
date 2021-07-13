@@ -8,6 +8,7 @@ import { TurnBasedGameContext__factory } from "../../types";
 import LoggerJson from "../../abis/Logger.json";
 import { Logger as LoggerContract } from "../../types";
 import { Logger__factory } from "../../types";
+import { ServiceConfig } from "../ServiceConfig";
 
 declare let window: any;
 
@@ -52,15 +53,8 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             return;
         }
 
-        // connects to ethereum
-        if (!window.ethereum) {
-            throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
-        }
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-
-        // retrieves provider + signer (e.g., from metamask)
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
+        // retrieves signer (e.g., from metamask)
+        const signer = ServiceConfig.getSigner();
 
         // connects to smart contracts
         this.loggerContract = Logger__factory.connect(LoggerJson.address, signer);
