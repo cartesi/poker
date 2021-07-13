@@ -44,9 +44,11 @@ describe('TurnBasedGameWeb3', () => {
         // Setup for Bob
         let bobFunds = await pokerTokenContractBob.balanceOf(bobAddress);
         await pokerTokenContractBob.approve(TurnBasedGameLobby.address, bobFunds);
+
+
     });
 
-    it.skip('should allow a player to submit a turn', async () => {
+    it('should allow a player to submit a turn', async () => {
         const aliceInfo = { name: "Alice", avatar: 1 };
         const bobInfo = { name: "Bob", avatar: 2 };
 
@@ -70,24 +72,34 @@ describe('TurnBasedGameWeb3', () => {
         };
         await LobbyWeb3.joinGame(bobInfo, bobGameReadyCallback);
 
+        // Alice and Bob must receive the gameReady event
+        // to be able to submit their turns
         setTimeout(async () => {
-            // Alice and Bob must receive the gameReady event
             expect(aliceGameReadyStatus).to.be.true;
             expect(bobGameReadyStatus).to.be.true;
 
+            // create turnbasedgame instance for Alice
             ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
             gameContractAlice = new TurnBasedGameWeb3(gameIndex);
             await gameContractAlice.initWeb3();
 
+            // data alice will submit
+            let aliceData: string = "0x00000000000000010000000000000002";
+
+            // create turnbasedgame instance for Bob
             ServiceConfig.currentInstance.setSigner(bobAccountIndex);
             gameContractBob = new TurnBasedGameWeb3(gameIndex);
             await gameContractBob.initWeb3();
 
-            let gameData: string = "0x00000000000000010000000000000002";
-            await gameContractAlice.submitTurn(gameData);
+            // set up callback for Bob receive Alice's turn
+            let bobTurnOverReceivingCallback = (receivedData: any) => {
+                console.log("Bob received a turn with data =" + receivedData);
+                expect(receivedData).to.be.equal(aliceData);
+            };
+            gameContractBob.receiveTurnOver(bobTurnOverReceivingCallback);
 
-            //Expects Bob receive turnOver event
+            // alice submit a turn
+            await gameContractAlice.submitTurn(aliceData);
         }, 5000);
-
     });
 });
