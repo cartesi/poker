@@ -8,6 +8,8 @@ import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
 import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
 import TurnBasedGame from "../../../src/abis/TurnBasedGame.json";
 import { TurnBasedGameWeb3 } from "../../../src/services/web3/TurnBasedGameWeb3";
+import { Web3TestUtils } from "./Web3TestUtils";
+
 
 describe('TurnBasedGameWeb3', () => {
     // creates a service config instance
@@ -74,32 +76,34 @@ describe('TurnBasedGameWeb3', () => {
 
         // Alice and Bob must receive the gameReady event
         // to be able to submit their turns
-        setTimeout(async () => {
-            expect(aliceGameReadyStatus).to.be.true;
-            expect(bobGameReadyStatus).to.be.true;
+        await Web3TestUtils.waitUntil(5000);
+        expect(aliceGameReadyStatus).to.be.true;
+        expect(bobGameReadyStatus).to.be.true;
 
-            // create turnbasedgame instance for Alice
-            ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
-            gameContractAlice = new TurnBasedGameWeb3(gameIndex);
-            await gameContractAlice.initWeb3();
+        // create turnbasedgame instance for Alice
+        ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
+        gameContractAlice = new TurnBasedGameWeb3(gameIndex);
+        await gameContractAlice.initWeb3();
 
-            // data alice will submit
-            let aliceData: string = "0x00000000000000010000000000000002";
+        // data alice will submit
+        let aliceData: string = "0x00000000000000010000000000000002";
 
-            // create turnbasedgame instance for Bob
-            ServiceConfig.currentInstance.setSigner(bobAccountIndex);
-            gameContractBob = new TurnBasedGameWeb3(gameIndex);
-            await gameContractBob.initWeb3();
+        // create turnbasedgame instance for Bob
+        ServiceConfig.currentInstance.setSigner(bobAccountIndex);
+        gameContractBob = new TurnBasedGameWeb3(gameIndex);
+        await gameContractBob.initWeb3();
 
-            // set up callback for Bob receive Alice's turn
-            let bobTurnOverReceivingCallback = (receivedData: any) => {
-                console.log("Bob received a turn with data =" + receivedData);
-                expect(receivedData).to.be.equal(aliceData);
-            };
-            gameContractBob.receiveTurnOver(bobTurnOverReceivingCallback);
+        // set up callback for Bob receive Alice's turn
+        let bobTurnOverReceivingCallback = (receivedData: any) => {
+            console.log("Bob received a turn with data =" + receivedData);
+            expect(receivedData).to.be.equal(aliceData);
+        };
+        gameContractBob.receiveTurnOver(bobTurnOverReceivingCallback);
 
-            // alice submit a turn
-            await gameContractAlice.submitTurn(aliceData);
-        }, 5000);
+        // alice submit a turn
+        await gameContractAlice.submitTurn(aliceData);
+
+        // wait a while for the callback run to check the turnover event
+        await Web3TestUtils.waitUntil(5000);
     });
 });

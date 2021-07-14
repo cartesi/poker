@@ -6,6 +6,7 @@ import { PokerToken__factory } from "../../../src/types";
 import PokerToken from "../../../src/abis/PokerToken.json";
 import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
 import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
+import { Web3TestUtils } from "./Web3TestUtils";
 
 describe('LobbyWeb3', () => {
     // creates a service config instance
@@ -47,7 +48,6 @@ describe('LobbyWeb3', () => {
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
         let gameReadyStatusPlayer1: boolean = false;
         let gameReadyCallbackPlayer1 = function (index, context) {
-            console.log("gameReadyCallbackPlayer1 was called");
             gameReadyStatusPlayer1 = true;
         };
         await LobbyWeb3.joinGame(player1Info, gameReadyCallbackPlayer1);
@@ -57,15 +57,14 @@ describe('LobbyWeb3', () => {
 
         let gameReadyStatusPlayer2: boolean = false;
         let gameReadyCallbackPlayer2 = function (index, context) {
-            console.log("gameReadyCallbackPlayer2 was called");
             gameReadyStatusPlayer2 = true;
         };
         await LobbyWeb3.joinGame(player2Info, gameReadyCallbackPlayer2);
 
-        setTimeout(() => {
-            // Alice and Bob must receive the gameReady event
-            expect(gameReadyStatusPlayer1).to.be.true;
-            expect(gameReadyStatusPlayer2).to.be.true;
-        }, 5000);
+        await Web3TestUtils.waitUntil(5000);
+
+        // Alice and Bob must receive the gameReady event
+        expect(gameReadyStatusPlayer1).to.be.true;
+        expect(gameReadyStatusPlayer2).to.be.true;
     });
 });

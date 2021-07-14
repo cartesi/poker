@@ -73,31 +73,32 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     }
 
     // TURN SUBMISSION
-    async submitTurn(data: string, onTurnSubmitted?: (any) => any) {
-        await this.initWeb3();
-        const payload = ethers.utils.toUtf8Bytes(data);
-        let tx;
-        // TODO: we try several times here for the time being, but a better procedure would be to throw the exception right away and let the UI decide what to do
-        for (let i = 0; i < TurnBasedGameWeb3.MAX_ATTEMPTS; i++) {
-            try {
-                const context = await this.gameContract.getContext(this.gameIndex);
-                const turnIndex = context.turns.length;
-                console.log(`turnIndex: ${turnIndex}`);
-                tx = await this.gameContract.submitTurn(this.gameIndex, turnIndex, payload);
-                console.log(
-                    `Submitted turn for game '${this.gameIndex}' and index '${turnIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
-                );
-                break;
-            } catch (error) {
-                console.error(`Error submitting turn: attempt ${i + 1}/${TurnBasedGameWeb3.MAX_ATTEMPTS}`);
+    async submitTurn(data: string) {
+        return new Promise(async (resolve, reject) => {
+            await this.initWeb3();
+            const payload = ethers.utils.toUtf8Bytes(data);
+            let tx;
+            // TODO: we try several times here for the time being, but a better procedure would be to throw the exception right away and let the UI decide what to do
+            for (let i = 0; i < TurnBasedGameWeb3.MAX_ATTEMPTS; i++) {
+                try {
+                    const context = await this.gameContract.getContext(this.gameIndex);
+                    const turnIndex = context.turns.length;
+                    console.log(`turnIndex: ${turnIndex}`);
+                    tx = await this.gameContract.submitTurn(this.gameIndex, turnIndex, payload);
+                    console.log(
+                        `Submitted turn for game '${this.gameIndex}' and index '${turnIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
+                    );
+                    break;
+                } catch (error) {
+                    console.error(`Error submitting turn: attempt ${i + 1}/${TurnBasedGameWeb3.MAX_ATTEMPTS}`);
+                }
             }
-        }
-        if (!tx) {
-            throw "Failure sending turn";
-        }
-        if (onTurnSubmitted) {
-            onTurnSubmitted(data);
-        }
+            if (tx) {
+                resolve(data);
+            } else {
+                reject("Failure sending turn");
+            }
+        });
     }
 
     async onTurnOver(gameIndex, turnIndex, turn) {
