@@ -11,7 +11,7 @@ import { TurnBasedGameWeb3 } from "../../../src/services/web3/TurnBasedGameWeb3"
 import { Web3TestUtils } from "./Web3TestUtils";
 
 
-describe('TurnBasedGameWeb3', () => {
+describe('TurnBasedGameWeb3', function () {
     // creates a service config instance
     const serviceConfig: ServiceConfig = new ServiceConfig();
 
@@ -22,6 +22,8 @@ describe('TurnBasedGameWeb3', () => {
 
     const aliceAccountIndex: number = 0;
     const bobAccountIndex: number = 1;
+
+    this.timeout(60000);
 
     beforeEach(async () => {
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
