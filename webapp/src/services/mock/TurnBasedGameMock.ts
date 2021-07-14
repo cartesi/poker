@@ -30,13 +30,18 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
 
     // turn submission
-    submitTurn(data: string, onTurnSubmitted?: (string) => any) {
-        this.other.turnDataQueue.push(data);
-        if (onTurnSubmitted) {
-            onTurnSubmitted(data);
-        }
-        this.other.dispatchTurn();
+    submitTurn(data: string) {
+        return new Promise((resolve, reject) => {
+            try {
+                this.other.turnDataQueue.push(data);
+                resolve(data);
+                this.other.dispatchTurn();
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
+
     receiveTurnOver(onTurnOverReceived: (string) => any) {
         this.onTurnOverReceivedCallbacks.push(onTurnOverReceived);
         this.dispatchTurn();

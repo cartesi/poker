@@ -43,11 +43,11 @@ export class GameMock implements Game {
         this.opponentBets = 0;
         this.metadata = metadata;
         this.turnBasedGame = turnBasedGame;
-        this.onEvent = onEvent ? onEvent : () => {};
-        this.onEnd = onEnd ? onEnd : () => {};
-        this.onBetRequested = onBetRequested ? onBetRequested : () => {};
-        this.onBetsReceived = onBetsReceived ? onBetsReceived : () => {};
-        this.onVerification = onVerification ? onVerification : () => {};
+        this.onEvent = onEvent ? onEvent : () => { };
+        this.onEnd = onEnd ? onEnd : () => { };
+        this.onBetRequested = onBetRequested ? onBetRequested : () => { };
+        this.onBetsReceived = onBetsReceived ? onBetsReceived : () => { };
+        this.onVerification = onVerification ? onVerification : () => { };
 
         // player leading the betting round
         // - starts with ALICE and is changed every time a player raises
@@ -69,20 +69,21 @@ export class GameMock implements Game {
     start(): Promise<void> {
         var self = this;
         const promise = new Promise<void>((resolve) => {
-            setTimeout(() => {
+            setTimeout(async () => {
                 if (self.player == ALICE) {
                     self.playerBets = 1;
                     self.opponentBets = 2;
+
                     self.cryptoStuff = "xkdkeoejf";
-                    self.turnBasedGame.submitTurn(self.cryptoStuff, () => {
-                        self.mykey = "ALICEKEY";
-                        self.turnBasedGame.submitTurn(self.mykey, () => {
-                            self._shuffleDeck();
-                            self.turnBasedGame.submitTurn(JSON.stringify(self.deck), () => {
-                                self.turnBasedGame.receiveTurnOver(self._keyReceived.bind(self));
-                            });
-                        });
-                    });
+                    await self.turnBasedGame.submitTurn(self.cryptoStuff);
+
+                    self.mykey = "ALICEKEY";
+                    await self.turnBasedGame.submitTurn(self.mykey);
+
+                    self._shuffleDeck();
+                    await self.turnBasedGame.submitTurn(JSON.stringify(self.deck));
+
+                    self.turnBasedGame.receiveTurnOver(self._keyReceived.bind(self));
                 } else {
                     self.playerBets = 2;
                     self.opponentBets = 1;
@@ -117,7 +118,7 @@ export class GameMock implements Game {
         if (this.opponentBets == this.playerBets && this.state != GameState.SHOWDOWN) {
             throw "Fold not allowed because player and opponent bets are equal: use check instead";
         }
-        this.turnBasedGame.submitTurn("FOLD");
+        await this.turnBasedGame.submitTurn("FOLD");
         this.state = GameState.END;
         this._computeResultPlayerFold();
         this.onEnd();
@@ -252,11 +253,11 @@ export class GameMock implements Game {
         }
     }
 
-    _cryptoStuffReceived(stuff) {
+    async _cryptoStuffReceived(stuff) {
         this.onEvent(`cryptoStuffReceived ${stuff}`);
         this.cryptoStuff = stuff;
         this.mykey = "BOBKEY";
-        this.turnBasedGame.submitTurn(this.mykey);
+        await this.turnBasedGame.submitTurn(this.mykey);
         this.turnBasedGame.receiveTurnOver(this._keyReceived.bind(this));
     }
 
@@ -266,13 +267,13 @@ export class GameMock implements Game {
         this.turnBasedGame.receiveTurnOver(this._deckReceived.bind(this));
     }
 
-    _deckReceived(deck) {
+    async _deckReceived(deck) {
         this.onEvent(`deckReceived ${deck}`);
         this.deck = JSON.parse(deck);
         if (this.player == BOB) {
             // Bob must reshuffle the deck and send it back
             this._shuffleDeck();
-            this.turnBasedGame.submitTurn(JSON.stringify(this.deck));
+            await this.turnBasedGame.submitTurn(JSON.stringify(this.deck));
         }
         this.onEvent(`myDeck ${JSON.stringify(this.deck)}`);
         this._advanceState();
@@ -327,7 +328,7 @@ export class GameMock implements Game {
         return card;
     }
 
-    _sendCards(...cardIndexes) {
+    async _sendCards(...cardIndexes) {
         const decryptedCards = {};
 
         for (var cardIndex of cardIndexes) {
@@ -336,7 +337,7 @@ export class GameMock implements Game {
             decryptedCards[cardIndex] = this.cheat.isCardCoopCheatOn ? card : this._decryptCard(card);
         }
 
-        this.turnBasedGame.submitTurn(JSON.stringify(decryptedCards));
+        await this.turnBasedGame.submitTurn(JSON.stringify(decryptedCards));
     }
 
     _dealPrivateCards() {
@@ -463,7 +464,7 @@ export class GameMock implements Game {
         this._advanceState();
     }
 
-    _increaseBets(amount) {
+    async _increaseBets(amount) {
         if (this.playerBets + amount > this.playerFunds) {
             throw "Insufficient funds";
         }
@@ -475,7 +476,7 @@ export class GameMock implements Game {
         }
 
         // sends new bets over
-        this.turnBasedGame.submitTurn(this.playerBets);
+        await this.turnBasedGame.submitTurn(this.playerBets);
 
         if (this.player == this.betLeader) {
             // bet leader: we need to wait for the opponent's bet
