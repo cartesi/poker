@@ -8,10 +8,8 @@ export class Web3TestUtils {
      * @returns Promise to be resolved
      */
     public static waitUntil(delay: number) {
-        return new Promise<void>((resolve, reject) => {
-            setTimeout(() => {
-                resolve();
-            }, delay);
+        return new Promise<void>(resolve => {
+            setTimeout(resolve, delay)
         });
     }
 }

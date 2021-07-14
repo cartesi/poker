@@ -5,7 +5,7 @@ import { TurnBasedGameWeb3 } from "./web3/TurnBasedGameWeb3";
 
 export interface TurnBasedGame {
     // turn submission
-    submitTurn(data: string);
+    submitTurn(data: string): Promise<any>;
     receiveTurnOver(onTurnOverReceived: (string) => any);
 
     // result claim and confirmation
