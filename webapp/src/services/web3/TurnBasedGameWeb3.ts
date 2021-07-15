@@ -119,7 +119,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         this.dispatchTurn();
     }
     async receiveTurnOver() {
-        return new Promise<any>(async (resolve) => {
+        return new Promise<string>(async (resolve) => {
             await this.initWeb3();
             this.onTurnOverReceivedCallbacks.push(resolve);
             this.dispatchTurn();
