@@ -96,16 +96,16 @@ describe('TurnBasedGameWeb3', function () {
         await gameContractBob.initWeb3();
 
         // set up callback for Bob receive Alice's turn
-        let bobTurnOverReceivingCallback = (receivedData: any) => {
-            console.log("Bob received a turn with data =" + receivedData);
-            expect(receivedData).to.be.equal(aliceData);
-        };
-        gameContractBob.receiveTurnOver(bobTurnOverReceivingCallback);
+        let dataReceived = gameContractBob.receiveTurnOver();
+        console.log("Received before = " + dataReceived);
 
         // alice submit a turn
+        ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
         await gameContractAlice.submitTurn(aliceData);
 
         // wait a while for the callback run to check the turnover event
-        await Web3TestUtils.waitUntil(5000);
+        await Web3TestUtils.waitUntil(20000);
+
+        dataReceived.then((data) => { console.log("data received=" + data) })
     });
 });

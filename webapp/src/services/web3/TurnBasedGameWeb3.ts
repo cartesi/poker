@@ -118,20 +118,32 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         this.turnDataQueue.push(data);
         this.dispatchTurn();
     }
-    async receiveTurnOver(onTurnOverReceived: (any) => any) {
+    async receiveTurnOver() {
+        console.log("receiveTurnOver");
         await this.initWeb3();
-        this.onTurnOverReceivedCallbacks.push(onTurnOverReceived);
-        this.dispatchTurn();
+        let resolver: (any) => any = (data) => {
+            console.log("resolver called");
+            return data;
+        };
+        this.onTurnOverReceivedCallbacks.push(resolver);
+        return new Promise<any>((resolver) => {
+            console.log("Inside promise");
+            this.dispatchTurn();
+        });
     }
     dispatchTurn() {
+        console.log("dispatch called!")
         const data = this.turnDataQueue.shift();
         if (!data) return;
-        const callback = this.onTurnOverReceivedCallbacks.shift();
-        if (!callback) {
+        console.log("data was found");
+        const resolver = this.onTurnOverReceivedCallbacks.shift();
+        if (!resolver) {
+            console.log("no resolver found");
             this.turnDataQueue.unshift(data);
             return;
         }
-        callback(data);
+        console.log("found a resolver");
+        resolver(data);
         this.dispatchTurn();
     }
     async getLoggerData(logIndices: Array<number>) {
