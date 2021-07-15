@@ -273,7 +273,7 @@ game_error player::create_bet(bet_type type, money_t amt, blob& msg_out) {
     return step_changed ? CONTINUED : SUCCESS;
 }
 
-game_error player::process_bet(blob& msg_in, blob& out) {
+game_error player::process_bet(blob& msg_in, blob& out, bet_type* out_type, money_t* out_amt) {
     game_error res;
     auto& is = msg_in.in(false);
     auto& os = out.out();
@@ -282,12 +282,20 @@ game_error player::process_bet(blob& msg_in, blob& out) {
         return res;
 
     message* msgout = NULL;
+    msg_bet_request* bet_msg;
+    msg_card_proof* proof_msg;
     switch(msgin->msgtype) {
         case MSG_BET_REQUEST:
-            res = handle_bet_request((msg_bet_request*)msgin, &msgout);
+            bet_msg = (msg_bet_request*)msgin;
+            res = handle_bet_request(bet_msg, &msgout);
+            if (out_type) *out_type = bet_msg->type;
+            if (out_amt) *out_amt = bet_msg->amt;
             break;
         case MSG_CARD_PROOF:
-            res = handle_card_proof((msg_card_proof*)msgin);
+            proof_msg = (msg_card_proof*)msgin;
+            res = handle_card_proof(proof_msg);
+            if (out_type) *out_type = proof_msg->type;
+            if (out_amt) *out_amt = proof_msg->amt;
             break;
         default:
             return PRR_INVALID_MSG_TYPE;
@@ -311,6 +319,8 @@ game_error player::handle_bet_request(msg_bet_request* msgin, message** out) {
     if (step_changed) {
         auto msgout = new msg_card_proof();
         *out = msgout;
+        msgout->type = msgin->type;
+        msgout->amt = msgin->amt;
         if (_r.step() == game_step::OPEN_OPONENT_CARDS) {
             if ((res=open_opponent_cards(msgin->cards_proof)))
                 return res;

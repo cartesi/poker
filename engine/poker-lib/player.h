@@ -69,7 +69,8 @@ public:
     ///
     /// Upon successful return, checl msg_out.empty() to determine
     /// if it must be sent to the opponent.
-    game_error process_bet(blob& msg_in, blob& msg_out);
+    /// The bet type and amount will be copied to out_type and out_amt, if they are not null
+    game_error process_bet(blob& msg_in, blob& msg_out, bet_type* out_type=NULL, money_t* out_amt=NULL);
 
     /// Property accessors
     game_step  step() { return _r.step(); }

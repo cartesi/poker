@@ -65,7 +65,12 @@ void the_happy_path() {
     // Preflop: Alice calls
     assert_eql(CONTINUED, alice.create_bet(BET_CALL, 0, msg[5]));
     assert_eql(game_step::OPEN_FLOP, alice.step()); // waiting card proofs
-    assert_eql(SUCCESS, bob.process_bet(msg[5], msg[6]));
+    bet_type type;
+    money_t amt;
+    assert_eql(SUCCESS, bob.process_bet(msg[5], msg[6], &type, &amt));
+    assert_eql(BET_CALL, type);
+    assert_eql(0, amt);
+    
     assert_neq(uk, bob.public_card(FLOP(0)));
     assert_neq(uk, bob.public_card(FLOP(1)));
     assert_neq(uk, bob.public_card(FLOP(2)));
@@ -102,8 +107,10 @@ void the_happy_path() {
     assert_eql(BOB, bob.current_player());
 
     // Turn: Bob raises
-    assert_eql(SUCCESS, bob.create_bet(BET_RAISE, 0, msg[10]));
-    assert_eql(SUCCESS, alice.process_bet(msg[10], msg[11]));
+    assert_eql(SUCCESS, bob.create_bet(BET_RAISE, 900, msg[10]));
+    assert_eql(SUCCESS, alice.process_bet(msg[10], msg[11], &type, &amt));
+    assert_eql(BET_RAISE, type);
+    assert_eql(900, amt);
     assert_eql(true, msg[11].empty());
     assert_eql(game_step::TURN_BET, alice.step());
     assert_eql(game_step::TURN_BET, bob.step());

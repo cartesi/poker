@@ -13,28 +13,31 @@
 
 typedef int32_t INT;
 
-// helper functions 
+// helper functions
 
-static inline INT READINT(char* p) { 
+static inline INT READINT(char* p) {
     return *reinterpret_cast<INT*>(p);
 }
 
-static inline poker::player* READPLAYER(char* p) { 
+static inline poker::player* READPLAYER(char* p) {
     INT* i = reinterpret_cast<INT*>(p);
     return reinterpret_cast<poker::player*>(*i);
 }
 
-static inline void worker_respond(char* data, int size, bool final) { 
+static inline void worker_respond(char* data, int size, bool final) {
     if (final)
         emscripten_worker_respond(data, size);
     else
         emscripten_worker_respond_provisionally(data, size);
 }
 
-static inline void worker_respond(poker::game_error p, bool final=true) {
-    INT v = reinterpret_cast<INT>((int)p);
-    char* data = reinterpret_cast<char*>(&v);
+static inline void worker_respond(INT p, bool final=true) {
+    char* data = reinterpret_cast<char*>(&p);
     worker_respond(data, sizeof(INT), final);
+}
+
+static inline void worker_respond(poker::game_error p, bool final=true) {
+    worker_respond((INT)p, final);
 }
 
 static inline void worker_respond(poker::player* p, bool final=true) {
@@ -50,9 +53,9 @@ static inline void worker_respond(poker::blob& p, bool final=true) {
 static inline void worker_respond(char *p, bool final=true) {
     worker_respond(p, strlen(p), final);
 }
- 
-// exported functions 
-    
+
+// exported functions
+
 extern "C" {
 
 void API poker_init() {
@@ -115,13 +118,17 @@ void API player_create_bet(char* msg) {
 }
 
 void API player_process_bet(char* msg) {
+    poker::bet_type type=poker::bet_type::BET_NONE;
+    poker::money_t amt=0;
     auto player = READPLAYER(msg);
     msg += sizeof(INT);
     poker::blob msg_in;
     msg_in.set_data(msg);
     poker::blob msg_out;
-    auto res = player->process_bet(msg_in, msg_out);
+    auto res = player->process_bet(msg_in, msg_out, &type, &amt);
     worker_respond(res, false);
+    worker_respond((INT)type, false);
+    worker_respond((INT)amt, false);
     worker_respond(msg_out, true);
 }
 
@@ -143,7 +150,7 @@ void API player_game_state(char* msg) {
         "]}",
         (int)player->step(),
         g.current_player, (int)g.error, g.winner,
-        g.public_cards[0], g.public_cards[1], g.public_cards[2], 
+        g.public_cards[0], g.public_cards[1], g.public_cards[2],
         g.public_cards[3], g.public_cards[4],
         p0.id, p0.total_funds, p0.bets, p0.cards[0], p0.cards[1],
         p1.id, p1.total_funds, p1.bets, p1.cards[0], p1.cards[1]);

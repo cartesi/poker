@@ -55,9 +55,11 @@ class Player {
 
     async process_bet(msg_in) {
         return this.callWorker('player_process_bet', makeMessage(this._p, msg_in), (results) => {
-            return { 
+          return { 
                 res: parseNumber(results[0]),
-                msg_out: parseString(results[1])
+                betType: parseNumber(results[1]),
+                amount: parseNumber(results[2]),
+                msg_out: parseString(results[3])
             };
         });
     }

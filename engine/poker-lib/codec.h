@@ -152,6 +152,8 @@ public:
 class msg_card_proof : public message{
 public:
     int player_id;
+    bet_type type;
+    money_t amt;
     blob cards_proof;
 
     msg_card_proof();

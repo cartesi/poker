@@ -305,6 +305,8 @@ game_error msg_card_proof::write(std::ostream& os)  {
     encoder out(os);
     if ((res=out.write(msgtype))) return res;
     if ((res=out.write(player_id))) return res;
+    if ((res=out.write(type))) return res;
+    if ((res=out.write(amt))) return res;
     if ((res=out.write(cards_proof))) return res;
     out.pad(padding_size);
     return SUCCESS;
@@ -314,6 +316,8 @@ game_error msg_card_proof::read(std::istream& is)  {
     game_error res;
     decoder in(is);
     if ((res=in.read(player_id))) return res;
+    if ((res=in.read(type))) return res;
+    if ((res=in.read(amt))) return res;
     if ((res=in.read(cards_proof))) return res;
     return SUCCESS;
 }
