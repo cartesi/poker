@@ -8,7 +8,7 @@ import { TurnBasedGame } from "../TurnBasedGame";
 export class TurnBasedGameMock implements TurnBasedGame {
     other: TurnBasedGameMock;
     turnDataQueue: Array<any>;
-    onTurnOverReceivedCallbacks: Array<(any) => any>;
+    onTurnOverReceivedResolvers: Array<(any) => any>;
 
     claimedResult: any;
     onResultClaimed: (any) => any;
@@ -21,7 +21,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
 
     constructor() {
         this.turnDataQueue = [];
-        this.onTurnOverReceivedCallbacks = [];
+        this.onTurnOverReceivedResolvers = [];
     }
 
     connect(other: TurnBasedGameMock) {
@@ -42,19 +42,21 @@ export class TurnBasedGameMock implements TurnBasedGame {
         });
     }
 
-    receiveTurnOver(onTurnOverReceived: (string) => any) {
-        this.onTurnOverReceivedCallbacks.push(onTurnOverReceived);
-        this.dispatchTurn();
+    receiveTurnOver() {
+        return new Promise<string>((resolve) => {
+            this.onTurnOverReceivedResolvers.push(resolve);
+            this.dispatchTurn();
+        });
     }
     dispatchTurn() {
         const data = this.turnDataQueue.shift();
         if (!data) return;
-        const callback = this.onTurnOverReceivedCallbacks.shift();
-        if (!callback) {
+        const resolve = this.onTurnOverReceivedResolvers.shift();
+        if (!resolve) {
             this.turnDataQueue.unshift(data);
             return;
         }
-        callback(data);
+        resolve(data);
         this.dispatchTurn();
     }
 

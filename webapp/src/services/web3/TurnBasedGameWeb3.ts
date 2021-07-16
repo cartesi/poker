@@ -26,7 +26,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     loggerContract: LoggerContract;
 
     turnDataQueue: Array<any>;
-    onTurnOverReceivedCallbacks: Array<(any) => any>;
+    onTurnOverReceivedResolvers: Array<(any) => any>;
 
     claimedResult: any;
     onResultClaimed: (any) => any;
@@ -40,7 +40,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     constructor(gameIndex: number) {
         this.gameIndex = gameIndex;
         this.turnDataQueue = [];
-        this.onTurnOverReceivedCallbacks = [];
+        this.onTurnOverReceivedResolvers = [];
     }
 
     /**
@@ -121,14 +121,14 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     async receiveTurnOver() {
         return new Promise<string>(async (resolve) => {
             await this.initWeb3();
-            this.onTurnOverReceivedCallbacks.push(resolve);
+            this.onTurnOverReceivedResolvers.push(resolve);
             this.dispatchTurn();
         });
     }
     dispatchTurn() {
         const data = this.turnDataQueue.shift();
         if (!data) return;
-        const resolve = this.onTurnOverReceivedCallbacks.shift();
+        const resolve = this.onTurnOverReceivedResolvers.shift();
         if (!resolve) {
             this.turnDataQueue.unshift(data);
             return;
