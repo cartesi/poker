@@ -1,6 +1,7 @@
 import { Card } from "../Card";
-import { Engine, EngineBetType, EnginePlayer, EngineResult, EngineStep, StatusCode } from "../Engine";
-import { BetType, Game, GameState, VerificationState } from "../Game";
+import { Engine, EngineBetType, EnginePlayer, EngineResult, EngineState, EngineStep, StatusCode } from "../Engine";
+import { BetType, Game, GameResult, GameState, VerificationState } from "../Game";
+import { PokerSolver } from "../PokerSolver";
 import { TurnBasedGame } from "../TurnBasedGame";
 import { PokerEngine } from "./PokerEngine";
 import { BigNumber } from "ethers";
@@ -24,6 +25,12 @@ export class GameWasm implements Game {
         private onVerification: (state: string, msg: string) => any = () => {}
     ) {
         this.engine = new PokerEngine(playerId);
+
+        this.turnBasedGame.receiveResultClaimed().then(this._onResultClaimed.bind(this));
+        this.turnBasedGame.receiveGameOver().then((fundsShare) => {
+            console.log(`### [Player ${this.playerId}] Received Game Over ###`);
+            this.onEnd();
+        });
     }
 
     start(): Promise<void> {
@@ -37,12 +44,10 @@ export class GameWasm implements Game {
                 console.log(`### [Player ${this.playerId}] Engine started ###`);
 
                 if (this._isDealer()) await this._createHandshake();
-
                 await this._processHandshake();
-                resolve();
 
-                if (this._isDealer()) this.onBetRequested();
-                else this._waitOpponentBet();
+                resolve();
+                this._onBet();
             } catch (error) {
                 reject(new Error(`Failed to start game. ${error}`));
             }
@@ -54,7 +59,7 @@ export class GameWasm implements Game {
             console.log(`### [Player ${this.playerId}] CALL ###`);
             await this._createBet(EngineBetType.BET_CALL);
             resolve();
-            this._waitOpponentBet();
+            this._onBet();
         });
     }
 
@@ -63,7 +68,7 @@ export class GameWasm implements Game {
             console.log(`### [Player ${this.playerId}] CHECK ###`);
             await this._createBet(EngineBetType.BET_CHECK);
             resolve();
-            this._waitOpponentBet();
+            this._onBet();
         });
     }
 
@@ -72,7 +77,6 @@ export class GameWasm implements Game {
             console.log(`### [Player ${this.playerId}] FOLD ###`);
             await this._createBet(EngineBetType.BET_FOLD);
             resolve();
-            //TODO: handle player fold
         });
     }
 
@@ -81,7 +85,7 @@ export class GameWasm implements Game {
             console.log(`### [Player ${this.playerId}] RAISE ###`);
             await this._createBet(EngineBetType.BET_RAISE, amount);
             resolve();
-            this._waitOpponentBet();
+            this._onBet();
         });
     }
 
@@ -176,8 +180,31 @@ export class GameWasm implements Game {
         throw new Error("Method not implemented.");
     }
 
-    getResult(): Promise<any> {
-        throw new Error("Method not implemented.");
+    getResult(): Promise<GameResult> {
+        return new Promise(async (resolve, reject) => {
+            let state = await this.engine.game_state();
+            if (state.step == EngineStep.GAME_OVER) {
+                let result = this._computeResult(state);
+                resolve(result);
+            } else {
+                reject(new Error("Game is not over yet"));
+            }
+        });
+    }
+
+    private _computeResult(state: EngineState): GameResult {
+        let publicCards = state.public_cards.map(Card.fromIndex);
+        let playerCards = state.players[this.playerId].cards.map(Card.fromIndex).concat(publicCards);
+        let opponentCards = state.players[this.opponentId].cards.map(Card.fromIndex).concat(publicCards);
+
+        const winners = [this.playerId == state.winner, this.opponentId == state.winner];
+        const hands = PokerSolver.solve([playerCards, opponentCards]).bestHands;
+
+        return {
+            isWinner: winners,
+            fundsShare: state.funds_share,
+            hands: hands,
+        };
     }
 
     private async _createHandshake(): Promise<string> {
@@ -238,6 +265,19 @@ export class GameWasm implements Game {
         });
     }
 
+    private async _onBet() {
+        let state = await this.engine.game_state();
+
+        if (state.step != EngineStep.GAME_OVER) {
+            if (state.current_player == this.playerId) this.onBetRequested();
+            else this._waitOpponentBet();
+        } else if (this._isDealer()) {
+            let fundsShare = state.funds_share;
+            console.log(`### [Player ${this.playerId}] Claim Result ###`);
+            await this.turnBasedGame.claimResult(fundsShare);
+        }
+    }
+
     private _waitOpponentBet() {
         this._processBet().then(async (bet) => {
             let type = this._convertBetType(bet.type);
@@ -253,7 +293,7 @@ export class GameWasm implements Game {
             } else if (state.current_player == this.playerId) {
                 this.onBetRequested();
             } else {
-                //TODO: handle opponent fold
+                this._waitOpponentBet();
             }
         });
     }
@@ -270,6 +310,22 @@ export class GameWasm implements Game {
                 return BetType.FOLD;
             default:
                 return null;
+        }
+    }
+
+    private async _onResultClaimed(opponentResult: BigNumber[]) {
+        console.log(`### [Player ${this.playerId}] On result claimed ###`);
+        const result = await this.getResult();
+        if (
+            !result.fundsShare[this.playerId].eq(opponentResult[this.playerId]) ||
+            !result.fundsShare[this.opponentId].eq(opponentResult[this.opponentId])
+        ) {
+            //TODO: trigger verification
+            console.log(`### [Player ${this.playerId}] Challenge Game ###`);
+            //this.turnBasedGame.challengeGame();
+        } else {
+            console.log(`### [Player ${this.playerId}] Confirm result ###`);
+            await this.turnBasedGame.confirmResult();
         }
     }
 

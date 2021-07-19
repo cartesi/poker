@@ -57,6 +57,12 @@ export enum BetType {
     FOLD = "FOLD",
 }
 
+export interface GameResult {
+    isWinner: boolean[];
+    fundsShare: BigNumber[];
+    hands: Card[][];
+}
+
 export interface Game {
     start(): Promise<void>;
     call(): Promise<void>;
@@ -79,7 +85,7 @@ export interface Game {
     getOpponentBets(): Promise<BigNumber>;
     getState(): Promise<GameState>;
     getVerificationState(): Promise<VerificationState>;
-    getResult(): Promise<any>;
+    getResult(): Promise<GameResult>;
 }
 
 export class GameFactory {
