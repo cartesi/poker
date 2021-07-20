@@ -1,5 +1,6 @@
 const BigNumber = require("bignumber.js");
 
+
 // loads fs only when running on node.js
 const nodeVer = typeof process !== "undefined" && process.versions?.node;
 const nodeRequire = nodeVer
@@ -31,6 +32,9 @@ function hex2buf(hex) {
     return buf;
 }
 
+
+// FILE I/O METHODS SUPPORTING BOTH NODEJS AND QUICKJS
+
 // opens the given file for reading, returning its descriptor/handle
 function openFile(filename, mode) {
     let file;
@@ -50,6 +54,7 @@ function openFile(filename, mode) {
     return file;
 }
 
+// closes the given file
 function closeFile(file) {
     if (fs) {
         // uses node's fs
@@ -92,6 +97,7 @@ function writeData(file, data, msg) {
     }
 }
 
+
 // READS PLAYERS INFO
 function readPlayers(inputs, filename) {
     const file = openFile(filename);
@@ -122,6 +128,7 @@ function readPlayers(inputs, filename) {
     }
     closeFile(file);
 }
+
 
 // READS TURNS METADATA
 function readTurnsMetadata(inputs, filename) {
@@ -163,6 +170,7 @@ function readTurnsMetadata(inputs, filename) {
     closeFile(file);
 }
 
+
 // READS TURNS DATA
 function readTurnsData(inputs, filename) {
     const file = openFile(filename);
@@ -184,6 +192,7 @@ function readTurnsData(inputs, filename) {
     }
     closeFile(file);
 }
+
 
 // READS VERIFICATION INFO
 function readVerificationInfo(inputs, filename) {
@@ -217,6 +226,7 @@ function readVerificationInfo(inputs, filename) {
     closeFile(file);
 }
 
+
 // READS ALL INPUTS FROM EXPECTED FILES
 function readInputs() {
     inputs = {};
@@ -226,6 +236,7 @@ function readInputs() {
     readVerificationInfo(inputs, "verificationInfo.raw");
     return inputs;
 }
+
 
 // WRITES OUTPUT RESULT TO EXPECTED FILE
 function writeOutput(result) {
