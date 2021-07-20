@@ -1,5 +1,6 @@
 cartesi-machine \
     --flash-drive="label:verifier,filename:chess-verifier.ext2" \
+    --flash-drive="label:metadata,filename:metadata.raw" \
     --flash-drive="label:players,filename:players.raw" \
     --flash-drive="label:turnsMetadata,filename:turnsMetadata.raw" \
     --flash-drive="label:turnsData,filename:turnsData.raw" \
@@ -9,6 +10,7 @@ cartesi-machine \
 
 cartesi-machine \
     --flash-drive="label:verifier,filename:chess-verifier.ext2" \
+    --flash-drive="label:metadata,filename:metadata.raw" \
     --flash-drive="label:players,filename:players.raw" \
     --flash-drive="label:turnsMetadata,filename:turnsMetadata.raw" \
     --flash-drive="label:turnsData,filename:turnsData.raw" \
