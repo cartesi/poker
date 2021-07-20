@@ -9,4 +9,4 @@ const result = ChessVerifier.run(inputs);
 
 // writes result to output
 TurnBasedGameIO.writeOutput(result);
-console.log(`Result: ${JSON.stringify(result)}`);
+console.log(`\nFinal result: ${JSON.stringify(result)}`);

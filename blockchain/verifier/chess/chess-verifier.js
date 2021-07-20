@@ -4,23 +4,71 @@ const Chess = ChessModule.Chess ? ChessModule.Chess : ChessModule;
 
 // verify chess game given provided turn-based-game input
 function run(inputs) {
+    // initializes chess game
     chess = new Chess();
 
     // retrieves moves from turn data given as null terminated strings
     moves = inputs.turns.map(turn => String.fromCharCode.apply(null, turn.slice(0, turn.indexOf(0))));
     // moves = ["b3", "g5", "h4", "Bg7", "Nc3", "Nc6", "Rh3", "Kf8", "Rh1", "f6", "Rb1", "a6", "Nb5", "Na5", "hxg5", "Nh6", "g4", "Nf5", "e3", "h6", "e4", "Rh7", "c3", "e6", "Nh3", "Nxb3", "Qf3", "Qe8", "Ke2", "Kf7", "Kd3", "Qf8", "gxh6", "Qc5", "Nd4", "Kg6", "Rb2", "Qf8", "Qxf5+", "Kxh6", "Nf4#"];
 
-    console.log(`Executing chess moves: ${JSON.stringify(moves)}`);
+    // executes chess moves 
+    // - aborts if an illegal move was requested and punishes the move's author
+    console.log(`\nExecuting chess moves: ${JSON.stringify(moves)}`);
     for (let i = 0; i < moves.length; i++) {
-        chess.move(moves[i]);
+        if (!chess.move(moves[i])) {
+            const author = inputs.turnAuthors[i];
+            console.log(`Invalid move '${moves[i]}' from player '${author}'`);
+            return computeResultPunish(inputs, author);
+        }
     }
-    console.log(`Final board:`);
-    console.log(chess.ascii());
-    console.log(`Game over: ${chess.game_over()}`);
-    console.log(`Checkmate: ${chess.in_checkmate()}`);
-    console.log(`Loser (if in checkmate): ${chess.turn()}`);
 
-    if (chess.turn() == 'w') {
+    // prints final chess board
+    console.log(`\nFinal board:`);
+    console.log(chess.ascii());
+
+    // checks if game is over and there is a claim
+    if (!chess.game_over()) {
+        if (!inputs.claimer) {
+            console.log(`Game is not over, there are no illegal moves and no claim has been placed: will punish challenger '${inputs.challenger}'`);
+            return computeResultPunish(inputs, inputs.challenger);
+        } else {
+            console.log(`Game is not over, there are no illegal moves, but there is a claim: will punish claimer '${inputs.claimer}'`);
+            return computeResultPunish(inputs, inputs.claimer);
+        }
+    } else if (!inputs.claimer) {
+        console.log(`Game is over with no illegal moves but no claim has been placed yet: will punish challenger '${inputs.challenger}' for not waiting for a claim first`);
+        return computeResultPunish(inputs, inputs.challenger);
+    }
+
+    // game is over and there is a claim: compute result and compare with claim
+    let result = new Array(2)
+    if (chess.in_checkmate()) {
+        // side to move has been checkmated
+        const [loser, winner] = chess.turn() == 'w' ? [0,1] : [1,0];
+        // correct result is that loser should give 10% of his funds to the winner
+        const amountLost = inputs.playerFunds[loser].idiv(10);
+        result[loser] = inputs.playerFunds[loser].minus(amountLost);
+        result[winner] = inputs.playerFunds[winner].plus(amountLost);
+        console.log(`Game over in checkmate. Winner is '${inputs.players[winner]}'.`);
+    } else {
+        console.log(`Game over in draw. Players should retain their funds.`)
+        result = inputs.playerFunds;
+    }
+    console.log(`Expected result is ${JSON.stringify(result)}`);
+    console.log(`Claimed result is ${JSON.stringify(inputs.claimedFundsShare)}`);
+    if (JSON.stringify(result) === JSON.stringify(inputs.claimedFundsShare)) {
+        console.log(`Claimed result is correct: will punish challenger '${inputs.challenger}'.`);
+        return computeResultPunish(inputs, inputs.challenger);
+    } else {
+        console.log(`Claimed result is incorrect: will punish claimer '${inputs.claimer}'.`);
+        return computeResultPunish(inputs, inputs.claimer);
+    }
+}
+
+// computes result by punishing a given player
+// - punished player will lose all of his funds, half of which will be given to his opponent
+function computeResultPunish(inputs, playerToBlame) {
+    if (inputs.players[0] === playerToBlame) {
         return [new BigNumber(0), inputs.playerFunds[0].idiv(2).plus(inputs.playerFunds[1])];
     } else {
         return [inputs.playerFunds[0].plus(inputs.playerFunds[1].idiv(2)), new BigNumber(0)];
