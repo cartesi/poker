@@ -102,6 +102,8 @@ task("start-game", "Starts a TurnBasedGame instance")
 
         console.log("");
         console.log(`Game started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
+
+        return index;
     });
 
 // JOIN-GAME
