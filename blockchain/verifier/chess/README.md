@@ -82,7 +82,7 @@ $ yarn deploy
 Some task command examples to play a chess game:
 
 ```bash
-$ npx hardhat --network localhost start-game --hash "0xee7b73ba3db91c79bd2fe71f2851b42f8298624ffb792b1f399b05267f56df73"
+$ npx hardhat --network localhost start-game --hash "0xbc3f901f75e08bba22f0e9497ee3478e5fafca94a78910732100981b31ed85ac"
 $ npx hardhat --network localhost submit-turn --index 0 --player alice --datastr "b3"
 $ npx hardhat --network localhost submit-turn --index 0 --player bob --datastr "g5"
 $ npx hardhat --network localhost get-context --index 0

@@ -15,8 +15,13 @@ function run(inputs) {
     // - aborts if an illegal move was requested and punishes the move's author
     console.log(`\nExecuting chess moves: ${JSON.stringify(moves)}`);
     for (let i = 0; i < moves.length; i++) {
+        const author = inputs.turnAuthors[i];
+        const expectedAuthor = inputs.players[i%2];
+        if (author !== expectedAuthor) {
+            console.log(`Player '${author}' submitted move '${moves[i]}' when it wasn't his turn.`);
+            return computeResultPunish(inputs, author);
+        }
         if (!chess.move(moves[i])) {
-            const author = inputs.turnAuthors[i];
             console.log(`Invalid move '${moves[i]}' from player '${author}'`);
             return computeResultPunish(inputs, author);
         }
