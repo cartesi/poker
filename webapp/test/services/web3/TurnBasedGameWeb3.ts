@@ -8,6 +8,7 @@ import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
 import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
 import TurnBasedGame from "../../../src/abis/TurnBasedGame.json";
 import { TurnBasedGameWeb3 } from "../../../src/services/web3/TurnBasedGameWeb3";
+import { ethers } from "ethers";
 import { Web3TestUtils } from "./Web3TestUtils";
 
 
@@ -20,19 +21,25 @@ describe('TurnBasedGameWeb3', function () {
     let gameContractAlice: TurnBasedGameWeb3;
     let gameContractBob: TurnBasedGameWeb3;
 
+    let aliceAddress: string;
     const aliceAccountIndex: number = 0;
+
+    let bobAddress: string;
     const bobAccountIndex: number = 1;
+
+    let aliceFunds;
+    let bobFunds;
 
     this.timeout(60000);
 
     beforeEach(async () => {
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
         const aliceSigner = ServiceConfig.getSigner();
-        const aliceAddress = await aliceSigner.getAddress();
+        aliceAddress = await aliceSigner.getAddress();
 
         ServiceConfig.currentInstance.setSigner(bobAccountIndex);
         const bobSigner = ServiceConfig.getSigner();
-        const bobAddress = await bobSigner.getAddress();
+        bobAddress = await bobSigner.getAddress();
 
         const pokerTokenContractAlice = PokerToken__factory.connect(PokerToken.address, aliceSigner);
         const pokerTokenContractBob = PokerToken__factory.connect(PokerToken.address, bobSigner);
@@ -42,17 +49,17 @@ describe('TurnBasedGameWeb3', function () {
         await pokerTokenContractAlice.mint(bobAddress, GameConstants.MIN_FUNDS);
 
         // Setup for Alice
-        let aliceFunds = await pokerTokenContractAlice.balanceOf(aliceAddress);
+        aliceFunds = await pokerTokenContractAlice.balanceOf(aliceAddress);
         await pokerTokenContractAlice.approve(TurnBasedGameLobby.address, aliceFunds);
 
         // Setup for Bob
-        let bobFunds = await pokerTokenContractBob.balanceOf(bobAddress);
+        bobFunds = await pokerTokenContractBob.balanceOf(bobAddress);
         await pokerTokenContractBob.approve(TurnBasedGameLobby.address, bobFunds);
 
 
     });
 
-    it('should allow a player to submit a turn', async () => {
+    it('should allow a player to submit a turn and claim for result', async () => {
         const aliceInfo = { name: "Alice", avatar: 1 };
         const bobInfo = { name: "Bob", avatar: 2 };
 
@@ -102,8 +109,30 @@ describe('TurnBasedGameWeb3', function () {
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
         await gameContractAlice.submitTurn(aliceData);
 
-        return turnOverPromise.then((data) => {
+        await turnOverPromise.then((data) => {
             expect(data).to.be.equal(aliceData);
         })
+
+        // set up callback for Bob receive Alice's claim for the result
+        ServiceConfig.currentInstance.setSigner(bobAccountIndex);
+        let claimResultPromise: Promise<any> = gameContractBob.receiveResultClaimed();
+
+        // alice claim result
+        ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
+        let claimedResult: Array<number> = [10, 5];
+        await gameContractAlice.claimResult(claimedResult);
+
+        // bob must receive the claim from alice
+        await claimResultPromise.then((data) => {
+            expect(data.claimer).to.be.equal(aliceAddress);
+
+            expect((data.claimedResult[0] == 10)).to.be.true;
+            expect((data.claimedResult[1] == 5)).to.be.true;
+        });
+
+        // bob confirms result (TODO)
+        //ServiceConfig.currentInstance.setSigner(bobAccountIndex);
+        //let isConsensus = await gameContractBob.confirmResult();
+        //expect(isConsensus).to.be.true;
     });
 });

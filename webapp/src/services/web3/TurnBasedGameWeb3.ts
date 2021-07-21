@@ -29,6 +29,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     onTurnOverReceivedResolvers: Array<(any) => any>;
 
     claimedResult: any;
+    claimer: string;
     onResultClaimed: (any) => any;
     onResultClaimReceived: (any) => any;
     onResultConfirmed: (any) => any;
@@ -69,7 +70,9 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         const turnOverFilter = gameContextContract.filters.TurnOver(this.gameIndex, null, null);
         gameContextContract.on(turnOverFilter, this.onTurnOver.bind(this));
 
-        // TODO: setup other listeners
+        // sets up listener for GameResultClaimed event
+        const gameResultClaimedFilter = gameContextContract.filters.GameResultClaimed(this.gameIndex, this.claimedResult, this.claimer);
+        gameContextContract.on(gameResultClaimedFilter, this.onClaimResult.bind(this));
     }
 
     // TURN SUBMISSION
@@ -158,16 +161,52 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         return data;
     }
 
-    // result claim and confirmation
-    claimResult(data: any, onResultClaimed?: (any) => any) {
-        this.claimedResult = data;
-        // TODO: call smart contract
-        if (onResultClaimed) {
-            onResultClaimed(data);
+    //
+    // CLAIM RESULT HANDLING
+    //
+
+    async onClaimResult(gameIndex, claimedResult, claimer) {
+        this.claimedResult = claimedResult;
+        this.claimer = claimer;
+
+        if (this.onResultClaimReceived) {
+            this.onResultClaimReceived({
+                claimedResult: this.claimedResult,
+                claimer: this.claimer
+            });
         }
     }
-    receiveResultClaimed(onResultClaimReceived: (any) => any) {
-        this.onResultClaimReceived = onResultClaimReceived;
+    claimResult(claimedResult: any): Promise<void> {
+        return new Promise(async (resolve, reject) => {
+            let tx;
+            this.claimedResult = claimedResult;
+            await this.initWeb3();
+            try {
+                tx = await this.gameContract.claimResult(this.gameIndex, claimedResult);
+                console.log(
+                    `Result was claimed for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
+                );
+            } catch (error) {
+                console.log("Error during claim result: " + error);
+            }
+            if (tx) {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    }
+
+    receiveResultClaimed(): Promise<any> {
+        return new Promise<any>((resolve: (any) => any) => {
+            if (this.claimedResult && this.claimer) {
+                resolve({
+                    claimedResult: this.claimedResult,
+                    claimer: this.claimer
+                });
+            }
+            this.onResultClaimReceived = resolve;
+        });
     }
     confirmResult(onResultConfirmed?: (any) => any) {
         // TODO: call smart contract

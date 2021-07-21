@@ -61,18 +61,28 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
 
     // result claim and confirmation
-    claimResult(data: any, onResultClaimed?: (any) => any) {
-        this.claimedResult = data;
-        this.other.claimedResult = data;
-        if (onResultClaimed) {
-            onResultClaimed(data);
-        }
-        if (this.other.onResultClaimReceived) {
-            this.other.onResultClaimReceived(data);
-        }
+    claimResult(claimedResult: any): Promise<void> {
+        return new Promise(async (resolve) => {
+            this.claimedResult = claimedResult;
+            this.other.claimedResult = claimedResult;
+            if (this.onResultClaimed) {
+                this.onResultClaimed(claimedResult);
+            }
+            if (this.other.onResultClaimReceived) {
+                this.other.onResultClaimReceived(claimedResult);
+            }
+            resolve();
+        });
     }
-    receiveResultClaimed(onResultClaimReceived: (any) => any) {
-        this.onResultClaimReceived = onResultClaimReceived;
+    receiveResultClaimed() {
+        return new Promise<any>((resolve) => {
+            if (this.claimedResult) {
+                resolve({
+                    claimedResult: this.claimedResult,
+                    claimer: null,
+                });
+            }
+        });
     }
     confirmResult(onResultConfirmed?: (any) => any) {
         if (onResultConfirmed) {
