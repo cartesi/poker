@@ -10,7 +10,7 @@ export interface TurnBasedGame {
 
     // result claim and confirmation
     claimResult(data: any): Promise<void>;
-    receiveResultClaimed(): Promise<any>;
+    receiveResultClaimed(): Promise<Array<number>>;
     confirmResult(onResultConfirmed?: (any) => any);
     receiveGameOver(onGameOverReceived: (any) => any);
 

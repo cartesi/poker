@@ -61,7 +61,7 @@ export class GameMock implements Game {
 
         // sets up fixed internal TurnBasedGame callbacks
         this.turnBasedGame.receiveResultClaimed()
-            .then((data) => { this._resultReceived(data.claimedResult) });
+            .then((claimedResult) => { this._resultReceived(claimedResult) });
         this.turnBasedGame.receiveGameOver(this._resultConfirmationReceived.bind(this));
         this.turnBasedGame.receiveGameChallenged(this._verificationReceived.bind(this));
         // this.turnBasedGame.receiveVerificationUpdate(this._verificationReceived.bind(this));
@@ -460,7 +460,7 @@ export class GameMock implements Game {
         }
     }
 
-    _resultReceived(opponentResult) {
+    _resultReceived(opponentResult: Array<number>) {
         if (JSON.stringify(this.result) !== JSON.stringify(opponentResult)) {
             // result mismatch: trigger a verification!
             this._triggerVerification("Result mismatch");
