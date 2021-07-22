@@ -11,8 +11,8 @@ export interface TurnBasedGame {
     // result claim and confirmation
     claimResult(data: any): Promise<void>;
     receiveResultClaimed(): Promise<Array<number>>;
-    confirmResult(onResultConfirmed?: (any) => any);
-    receiveGameOver(onGameOverReceived: (any) => any);
+    confirmResult(): Promise<void>;
+    receiveGameOver(): Promise<void>;
 
     // challenge and verification
     challengeGame(msg: string, onGameChallenged?: (string) => any);

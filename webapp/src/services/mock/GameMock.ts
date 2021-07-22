@@ -62,7 +62,8 @@ export class GameMock implements Game {
         // sets up fixed internal TurnBasedGame callbacks
         this.turnBasedGame.receiveResultClaimed()
             .then((claimedResult) => { this._resultReceived(claimedResult) });
-        this.turnBasedGame.receiveGameOver(this._resultConfirmationReceived.bind(this));
+        this.turnBasedGame.receiveGameOver()
+            .then(() => this._resultConfirmationReceived());
         this.turnBasedGame.receiveGameChallenged(this._verificationReceived.bind(this));
         // this.turnBasedGame.receiveVerificationUpdate(this._verificationReceived.bind(this));
     }
@@ -471,7 +472,7 @@ export class GameMock implements Game {
         }
     }
 
-    _resultConfirmationReceived(confirmation) {
+    _resultConfirmationReceived() {
         // advances state (to END)
         this._advanceState();
     }

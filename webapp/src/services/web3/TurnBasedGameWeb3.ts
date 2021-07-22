@@ -71,6 +71,10 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         // sets up listener for GameResultClaimed event
         const gameResultClaimedFilter = gameContextContract.filters.GameResultClaimed(this.gameIndex, null, null);
         gameContextContract.on(gameResultClaimedFilter, this.onClaimResult.bind(this));
+
+        // sets up listener for GameResultClaimed event
+        const gameEndFilter = gameContextContract.filters.GameOver(this.gameIndex, null);
+        gameContextContract.on(gameEndFilter, this.onGameEnd.bind(this));
     }
 
     // TURN SUBMISSION
@@ -195,14 +199,33 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             this.onResultClaimReceived = resolve;
         });
     }
-    confirmResult(onResultConfirmed?: (any) => any) {
-        // TODO: call smart contract
-        if (onResultConfirmed) {
-            onResultConfirmed(this.claimedResult);
+    //
+    // CONFIRM RESULT AND GAME END HANDLING
+    //
+    onGameEnd(gameIndex, confirmedResult) {
+        if (this.onGameOverReceived) {
+            this.onGameOverReceived(confirmedResult);
         }
     }
-    receiveGameOver(onGameOverReceived: (any) => any) {
-        this.onGameOverReceived = onGameOverReceived;
+    confirmResult(): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            await this.initWeb3();
+            try {
+                await this.gameContract.confirmResult(this.gameIndex);
+                console.log(
+                    `Result was confirmed for game '${this.gameIndex}'`
+                );
+                resolve();
+            } catch (error) {
+                console.log("Error during confirm result: " + error);
+                reject();
+            }
+        });
+    }
+    receiveGameOver(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            this.onGameOverReceived = resolve;
+        });
     }
 
     // challenge and verification

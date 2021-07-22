@@ -1,3 +1,4 @@
+import { resolveProperties } from "ethers/lib/utils";
 import { TurnBasedGame } from "../TurnBasedGame";
 
 /**
@@ -12,7 +13,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
 
     claimedResult: any;
     onResultClaimReceived: (any) => any;
-    onResultConfirmed: (any) => any;
+    onResultConfirmed: (any) => any;  //TODO: not necessary?
     onGameOverReceived: (any) => any;
 
     onGameChallengeReceived: (string) => any;
@@ -58,8 +59,9 @@ export class TurnBasedGameMock implements TurnBasedGame {
         resolve(data);
         this.dispatchTurn();
     }
-
-    // result claim and confirmation
+    //
+    // CLAIM RESULT HANDLING
+    //
     onClaimResult(gameIndex, claimedResult, claimer) {
         // set state
         this.claimedResult = claimedResult;
@@ -81,16 +83,28 @@ export class TurnBasedGameMock implements TurnBasedGame {
             this.other.onResultClaimReceived = resolve;
         });
     }
-    confirmResult(onResultConfirmed?: (any) => any) {
-        if (onResultConfirmed) {
-            onResultConfirmed(this.claimedResult);
+    //
+    // CONFIRM RESULT AND GAME END HANDLING
+    //
+    onGameEnd(gameIndex, confirmedResult) {
+        if (this.onGameOverReceived) {
+            this.onGameOverReceived(confirmedResult);
         }
         if (this.other.onGameOverReceived) {
-            this.other.onGameOverReceived(this.claimedResult);
+            this.other.onGameOverReceived(confirmedResult);
         }
     }
-    receiveGameOver(onGameOverReceived: (any) => any) {
-        this.onGameOverReceived = onGameOverReceived;
+    confirmResult(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            this.onGameEnd(null, this.claimedResult);
+            resolve();
+        });
+    }
+    receiveGameOver(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            this.onGameOverReceived = resolve;
+            this.other.onGameOverReceived = resolve;
+        });
     }
 
     // challenge and verification

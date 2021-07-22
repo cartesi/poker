@@ -59,7 +59,7 @@ describe('TurnBasedGameWeb3', function () {
 
     });
 
-    it('should allow a player to submit a turn and claim for result', async () => {
+    it('should allow a player to submit a turn, claim for a result and confirm the result', async () => {
         const aliceInfo = { name: "Alice", avatar: 1 };
         const bobInfo = { name: "Bob", avatar: 2 };
 
@@ -117,6 +117,10 @@ describe('TurnBasedGameWeb3', function () {
         ServiceConfig.currentInstance.setSigner(bobAccountIndex);
         let claimResultPromise: Promise<any> = gameContractBob.receiveResultClaimed();
 
+        // set up callback for Alice receive game end event
+        ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
+        let gameEndPromise: Promise<void> = gameContractAlice.receiveGameOver();
+
         // alice claim result
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
         let claimedResult: Array<number> = [10, 5];
@@ -128,9 +132,14 @@ describe('TurnBasedGameWeb3', function () {
             expect(claimedResult[1] == 5).to.be.true;
         });
 
-        // bob confirms result (TODO)
-        //ServiceConfig.currentInstance.setSigner(bobAccountIndex);
-        //let isConsensus = await gameContractBob.confirmResult();
-        //expect(isConsensus).to.be.true;
+        // bob confirms the result
+        ServiceConfig.currentInstance.setSigner(bobAccountIndex);
+        await gameContractBob.confirmResult();
+
+        // alice must receive the game end event
+        await gameEndPromise.then((confirmedResult) => {
+            expect(confirmedResult[0] == 10).to.be.true;
+            expect(confirmedResult[1] == 5).to.be.true;
+        })
     });
 });
