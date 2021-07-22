@@ -29,8 +29,6 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     onTurnOverReceivedResolvers: Array<(any) => any>;
 
     claimedResult: any;
-    claimer: string;
-    onResultClaimed: (any) => any;
     onResultClaimReceived: (any) => any;
     onResultConfirmed: (any) => any;
     onGameOverReceived: (any) => any;
@@ -71,7 +69,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         gameContextContract.on(turnOverFilter, this.onTurnOver.bind(this));
 
         // sets up listener for GameResultClaimed event
-        const gameResultClaimedFilter = gameContextContract.filters.GameResultClaimed(this.gameIndex, this.claimedResult, this.claimer);
+        const gameResultClaimedFilter = gameContextContract.filters.GameResultClaimed(this.gameIndex, null, null);
         gameContextContract.on(gameResultClaimedFilter, this.onClaimResult.bind(this));
     }
 
@@ -165,15 +163,11 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     // CLAIM RESULT HANDLING
     //
 
-    async onClaimResult(gameIndex, claimedResult, claimer) {
+    onClaimResult(gameIndex, claimedResult, claimer) {
         this.claimedResult = claimedResult;
-        this.claimer = claimer;
 
         if (this.onResultClaimReceived) {
-            this.onResultClaimReceived({
-                claimedResult: this.claimedResult,
-                claimer: this.claimer
-            });
+            this.onResultClaimReceived(claimedResult);
         }
     }
     claimResult(claimedResult: any): Promise<void> {
@@ -196,15 +190,8 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             }
         });
     }
-
     receiveResultClaimed(): Promise<any> {
         return new Promise<any>((resolve: (any) => any) => {
-            if (this.claimedResult && this.claimer) {
-                resolve({
-                    claimedResult: this.claimedResult,
-                    claimer: this.claimer
-                });
-            }
             this.onResultClaimReceived = resolve;
         });
     }

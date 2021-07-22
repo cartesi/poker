@@ -123,11 +123,9 @@ describe('TurnBasedGameWeb3', function () {
         await gameContractAlice.claimResult(claimedResult);
 
         // bob must receive the claim from alice
-        await claimResultPromise.then((data) => {
-            expect(data.claimer).to.be.equal(aliceAddress);
-
-            expect((data.claimedResult[0] == 10)).to.be.true;
-            expect((data.claimedResult[1] == 5)).to.be.true;
+        await claimResultPromise.then((claimedResult) => {
+            expect(claimedResult[0] == 10).to.be.true;
+            expect(claimedResult[1] == 5).to.be.true;
         });
 
         // bob confirms result (TODO)

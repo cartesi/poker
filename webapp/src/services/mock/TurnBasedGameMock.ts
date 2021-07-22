@@ -11,7 +11,6 @@ export class TurnBasedGameMock implements TurnBasedGame {
     onTurnOverReceivedResolvers: Array<(any) => any>;
 
     claimedResult: any;
-    onResultClaimed: (any) => any;
     onResultClaimReceived: (any) => any;
     onResultConfirmed: (any) => any;
     onGameOverReceived: (any) => any;
@@ -61,27 +60,25 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
 
     // result claim and confirmation
+    onClaimResult(gameIndex, claimedResult, claimer) {
+        // set state
+        this.claimedResult = claimedResult;
+        this.other.claimedResult = claimedResult;
+        // call listener
+        if (this.other.onResultClaimReceived) {
+            this.other.onResultClaimReceived(claimedResult);
+        }
+    }
     claimResult(claimedResult: any): Promise<void> {
         return new Promise(async (resolve) => {
-            this.claimedResult = claimedResult;
-            this.other.claimedResult = claimedResult;
-            if (this.onResultClaimed) {
-                this.onResultClaimed(claimedResult);
-            }
-            if (this.other.onResultClaimReceived) {
-                this.other.onResultClaimReceived(claimedResult);
-            }
+            this.onClaimResult(null, claimedResult, null)
             resolve();
         });
     }
     receiveResultClaimed() {
         return new Promise<any>((resolve) => {
-            if (this.claimedResult) {
-                resolve({
-                    claimedResult: this.claimedResult,
-                    claimer: null,
-                });
-            }
+            this.onResultClaimReceived = resolve;
+            this.other.onResultClaimReceived = resolve;
         });
     }
     confirmResult(onResultConfirmed?: (any) => any) {
