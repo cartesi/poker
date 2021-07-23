@@ -407,6 +407,33 @@ task("confirm-result", "Confirms a game result that was previously claimed")
         }
     });
 
+// WAIT-VERIFICATION
+task("wait-verification", "Waits for a game to be verified by Descartes")
+    .addOptionalParam("index", "The game index", 0, types.int)
+    .setAction(async ({ index }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves game and context contracts
+        const descartes = await ethers.getContract("Descartes");
+        const game = await ethers.getContract("TurnBasedGame");
+
+        const context = await game.getContext(index);
+        const descartesIndex = context[9];
+
+        console.log("");
+        console.log(`Waiting for verification result for game with index '${index}' to be computed by Descartes under computation index '${descartesIndex}'...\n`);
+
+        const state: string = await new Promise((resolve) => {
+            descartes.on("DescartesFinished", (descartesIndexFinished, state) => {
+                if (descartesIndexFinished.eq(descartesIndex)) {
+                    resolve(state);
+                }
+            })
+        });
+
+        console.log(`Game verification with Descartes index ${descartesIndex} finished with state '${ethers.utils.toUtf8String(state)}'\n`);
+    });
+    
 // APPLY-RESULT
 task("apply-result", "Applies the result of a game verified by Descartes")
     .addOptionalParam("index", "The game index", 0, types.int)
@@ -433,7 +460,7 @@ task("apply-result", "Applies the result of a game verified by Descartes")
                     `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${tx.hash
                     } ; blocknumber: ${tx.blockNumber})\n`
                 );
-                break;
+                return resultPrintable;
             }
         }
     });
