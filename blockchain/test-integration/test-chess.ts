@@ -6,7 +6,7 @@ async function main() {
 
     const players = ["alice", "bob"];
 
-    let index = await hre.run("start-game", { hash: "0xbc3f901f75e08bba22f0e9497ee3478e5fafca94a78910732100981b31ed85ac"});
+    let index = await hre.run("start-game", { hash: "0x8d1eb708bc02d459eb10d35705a54aee412a88c9a7ebdd3c24036db1ea779060"});
     index = index.toNumber();
 
     for (let i = 0; i < moves.length; i++) {

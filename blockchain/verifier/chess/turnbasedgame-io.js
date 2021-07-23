@@ -174,7 +174,7 @@ function readTurnsMetadata(inputs, filename) {
 // READS TURNS DATA
 function readTurnsData(inputs, filename) {
     const file = openFile(filename);
-    if (!inputs.nTurns) {
+    if (inputs.nTurns === undefined) {
         throw "Should only read turns data after reading turns metadata, to know how many turns to expect";
     }
 
