@@ -2,8 +2,11 @@
 #define COMMON_H
 
 #include "cards.h"
+#include <iostream>
 
 namespace poker {
+
+extern std::ostream& logger;
 
 const int ALICE = 0;
 const int BOB = 1;
@@ -16,7 +19,7 @@ const int NUM_PRIVATE_CARDS = 2;
 const int NUM_CARDS = NUM_PUBLIC_CARDS + (NUM_PLAYERS * NUM_PRIVATE_CARDS);
 const int HAND_SIZE = NUM_PUBLIC_CARDS + NUM_PRIVATE_CARDS;
 
-typedef int money_t;
+//typedef int money_t;
 
 enum bet_type {
     BET_NONE = 0,
@@ -76,7 +79,8 @@ enum game_error {
     ERR_BET_NOT_ALLOWED,
     ERR_NOT_PLAYER_TURN,    
     ERR_INVALID_OPEN_CARDS_STEP,
-    
+    ERR_BET_PHASE_MISMATCH,
+
     // player errors
     PRR_INVALID_PLAYER = 200,
     PRR_INVALID_MSG_TYPE,
@@ -112,7 +116,7 @@ enum game_error {
     GRR_OPPONENT_BET_NOT_HIGHER,
     GRR_BET_BELOW_MINIMUM,
     GRR_BET_ABOVE_MAXIMUM,
-
+    GRR_INVALID_BET,
 
     // CODEC
     COD_ERROR = 500,
@@ -139,7 +143,10 @@ enum game_error {
     VRF_MESSAGE_NOT_FOUND,
     VRF_CURRENT_PLAYER_MISMATCH,
     VRF_OPEN_ALICE_PRIVATE_CARDS,
-    VRF_OPEN_BOB_PRIVATE_CARDS
+    VRF_OPEN_BOB_PRIVATE_CARDS,
+    
+    // Big number
+    BIG_UNPARSEABLE =800
 };
 
 constexpr int private_card_index(int player, int card) {

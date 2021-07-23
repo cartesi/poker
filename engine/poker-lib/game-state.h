@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "common.h"
 #include "solver.h"
+#include "bignumber.h"
 
 namespace poker {
 

@@ -14,17 +14,17 @@ void the_happy_path() {
     auto& g = v.game();
     is.close();
     
-    // Winner: 1 Public cards: 40 36 5 9 30 Alice's cards: 28 0 Bob's cards: 42 35 
-    assert_eql(BOB, g.winner);
-    assert_eql(40, g.public_cards[0]);
-    assert_eql(36, g.public_cards[1]);
-    assert_eql(5, g.public_cards[2]);
-    assert_eql(9, g.public_cards[3]);
-    assert_eql(30, g.public_cards[4]);
-    assert_eql(28, g.players[ALICE].cards[0]);
-    assert_eql(0, g.players[ALICE].cards[1]);
-    assert_eql(42, g.players[BOB].cards[0]);
-    assert_eql(35, g.players[BOB].cards[1]);
+    // >>> Winner: 0 Public cards:    25 28 16 48 39 Alice's cards: 22 29 Bob's cards: 31 43 
+    assert_eql(ALICE, g.winner);
+    assert_eql(25, g.public_cards[0]);
+    assert_eql(28, g.public_cards[1]);
+    assert_eql(16, g.public_cards[2]);
+    assert_eql(48, g.public_cards[3]);
+    assert_eql(39, g.public_cards[4]);
+    assert_eql(22, g.players[ALICE].cards[0]);
+    assert_eql(29, g.players[ALICE].cards[1]);
+    assert_eql(31, g.players[BOB].cards[0]);
+    assert_eql(43, g.players[BOB].cards[1]);
 }
 
 int main(int argc, char** argv) {

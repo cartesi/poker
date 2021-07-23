@@ -10,10 +10,10 @@ verifier:: ~verifier() {
 
 game_error verifier::verify(std::istream& logfile) {
     game_error res;
-    std::cout << "*** verifying game...\n";
+    logger << "*** verifying game...\n";
     message* msg = NULL;
     while(SUCCESS == (res=message::decode(logfile, &msg))) {
-        std::cout << "*** " << msg->to_string() << std::endl;
+        logger << "*** " << msg->to_string() << std::endl;
         switch(msg->msgtype) {
             case MSG_VTMF:
                 res = handle_vtmf((msg_vtmf*)msg);
@@ -44,7 +44,7 @@ game_error verifier::verify(std::istream& logfile) {
         if (res || _r.step() == game_step::GAME_OVER)
             break;
     }
-    std::cout << "*** verification finished. code: " << res << std::endl;
+    logger << "*** verification finished. code: " << res << std::endl;
     return SUCCESS;
 }
 
@@ -122,12 +122,12 @@ game_error verifier::handle_bet_request(msg_bet_request* msg) {
     _bet_card_proof.clear();
     auto step = _r.step();
     if ((res=_r.bet(msg->player_id, msg->type, msg->amt))) {
-        std::cout << "BET ERROR " << res << std::endl;
+        logger << "BET ERROR " << res << std::endl;
         return res;
     }
     auto step_changed = _r.step() != step;
     if (step_changed) {
-        std::cout << "step_changed! " << _r.step() << std::endl; 
+        logger << "step_changed! " << _r.step() << std::endl; 
         _bet_card_proof = msg->cards_proof;
     }
     return SUCCESS;
@@ -138,7 +138,7 @@ game_error verifier::handle_card_proof(msg_card_proof* msg) {
     int first_card, count;
 
     if (_r.step() == game_step::OPEN_OPONENT_CARDS) {
-        std::cout << "game_step::OPEN_OPONENT_CARDS)" << std::endl; 
+        logger << "game_step::OPEN_OPONENT_CARDS)" << std::endl; 
         blob& alice_proof = msg->player_id == ALICE ? msg->cards_proof : _bet_card_proof;
         blob& bob_proof   = msg->player_id == BOB   ? msg->cards_proof : _bet_card_proof;
 

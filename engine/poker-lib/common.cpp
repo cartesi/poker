@@ -2,6 +2,9 @@
 
 namespace poker {
 
+// TODO: allow controlling log target and verbosity
+std::ostream& logger = std::cout;
+
 game_error public_cards_range(game_step step, int& first_card_index, int& card_count) {
     switch(step) {
         case OPEN_FLOP:

@@ -16,12 +16,12 @@ class Player {
 
         // create player instance
         await this.callWorker('poker_new_player', makeMessage(this.player_id), (results) => {
-            this._p = parseNumber(results[0]);
+            this._p = parseInt(results[0]);
         });
 
         // Initialize game
-        const res = await this.callWorker('player_init', makeMessage(this._p, alice_money, bob_money, big_blind), (results) => {
-            return parseNumber(results[0]);
+        const res = await this.callWorker('player_init', makeMessage(this._p, to_bignumber(alice_money), to_bignumber(bob_money), to_bignumber(big_blind)), (results) => {
+            return parseInt(results[0]);
         });
         return res;
     }
@@ -29,7 +29,7 @@ class Player {
     async create_handshake() {
         return this.callWorker('player_create_handshake', makeMessage(this._p), (results) => {
             return { 
-                res: parseNumber(results[0]),
+                res: parseInt(results[0]),
                 msg_out: parseString(results[1])
             };
         });
@@ -38,16 +38,16 @@ class Player {
     async process_handshake(msg_in) {
         return this.callWorker('player_process_handshake', makeMessage(this._p, msg_in), (results) => {
             return { 
-                res: parseNumber(results[0]),
+                res: parseInt(results[0]),
                 msg_out: parseString(results[1])
             };
         });
     }
 
     async create_bet(type, amt) {
-        return this.callWorker('player_create_bet', makeMessage(this._p, type, amt), (results) => {
+        return this.callWorker('player_create_bet', makeMessage(this._p, type, to_bignumber(amt)), (results) => {
             return { 
-                res: parseNumber(results[0]),
+                res: parseInt(results[0]),
                 msg_out: parseString(results[1])
             };
         });
@@ -56,9 +56,9 @@ class Player {
     async process_bet(msg_in) {
         return this.callWorker('player_process_bet', makeMessage(this._p, msg_in), (results) => {
           return { 
-                res: parseNumber(results[0]),
-                betType: parseNumber(results[1]),
-                amount: parseNumber(results[2]),
+                res: parseInt(results[0]),
+                betType: parseInt(results[1]),
+                amount: parseBignumber(results[2]),
                 msg_out: parseString(results[3])
             };
         });
@@ -107,7 +107,7 @@ function makeMessage(...args) {
     const t = typeof v;
     switch(t) {
       case 'string':
-        buffers.push(enc.encode(v));
+        buffers.push(enc.encode(v+"\0"));
         break;
       case 'number':
         const b = new ArrayBuffer(4)
@@ -128,13 +128,22 @@ function makeMessage(...args) {
   return res;
 }
 
-function parseNumber(buffer) {
+function parseInt(buffer) {
     const v32 = new Int32Array(buffer.buffer);
     return v32[0]
+}
+
+function parseBignumber(buffer) {
+  return Number(parseString(buffer)); // TODO  
 }
 
 function parseString(buffer) {
     const dec = new TextDecoder('utf8')
     return dec.decode(buffer.buffer)
 }
+
+function to_bignumber(v) {
+  return String(v) // TODO
+}
+
 

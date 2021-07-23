@@ -28,6 +28,8 @@ game_error place_bet(game_state& g, bet_type type, money_t amt) {
         case BET_FOLD:
             return fold(g);
             break;
+        case BET_NONE:
+            return GRR_INVALID_BET;
     }
     return SUCCESS;
 }
@@ -36,22 +38,23 @@ static game_error call(game_state& g) {
     player_state& player = g.players[g.current_player];
     player_state& opponent = g.players[opponent_id(player.id)];
     money_t difference = opponent.bets - player.bets;
-
-    if (difference <= 0)
+    if (difference <= (money_t)0)
         return (g.error = GRR_OPPONENT_BET_NOT_HIGHER);
-
     if ((g.error = bet(g, difference)) != SUCCESS)
         return g.error;
-
-    if (IS_DEALER(player.id)) {
-        g.current_player = opponent.id;
-
-        // if alice is not calling the big blind
-        if (g.phase == PHS_PREFLOP && player.bets > g.big_blind)
+    if (g.phase == PHS_PREFLOP) {
+        if (IS_DEALER(player.id)) {
+            g.current_player = opponent.id;
+            if (player.bets > g.big_blind)
+                end_phase(g);
+        } else {
             end_phase(g);
-    } else
+        }
+    } else {
+        if (IS_DEALER(player.id))
+            g.current_player = opponent.id;
         end_phase(g);
-
+    }
     return SUCCESS;
 }
 

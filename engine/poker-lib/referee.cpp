@@ -18,12 +18,11 @@ game_error referee::step_init_game(money_t alice_money, money_t bob_money, money
     if (_step != game_step::INIT_GAME)
         return (_g.error = ERR_INVALID_MOVE);
 
-    _g.players[ALICE].total_funds = alice_money - big_blind/2;
-    _g.players[ALICE].bets = big_blind/2;
-    _g.players[BOB].total_funds = bob_money - big_blind;
+    _g.players[ALICE].total_funds = alice_money;
+    _g.players[ALICE].bets = big_blind/((money_t)2);
+    _g.players[BOB].total_funds = bob_money;
     _g.players[BOB].bets = big_blind;
     _g.big_blind = big_blind;
-    // etc etc....
 
     _step = game_step::VTMF_GROUP;
     return SUCCESS;
@@ -31,7 +30,7 @@ game_error referee::step_init_game(money_t alice_money, money_t bob_money, money
 }
 
 game_error referee::step_vtmf_group(blob& g) {
-    std::cout << "step_vtmf_group..." << std::endl;
+    logger << "step_vtmf_group..." << std::endl;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::VTMF_GROUP)
         return (_g.error = ERR_INVALID_MOVE);
@@ -44,7 +43,7 @@ game_error referee::step_vtmf_group(blob& g) {
 }
 
 game_error referee::step_load_keys(blob& bob_key, blob& alice_key, /* out */ blob& eve_key) {
-    std::cout << "step_load_keys..." << std::endl;
+    logger << "step_load_keys..." << std::endl;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::LOAD_KEYS)
         return (_g.error = ERR_INVALID_MOVE);
@@ -63,7 +62,7 @@ game_error referee::step_load_keys(blob& bob_key, blob& alice_key, /* out */ blo
 }
 
 game_error referee::step_vsshe_group(blob& vsshe) {
-    std::cout << "step_vsshe_group..." << std::endl;
+    logger << "step_vsshe_group..." << std::endl;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::VSSHE_GROUP)
         return (_g.error = ERR_INVALID_MOVE);
@@ -78,7 +77,7 @@ game_error referee::step_vsshe_group(blob& vsshe) {
 }
 
 game_error referee::step_alice_mix(blob& mix, blob& proof) {
-    std::cout << "step_alice_mix..." << std::endl;
+    logger << "step_alice_mix..." << std::endl;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::ALICE_MIX)
         return (_g.error = ERR_INVALID_MOVE);
@@ -91,7 +90,7 @@ game_error referee::step_alice_mix(blob& mix, blob& proof) {
 }
 
 game_error referee::step_bob_mix(blob& mix, blob& proof) {
-    std::cout << "step_bob_mix..." << std::endl;
+    logger << "step_bob_mix..." << std::endl;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::BOB_MIX)
         return (_g.error = ERR_INVALID_MOVE);
@@ -104,7 +103,7 @@ game_error referee::step_bob_mix(blob& mix, blob& proof) {
 }
 
 game_error referee::step_final_mix(blob& mix, blob& proof) {
-    std::cout << "step_final_mix..." << std::endl;
+    logger << "step_final_mix..." << std::endl;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::FINAL_MIX)
         return (_g.error = ERR_INVALID_MOVE);
@@ -117,7 +116,7 @@ game_error referee::step_final_mix(blob& mix, blob& proof) {
 }
 
 game_error referee::step_take_cards_from_stack() {
-    std::cout << "step_take_cards_from_stack..." << std::endl;
+    logger << "step_take_cards_from_stack..." << std::endl;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::TAKE_CARDS_FROM_STACK)
         return (_g.error = ERR_INVALID_MOVE);
@@ -130,7 +129,7 @@ game_error referee::step_take_cards_from_stack() {
 }
 
 game_error referee::step_open_private_cards(int player_id, blob& alice_proofs, blob& bob_proofs) {
-    std::cout << "step_open_private_cards..." << std::endl;
+    logger << "step_open_private_cards..." << std::endl;
     game_error res;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::OPEN_PRIVATE_CARDS)
@@ -146,24 +145,28 @@ game_error referee::step_open_private_cards(int player_id, blob& alice_proofs, b
 }
 
 game_error referee::step_preflop_bet(int player_id, bet_type type, money_t amt) {
-    std::cout << "step_preflop_bet..." << std::endl;
+    logger << "step_preflop_bet..." << std::endl;
     game_error res;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::PREFLOP_BET)
         return (_g.error = ERR_INVALID_MOVE);
     if (player_id != _g.current_player)
         return (_g.error = ERR_NOT_PLAYER_TURN);
-    // TODO: incomplete rules. defer these decisions to game_state
-    _g.current_player = opponent_id(player_id);
-    if (type != BET_RAISE && (type != BET_CHECK || player_id==ALICE)) {
+
+    auto phs = _g.phase;
+    if (phs != PHS_PREFLOP)
+        return (_g.error = ERR_BET_PHASE_MISMATCH);
+    if ((res=place_bet(_g, type, amt)))
+        return res;
+    auto phs_changed = phs != _g.phase;
+    if (phs_changed)
         _step = game_step::OPEN_FLOP;
-        _g.current_player = BOB;
-    }
+
     return SUCCESS;
 }
 
 game_error referee::step_open_flop(blob& alice_proofs, blob& bob_proofs) {
-    std::cout << "step_open_flop..." << std::endl;
+    logger << "step_open_flop..." << std::endl;
     game_error res;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::OPEN_FLOP)
@@ -177,7 +180,7 @@ game_error referee::step_open_flop(blob& alice_proofs, blob& bob_proofs) {
 }
 
 game_error referee::step_flop_bet(int player_id, bet_type type, money_t amt) {
-    std::cout << "step_flop_bet..." << std::endl;
+    logger << "step_flop_bet..." << std::endl;
     game_error res;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::FLOP_BET)
@@ -185,16 +188,20 @@ game_error referee::step_flop_bet(int player_id, bet_type type, money_t amt) {
     if (player_id != _g.current_player)
         return (_g.error = ERR_NOT_PLAYER_TURN);
 
-    _g.current_player = opponent_id(player_id);
-    if (type != BET_RAISE && (type != BET_CHECK || player_id==ALICE)) {
+    auto phs = _g.phase;
+    if (phs != PHS_FLOP)
+        return (_g.error = ERR_BET_PHASE_MISMATCH);
+    if ((res=place_bet(_g, type, amt)))
+        return res;
+    auto phs_changed = phs != _g.phase;
+    if (phs_changed)
         _step = game_step::OPEN_TURN;
-        _g.current_player = BOB;
-    }
+
     return SUCCESS;
 }
 
 game_error referee::step_open_turn(blob& alice_proofs, blob& bob_proofs) {
-    std::cout << "step_open_turn..." << std::endl;
+    logger << "step_open_turn..." << std::endl;
     game_error res;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::OPEN_TURN)
@@ -208,7 +215,7 @@ game_error referee::step_open_turn(blob& alice_proofs, blob& bob_proofs) {
 }
 
 game_error referee::step_turn_bet(int player_id, bet_type type, money_t amt) {
-    std::cout << "step_turn_bet..." << std::endl;
+    logger << "step_turn_bet..." << std::endl;
     game_error res;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::TURN_BET)
@@ -216,16 +223,20 @@ game_error referee::step_turn_bet(int player_id, bet_type type, money_t amt) {
     if (player_id != _g.current_player)
         return (_g.error = ERR_NOT_PLAYER_TURN);
 
-    _g.current_player = opponent_id(player_id);
-    if (type != BET_RAISE && (type != BET_CHECK || player_id==ALICE)) {
+    auto phs = _g.phase;
+    if (phs != PHS_TURN)
+        return (_g.error = ERR_BET_PHASE_MISMATCH);
+    if ((res=place_bet(_g, type, amt)))
+        return res;
+    auto phs_changed = phs != _g.phase;
+    if (phs_changed)
         _step = game_step::OPEN_RIVER;
-        _g.current_player = BOB;
-    }
+
     return SUCCESS;
 }
 
 game_error referee::step_open_river(blob& alice_proofs, blob& bob_proofs) {
-    std::cout << "step_open_river..." << std::endl;
+    logger << "step_open_river..." << std::endl;
     game_error res;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::OPEN_RIVER)
@@ -239,7 +250,7 @@ game_error referee::step_open_river(blob& alice_proofs, blob& bob_proofs) {
 }
 
 game_error referee::step_river_bet(int player_id, bet_type type, money_t amt) {
-    std::cout << "step_river_bet..." << std::endl;
+    logger << "step_river_bet..." << std::endl;
     game_error res;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::RIVER_BET)
@@ -247,11 +258,15 @@ game_error referee::step_river_bet(int player_id, bet_type type, money_t amt) {
     if (player_id != _g.current_player)
         return (_g.error = ERR_NOT_PLAYER_TURN);
 
-    _g.current_player = opponent_id(player_id);
-    if (type != BET_RAISE && (type != BET_CHECK || player_id==ALICE)) {
-        _step = game_step::OPEN_OPONENT_CARDS;
-        _g.current_player = BOB;
-    }
+    auto phs = _g.phase;
+    if (phs != PHS_RIVER)
+        return (_g.error = ERR_BET_PHASE_MISMATCH);
+    if ((res=place_bet(_g, type, amt)))
+        return res;
+    auto phs_changed = phs != _g.phase;
+    if (phs_changed)
+        _step = _step = game_step::OPEN_OPONENT_CARDS;
+
     return SUCCESS;
 }
 
@@ -271,7 +286,7 @@ game_error referee::bet(int player_id, bet_type type, money_t amt) {
 }
 
 game_error referee::step_open_opponent_cards(int player_id, blob& alice_proofs, blob& bob_proofs) {
-    std::cout << "step_open_opponent_cards..." << std::endl;
+    logger << "step_open_opponent_cards..." << std::endl;
     game_error res;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::OPEN_OPONENT_CARDS)
@@ -291,7 +306,7 @@ game_error referee::step_open_opponent_cards(int player_id, blob& alice_proofs, 
 }
 
 game_error referee::open_public_cards(blob& alice_proofs, blob& bob_proofs, int first_card_index, int card_count) {
-    std::cout << "open_public_cards(" << first_card_index << "," << card_count << ") ..." << std::endl;
+    logger << "open_public_cards(" << first_card_index << "," << card_count << ") ..." << std::endl;
     alice_proofs.set_auto_rewind(false);
     bob_proofs.set_auto_rewind(false);    
     alice_proofs.rewind();

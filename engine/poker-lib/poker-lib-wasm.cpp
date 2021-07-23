@@ -13,16 +13,32 @@
 
 typedef int32_t INT;
 
-// helper functions
+// helper functions for reading data from webworker's payload
 
-static inline INT READINT(char* p) {
-    return *reinterpret_cast<INT*>(p);
-}
-
-static inline poker::player* READPLAYER(char* p) {
+// Reads player reference from memory and advances pointer
+static inline poker::player* read_playr(char*& p) {
     INT* i = reinterpret_cast<INT*>(p);
-    return reinterpret_cast<poker::player*>(*i);
+    auto res = reinterpret_cast<poker::player*>(*i);
+    p += sizeof(INT);
+    return res;
 }
+
+// Reads INT from memory and advances pointer
+static inline poker::money_t read_money(char*& p) {
+    poker::money_t res;
+    res.parse_string(p);
+    p += 1+strlen(p);
+    return res;
+}
+
+// Reads money_t from memory and advances pointer
+static inline INT read_int(char*& p) {
+    auto res =  *reinterpret_cast<INT*>(p);
+    p += sizeof(INT);
+    return res;
+}
+
+// helper functions for sending data back to webworker
 
 static inline void worker_respond(char* data, int size, bool final) {
     if (final)
@@ -54,7 +70,14 @@ static inline void worker_respond(char *p, bool final=true) {
     worker_respond(p, strlen(p), final);
 }
 
-// exported functions
+static inline void worker_respond(poker::money_t& p, bool final=true) {
+    auto tmp = p.to_string();
+    worker_respond((char*)tmp.c_str(), tmp.size(), final);
+}
+
+//
+// WASM Module exported functions
+//
 
 extern "C" {
 
@@ -65,29 +88,26 @@ void API poker_init() {
 }
 
 void API poker_new_player(char* msg) {
-    auto player_id = READINT(msg);
+    auto player_id = read_int(msg);
     auto player = new poker::player(player_id);
     worker_respond(player);
 }
 
 void API  poker_delete_player(char* msg) {
-    delete READPLAYER(msg);
+    delete read_playr(msg);
 }
 
 void API player_init(char* msg) {
-    auto player = READPLAYER(msg);
-    msg += sizeof(INT);
-    auto alice_money = READINT(msg);
-    msg += sizeof(INT);
-    auto bob_money = READINT(msg);
-    msg += sizeof(INT);
-    auto big_blind = READINT(msg);
+    auto player = read_playr(msg);
+    auto alice_money = read_money(msg);
+    auto bob_money = read_money(msg);
+    auto big_blind = read_money(msg);
     auto res = player->init(alice_money, bob_money, big_blind);
     worker_respond(res);
 }
 
 void API player_create_handshake(char* msg) {
-    auto player = READPLAYER(msg);
+    auto player = read_playr(msg);
     poker::blob msg_out;
     auto res = player->create_handshake(msg_out);
     worker_respond(res, false);
@@ -95,8 +115,7 @@ void API player_create_handshake(char* msg) {
 }
 
 void API player_process_handshake(char* msg) {
-    auto player = READPLAYER(msg);
-    msg += sizeof(INT);
+    auto player = read_playr(msg);
     poker::blob msg_in;
     msg_in.set_data(msg);
     poker::blob msg_out;
@@ -106,11 +125,9 @@ void API player_process_handshake(char* msg) {
 }
 
 void API player_create_bet(char* msg) {
-    auto player = READPLAYER(msg);
-    msg += sizeof(INT);
-    auto type = READINT(msg);
-    msg += sizeof(INT);
-    auto amt = READINT(msg);
+    auto player = read_playr(msg);
+    auto type = read_int(msg);
+    auto amt = read_money(msg);
     poker::blob msg_out;
     auto res = player->create_bet((poker::bet_type)type, amt, msg_out);
     worker_respond(res, false);
@@ -120,20 +137,19 @@ void API player_create_bet(char* msg) {
 void API player_process_bet(char* msg) {
     poker::bet_type type=poker::bet_type::BET_NONE;
     poker::money_t amt=0;
-    auto player = READPLAYER(msg);
-    msg += sizeof(INT);
+    auto player = read_playr(msg);
     poker::blob msg_in;
     msg_in.set_data(msg);
     poker::blob msg_out;
     auto res = player->process_bet(msg_in, msg_out, &type, &amt);
     worker_respond(res, false);
     worker_respond((INT)type, false);
-    worker_respond((INT)amt, false);
+    worker_respond(amt, false);
     worker_respond(msg_out, true);
 }
 
 void API player_game_state(char* msg) {
-    auto player = READPLAYER(msg);
+    auto player = read_playr(msg);
     char json[1024];
     auto g = player->game();
     auto& p0 = g.players[0];
@@ -145,15 +161,15 @@ void API player_game_state(char* msg) {
         "\"winner\": %d, "
         "\"public_cards\": [%d, %d, %d, %d, %d], "
         "\"players\": ["
-            "{\"id\": %d, \"total_funds\": %d, \"bets\": %d, \"cards\":[%d, %d]},"
-            "{\"id\": %d, \"total_funds\": %d, \"bets\": %d, \"cards\":[%d, %d]}"
+            "{\"id\": %d, \"total_funds\": \"%s\", \"bets\": \"%s\", \"cards\":[%d, %d]},"
+            "{\"id\": %d, \"total_funds\": \"%s\", \"bets\": \"%s\", \"cards\":[%d, %d]}"
         "]}",
         (int)player->step(),
         g.current_player, (int)g.error, g.winner,
         g.public_cards[0], g.public_cards[1], g.public_cards[2],
         g.public_cards[3], g.public_cards[4],
-        p0.id, p0.total_funds, p0.bets, p0.cards[0], p0.cards[1],
-        p1.id, p1.total_funds, p1.bets, p1.cards[0], p1.cards[1]);
+        p0.id, p0.total_funds.to_string().c_str(), p0.bets.to_string().c_str(), p0.cards[0], p0.cards[1],
+        p1.id, p1.total_funds.to_string().c_str(), p1.bets.to_string().c_str(), p1.cards[0], p1.cards[1]);
 
     worker_respond(json);
 }

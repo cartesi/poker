@@ -1,3 +1,7 @@
+<!--
+FYI You can launch html server from inside the WASM container as follows
+emrun --no_browser --port 1234 /poker/build/poker-lib/test-poker-lib.html
+-->
 <html>
 <head><style>
 body, button {
@@ -31,10 +35,10 @@ body, button {
         var start = new Date();
 
         const alice = new Player(ALICE);
-        await alice.init(100, 200, 10);
+        await alice.init(100, 300, 10);
 
         const bob = new Player(BOB);
-        await bob.init(100, 200, 10);
+        await bob.init(100, 300, 10);
 
         var { res, msg_out } = await alice.create_handshake();
         var { res, msg_out } = await bob.process_handshake(msg_out)
@@ -51,13 +55,11 @@ body, button {
         console.log('bob_state', bob_state)
         document.getElementById('res').innerText = `alice: ${JSON.stringify(alice_state)} bob: ${JSON.stringify(bob_state)}`
 
-        var { res, msg_out } = await alice.create_bet(BET_CALL, 100);
-        assert_eql(CONTINUED, res);
+        var { res, msg_out } = await alice.create_bet(BET_CALL, 0);
+        assert_eql(SUCCESS, res);
         var { res, msg_out } = await bob.process_bet(msg_out);
         assert_eql(SUCCESS, res);
-        var { res, msg_out } = await alice.process_bet(msg_out);
-        assert_eql(SUCCESS, res);
-
+        
         var alice_state =  await alice.game_state();
         console.log('alice_state', alice_state)
         var bob_state =  await bob.game_state();

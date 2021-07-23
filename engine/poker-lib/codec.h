@@ -4,6 +4,7 @@
 #include <iostream>
 #include "common.h"
 #include "blob.h"
+#include "bignumber.h"
 
 namespace poker {
 
@@ -30,7 +31,8 @@ public:
     game_error write(message_type v);
     game_error write(blob& v);
     game_error write(const std::string& v);
-    game_error write(const char* v, int len);
+    game_error write(const bignumber& v);
+    game_error write(const char* v, int len, char pfx);
     game_error pad(int padding_size);
 };
 
@@ -43,9 +45,11 @@ public:
     bool eof() { return _in.eof(); }
     decoder(std::istream& in);
     game_error read(int& v);
+    game_error read(bignumber& v);
     game_error read(message_type& v);
     game_error read(bet_type& v);
     game_error read(std::string& v);
+    game_error read(std::string& v, char expected_pfx);
     game_error read(blob& v);
 private:
     game_error skip_padding();
@@ -69,7 +73,7 @@ public:
     static game_error decode(std::istream& is, message** msg);
 };
 
-class msg_vtmf : public message{
+class msg_vtmf : public message {
 public:
     money_t alice_money;
     money_t bob_money;
@@ -84,7 +88,7 @@ public:
     std::string to_string() override;
 };
 
-class msg_vtmf_response : public message{
+class msg_vtmf_response : public message {
 public:
     money_t alice_money;
     money_t bob_money;
@@ -111,7 +115,7 @@ public:
     std::string to_string() override;
 };
 
-class msg_vsshe_response : public message{
+class msg_vsshe_response : public message {
 public:
     blob stack;
     blob stack_proof;
@@ -124,7 +128,7 @@ public:
     std::string to_string() override;
 };
 
-class msg_bob_private_cards : public message{
+class msg_bob_private_cards : public message {
 public:
     blob cards_proof;
 
@@ -135,7 +139,7 @@ public:
     std::string to_string() override;
 };
 
-class msg_bet_request : public message{
+class msg_bet_request : public message {
 public:
     int player_id;
     bet_type type;
@@ -149,7 +153,7 @@ public:
     std::string to_string() override;
 };
 
-class msg_card_proof : public message{
+class msg_card_proof : public message {
 public:
     int player_id;
     bet_type type;

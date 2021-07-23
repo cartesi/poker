@@ -4,12 +4,13 @@
 #include <iostream>
 #include <cstring>
 #include <memory.h>
+#include "common.h"
 
 namespace poker {
 
 
 /*
-* convenience stream to help inspect libTMCG IO
+* convenience stream to help inspecting libTMCG IO
 */
 class string_stream {
     int _r;
@@ -17,7 +18,7 @@ public:
     std::string& data;
     string_stream(std::string &s) : _r(0), data(s) { }
     int  write(const char *s, int num) {
-        // std::cout << "write " << num << std::endl;
+        // logger << "write " << num << std::endl;
         data = data + std::string(s, num);
         return num;
     }
@@ -28,7 +29,7 @@ public:
         memcpy(s, subs.c_str(), num);
         s[num] = 0;
         _r += num;
-        //std::cout << "read " << num << std::endl;
+        //logger << "read " << num << std::endl;
         return num;
     }
     void rewind() { _r = 0; }
@@ -126,13 +127,13 @@ template <class traits = sbuf_traits> class basic_sbuf :	public std::streambuf {
 			ssize_t count;
 			while (1)
 			{
-                //std::cout << "** reading... " << std::endl; 
+                //logger << "** reading... " << std::endl; 
 				count = tx.read(mRBuffer+traits_type::putback_sz(), bufsiz);
 				if (count == 0)
 					return EOF;
 				else if (count == -1)
 				{
-                    std::cout << "----> -1 -1 -1\n";
+                    poker::logger << "----> -1 -1 -1\n";
 					if (errno == EAGAIN || errno == EWOULDBLOCK ||
 						errno == EINTR)
 						continue;

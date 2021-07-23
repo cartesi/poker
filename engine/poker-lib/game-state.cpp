@@ -22,17 +22,17 @@ game_error game_state::get_player_hand(int player, card_t* hand) {
 }
 
 void game_state::dump() {
-    std::cout << ">>> Winner: " << winner << " ";
-    std::cout << "Public cards: ";
+    logger << ">>> Winner: " << winner << " ";
+    logger << "Public cards: ";
     for (auto i = 0; i < NUM_PUBLIC_CARDS; i++)
-        std::cout << public_cards[i] << " ";
-    std::cout << "Alice's cards: ";
+        logger << public_cards[i] << " ";
+    logger << "Alice's cards: ";
     for (auto i = 0; i < NUM_PRIVATE_CARDS; i++)
-        std::cout << players[ALICE].cards[i] << " ";
-    std::cout << "Bob's cards: ";
+        logger << players[ALICE].cards[i] << " ";
+    logger << "Bob's cards: ";
     for (auto i = 0; i < NUM_PRIVATE_CARDS; i++)
-        std::cout << players[BOB].cards[i] << " ";
-    std::cout << std::endl;
+        logger << players[BOB].cards[i] << " ";
+    logger << std::endl;
 }
 
 }  // namespace poker

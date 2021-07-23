@@ -14,12 +14,18 @@ player::~player() {
 
 game_error player::init(money_t alice_money, money_t bob_money, money_t big_blind) {
     game_error res;
-    if (!(res=_r.step_init_game(alice_money, bob_money, big_blind)))
+    if ((res=_r.step_init_game(alice_money, bob_money, big_blind)))
         return res;
 
     _alice_money = alice_money;
     _bob_money = bob_money;
     _big_blind = big_blind;
+
+    // init(money_t alice_money, money_t bob_money, money_t big_blind) {
+    logger << "init " << alice_money.to_string() << ","
+         << bob_money.to_string() << ","
+         << big_blind.to_string() << std::endl;
+        
 
     return SUCCESS;
 }
@@ -58,7 +64,7 @@ game_error player::process_handshake(blob& msg_in, blob& msg_out) {
     switch(msgin->msgtype) {
         case MSG_VTMF:
             res = handle_vtmf((msg_vtmf*)msgin, &msgout);
-            std::cout << "******* > " << msgout << std::endl;
+            logger << "******* > " << msgout << std::endl;
             break;
         case MSG_VTMF_RESPONSE:
             res = handle_vtmf_response((msg_vtmf_response*)msgin, &msgout);
@@ -75,7 +81,7 @@ game_error player::process_handshake(blob& msg_in, blob& msg_out) {
         default:
             return PRR_INVALID_MSG_TYPE;
     }
-    std::cout << "res = " << res << std::endl;
+    logger << "res = " << res << std::endl;
     if ((res==SUCCESS || res==CONTINUED) && msgout)
         msgout->write(os);
     
@@ -85,7 +91,7 @@ game_error player::process_handshake(blob& msg_in, blob& msg_out) {
 }
 
 game_error player::handle_vtmf(msg_vtmf* msgin, message** out) {
-    std::cout << "handle_vtmf...\n";
+    logger << "handle_vtmf...\n";
     game_error res;    
     auto msgout = new msg_vtmf_response();
     *out = msgout;
@@ -120,7 +126,7 @@ game_error player::handle_vtmf(msg_vtmf* msgin, message** out) {
 }
 
 game_error player::handle_vtmf_response(msg_vtmf_response* msgin, message** out) {
-    std::cout << "handle_vtmf_response...\n";
+    logger << "handle_vtmf_response...\n";
     if (_id != ALICE)
         return PRR_INVALID_PLAYER;
 
@@ -154,7 +160,7 @@ game_error player::handle_vtmf_response(msg_vtmf_response* msgin, message** out)
 }
 
 game_error player::handle_vsshe(msg_vsshe* msgin, message** out) {
-    std::cout << "handle_vsshe...\n";
+    logger << "handle_vsshe...\n";
     if (_id != BOB)
         return PRR_INVALID_PLAYER;
 
@@ -197,7 +203,7 @@ game_error player::handle_vsshe(msg_vsshe* msgin, message** out) {
 }
 
 game_error player::handle_vsshe_response(msg_vsshe_response* msgin, message** out) {
-    std::cout << "handle_vsshe_response...\n";
+    logger << "handle_vsshe_response...\n";
     if (_id != ALICE)
         return PRR_INVALID_PLAYER;
 
@@ -231,7 +237,7 @@ game_error player::handle_vsshe_response(msg_vsshe_response* msgin, message** ou
 }
 
 game_error player::handle_bob_private_cards(msg_bob_private_cards* msgin) {
-    std::cout << "handle_bob_private_cards...\n";
+    logger << "handle_bob_private_cards...\n";
     game_error res;    
     if (_id != BOB)
         return PRR_INVALID_PLAYER;
@@ -243,7 +249,7 @@ game_error player::handle_bob_private_cards(msg_bob_private_cards* msgin) {
 }
 
 game_error player::create_bet(bet_type type, money_t amt, blob& msg_out) {
-    std::cout << "create_bet...\n";
+    logger << "create_bet...\n";
     game_error res;
     msg_bet_request msgout;
 
@@ -308,7 +314,7 @@ game_error player::process_bet(blob& msg_in, blob& out, bet_type* out_type, mone
 }
 
 game_error player::handle_bet_request(msg_bet_request* msgin, message** out) {
-    std::cout << "...handle_bet_request" << std::endl;
+    logger << "...handle_bet_request" << std::endl;
     game_error res;
 
     auto step = _r.step();
@@ -340,7 +346,7 @@ game_error player::handle_bet_request(msg_bet_request* msgin, message** out) {
 }
 
 game_error player::handle_card_proof(msg_card_proof* msgin) {
-    std::cout << "...handle_card_proof" << std::endl;
+    logger << "...handle_card_proof" << std::endl;
     game_error res;
     if (_r.step() == game_step::OPEN_OPONENT_CARDS) {
         if ((res=open_opponent_cards(msgin->cards_proof)))

@@ -2,6 +2,15 @@
 #include <fstream>
 #include "verifier.h"
 
+/*
+metadata
+players
+turnsMetadata
+turnsData
+verificationInfo
+output
+*/
+
 int usage() {
     std::cerr << "syntax: verify <data-file>" << std::endl;
     return 1;

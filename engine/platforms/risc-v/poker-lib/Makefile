@@ -18,6 +18,12 @@ poker-lib: poker-lib-src
 poker-lib-src:
 	cp -r /poker/poker-lib-base poker-lib-src
 
+test: poker-lib
+	make -C poker-lib-src test
+    
+poker-lib-src:
+	cp -r /poker/poker-lib-base poker-lib-src
+
 clean:
 	rm -rf poker-lib-src && \
     rm -f $(EXT2_PATH)

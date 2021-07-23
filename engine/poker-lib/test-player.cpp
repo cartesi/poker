@@ -15,8 +15,12 @@ using namespace poker::cards;
 
 void the_happy_path() {
     player alice(ALICE);
-    assert_eql(SUCCESS, alice.init(100, 100, 10));
+    assert_eql(SUCCESS, alice.init(100, 300, 10));
     assert_eql(-1, alice.winner());
+    assert_eql(100, alice.game().players[ALICE].total_funds);
+    assert_eql(5, alice.game().players[ALICE].bets);
+    assert_eql(300, alice.game().players[BOB].total_funds);
+    assert_eql(10, alice.game().players[BOB].bets);
     assert_eql(uk, alice.private_card(0));
     assert_eql(uk, alice.private_card(1));
     assert_eql(uk, alice.opponent_card(0));
@@ -28,8 +32,12 @@ void the_happy_path() {
     assert_eql(uk, alice.public_card(RIVER));
 
     player bob(BOB);
-    assert_eql(SUCCESS, bob.init(100, 100, 10));
+    assert_eql(SUCCESS, bob.init(100, 300, 10));
     assert_eql(-1, bob.winner());
+    assert_eql(100, bob.game().players[ALICE].total_funds);
+    assert_eql(5, bob.game().players[ALICE].bets);
+    assert_eql(300, bob.game().players[BOB].total_funds);
+    assert_eql(10, bob.game().players[BOB].bets);
     assert_eql(uk, bob.private_card(0));
     assert_eql(uk, bob.private_card(1));
     assert_eql(uk, bob.opponent_card(0));
@@ -63,96 +71,94 @@ void the_happy_path() {
     assert_eql(game_step::PREFLOP_BET, bob.step());
 
     // Preflop: Alice calls
-    assert_eql(CONTINUED, alice.create_bet(BET_CALL, 0, msg[5]));
-    assert_eql(game_step::OPEN_FLOP, alice.step()); // waiting card proofs
-    bet_type type;
-    money_t amt;
-    assert_eql(SUCCESS, bob.process_bet(msg[5], msg[6], &type, &amt));
-    assert_eql(BET_CALL, type);
-    assert_eql(0, amt);
-    
-    assert_neq(uk, bob.public_card(FLOP(0)));
-    assert_neq(uk, bob.public_card(FLOP(1)));
-    assert_neq(uk, bob.public_card(FLOP(2)));
+    assert_eql(SUCCESS, alice.create_bet(BET_CALL, 0, msg[5]));
+    assert_eql(game_step::PREFLOP_BET, alice.step());
+    assert_eql(BOB, alice.current_player());
+    assert_eql(SUCCESS, bob.process_bet(msg[5], msg[6]));
+    assert_eql(true, msg[6].empty());
+    assert_eql(game_step::PREFLOP_BET, bob.step()); 
+    assert_eql(BOB, alice.current_player());
+
+    // Preflop: Bob checks
+    assert_eql(CONTINUED, bob.create_bet(BET_CHECK, 0, msg[6]));
+    assert_eql(game_step::OPEN_FLOP, bob.step());
+    assert_eql(BOB, bob.current_player());
     assert_eql(SUCCESS, alice.process_bet(msg[6], msg[7]));
-    assert_eql(true, msg[7].empty());
     assert_neq(uk, alice.public_card(FLOP(0)));
     assert_neq(uk, alice.public_card(FLOP(1)));
     assert_neq(uk, alice.public_card(FLOP(2)));
 
-    assert_eql(game_step::FLOP_BET, alice.step());
-    assert_eql(game_step::FLOP_BET, bob.step());
-    assert_eql(BOB, alice.current_player());
+    assert_eql(SUCCESS, bob.process_bet(msg[7], msg[8]));    
+    assert_eql(true, msg[8].empty());
     assert_eql(BOB, bob.current_player());
+    assert_neq(uk, bob.public_card(FLOP(0)));
+    assert_neq(uk, bob.public_card(FLOP(1)));
+    assert_neq(uk, bob.public_card(FLOP(2)));
+
+    bet_type type;
+    money_t amt;
 
     // Flop: Bob checks
-    assert_eql(SUCCESS, bob.create_bet(BET_CHECK, 0, msg[7]));
-    assert_eql(SUCCESS, alice.process_bet(msg[7], msg[8]));
-    assert_eql(true, msg[8].empty());
-    assert_eql(game_step::FLOP_BET, alice.step());
     assert_eql(game_step::FLOP_BET, bob.step());
-    assert_eql(ALICE, alice.current_player());
+    assert_eql(SUCCESS, bob.create_bet(BET_CHECK, 0, msg[8]));
     assert_eql(ALICE, bob.current_player());
+    assert_eql(game_step::FLOP_BET, alice.step());
+    assert_eql(SUCCESS, alice.process_bet(msg[8], msg[9]));
+    assert_eql(true, msg[9].empty());
+    assert_eql(ALICE, alice.current_player());
 
     // Flop: Alice checks
-    assert_eql(CONTINUED, alice.create_bet(BET_CHECK, 0, msg[8]));
-    assert_eql(SUCCESS, bob.process_bet(msg[8], msg[9]));
-    assert_neq(uk, bob.public_card(TURN));
-    assert_eql(SUCCESS, alice.process_bet(msg[9], msg[10]));
-    assert_neq(uk, alice.public_card(TURN));
-    assert_eql(true, msg[10].empty());
-    assert_eql(game_step::TURN_BET, alice.step());
-    assert_eql(game_step::TURN_BET, bob.step());
+    assert_eql(game_step::FLOP_BET, alice.step());
+    assert_eql(CONTINUED, alice.create_bet(BET_CHECK, 0, msg[9]));
+    assert_eql(SUCCESS, bob.process_bet(msg[9], msg[10]));
+    assert_eql(SUCCESS, alice.process_bet(msg[10], msg[11]));
+    assert_eql(true, msg[11].empty());
     assert_eql(BOB, alice.current_player());
     assert_eql(BOB, bob.current_player());
-
+    assert_neq(uk, bob.public_card(TURN));
+    assert_neq(uk, alice.public_card(TURN));
+    
     // Turn: Bob raises
-    assert_eql(SUCCESS, bob.create_bet(BET_RAISE, 900, msg[10]));
-    assert_eql(SUCCESS, alice.process_bet(msg[10], msg[11], &type, &amt));
-    assert_eql(BET_RAISE, type);
-    assert_eql(900, amt);
-    assert_eql(true, msg[11].empty());
-    assert_eql(game_step::TURN_BET, alice.step());
     assert_eql(game_step::TURN_BET, bob.step());
+    assert_eql(game_step::TURN_BET, alice.step());
+    assert_eql(SUCCESS, bob.create_bet(BET_RAISE, 30, msg[11]));
+    assert_eql(40, bob.game().players[BOB].bets);
+
+    assert_eql(SUCCESS, alice.process_bet(msg[11], msg[12], &type, &amt));
+    assert_eql(40, alice.game().players[BOB].bets);
+    
+    assert_eql(BET_RAISE, type);
+    assert_eql(30, amt);
+    assert_eql(true, msg[12].empty());
     assert_eql(ALICE, alice.current_player());
     assert_eql(ALICE, bob.current_player());
 
-
-    // Turn: Alice raises
-    assert_eql(SUCCESS, alice.create_bet(BET_RAISE, 0, msg[11]));
-    assert_eql(SUCCESS, bob.process_bet(msg[11], msg[12]));
-    assert_eql(true, msg[12].empty());
+    // Alice calls
     assert_eql(game_step::TURN_BET, alice.step());
-    assert_eql(game_step::TURN_BET, bob.step());
-    assert_eql(BOB, alice.current_player());
-    assert_eql(BOB, bob.current_player());
-
-    // Turn: Bob calls
-    assert_eql(CONTINUED, bob.create_bet(BET_CALL, 0, msg[12]));
-    assert_eql(SUCCESS, alice.process_bet(msg[12], msg[13]));
-    assert_neq(uk, alice.public_card(RIVER));
-    assert_eql(RIVER_BET, alice.step());
-    assert_eql(SUCCESS, bob.process_bet(msg[13], msg[14]));
-    assert_neq(uk, bob.public_card(RIVER));
-    assert_eql(true, msg[14].empty());
-    assert_eql(game_step::RIVER_BET, bob.step());
-    assert_eql(BOB, alice.current_player());
-    assert_eql(BOB, bob.current_player());
-
-    // River: Bob checks
-    assert_eql(SUCCESS, bob.create_bet(BET_CHECK, 0, msg[14]));
-    assert_eql(SUCCESS, alice.process_bet(msg[14], msg[15]));
-    assert_eql(true, msg[15].empty());
+    assert_eql(CONTINUED, alice.create_bet(BET_CALL, 0, msg[12]));
+    assert_eql(40, alice.game().players[ALICE].bets);
+    assert_eql(game_step::OPEN_RIVER, alice.step());
+    assert_eql(SUCCESS, bob.process_bet(msg[12], msg[13]));
+    assert_eql(40, bob.game().players[ALICE].bets);
+    assert_eql(SUCCESS, alice.process_bet(msg[13], msg[14]));
+    assert_eql(true, msg[14].empty());   
     assert_eql(game_step::RIVER_BET, alice.step());
     assert_eql(game_step::RIVER_BET, bob.step());
-    assert_eql(ALICE, alice.current_player());
-    assert_eql(ALICE, bob.current_player());
+    assert_eql(BOB, alice.current_player());
+    assert_eql(BOB, bob.current_player());
 
-    // River: Alice checks -> GAME OVER
+    // Bob checks
+    assert_eql(SUCCESS, bob.create_bet(BET_CHECK, 0, msg[14]));
+    assert_eql(SUCCESS, alice.process_bet(msg[14], msg[15], &type, &amt));
+    assert_eql(true, msg[15].empty());   
+
+    // Alice checks
     assert_eql(CONTINUED, alice.create_bet(BET_CHECK, 0, msg[15]));
-    assert_eql(SUCCESS, bob.process_bet(msg[15], msg[16]));
-    assert_eql(SUCCESS, alice.process_bet(msg[16], msg[17]));
-    assert_eql(true, msg[17].empty());
+    assert_eql(SUCCESS, bob.process_bet(msg[15], msg[16], &type, &amt));
+    assert_eql(SUCCESS, alice.process_bet(msg[16], msg[17], &type, &amt));
+    assert_eql(true, msg[17].empty());   
+    assert_neq(uk, bob.public_card(RIVER));
+    assert_neq(uk, alice.public_card(RIVER));
 
     assert_eql(game_step::GAME_OVER, alice.step());
     assert_neq(uk, alice.opponent_card(0));
@@ -170,16 +176,14 @@ void the_happy_path() {
         ss << i.second.get_data();
     }
 
-    poker::verifier v;
-    v.verify(ss);
-
+    // save verifier fixture
     /*
-    // SAVE GAME LOG
     auto qs = ss.str();
     FILE *fp = fopen("test-game-data.bin","w");
     fwrite(qs.c_str(), qs.size(),1, fp);
     fclose(fp);
     */
+
 }
 
 int main(int argc, char** argv) {

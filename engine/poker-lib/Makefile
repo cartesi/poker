@@ -22,22 +22,33 @@ endif
 TESTS = test-solver \
     test-player \
     test-codec \
-    test-verifier \
-    test-validator
+    test-validator  \
+    test-bignumber
 
-PROGRAMS = verify $(TESTS)
-    
-INSTALL_FILES = $(PROGRAMS) \
-    test-verifier-fixture.bin
+# programs to build
+PROGRAMS =
+
+# Files to install in /poker/build/poker-lib
+INSTALL_FILES =
+
+TEST_LOADER =
 
 ifeq ($(POKER_BUILD_ENV),wasm)
 PROGRAMS += poker-lib-wasm.js
-INSTALL_FILES += \
-    poker-lib-wasm.wasm \
-    poker-lib-wasm.js \
-    poker-lib.js \
-    test-poker-lib.html
+    INSTALL_FILES += \
+        poker-lib-wasm.wasm \
+        poker-lib-wasm.js \
+        poker-lib.js \
+        test-poker-lib.html
+    TEST_LOADER = node
+else
+    PROGRAMS += verify
+    INSTALL_FILES += test-verifier-fixture.bin
+    TESTS += test-verifier
 endif
+
+PROGRAMS += $(TESTS)
+INSTALL_FILES += $(PROGRAMS)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@  $^
@@ -45,6 +56,7 @@ endif
 all: $(PROGRAMS)
 
 POKER_LIB_OBJS=common.o \
+            bignumber.o \
             solver.o \
             participant.o \
             poker-lib.o \
@@ -71,6 +83,13 @@ verify: verify.cpp poker-lib.a
 install: $(PROGRAMS)
 	mkdir -p $(INSTALL_DIR) && \
     for f in "$(INSTALL_FILES)"; do cp $$f $(INSTALL_DIR); done
+
+RUNTESTS := $(addsuffix .run,$(TESTS))
+
+test: $(RUNTESTS)
+
+$(RUNTESTS): %.run:
+	$(TEST_LOADER) ./$*
     
 clean:
 	for f in "$(INSTALL_FILES)"; do \
