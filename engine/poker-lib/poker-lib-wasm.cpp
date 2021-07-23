@@ -16,7 +16,7 @@ typedef int32_t INT;
 // helper functions for reading data from webworker's payload
 
 // Reads player reference from memory and advances pointer
-static inline poker::player* read_playr(char*& p) {
+static inline poker::player* read_player(char*& p) {
     INT* i = reinterpret_cast<INT*>(p);
     auto res = reinterpret_cast<poker::player*>(*i);
     p += sizeof(INT);
@@ -94,11 +94,11 @@ void API poker_new_player(char* msg) {
 }
 
 void API  poker_delete_player(char* msg) {
-    delete read_playr(msg);
+    delete read_player(msg);
 }
 
 void API player_init(char* msg) {
-    auto player = read_playr(msg);
+    auto player = read_player(msg);
     auto alice_money = read_money(msg);
     auto bob_money = read_money(msg);
     auto big_blind = read_money(msg);
@@ -107,7 +107,7 @@ void API player_init(char* msg) {
 }
 
 void API player_create_handshake(char* msg) {
-    auto player = read_playr(msg);
+    auto player = read_player(msg);
     poker::blob msg_out;
     auto res = player->create_handshake(msg_out);
     worker_respond(res, false);
@@ -115,7 +115,7 @@ void API player_create_handshake(char* msg) {
 }
 
 void API player_process_handshake(char* msg) {
-    auto player = read_playr(msg);
+    auto player = read_player(msg);
     poker::blob msg_in;
     msg_in.set_data(msg);
     poker::blob msg_out;
@@ -125,7 +125,7 @@ void API player_process_handshake(char* msg) {
 }
 
 void API player_create_bet(char* msg) {
-    auto player = read_playr(msg);
+    auto player = read_player(msg);
     auto type = read_int(msg);
     auto amt = read_money(msg);
     poker::blob msg_out;
@@ -137,7 +137,7 @@ void API player_create_bet(char* msg) {
 void API player_process_bet(char* msg) {
     poker::bet_type type=poker::bet_type::BET_NONE;
     poker::money_t amt=0;
-    auto player = read_playr(msg);
+    auto player = read_player(msg);
     poker::blob msg_in;
     msg_in.set_data(msg);
     poker::blob msg_out;
@@ -149,7 +149,7 @@ void API player_process_bet(char* msg) {
 }
 
 void API player_game_state(char* msg) {
-    auto player = read_playr(msg);
+    auto player = read_player(msg);
     char json[1024];
     auto g = player->game();
     auto& p0 = g.players[0];

@@ -77,7 +77,7 @@ void the_happy_path() {
     assert_eql(SUCCESS, bob.process_bet(msg[5], msg[6]));
     assert_eql(true, msg[6].empty());
     assert_eql(game_step::PREFLOP_BET, bob.step()); 
-    assert_eql(BOB, alice.current_player());
+    assert_eql(BOB, bob.current_player());
 
     // Preflop: Bob checks
     assert_eql(CONTINUED, bob.create_bet(BET_CHECK, 0, msg[6]));

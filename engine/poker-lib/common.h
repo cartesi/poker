@@ -19,8 +19,6 @@ const int NUM_PRIVATE_CARDS = 2;
 const int NUM_CARDS = NUM_PUBLIC_CARDS + (NUM_PLAYERS * NUM_PRIVATE_CARDS);
 const int HAND_SIZE = NUM_PUBLIC_CARDS + NUM_PRIVATE_CARDS;
 
-//typedef int money_t;
-
 enum bet_type {
     BET_NONE = 0,
     BET_FOLD = 1,

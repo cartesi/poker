@@ -35,22 +35,22 @@ public:
     }
 
     bignumber& operator += (const bignumber& other) {
-        mpz_add(n, n, other.n); return *this;
+        mpz_add(n, n, other.n);
         return *this;
     }
 
     bignumber& operator -= (const bignumber& other) {
-        mpz_sub(n, n, other.n); return *this;
+        mpz_sub(n, n, other.n);
         return *this;
     }
 
     bignumber& operator *= (const bignumber& other) {
-        mpz_mul(n, n, other.n); return *this;
+        mpz_mul(n, n, other.n);
         return *this;
     }
 
     bignumber& operator /= (const bignumber& other) { 
-        mpz_div(n, n, other.n); return *this;
+        mpz_div(n, n, other.n);
         return *this;
     }
 
