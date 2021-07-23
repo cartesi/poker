@@ -7,9 +7,6 @@
 #include "common.h"
 
 namespace poker {
-
-//#define money_t bignumber
-//typedef  int32_t money_t;
     
 class bignumber {
     mpz_t n;

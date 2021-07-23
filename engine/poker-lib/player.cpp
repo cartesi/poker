@@ -21,7 +21,6 @@ game_error player::init(money_t alice_money, money_t bob_money, money_t big_blin
     _bob_money = bob_money;
     _big_blind = big_blind;
 
-    // init(money_t alice_money, money_t bob_money, money_t big_blind) {
     logger << "init " << alice_money.to_string() << ","
          << bob_money.to_string() << ","
          << big_blind.to_string() << std::endl;
