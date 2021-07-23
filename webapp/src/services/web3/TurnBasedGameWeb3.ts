@@ -72,7 +72,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         const gameResultClaimedFilter = gameContextContract.filters.GameResultClaimed(this.gameIndex, null, null);
         gameContextContract.on(gameResultClaimedFilter, this.onClaimResult.bind(this));
 
-        // sets up listener for GameResultClaimed event
+        // sets up listener for GameEnd event
         const gameEndFilter = gameContextContract.filters.GameOver(this.gameIndex, null);
         gameContextContract.on(gameEndFilter, this.onGameEnd.bind(this));
     }
