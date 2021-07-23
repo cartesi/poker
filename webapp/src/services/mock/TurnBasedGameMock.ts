@@ -13,7 +13,6 @@ export class TurnBasedGameMock implements TurnBasedGame {
 
     claimedResult: any;
     onResultClaimReceived: (any) => any;
-    onResultConfirmed: (any) => any;  //TODO: not necessary?
     onGameOverReceived: (any) => any;
 
     onGameChallengeReceived: (string) => any;
@@ -90,9 +89,6 @@ export class TurnBasedGameMock implements TurnBasedGame {
         if (this.onGameOverReceived) {
             this.onGameOverReceived(confirmedResult);
         }
-        if (this.other.onGameOverReceived) {
-            this.other.onGameOverReceived(confirmedResult);
-        }
     }
     confirmResult(): Promise<void> {
         return new Promise<void>((resolve) => {
@@ -100,10 +96,9 @@ export class TurnBasedGameMock implements TurnBasedGame {
             resolve();
         });
     }
-    receiveGameOver(): Promise<void> {
-        return new Promise<void>((resolve) => {
+    receiveGameOver(): Promise<any> {
+        return new Promise<any>((resolve) => {
             this.onGameOverReceived = resolve;
-            this.other.onGameOverReceived = resolve;
         });
     }
 

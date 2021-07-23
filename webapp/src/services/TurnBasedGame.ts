@@ -12,7 +12,7 @@ export interface TurnBasedGame {
     claimResult(data: any): Promise<void>;
     receiveResultClaimed(): Promise<Array<number>>;
     confirmResult(): Promise<void>;
-    receiveGameOver(): Promise<void>;
+    receiveGameOver(): Promise<any>;
 
     // challenge and verification
     challengeGame(msg: string, onGameChallenged?: (string) => any);

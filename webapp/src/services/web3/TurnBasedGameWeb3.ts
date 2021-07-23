@@ -30,7 +30,6 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
     claimedResult: any;
     onResultClaimReceived: (any) => any;
-    onResultConfirmed: (any) => any;
     onGameOverReceived: (any) => any;
 
     onGameChallengeReceived: (string) => any;
@@ -185,7 +184,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                     `Result was claimed for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
                 );
             } catch (error) {
-                console.log("Error during claim result: " + error);
+                console.error("Error during claim result: " + error);
             }
             if (tx) {
                 resolve();
@@ -217,13 +216,13 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                 );
                 resolve();
             } catch (error) {
-                console.log("Error during confirm result: " + error);
+                console.error("Error during confirm result: " + error);
                 reject();
             }
         });
     }
-    receiveGameOver(): Promise<void> {
-        return new Promise<void>((resolve) => {
+    receiveGameOver(): Promise<any> {
+        return new Promise<any>((resolve) => {
             this.onGameOverReceived = resolve;
         });
     }

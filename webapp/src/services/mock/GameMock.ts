@@ -63,7 +63,7 @@ export class GameMock implements Game {
         this.turnBasedGame.receiveResultClaimed()
             .then((claimedResult) => { this._resultReceived(claimedResult) });
         this.turnBasedGame.receiveGameOver()
-            .then(() => this._resultConfirmationReceived());
+            .then((fundsShare) => this._resultConfirmationReceived(fundsShare));
         this.turnBasedGame.receiveGameChallenged(this._verificationReceived.bind(this));
         // this.turnBasedGame.receiveVerificationUpdate(this._verificationReceived.bind(this));
     }
@@ -472,7 +472,7 @@ export class GameMock implements Game {
         }
     }
 
-    _resultConfirmationReceived() {
+    _resultConfirmationReceived(fundsShare: Array<number>) {
         // advances state (to END)
         this._advanceState();
     }
