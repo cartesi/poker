@@ -63,7 +63,7 @@ When a game is challenged, a Descartes computation is triggered to determine the
 
 For the Descartes verification to work, the Cartesi Machine corresponding to the specified hash must be present inside the Descartes Environment's [machines](descartes-env/machines) directory. This machine basically encapsulates the logic of the application and is capable of defining the correct result given the input data provided by Descartes. In the case of the TurnBasedGame contract, this input data will correspond to the game's parameters along with the full log of the data exchanged between the players.
 
-At the moment, you can experiment with a mock Verifier Cartesi Machine by issuing the following commands:
+You can experiment with a mock Verifier Cartesi Machine by issuing the following commands:
 ```bash
 $ cd verifier/mock
 $ ./build-cartesi-machine.sh ../../descartes-env/machines
@@ -74,3 +74,18 @@ This will build the mock machine template and place it inside the appropriate `m
 When Descartes reaches its final state (e.g., "ConsensusResult"), a `DescartesFinished` event is emitted. The computed outcome can then be made effective by calling TurnBasedGame's `applyVerificationResult` method. In the command line, that can be achieved by calling the `apply-result` task.
 
 **NOTE**: the `start-game` and `join-game` tasks currently use the mock verifier machine's template hash as default
+
+## Chess Verifier
+
+A full verifier machine for a game of Chess is available within the [verifier/chess](./verifier/chess) directory. It makes use of the [chess.js](https://www.npmjs.com/package/chess.js) JavaScript library to implement the game's logic.
+
+To run it, first build it by executing:
+```bash
+$ cd verifier/chess
+$ ./build-cartesi-machine.sh ../../descartes-env/machines
+```
+
+Then, you can run a full integration test for the game, including a Descartes verification, with the following command:
+```bash
+$ npx hardhat --network localhost run --no-compile ./test-integration/test-chess.ts
+```
