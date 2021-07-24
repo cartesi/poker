@@ -3,7 +3,7 @@
     "description": "Poker Descartes Environment for local development",
     "version": "1.0.0",
     "dependencies": {
-        "@cartesi/descartes-sdk": "^1.2.0"
+        "@cartesi/descartes-sdk": "^1.2.1"
     },
     "devDependencies": {
         "ethers": "^5.0.24",

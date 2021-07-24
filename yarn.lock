@@ -16,10 +16,10 @@
   dependencies:
     "@cartesi/util" "^2.0.1"
 
-"@cartesi/descartes-sdk@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@cartesi/descartes-sdk/-/descartes-sdk-1.2.0.tgz#1273518bd16dd903e4cee98a9af1b2e4020d87bb"
-  integrity sha512-vlgD6Xc9u+4t1gGwsOf1YOTouLyeFxCaGp2r9Tz6OoWg87Z68WlYhgGV7zVjN7+cW3dPFAKnZB6n5PjFYZ1+Fg==
+"@cartesi/descartes-sdk@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@cartesi/descartes-sdk/-/descartes-sdk-1.2.1.tgz#bf8e8a3238f7e6cedd4967385573871b61341e7e"
+  integrity sha512-iGF3yMQMHVRAEwIf9c3fEIyqJcGkAURG1mp89gYg5rfBOJ0cl9t4T7lTJSMF1XUutdqlKikX0d0ODRjZ21EAcg==
   dependencies:
     "@cartesi/arbitration" "^0.6.0"
     "@cartesi/logger" "^0.7.1"

@@ -1,7 +1,7 @@
 version: '3'
 services:
   alice_dispatcher:
-    image: cartesi/descartes:1.2.0
+    image: cartesi/descartes:1.2.1
     restart: always
     environment:
       MNEMONIC: ${MNEMONIC}
@@ -71,7 +71,7 @@ services:
           - machine-manager
 
   bob_dispatcher:
-    image: cartesi/descartes:1.2.0
+    image: cartesi/descartes:1.2.1
     restart: always
     environment:
       MNEMONIC: ${MNEMONIC}
