@@ -1,6 +1,6 @@
 {
     "name": "@cartesi/poker-webapp",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Cartesi Poker Web Application",
     "author": "Milton Jonathan <milton.jonathan@cartesi.io>",
     "license": "Apache-2.0",
