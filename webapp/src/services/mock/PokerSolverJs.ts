@@ -62,6 +62,6 @@ export class PokerSolverJs {
      * @returns an array of corresponding Card instances.
      */
     public static fromPokerSolverCards(cards: Array<PokerSolverCard>): Array<Card> {
-        return cards.filter(Boolean).map((c) => new Card(c.value + c.suit));
+        return cards.filter(Boolean).map((c) => new Card((c.value == "1" ? "A" : c.value) + c.suit));
     }
 }
