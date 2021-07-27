@@ -201,6 +201,14 @@ export class RoomManager {
             }, 2000);
         }
     }
+    public static startOpponentTurn(): void {
+
+        setTimeout(() => {
+
+            RoomManager.initTimer(300);
+            RoomScene.currentInstance.startOpponentTurn();
+        }, 2000);
+}
 
     public static updateBoard(): void {
 
@@ -247,11 +255,22 @@ export class RoomManager {
         GameManager.enterLobbyScene();
     }
 
+    public static onTimeOut(): void {
+
+        console.log("TIMEOUT!!! DO SOMETHING");
+    }
+
     private static onBetRequested(): void {
         
         RoomManager.updateBoard();
         RoomManager.updateOpponentState();
         RoomManager.showBetButtons();
+        RoomManager.initTimer(300);
+    }
+
+    private static initTimer(value: number): void {
+
+        RoomScene.currentInstance.initTimer(value);
     }
 
     private static onBetsReceived(betType: BetType, amount: ethers.BigNumber): void {

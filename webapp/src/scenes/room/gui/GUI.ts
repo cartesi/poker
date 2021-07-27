@@ -123,6 +123,11 @@ export class GUI extends Phaser.GameObjects.Container {
         this.setScalesAndPostions();
     }
 
+    public initTimer(value: number): void {
+
+        this.timer.reset(value);
+    }
+
     public setScalesAndPostions(): void {
         
         if (GameVars.landscape) {

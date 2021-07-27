@@ -63,6 +63,11 @@ export class RoomScene extends Phaser.Scene {
         AudioManager.playMusic("soundtrack", 0.1);
     }
 
+    public initTimer(value: number): void {
+
+        this.gui.initTimer(value);
+    }
+
     public showSettingsMenu(): void {
 
         this.settingsLayer.show();

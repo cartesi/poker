@@ -1,8 +1,12 @@
+import { RoomManager } from './../RoomManager';
 import { GameConstants } from "./../../../GameConstants";
 
 export class Timer extends Phaser.GameObjects.Container {
 
     private value: Phaser.GameObjects.Text;
+
+    private timeout: number;
+    private interval: NodeJS.Timeout;
 
     constructor(scene: Phaser.Scene) {
 
@@ -20,9 +24,54 @@ export class Timer extends Phaser.GameObjects.Container {
         title.setOrigin(.5);
         this.add(title);
 
-        this.value = new Phaser.GameObjects.Text(this.scene, -120, 86, "05:00", {fontFamily: "Oswald-Medium", fontSize: "50px", color: "#FFFFFF"});
+        this.value = new Phaser.GameObjects.Text(this.scene, -120, 86, "", {fontFamily: "Oswald-Medium", fontSize: "50px", color: "#FFFFFF"});
         this.value.setOrigin(.5);
-        this.add(this.value);
+        this.add(this.value); 
 
+        this.alpha = 0;
+    }
+
+    public show(): void {
+
+        if (this.alpha === 0) {
+            this.scene.tweens.add({
+                targets: this,
+                alpha: 1,
+                ease: Phaser.Math.Easing.Cubic.Out,
+                duration: 500
+            }); 
+        }
+    }
+
+    public hide(): void {
+
+        if (this.alpha === 1) {
+            this.scene.tweens.add({
+                targets: this,
+                alpha: 1,
+                ease: Phaser.Math.Easing.Cubic.Out,
+                duration: 500
+            }); 
+        }
+    }
+
+    public reset(timeout: number): void {
+
+        this.show();
+
+        this.timeout = timeout;
+        this.value.text = new Date(this.timeout * 1000).toISOString().substr(14, 5);
+
+        clearInterval(this.interval);
+
+        this.interval = setInterval(() => {
+            this.timeout--;
+            this.value.text = new Date(this.timeout * 1000).toISOString().substr(14, 5);
+
+            if (this.timeout === 0) {
+                clearInterval(this.interval);
+                RoomManager.onTimeOut();
+            }
+        }, 1000);
     }
 }
