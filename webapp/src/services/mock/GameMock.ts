@@ -73,31 +73,64 @@ export class GameMock implements Game {
         const promise = new Promise<void>((resolve) => {
             setTimeout(async () => {
                 if (self.player == ALICE) {
+                    // ALICE
                     self.playerBets = 1;
                     self.opponentBets = 2;
 
+                    // sends "cryptostuff" (game group info)
                     self.cryptoStuff = "xkdkeoejf";
+                    self.onEvent(`Sending game group info (cryptoStuff) ${self.cryptoStuff}...`);
                     await self.turnBasedGame.submitTurn(self.cryptoStuff);
 
+                    // defines key and sends it
                     self.mykey = "ALICEKEY";
+                    self.onEvent(`Sending key ${self.mykey}...`);
                     await self.turnBasedGame.submitTurn(self.mykey);
 
+                    // TODO: try to get this into GameFactory?
+                    if (self.gameOpponent) {
+                        // starts opponent game if applicable
+                        self.gameOpponent.start();
+                    }
+
+                    // waits for Bob to submit his key
+                    self._keyReceived(await self.turnBasedGame.receiveTurnOver());
+
+                    // shuffles deck and sends it over
                     self._shuffleDeck();
+                    self.onEvent(`Sending shuffled deck...`);
                     await self.turnBasedGame.submitTurn(JSON.stringify(self.deck));
 
-                    self.turnBasedGame.receiveTurnOver()
-                        .then((data) => self._keyReceived(data));
+                    // awaits for Bob's reshuffled deck
+                    self._deckReceived(await this.turnBasedGame.receiveTurnOver());
+
                 } else {
+                    // BOB
                     self.playerBets = 2;
                     self.opponentBets = 1;
-                    self.turnBasedGame.receiveTurnOver()
-                        .then((data) => self._cryptoStuffReceived(data));
+
+                    // waits for Alice's "cryptostuff" (group info) and key
+                    self._cryptoStuffReceived(await self.turnBasedGame.receiveTurnOver())
+                    self._keyReceived(await self.turnBasedGame.receiveTurnOver());
+
+                    // defines key and sends it
+                    self.mykey = "BOBKEY";
+                    self.onEvent(`Sending key ${self.mykey}`);
+                    await self.turnBasedGame.submitTurn(self.mykey);
+
+                    // waits for Alice's shuffled deck
+                    self._deckReceived(await self.turnBasedGame.receiveTurnOver());
+
+                    // reshuffles deck and sends it back
+                    self._shuffleDeck();
+                    self.onEvent(`Sending reshuffled deck...`);
+                    await self.turnBasedGame.submitTurn(JSON.stringify(self.deck));
                 }
-                if (self.gameOpponent) {
-                    self.gameOpponent.start().then(() => resolve());
-                } else {
-                    resolve();
-                }
+
+                // advances state to start game (will deal private cards)
+                await this._advanceState();
+                resolve();
+
             }, 5000);
         });
         return promise;
@@ -257,32 +290,20 @@ export class GameMock implements Game {
         }
     }
 
-    async _cryptoStuffReceived(stuff) {
+    _cryptoStuffReceived(stuff) {
         this.onEvent(`cryptoStuffReceived ${stuff}`);
         this.cryptoStuff = stuff;
-        this.mykey = "BOBKEY";
-        await this.turnBasedGame.submitTurn(this.mykey);
-        this.turnBasedGame.receiveTurnOver()
-            .then((data) => this._keyReceived(data));
     }
 
     _keyReceived(key) {
         this.onEvent(`keyReceived ${key}`);
         this.key = key;
-        this.turnBasedGame.receiveTurnOver()
-            .then((data) => this._deckReceived(data));
     }
 
-    async _deckReceived(deck) {
+    _deckReceived(deck) {
         this.onEvent(`deckReceived ${deck}`);
         this.deck = JSON.parse(deck);
-        if (this.player == BOB) {
-            // Bob must reshuffle the deck and send it back
-            this._shuffleDeck();
-            await this.turnBasedGame.submitTurn(JSON.stringify(this.deck));
-        }
         this.onEvent(`myDeck ${JSON.stringify(this.deck)}`);
-        this._advanceState();
     }
 
     _shuffleDeck() {
@@ -346,16 +367,19 @@ export class GameMock implements Game {
         await this.turnBasedGame.submitTurn(JSON.stringify(decryptedCards));
     }
 
-    _dealPrivateCards() {
+    async _dealPrivateCards() {
         // sends opponent's private cards
         if (this.player == ALICE) {
+            // Alice first sends Bob's private cards and then waits for Bob to reveal hers
+            this.onEvent(`Dealing opponent's private cards...`);
             this._sendPrivateCards(BOB);
+            this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
         } else {
+            // Bob first waits for Alice to reveal his cards and then sends hers
+            this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
+            this.onEvent(`Dealing opponent's private cards...`);
             this._sendPrivateCards(ALICE);
         }
-        // waits for the opponent to send decrypted cards
-        this.turnBasedGame.receiveTurnOver()
-            .then((data) => this._decryptedCardsReceived(data));
     }
 
     _sendPrivateCards(player) {
@@ -537,14 +561,14 @@ export class GameMock implements Game {
         }
     }
 
-    _advanceState() {
+    async _advanceState() {
         if (this.state == GameState.VERIFICATION) {
             // nothing to do while verification is in progress
             return;
         }
         this.state = this._incrementGameState(this.state);
         if (this.state == GameState.PREFLOP) {
-            this._dealPrivateCards();
+            await this._dealPrivateCards();
         } else if (this.state == GameState.FLOP) {
             this._dealFlop();
         } else if (this.state == GameState.TURN) {
