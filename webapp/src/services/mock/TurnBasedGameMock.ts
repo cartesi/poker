@@ -64,22 +64,21 @@ export class TurnBasedGameMock implements TurnBasedGame {
     onClaimResult(gameIndex, claimedResult, claimer) {
         // set state
         this.claimedResult = claimedResult;
-        this.other.claimedResult = claimedResult;
         // call listener
-        if (this.other.onResultClaimReceived) {
-            this.other.onResultClaimReceived(claimedResult);
+        if (this.onResultClaimReceived) {
+            this.onResultClaimReceived(claimedResult);
         }
     }
     claimResult(claimedResult: any): Promise<void> {
         return new Promise(async (resolve) => {
-            this.onClaimResult(null, claimedResult, null)
+            this.claimedResult = claimedResult;
+            this.other.onClaimResult(null, claimedResult, null)
             resolve();
         });
     }
     receiveResultClaimed() {
         return new Promise<any>((resolve) => {
             this.onResultClaimReceived = resolve;
-            this.other.onResultClaimReceived = resolve;
         });
     }
     //
@@ -92,7 +91,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
     confirmResult(): Promise<void> {
         return new Promise<void>((resolve) => {
-            this.onGameEnd(null, this.claimedResult);
+            this.other.onGameEnd(null, this.claimedResult);
             resolve();
         });
     }
