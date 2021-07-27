@@ -48,10 +48,12 @@ export class GameMock implements Game {
         this.onBetRequested = onBetRequested ? onBetRequested : () => { };
         this.onBetsReceived = onBetsReceived ? onBetsReceived : () => { };
         this.onVerification = onVerification ? onVerification : () => { };
+    }
 
-        // player leading the betting round
+    start(): Promise<void> {
+        // sets player leading the betting round
         // - starts with ALICE and is changed every time a player raises
-        // - defines if a betting round is over once all bets are equal
+        // - used to define if a betting round is over once all bets are equal
         this.betLeader = ALICE;
 
         // game state
@@ -66,9 +68,7 @@ export class GameMock implements Game {
             .then((fundsShare) => this._resultConfirmationReceived(fundsShare));
         this.turnBasedGame.receiveGameChallenged(this._verificationReceived.bind(this));
         // this.turnBasedGame.receiveVerificationUpdate(this._verificationReceived.bind(this));
-    }
-
-    start(): Promise<void> {
+        
         var self = this;
         const promise = new Promise<void>((resolve) => {
             setTimeout(async () => {
