@@ -19,6 +19,7 @@ declare let window: any;
  */
 export class TurnBasedGameWeb3 implements TurnBasedGame {
     private static readonly MAX_ATTEMPTS = 5;
+    private static readonly ATTEMPT_INTERVAL = 1000;
 
     gameIndex: number;
 
@@ -95,6 +96,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                     break;
                 } catch (error) {
                     console.error(`Error submitting turn: attempt ${i + 1}/${TurnBasedGameWeb3.MAX_ATTEMPTS}`);
+                    await new Promise(resolve => setTimeout(resolve, TurnBasedGameWeb3.ATTEMPT_INTERVAL));
                 }
             }
             if (tx) {
