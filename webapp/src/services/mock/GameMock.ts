@@ -76,15 +76,12 @@ export class GameMock implements Game {
                     this.playerBets = 1;
                     this.opponentBets = 2;
 
-                    // sends "cryptostuff" (game group info)
+                    // defines initial info and sends it: group info (cryptoStuff) + key
                     this.cryptoStuff = "xkdkeoejf";
-                    this.onEvent(`Sending game group info (cryptoStuff) ${this.cryptoStuff}...`);
-                    await this.turnBasedGame.submitTurn(this.cryptoStuff);
-
-                    // defines key and sends it
                     this.mykey = "ALICEKEY";
-                    this.onEvent(`Sending key ${this.mykey}...`);
-                    await this.turnBasedGame.submitTurn(this.mykey);
+                    const initialInfo = JSON.stringify({"cryptoStuff": this.cryptoStuff, "key": this.mykey});
+                    this.onEvent(`Sending initial info ${initialInfo}...`);
+                    await this.turnBasedGame.submitTurn(initialInfo);
 
                     // TODO: try to get this into GameFactory?
                     if (this.gameOpponent) {
@@ -109,8 +106,7 @@ export class GameMock implements Game {
                     this.opponentBets = 1;
 
                     // waits for Alice's "cryptostuff" (group info) and key
-                    this._cryptoStuffReceived(await this.turnBasedGame.receiveTurnOver())
-                    this._keyReceived(await this.turnBasedGame.receiveTurnOver());
+                    this._initialInfoReceived(await this.turnBasedGame.receiveTurnOver())
 
                     // defines key and sends it
                     this.mykey = "BOBKEY";
@@ -289,9 +285,11 @@ export class GameMock implements Game {
         }
     }
 
-    _cryptoStuffReceived(stuff) {
-        this.onEvent(`cryptoStuffReceived ${stuff}`);
-        this.cryptoStuff = stuff;
+    _initialInfoReceived(stuff) {
+        this.onEvent(`initialInfoReceived ${stuff}`);
+        const stuffObj = JSON.parse(stuff);
+        this.cryptoStuff = stuffObj.cryptoStuff;
+        this.key = stuffObj.key;
     }
 
     _keyReceived(key) {
