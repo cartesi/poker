@@ -151,9 +151,7 @@ export class GameMock implements Game {
             throw "Fold not allowed because player and opponent bets are equal: use check instead";
         }
         await this.turnBasedGame.submitTurn("FOLD");
-        this.state = GameState.END;
         this._computeResultPlayerFold();
-        this.onEnd();
     }
 
     async raise(amount: number) {
@@ -455,9 +453,8 @@ export class GameMock implements Game {
 
         if (cards == "FOLD") {
             // opponent gave up
-            this.state = GameState.END;
             this._computeResultOpponentFold();
-            this.onEnd();
+            await this.turnBasedGame.claimResult(this.result.fundsShare);
             return;
         }
 
@@ -485,7 +482,7 @@ export class GameMock implements Game {
                 this.onEvent(`Showing cards to opponent...`);
                 await this._sendPrivateCards(this.player);
                 // submits computed result
-                await this.turnBasedGame.claimResult(this.result);
+                await this.turnBasedGame.claimResult(this.result.fundsShare);
             } else {
                 // player lost: folds without revealing his cards
                 await this.fold();
@@ -537,9 +534,8 @@ export class GameMock implements Game {
         if (opponentBets == "FOLD") {
             // opponent gave up
             this.onBetsReceived(BetType.FOLD, 0);
-            this.state = GameState.END;
             this._computeResultOpponentFold();
-            this.onEnd();
+            await this.turnBasedGame.claimResult(this.result.fundsShare);
             return;
         }
 
