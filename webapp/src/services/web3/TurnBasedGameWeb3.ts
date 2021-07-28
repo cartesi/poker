@@ -19,7 +19,7 @@ declare let window: any;
  */
 export class TurnBasedGameWeb3 implements TurnBasedGame {
     private static readonly MAX_ATTEMPTS = 5;
-    private static readonly ATTEMPT_INTERVAL = 1000;
+    private static readonly ATTEMPT_INTERVAL = 3000;
 
     gameIndex: number;
 
