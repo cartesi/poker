@@ -232,6 +232,7 @@ export class RoomManager {
 
     private static onBetRequested(): void {
         
+        RoomManager.updateBoard();
         RoomManager.showBetButtons();
     }
 

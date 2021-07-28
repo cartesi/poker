@@ -390,27 +390,51 @@ export class GameMock implements Game {
     }
 
     async _dealFlop() {
-        this.onEvent(`Dealing FLOP cards...`);
-        // decrypts Flop cards and sends them over
-        await this._sendCards(4, 5, 6);
-        // waits for the opponent to send decrypted cards
-        this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
+        if (this.player == this.betLeader) {
+            // decrypts Flop cards and sends them over
+            this.onEvent(`Dealing FLOP cards...`);
+            await this._sendCards(4, 5, 6);
+            // waits for the opponent to send decrypted cards
+            this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
+        } else {
+            // waits for the opponent to send decrypted cards
+            this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
+            // decrypts Flop cards and sends them over
+            this.onEvent(`Dealing FLOP cards...`);
+            await this._sendCards(4, 5, 6);
+        }
     }
 
     async _dealTurn() {
-        this.onEvent(`Dealing TURN card...`);
-        // decrypts Turn card and sends it over
-        await this._sendCards(7);
-        // waits for the opponent to send decrypted card
-        this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
+        if (this.player == this.betLeader) {
+            // decrypts Turn card and sends it over
+            this.onEvent(`Dealing TURN card...`);
+            await this._sendCards(7);
+            // waits for the opponent to send decrypted card
+            this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
+        } else {
+            // waits for the opponent to send decrypted card
+            this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
+            // decrypts Turn card and sends it over
+            this.onEvent(`Dealing TURN card...`);
+            await this._sendCards(7);
+        }
     }
 
     async _dealRiver() {
-        this.onEvent(`Dealing RIVER card...`);
-        // decrypts River card and sends it over
-        await this._sendCards(8);
-        // waits for the opponent to send decrypted card
-        this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
+        if (this.player == this.betLeader) {
+            // decrypts River card and sends it over
+            this.onEvent(`Dealing RIVER card...`);
+            await this._sendCards(8);
+            // waits for the opponent to send decrypted card
+            this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
+        } else {
+            // waits for the opponent to send decrypted card
+            this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
+            // decrypts River card and sends it over
+            this.onEvent(`Dealing RIVER card...`);
+            await this._sendCards(8);
+        }
     }
 
     async _dealShowdown() {
@@ -448,18 +472,6 @@ export class GameMock implements Game {
             this.deck[index] = card;
         }
         this.onEvent(`myDeck ${JSON.stringify(this.deck)}`);
-
-        if (this.state == GameState.SHOWDOWN) {
-            await this._processShowdown();
-        } else {
-            if (this.player == this.betLeader) {
-                // bet leader needs to bet first
-                this.onBetRequested();
-            } else {
-                // the other player needs to wait for the first bet
-                await this._betsReceived(await this.turnBasedGame.receiveTurnOver());
-            }
-        }
     }
 
     async _processShowdown() {
@@ -512,12 +524,12 @@ export class GameMock implements Game {
         await this.turnBasedGame.submitTurn(this.playerBets.toString());
 
         if (this.player == this.betLeader) {
-            // bet leader: we need to wait for the opponent's bet
+            // bet leader: will react when opponent's bet is received
             this.turnBasedGame.receiveTurnOver()
                 .then((data) => this._betsReceived(data));
         } else if (this.playerBets == this.opponentBets) {
             // player is not leading the round and has matched opponent bets: betting round is complete
-            await this._advanceState();
+            this._advanceState();
         }
     }
 
@@ -554,7 +566,7 @@ export class GameMock implements Game {
             this.onBetRequested();
         } else {
             // opponent has matched bet leader's bet: betting round is complete
-            await this._advanceState();
+            this._advanceState();
         }
     }
 
@@ -563,19 +575,33 @@ export class GameMock implements Game {
             // nothing to do while verification is in progress
             return;
         }
-        this.state = this._incrementGameState(this.state);
-        if (this.state == GameState.PREFLOP) {
-            await this._dealPrivateCards();
-        } else if (this.state == GameState.FLOP) {
-            await this._dealFlop();
-        } else if (this.state == GameState.TURN) {
-            await this._dealTurn();
-        } else if (this.state == GameState.RIVER) {
-            await this._dealRiver();
-        } else if (this.state == GameState.SHOWDOWN) {
-            await this._dealShowdown();
-        } else if (this.state == GameState.END) {
+        const nextState = this._incrementGameState(this.state);
+        if (nextState == GameState.END) {
+            this.state = nextState;
             this.onEnd();
+        } else if (nextState == GameState.SHOWDOWN) {
+            await this._dealShowdown();
+            this.state = nextState;
+            await this._processShowdown();
+        } else {
+            if (nextState == GameState.PREFLOP) {
+                await this._dealPrivateCards();
+            } else if (nextState == GameState.FLOP) {
+                await this._dealFlop();
+            } else if (nextState == GameState.TURN) {
+                await this._dealTurn();
+            } else if (nextState == GameState.RIVER) {
+                await this._dealRiver();
+            }
+            this.state = nextState;
+            if (this.player == this.betLeader) {
+                // bet leader needs to bet first
+                this.onBetRequested();
+            } else {
+                // the other player will react after the first bet
+                this.turnBasedGame.receiveTurnOver()
+                    .then((data) => this._betsReceived(data));
+            }
         }
     }
 
