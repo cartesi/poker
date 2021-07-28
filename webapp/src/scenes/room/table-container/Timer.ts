@@ -1,5 +1,5 @@
-import { RoomManager } from './../RoomManager';
-import { GameConstants } from "./../../../GameConstants";
+import { RoomManager } from '../RoomManager';
+import { GameConstants } from "../../../GameConstants";
 
 export class Timer extends Phaser.GameObjects.Container {
 
@@ -8,23 +8,18 @@ export class Timer extends Phaser.GameObjects.Container {
     private timeout: number;
     private interval: NodeJS.Timeout;
 
-    constructor(scene: Phaser.Scene) {
+    constructor(scene: Phaser.Scene, isPlayer: boolean) {
 
         super(scene);
 
-        this.x = GameConstants.GAME_WIDTH / 2;
-        this.y = 5;
+        this.y = -135;
+        this.x = isPlayer ? -280 : 280;
 
-        let capsule = new Phaser.GameObjects.Image(this.scene, -10, 10, "texture_atlas_1", "timer_capsule");
-        capsule.setOrigin(1, 0);
-        capsule.setScale(.75);
+        let capsule = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "timer");
+        capsule.setOrigin(.5);
         this.add(capsule);
-        
-        let title = new Phaser.GameObjects.Text(this.scene, -120, 33, "TIMER", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
-        title.setOrigin(.5);
-        this.add(title);
 
-        this.value = new Phaser.GameObjects.Text(this.scene, -120, 86, "", {fontFamily: "Oswald-Medium", fontSize: "50px", color: "#FFFFFF"});
+        this.value = new Phaser.GameObjects.Text(this.scene, 15, 0, "", {fontFamily: "Oswald-Medium", fontSize: "21px", color: "#FFFFFF"});
         this.value.setOrigin(.5);
         this.add(this.value); 
 
@@ -48,11 +43,18 @@ export class Timer extends Phaser.GameObjects.Container {
         if (this.alpha === 1) {
             this.scene.tweens.add({
                 targets: this,
-                alpha: 1,
+                alpha: 0,
                 ease: Phaser.Math.Easing.Cubic.Out,
                 duration: 500
             }); 
         }
+    }
+
+    public pause(): void {
+
+        this.hide();
+
+        clearInterval(this.interval);
     }
 
     public reset(timeout: number): void {
@@ -60,13 +62,13 @@ export class Timer extends Phaser.GameObjects.Container {
         this.show();
 
         this.timeout = timeout;
-        this.value.text = new Date(this.timeout * 1000).toISOString().substr(14, 5);
+        this.value.text = new Date(this.timeout * 1000).toISOString().substr(15, 4);
 
         clearInterval(this.interval);
 
         this.interval = setInterval(() => {
             this.timeout--;
-            this.value.text = new Date(this.timeout * 1000).toISOString().substr(14, 5);
+            this.value.text = new Date(this.timeout * 1000).toISOString().substr(15, 4);
 
             if (this.timeout === 0) {
                 clearInterval(this.interval);

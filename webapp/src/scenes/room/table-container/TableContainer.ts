@@ -68,6 +68,15 @@ export class TableContainer extends Phaser.GameObjects.Container {
         this.opponent.setScalesAndPostions();
     }
 
+    public initTimer(value: number, isPlayer: boolean): void {
+
+        if (isPlayer) {
+            this.player.initTimer(value);
+        } else {
+            this.opponent.initTimer(value);
+        }
+    }
+
     public resetTable(): void {
 
         this.communityCards.resetTable();
@@ -115,5 +124,10 @@ export class TableContainer extends Phaser.GameObjects.Container {
     public endOpponentTurn(): void {
 
         this.opponent.endOpponentTurn();
+    }
+
+    public removePlayerTimer(): void {
+
+        this.player.removePlayerTimer();
     }
 }

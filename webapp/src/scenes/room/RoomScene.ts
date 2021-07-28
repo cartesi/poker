@@ -63,9 +63,9 @@ export class RoomScene extends Phaser.Scene {
         AudioManager.playMusic("soundtrack", 0.1);
     }
 
-    public initTimer(value: number): void {
+    public initTimer(value: number, isPlayer: boolean): void {
 
-        this.gui.initTimer(value);
+        this.tableContainer.initTimer(value, isPlayer);
     }
 
     public showSettingsMenu(): void {
@@ -123,6 +123,7 @@ export class RoomScene extends Phaser.Scene {
     public removeBetButtons(): void {
 
         this.hud.removeBetButtons();
+        this.tableContainer.removePlayerTimer();
     }
 
     public showBetButtons(): void {

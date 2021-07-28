@@ -3,6 +3,7 @@ import { RoomManager } from "../RoomManager";
 import { Card } from "./Card";
 import { AudioManager } from "../../../AudioManager";
 import { PokerSolver } from "../../../services/PokerSolver";
+import { Timer } from "./Timer";
 
 export class Player extends Phaser.GameObjects.Container {
 
@@ -13,6 +14,7 @@ export class Player extends Phaser.GameObjects.Container {
     private cards: Card[];
     private funds: Phaser.GameObjects.Text;
     private hand: Phaser.GameObjects.Text;
+    private timer: Timer;
 
     private isPlayer: boolean;
     private showingBet: boolean;
@@ -86,6 +88,9 @@ export class Player extends Phaser.GameObjects.Container {
         this.hand = new Phaser.GameObjects.Text(this.scene,  0, 6, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
         this.hand.setOrigin(.5);
         this.add(this.hand);
+
+        this.timer = new Timer(this.scene, isPlayer);
+        this.add(this.timer);
     }
 
     public setScalesAndPostions(): void {
@@ -99,6 +104,11 @@ export class Player extends Phaser.GameObjects.Container {
             this.x = 0;
             this.y = this.isPlayer ? 250 * GameVars.scaleY : -300 * GameVars.scaleY;
         }
+    }
+
+    public initTimer(value: number): void {
+
+        this.timer.reset(value);
     }
 
     public resetTable(): void {
@@ -328,7 +338,14 @@ export class Player extends Phaser.GameObjects.Container {
         AudioManager.playSound("cards_in");
     }
 
+    public removePlayerTimer(): void {
+
+        this.timer.pause();
+    }
+
     public endOpponentTurn(): void {
+
+        this.timer.pause();
 
         this.scene.tweens.add({
             targets: this.cards[0],
