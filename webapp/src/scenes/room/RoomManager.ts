@@ -3,6 +3,7 @@ import { Card } from "../../services/Card";
 import { BetType, Game, GameFactory, VerificationState } from "../../services/Game";
 import { GameVars } from "./../../GameVars";
 import { RoomScene } from "./RoomScene";
+import { ethers } from "ethers";
 
 export class RoomManager {
 
@@ -10,15 +11,15 @@ export class RoomManager {
 
     public static init(): void {
 
-        GameVars.raiseValue = 1;
+        GameVars.raiseValue = ethers.BigNumber.from(1);
     }
 
     public static startRound(): void {
 
-        if (GameVars.playerFunds < 2) {
+        if (GameVars.playerFunds.lt(2)) {
             console.log("GAME OVER, OPPONENT WON");  
             return;
-        } else if (GameVars.opponentFunds < 2) {
+        } else if (GameVars.opponentFunds.lt(2)) {
             console.log("GAME OVER, PLAYER WON");  
             return;
         }
@@ -67,7 +68,7 @@ export class RoomManager {
 
     }
 
-    public static async getPlayerFunds(): Promise<number> {
+    public static async getPlayerFunds(): Promise<ethers.BigNumber> {
 
         return RoomManager.game.getPlayerFunds();
     }
@@ -85,7 +86,7 @@ export class RoomManager {
         RoomScene.currentInstance.updateVerificationLayer(state);
     }
 
-    public static async getOpponentFunds(): Promise<number> {
+    public static async getOpponentFunds(): Promise<ethers.BigNumber> {
 
         return RoomManager.game.getOpponentFunds();
     }
@@ -117,9 +118,11 @@ export class RoomManager {
         return RoomManager.game.getCommunityCards();
     }
 
-    public static async getMaxRaise(): Promise<number> {
-
-        return Math.min(await RoomManager.getPlayerFunds(), await RoomManager.getOpponentFunds()) - (await RoomManager.getOpponentBets());
+    public static async getMaxRaise(): Promise<ethers.BigNumber> {
+        const playerFunds = await RoomManager.getPlayerFunds();
+        const opponentFunds = await RoomManager.getOpponentFunds();
+        const minFunds = playerFunds.lt(opponentFunds) ? playerFunds : opponentFunds;
+        return minFunds.sub(await RoomManager.getOpponentBets());
     }
 
     public static async getState(): Promise<string> {
@@ -127,12 +130,12 @@ export class RoomManager {
         return RoomManager.game.getState();
     }
 
-    public static async getPlayerBets(): Promise<number> {
+    public static async getPlayerBets(): Promise<ethers.BigNumber> {
 
         return  RoomManager.game.getPlayerBets();
     }
 
-    public static async getOpponentBets(): Promise<number> {
+    public static async getOpponentBets(): Promise<ethers.BigNumber> {
 
         return  RoomManager.game.getOpponentBets();
     }
@@ -173,7 +176,7 @@ export class RoomManager {
 
     }
 
-    public static playerRaise(value): void {
+    public static playerRaise(value: ethers.BigNumber): void {
 
         RoomManager.game.raise(value).then(() => {
             RoomManager.showBet(BetType.RAISE, GameVars.playerIndex);
@@ -236,7 +239,7 @@ export class RoomManager {
         RoomManager.showBetButtons();
     }
 
-    private static onBetsReceived(betType: BetType, amount: number): void {
+    private static onBetsReceived(betType: BetType, amount: ethers.BigNumber): void {
         
         console.log(`Bets received: type=${betType} ; amount=${amount}`);
         RoomManager.showBet(betType, GameVars.opponentIndex);

@@ -2,6 +2,7 @@ import { RaiseSlider } from "./RaiseSlider";
 import { RoomManager } from "./../RoomManager";
 import { GameVars } from "../../../GameVars";
 import { AudioManager } from "../../../AudioManager";
+import { ethers } from "ethers";
 
 export class RaiseButton extends Phaser.GameObjects.Container {
 
@@ -33,7 +34,8 @@ export class RaiseButton extends Phaser.GameObjects.Container {
         icon.setOrigin(0, .5);
         this.add(icon);
 
-        this.raiseValue = new Phaser.GameObjects.Text(this.scene, icon.x + icon.width + 30, -42, " " + (await RoomManager.getOpponentBets() + GameVars.raiseValue  - await RoomManager.getPlayerBets()).toString() + " ", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
+        const raiseValueDisplay = (await RoomManager.getOpponentBets()).add(GameVars.raiseValue).sub(await RoomManager.getPlayerBets());
+        this.raiseValue = new Phaser.GameObjects.Text(this.scene, icon.x + icon.width + 30, -42, " " + raiseValueDisplay.toString() + " ", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
         this.raiseValue.setOrigin(.5);
         this.raiseValue.setShadow(1, 1, "#000000", 5);
         this.add(this.raiseValue);
@@ -46,13 +48,13 @@ export class RaiseButton extends Phaser.GameObjects.Container {
 
         AudioManager.playSound("btn_click");
 
-        GameVars.raiseValue --;
+        let newRaiseValue = GameVars.raiseValue.sub(1);
 
-        if (GameVars.raiseValue < 1) {
-            GameVars.raiseValue = 1;
+        if (newRaiseValue.lt(1)) {
+            newRaiseValue = ethers.BigNumber.from(1);
         }
 
-        this.raiseValue.text = " " + (await RoomManager.getOpponentBets() + GameVars.raiseValue - await RoomManager.getPlayerBets()).toString() + " ";
+        this.updateRaiseValue(newRaiseValue);
         this.raiseSlider.updateMarker();
     }
 
@@ -60,20 +62,22 @@ export class RaiseButton extends Phaser.GameObjects.Container {
 
         AudioManager.playSound("btn_click");
 
-        GameVars.raiseValue ++;
+        let newRaiseValue = GameVars.raiseValue.add(1);
 
-        if (GameVars.raiseValue > await RoomManager.getMaxRaise()) {
-            GameVars.raiseValue = 1;
+        const maxRaise = await RoomManager.getMaxRaise();
+        if (newRaiseValue.gt(maxRaise)) {
+            newRaiseValue = maxRaise;
         }
 
-        this.raiseValue.text = " " + (await RoomManager.getOpponentBets() + GameVars.raiseValue - await RoomManager.getPlayerBets()).toString() + " ";
+        this.updateRaiseValue(newRaiseValue);
         this.raiseSlider.updateMarker();
     }
 
-    public async updateRaiseValue(value: number): Promise<void> {
+    public async updateRaiseValue(value: ethers.BigNumber): Promise<void> {
 
         GameVars.raiseValue = value;
-        this.raiseValue.text = " " + (await RoomManager.getOpponentBets() + GameVars.raiseValue  - await RoomManager.getPlayerBets()).toString() + " ";
+        const raiseValueDisplay = (await RoomManager.getOpponentBets()).add(GameVars.raiseValue).sub(await RoomManager.getPlayerBets());
+        this.raiseValue.text = " " + raiseValueDisplay.toString() + " ";
     }
 
     private onDown(): void {

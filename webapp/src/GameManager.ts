@@ -4,6 +4,7 @@ import { GameVars } from "./GameVars";
 import { AudioManager } from "./AudioManager";
 import { Lobby } from "./services/Lobby";
 import { LobbyScene } from "./scenes/lobby/LobbyScene";
+import { ethers } from "ethers";
 
 export class GameManager {
 
@@ -24,7 +25,7 @@ export class GameManager {
             GameVars.landscape = false;
         }
 
-        GameVars.playerFunds = 0;
+        GameVars.playerFunds = ethers.BigNumber.from(0);
 
         GameVars.opponentAvatar = 5;
 

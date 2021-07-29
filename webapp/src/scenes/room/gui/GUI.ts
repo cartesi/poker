@@ -180,7 +180,7 @@ export class GUI extends Phaser.GameObjects.Container {
 
         const playerBets = await RoomManager.getPlayerBets();
         const opponentBets = await RoomManager.getOpponentBets();
-        this.potText.text = "POT: " + (playerBets + opponentBets);
+        this.potText.text = "POT: " + playerBets.add(opponentBets);
         this.potImage.x = this.potText.x + this.potText.width / 2 + 10;
     }
 

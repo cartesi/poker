@@ -3,6 +3,7 @@ import { TurnBasedGame, TurnBasedGameFactory } from "./TurnBasedGame";
 import { GameMock } from "./mock/GameMock";
 import { TurnBasedGameMock } from "./mock/TurnBasedGameMock";
 import { Card } from "./Card";
+import { ethers } from "ethers";
 // import { GameWasm } from "./web3/GameWasm";
 
 // game states
@@ -60,7 +61,7 @@ export interface Game {
     call(): Promise<void>;
     check(): Promise<void>;
     fold(): Promise<void>;
-    raise(amount: number): Promise<void>;
+    raise(amount: ethers.BigNumber): Promise<void>;
 
     cheat: {
         switchCards: (card1: Card, card2: Card) => any;
@@ -70,11 +71,11 @@ export interface Game {
     getPlayerCards(): Promise<Array<Card>>;
     getOpponentCards(): Promise<Array<Card>>;
     getCommunityCards(): Promise<Array<Card>>;
-    getPlayer(): Promise<any>;
-    getPlayerFunds(): Promise<any>;
-    getOpponentFunds(): Promise<any>;
-    getPlayerBets(): Promise<any>;
-    getOpponentBets(): Promise<any>;
+    getPlayer(): Promise<number>;
+    getPlayerFunds(): Promise<ethers.BigNumber>;
+    getOpponentFunds(): Promise<ethers.BigNumber>;
+    getPlayerBets(): Promise<ethers.BigNumber>;
+    getOpponentBets(): Promise<ethers.BigNumber>;
     getState(): Promise<GameState>;
     getVerificationState(): Promise<VerificationState>;
     getResult(): Promise<any>;
@@ -101,11 +102,11 @@ export class GameFactory {
         gameIndex: number,
         playerIndex: number,
         opponentIndex: number,
-        playerFunds: number,
-        opponentFunds: number,
+        playerFunds: ethers.BigNumber,
+        opponentFunds: ethers.BigNumber,
         metadata: any,
         onBetRequested: () => any,
-        onBetsReceived: (betType: BetType, amount: number) => any,
+        onBetsReceived: (betType: BetType, amount: ethers.BigNumber) => any,
         onEnd: () => any,
         onEvent: (msg: string) => any,
         onVerification: (state: VerificationState, msg: string) => any
@@ -164,12 +165,12 @@ export class GameFactory {
      */
     private static createInstance(
         player: number,
-        playerFunds: number,
-        opponentFunds: number,
+        playerFunds: ethers.BigNumber,
+        opponentFunds: ethers.BigNumber,
         metadata: any,
         turnBasedGame: TurnBasedGame,
         onBetRequested?: () => any,
-        onBetsReceived?: (betType: string, amount: number) => any,
+        onBetsReceived?: (betType: string, amount: ethers.BigNumber) => any,
         onEnd?: () => any,
         onEvent?: (msg: string) => any,
         onVerification?: (state: string, msg: string) => any
@@ -228,7 +229,7 @@ export class GameFactory {
                         await game.gameOpponent.fold();
                     } else if (choice === 3) {
                         let amount = Math.floor(Math.random() * 5);
-                        await game.gameOpponent.raise(amount);
+                        await game.gameOpponent.raise(ethers.BigNumber.from(amount));
                     }
                     break;
                 } catch (e) {

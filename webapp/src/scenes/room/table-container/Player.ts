@@ -213,7 +213,7 @@ export class Player extends Phaser.GameObjects.Container {
         const playerBets = await RoomManager.getPlayerBets();
         const opponentFunds = await RoomManager.getOpponentFunds();
         const opponentBets = await RoomManager.getOpponentBets();
-        this.funds.text = (this.isPlayer ? (playerFunds - playerBets).toString() : (opponentFunds - opponentBets).toString());
+        this.funds.text = (this.isPlayer ? (playerFunds.sub(playerBets)).toString() : (opponentFunds.sub(opponentBets)).toString());
     }
 
     public async setHand(): Promise<void> {

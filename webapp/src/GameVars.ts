@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 export class GameVars {
 
     public static gameData: GameData;
@@ -10,14 +12,14 @@ export class GameVars {
 
     public static gameIndex: number;
     public static playerIndex: number;
-    public static playerFunds: number;
+    public static playerFunds: ethers.BigNumber;
 
     public static opponentAvatar: number;
     public static opponentName: string;
     public static opponentIndex: number;
-    public static opponentFunds: number;
+    public static opponentFunds: ethers.BigNumber;
 
-    public static raiseValue: number;
+    public static raiseValue: ethers.BigNumber;
   
     public static formatNumber(value: number): string {
 

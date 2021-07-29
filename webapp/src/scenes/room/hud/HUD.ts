@@ -2,6 +2,7 @@ import { BetsButtonsContainer } from "./BetsButtonsContainer";
 import { GameConstants } from "./../../../GameConstants";
 import { GameVars } from "../../../GameVars";
 import { RoomManager } from "../RoomManager";
+import { ethers } from "ethers";
 
 export class HUD extends Phaser.GameObjects.Container {
 
@@ -66,7 +67,7 @@ export class HUD extends Phaser.GameObjects.Container {
 
     public showBetButtons(): void {
 
-        GameVars.raiseValue = 1;
+        GameVars.raiseValue = ethers.BigNumber.from(1);
         
         this.betsButtonsContainer.show();
     } 

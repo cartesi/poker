@@ -39,7 +39,7 @@ export class BetButton extends Phaser.GameObjects.Container {
 
                 text.x = -60;
                 icon.x = text.x + text.width / 2;
-                let betValue = (await RoomManager.getOpponentBets() - await RoomManager.getPlayerBets());
+                let betValue = (await RoomManager.getOpponentBets()).sub(await RoomManager.getPlayerBets());
                 let textValue = new Phaser.GameObjects.Text(this.scene, icon.x + icon.width / 2 + 55, -42, " " + betValue + " ", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
                 textValue.setOrigin(.5);
                 textValue.setShadow(1, 1, "#000000", 5);

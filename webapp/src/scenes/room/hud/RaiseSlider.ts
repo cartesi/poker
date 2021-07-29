@@ -2,6 +2,7 @@ import { RoomManager } from './../RoomManager';
 import { GameVars } from './../../../GameVars';
 import { GameConstants } from "../../../GameConstants";
 import { RaiseButton } from "./RaiseButton";
+import { ethers } from 'ethers';
 
 export class RaiseSlider extends Phaser.GameObjects.Container {
 
@@ -100,16 +101,16 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
 
             this.btnMarker.x = x;
 
-            let min = 1;
+            let min = ethers.BigNumber.from(1);
             let max = await RoomManager.getMaxRaise();
 
             let minBar = this.btnMinus.x + this.btnMinus.width;
             let maxBar = this.btnPlus.x - this.btnPlus.width;
 
             x = (x - minBar) / (maxBar - minBar);
-            x = Math.round(min + x * (max - min));
+            let raiseValue = min.add(Math.round(max.sub(min).toNumber() * x));
 
-            this.raiseButton.updateRaiseValue(x);
+            this.raiseButton.updateRaiseValue(raiseValue);
         } 
 
         if (!this.scene.input.activePointer.isDown) {
@@ -119,13 +120,13 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
 
     public async updateMarker(): Promise<void> {
 
-        let min = 1;
+        let min = ethers.BigNumber.from(1);
         let max = await RoomManager.getMaxRaise();
 
         let minBar = this.btnMinus.x + this.btnMinus.width;
         let maxBar = this.btnPlus.x - this.btnPlus.width;
 
-        let x = (GameVars.raiseValue - min) / (max - min);
+        let x = GameVars.raiseValue.sub(min).toNumber() / max.sub(min).toNumber();
         x = minBar + x * (maxBar - minBar);
 
         this.btnMarker.x = x;
