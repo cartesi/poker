@@ -18,14 +18,10 @@ export class GameMock implements Game {
     // if using a mock TurnBasedGame, we will store a reference to the opponent's GameMock instance (with automatic responses) here
     gameOpponent: GameMock;
 
-    // TurnBasedGame instance that manages the game's interactions with the other players
-    turnBasedGame: TurnBasedGame;
-
-    // player information
-    player: number;
+    // opponent id (inferred from player's id)
     opponent: number;
-    playerFunds: ethers.BigNumber;
-    opponentFunds: ethers.BigNumber;
+
+    // game bets
     playerBets: ethers.BigNumber;
     opponentBets: ethers.BigNumber;
 
@@ -33,25 +29,20 @@ export class GameMock implements Game {
     [x: string]: any;
 
     constructor(
-        player: number,
-        playerFunds: ethers.BigNumber,
-        opponentFunds: ethers.BigNumber,
-        metadata: any,
-        turnBasedGame: TurnBasedGame,
+        private player: number,
+        private playerFunds: ethers.BigNumber,
+        private opponentFunds: ethers.BigNumber,
+        private metadata: any,
+        private turnBasedGame: TurnBasedGame,
         onBetRequested?: () => any,
         onBetsReceived?: (betType: string, amount: ethers.BigNumber) => any,
         onEnd?: () => any,
         onEvent?: (msg: string) => any,
         onVerification?: (state: string, msg: string) => any
     ) {
-        this.player = player;
-        this.opponent = player == ALICE ? BOB : ALICE;
-        this.playerFunds = playerFunds;
-        this.opponentFunds = opponentFunds;
+        this.opponent = this.player == ALICE ? BOB : ALICE;
         this.playerBets = ethers.BigNumber.from(0);
         this.opponentBets = ethers.BigNumber.from(0);
-        this.metadata = metadata;
-        this.turnBasedGame = turnBasedGame;
         this.onEvent = onEvent ? onEvent : () => { };
         this.onEnd = onEnd ? onEnd : () => { };
         this.onBetRequested = onBetRequested ? onBetRequested : () => { };
