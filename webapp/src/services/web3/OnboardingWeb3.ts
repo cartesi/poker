@@ -86,7 +86,7 @@ export class OnboardingWeb3 {
             const playerAddress = await signer.getAddress();
             const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
             const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
-            if (playerFunds < ethers.BigNumber.from(GameConstants.MIN_FUNDS)) {
+            if (playerFunds.lt(GameConstants.MIN_FUNDS)) {
                 onChange({
                     label: `Sorry, you need at least ${GameConstants.MIN_FUNDS} POKER tokens on ${chainName} to play`,
                     onclick: undefined,

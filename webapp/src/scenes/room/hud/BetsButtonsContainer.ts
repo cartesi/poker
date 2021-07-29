@@ -57,7 +57,7 @@ export class BetsButtonsContainer extends Phaser.GameObjects.Container {
         const playerBets = await RoomManager.getPlayerBets();
         const opponentBets = await RoomManager.getOpponentBets();
         
-        if (playerBets < opponentBets) {
+        if (playerBets.lt(opponentBets)) {
 
             if (GameVars.landscape) {
                 let foldButton = new BetButton(this.scene, BetType.FOLD, -555 / scaleX, 12 / scaleX);
