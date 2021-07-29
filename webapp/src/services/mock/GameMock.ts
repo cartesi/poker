@@ -74,7 +74,7 @@ export class GameMock implements Game {
         this.turnBasedGame.receiveResultClaimed()
             .then((claimedResult) => { this._resultReceived(claimedResult) });
         this.turnBasedGame.receiveGameOver()
-            .then((fundsShare) => this._resultConfirmationReceived(fundsShare));
+            .then((fundsShare) => this._gameOverReceived(fundsShare));
         this.turnBasedGame.receiveGameChallenged(this._verificationReceived.bind(this));
         // this.turnBasedGame.receiveVerificationUpdate(this._verificationReceived.bind(this));
         
@@ -504,15 +504,15 @@ export class GameMock implements Game {
             // result mismatch: trigger a verification!
             await this._triggerVerification("Result mismatch");
         } else {
-            // everything ok: sends confirmation and advances state (to END)
+            // everything ok: sends confirmation
             await this.turnBasedGame.confirmResult();
-            await this._advanceState();
         }
     }
 
-    async _resultConfirmationReceived(fundsShare: Array<number>) {
-        // advances state (to END)
-        await this._advanceState();
+    async _gameOverReceived(fundsShare: Array<number>) {
+        // ends game
+        this.state = GameState.END;
+        this.onEnd();
     }
 
     async _increaseBets(amount: ethers.BigNumber) {
