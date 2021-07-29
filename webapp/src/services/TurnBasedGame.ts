@@ -1,7 +1,7 @@
 import { ServiceConfig, ServiceType, ServiceImpl } from "./ServiceConfig";
 import { TurnBasedGameMock } from "./mock/TurnBasedGameMock";
 import { TurnBasedGameWeb3 } from "./web3/TurnBasedGameWeb3";
-import { ethers } from "ethers";
+import { BigNumber } from "ethers";
 // import { TurnBasedGameWeb3 } from "./web3/TurnBasedGameWeb3";
 
 export interface TurnBasedGame {
@@ -10,10 +10,10 @@ export interface TurnBasedGame {
     receiveTurnOver(): Promise<string>;
 
     // result claim and confirmation
-    claimResult(data: Array<ethers.BigNumber>): Promise<void>;
-    receiveResultClaimed(): Promise<Array<ethers.BigNumber>>;
+    claimResult(data: Array<BigNumber>): Promise<void>;
+    receiveResultClaimed(): Promise<Array<BigNumber>>;
     confirmResult(): Promise<void>;
-    receiveGameOver(): Promise<Array<ethers.BigNumber>>;
+    receiveGameOver(): Promise<Array<BigNumber>>;
 
     // challenge and verification
     challengeGame(msg: string, onGameChallenged?: (string) => any);

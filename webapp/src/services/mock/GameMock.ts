@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { BigNumber } from "ethers";
 import { Card } from "../Card";
 import { BetType, Game, GameState, GameStates, VerificationState, VerificationStates } from "../Game";
 import { PokerSolver } from "../PokerSolver";
@@ -22,27 +22,27 @@ export class GameMock implements Game {
     opponent: number;
 
     // game bets
-    playerBets: ethers.BigNumber;
-    opponentBets: ethers.BigNumber;
+    playerBets: BigNumber;
+    opponentBets: BigNumber;
 
     // allows member variables without type-checking
     [x: string]: any;
 
     constructor(
         private player: number,
-        private playerFunds: ethers.BigNumber,
-        private opponentFunds: ethers.BigNumber,
+        private playerFunds: BigNumber,
+        private opponentFunds: BigNumber,
         private metadata: any,
         private turnBasedGame: TurnBasedGame,
         onBetRequested?: () => any,
-        onBetsReceived?: (betType: string, amount: ethers.BigNumber) => any,
+        onBetsReceived?: (betType: string, amount: BigNumber) => any,
         onEnd?: () => any,
         onEvent?: (msg: string) => any,
         onVerification?: (state: string, msg: string) => any
     ) {
         this.opponent = this.player == ALICE ? BOB : ALICE;
-        this.playerBets = ethers.BigNumber.from(0);
-        this.opponentBets = ethers.BigNumber.from(0);
+        this.playerBets = BigNumber.from(0);
+        this.opponentBets = BigNumber.from(0);
         this.onEvent = onEvent ? onEvent : () => { };
         this.onEnd = onEnd ? onEnd : () => { };
         this.onBetRequested = onBetRequested ? onBetRequested : () => { };
@@ -73,8 +73,8 @@ export class GameMock implements Game {
             setTimeout(async () => {
                 if (this.player == ALICE) {
                     // ALICE
-                    this.playerBets = ethers.BigNumber.from(1);
-                    this.opponentBets = ethers.BigNumber.from(2);
+                    this.playerBets = BigNumber.from(1);
+                    this.opponentBets = BigNumber.from(2);
 
                     // defines initial info and sends it: group info (cryptoStuff) + key
                     this.cryptoStuff = "xkdkeoejf";
@@ -102,8 +102,8 @@ export class GameMock implements Game {
 
                 } else {
                     // BOB
-                    this.playerBets = ethers.BigNumber.from(2);
-                    this.opponentBets = ethers.BigNumber.from(1);
+                    this.playerBets = BigNumber.from(2);
+                    this.opponentBets = BigNumber.from(1);
 
                     // waits for Alice's "cryptostuff" (group info) and key
                     this._initialInfoReceived(await this.turnBasedGame.receiveTurnOver())
@@ -143,7 +143,7 @@ export class GameMock implements Game {
         if (!this.opponentBets.eq(this.playerBets)) {
             throw "Cannot check when player and opponent's bets are not equal";
         }
-        await this._increaseBets(ethers.BigNumber.from(0));
+        await this._increaseBets(BigNumber.from(0));
     }
 
     async fold() {
@@ -154,8 +154,8 @@ export class GameMock implements Game {
         this._computeResultPlayerFold();
     }
 
-    async raise(amount: ethers.BigNumber) {
-        if (!ethers.BigNumber.isBigNumber(amount) || amount.lte(0)) {
+    async raise(amount: BigNumber) {
+        if (!BigNumber.isBigNumber(amount) || amount.lte(0)) {
             throw `Raise amount must be a positive big number, but was '${amount}'`;
         }
         const callAmount = this.opponentBets.sub(this.playerBets);
@@ -490,7 +490,7 @@ export class GameMock implements Game {
         }
     }
 
-    async _resultReceived(opponentResult: Array<ethers.BigNumber>) {
+    async _resultReceived(opponentResult: Array<BigNumber>) {
         if (JSON.stringify(this.result.fundsShare) !== JSON.stringify(opponentResult)) {
             // result mismatch: trigger a verification!
             await this._triggerVerification("Result mismatch");
@@ -500,13 +500,13 @@ export class GameMock implements Game {
         }
     }
 
-    async _gameOverReceived(fundsShare: Array<ethers.BigNumber>) {
+    async _gameOverReceived(fundsShare: Array<BigNumber>) {
         // ends game
         this.state = GameState.END;
         this.onEnd();
     }
 
-    async _increaseBets(amount: ethers.BigNumber) {
+    async _increaseBets(amount: BigNumber) {
         if (this.playerBets.add(amount).gt(this.playerFunds)) {
             throw "Insufficient funds";
         }
@@ -539,7 +539,7 @@ export class GameMock implements Game {
             return;
         }
 
-        opponentBets = ethers.BigNumber.from(opponentBets);
+        opponentBets = BigNumber.from(opponentBets);
         if (opponentBets.gt(this.playerBets)) {
             // opponent has raised and is now the bet leader
             this.onBetsReceived(BetType.RAISE, opponentBets);
