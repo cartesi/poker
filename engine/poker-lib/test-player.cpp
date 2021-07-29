@@ -13,7 +13,7 @@ using namespace poker::cards;
 #define TURN    FLOP(2)+1
 #define RIVER   FLOP(2)+2
 
-void the_happy_path() {
+void test_the_happy_path() {
     player alice(ALICE);
     assert_eql(SUCCESS, alice.init(100, 300, 10));
     assert_eql(-1, alice.winner());
@@ -186,8 +186,39 @@ void the_happy_path() {
 
 }
 
+void test_fold() {
+    player alice(ALICE);
+    assert_eql(SUCCESS, alice.init(100, 300, 10));
+    player bob(BOB);
+    assert_eql(SUCCESS, bob.init(100, 300, 10));
+
+    std::map<int, blob> msg; // messages exchanged during game
+
+    // Start handshake
+    assert_eql(SUCCESS, alice.create_handshake(msg[0]));
+    assert_eql(CONTINUED, bob.process_handshake(msg[0], msg[1]));
+    assert_eql(CONTINUED, alice.process_handshake(msg[1], msg[2]));
+    assert_eql(CONTINUED, bob.process_handshake(msg[2], msg[3]));
+    assert_eql(SUCCESS, alice.process_handshake(msg[3], msg[4]));
+    assert_eql(SUCCESS, bob.process_handshake(msg[4], msg[5]));
+    assert_eql(true, msg[5].empty());
+
+    // Preflop: Alice folds
+    assert_eql(SUCCESS, alice.create_bet(BET_FOLD, 0, msg[5]));
+    assert_eql(game_step::GAME_OVER, alice.step());
+    assert_eql(SUCCESS, bob.process_bet(msg[5], msg[6]));
+    assert_eql(true, msg[6].empty());
+    assert_eql(game_step::GAME_OVER, bob.step());
+    assert_eql(BOB, alice.winner());
+    assert_eql(BOB, bob.winner());
+
+}
+
+
+
 int main(int argc, char** argv) {
-    the_happy_path();
+    test_the_happy_path();
+    test_fold();
     std::cout << "---- SUCCESS - " TEST_SUITE_NAME << std::endl;
     return 0;
 }

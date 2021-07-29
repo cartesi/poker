@@ -261,6 +261,11 @@ game_error player::create_bet(bet_type type, money_t amt, blob& msg_out) {
 
     auto step_changed = _r.step() != step;
     if (step_changed) {
+        if (type == BET_FOLD && _r.step() == game_step::GAME_OVER) {
+            msgout.write(msg_out.out());
+            return SUCCESS;
+        }
+
         int first_card, count;
         if (_r.step() == game_step::OPEN_OPONENT_CARDS) {
             first_card = private_card_index(_id, 0);
@@ -322,6 +327,10 @@ game_error player::handle_bet_request(msg_bet_request* msgin, message** out) {
 
     auto step_changed = _r.step() != step;
     if (step_changed) {
+        if (msgin->type == BET_FOLD && _r.step() == game_step::GAME_OVER) {
+            return SUCCESS;
+        }
+
         auto msgout = new msg_card_proof();
         *out = msgout;
         msgout->type = msgin->type;

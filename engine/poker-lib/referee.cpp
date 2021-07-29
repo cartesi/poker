@@ -153,14 +153,10 @@ game_error referee::step_preflop_bet(int player_id, bet_type type, money_t amt) 
     if (player_id != _g.current_player)
         return (_g.error = ERR_NOT_PLAYER_TURN);
 
-    auto phs = _g.phase;
-    if (phs != PHS_PREFLOP)
+    if (_g.phase != PHS_PREFLOP)
         return (_g.error = ERR_BET_PHASE_MISMATCH);
-    if ((res=place_bet(_g, type, amt)))
+    if ((res=compute_bet(type, amt, game_step::OPEN_FLOP)))
         return res;
-    auto phs_changed = phs != _g.phase;
-    if (phs_changed)
-        _step = game_step::OPEN_FLOP;
 
     return SUCCESS;
 }
@@ -188,14 +184,10 @@ game_error referee::step_flop_bet(int player_id, bet_type type, money_t amt) {
     if (player_id != _g.current_player)
         return (_g.error = ERR_NOT_PLAYER_TURN);
 
-    auto phs = _g.phase;
-    if (phs != PHS_FLOP)
+    if (_g.phase != PHS_FLOP)
         return (_g.error = ERR_BET_PHASE_MISMATCH);
-    if ((res=place_bet(_g, type, amt)))
+    if ((res=compute_bet(type, amt, game_step::OPEN_TURN)))
         return res;
-    auto phs_changed = phs != _g.phase;
-    if (phs_changed)
-        _step = game_step::OPEN_TURN;
 
     return SUCCESS;
 }
@@ -223,14 +215,10 @@ game_error referee::step_turn_bet(int player_id, bet_type type, money_t amt) {
     if (player_id != _g.current_player)
         return (_g.error = ERR_NOT_PLAYER_TURN);
 
-    auto phs = _g.phase;
-    if (phs != PHS_TURN)
+    if (_g.phase != PHS_TURN)
         return (_g.error = ERR_BET_PHASE_MISMATCH);
-    if ((res=place_bet(_g, type, amt)))
+    if ((res=compute_bet(type, amt, game_step::OPEN_RIVER)))
         return res;
-    auto phs_changed = phs != _g.phase;
-    if (phs_changed)
-        _step = game_step::OPEN_RIVER;
 
     return SUCCESS;
 }
@@ -258,14 +246,11 @@ game_error referee::step_river_bet(int player_id, bet_type type, money_t amt) {
     if (player_id != _g.current_player)
         return (_g.error = ERR_NOT_PLAYER_TURN);
 
-    auto phs = _g.phase;
-    if (phs != PHS_RIVER)
+
+    if (_g.phase != PHS_RIVER)
         return (_g.error = ERR_BET_PHASE_MISMATCH);
-    if ((res=place_bet(_g, type, amt)))
+    if ((res=compute_bet(type, amt, game_step::OPEN_OPONENT_CARDS)))
         return res;
-    auto phs_changed = phs != _g.phase;
-    if (phs_changed)
-        _step = _step = game_step::OPEN_OPONENT_CARDS;
 
     return SUCCESS;
 }
@@ -283,6 +268,23 @@ game_error referee::bet(int player_id, bet_type type, money_t amt) {
         default:
             return ERR_BET_NOT_ALLOWED;
     }
+}
+
+// place bet, change game state and determine the next game step
+game_error referee::compute_bet(bet_type type, money_t& amt, game_step next_step) {
+    game_error res;
+    auto phs = _g.phase;
+    if ((res=place_bet(_g, type, amt)))
+        return res;
+
+    if (type == BET_FOLD && _g.phase == PHS_SHOWDOWN) {
+        _step = game_step::GAME_OVER;
+    } else {
+        auto phs_changed = phs != _g.phase;
+        if (phs_changed)
+            _step = next_step;
+    }
+    return SUCCESS;
 }
 
 game_error referee::step_open_opponent_cards(int player_id, blob& alice_proofs, blob& bob_proofs) {
