@@ -78,7 +78,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     }
 
     // TURN SUBMISSION
-    async submitTurn(data: string) {
+    async submitTurn(data: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
             await this.initWeb3();
             const payload = ethers.utils.toUtf8Bytes(data);

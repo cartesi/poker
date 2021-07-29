@@ -499,7 +499,7 @@ export class GameMock implements Game {
         }
     }
 
-    async _resultReceived(opponentResult: Array<number>) {
+    async _resultReceived(opponentResult: Array<ethers.BigNumber>) {
         if (JSON.stringify(this.result.fundsShare) !== JSON.stringify(opponentResult)) {
             // result mismatch: trigger a verification!
             await this._triggerVerification("Result mismatch");
@@ -509,7 +509,7 @@ export class GameMock implements Game {
         }
     }
 
-    async _gameOverReceived(fundsShare: Array<number>) {
+    async _gameOverReceived(fundsShare: Array<ethers.BigNumber>) {
         // ends game
         this.state = GameState.END;
         this.onEnd();
