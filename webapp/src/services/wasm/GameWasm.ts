@@ -48,44 +48,60 @@ export class GameWasm implements Game {
 
                 resolve();
                 this._onBet();
-            } catch (error) {
-                reject(new Error(`Failed to start game. ${error}`));
+            } catch (err) {
+                reject(err);
             }
         });
     }
 
     call(): Promise<void> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             console.log(`### [Player ${this.playerId}] CALL ###`);
-            await this._createBet(EngineBetType.BET_CALL);
-            resolve();
-            this._onBet();
+            try {
+                await this._createBet(EngineBetType.BET_CALL);
+                resolve();
+                this._onBet();
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
     check(): Promise<void> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             console.log(`### [Player ${this.playerId}] CHECK ###`);
-            await this._createBet(EngineBetType.BET_CHECK);
-            resolve();
-            this._onBet();
+            try {
+                await this._createBet(EngineBetType.BET_CHECK);
+                resolve();
+                this._onBet();
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
     fold(): Promise<void> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             console.log(`### [Player ${this.playerId}] FOLD ###`);
-            await this._createBet(EngineBetType.BET_FOLD);
-            resolve();
+            try {
+                await this._createBet(EngineBetType.BET_FOLD);
+                resolve();
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
     raise(amount: BigNumber): Promise<void> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             console.log(`### [Player ${this.playerId}] RAISE ###`);
-            await this._createBet(EngineBetType.BET_RAISE, amount);
-            resolve();
-            this._onBet();
+            try {
+                await this._createBet(EngineBetType.BET_RAISE, amount);
+                resolve();
+                this._onBet();
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
@@ -95,7 +111,7 @@ export class GameWasm implements Game {
     };
 
     getPlayerCards(): Promise<Array<Card>> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             let player = await this._getPlayer(this.playerId);
             let cards = player.cards.map(Card.fromIndex);
             resolve(cards);
@@ -103,7 +119,7 @@ export class GameWasm implements Game {
     }
 
     getOpponentCards(): Promise<Array<Card>> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             let opponent = await this._getPlayer(this.opponentId);
             let cards = opponent.cards.map(Card.fromIndex);
             resolve(cards);
@@ -111,83 +127,115 @@ export class GameWasm implements Game {
     }
 
     getCommunityCards(): Promise<Array<Card>> {
-        return new Promise(async (resolve) => {
-            let gameState = await this.engine.game_state();
-            let cards = gameState.public_cards.map(Card.fromIndex);
-            resolve(cards);
+        return new Promise(async (resolve, reject) => {
+            try {
+                let gameState = await this.engine.game_state();
+                let cards = gameState.public_cards.map(Card.fromIndex);
+                resolve(cards);
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
     getCurrentPlayerId(): Promise<number> {
-        return new Promise(async (resolve) => {
-            let gameState = await this.engine.game_state();
-            resolve(gameState.current_player);
+        return new Promise(async (resolve, reject) => {
+            try {
+                let gameState = await this.engine.game_state();
+                resolve(gameState.current_player);
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
     getPlayerFunds(): Promise<BigNumber> {
-        return new Promise(async (resolve) => {
-            let player = await this._getPlayer(this.playerId);
-            resolve(player.total_funds);
+        return new Promise(async (resolve, reject) => {
+            try {
+                let player = await this._getPlayer(this.playerId);
+                resolve(player.total_funds);
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
     getOpponentFunds(): Promise<BigNumber> {
-        return new Promise(async (resolve) => {
-            let opponent = await this._getPlayer(this.opponentId);
-            resolve(opponent.total_funds);
+        return new Promise(async (resolve, reject) => {
+            try {
+                let opponent = await this._getPlayer(this.opponentId);
+                resolve(opponent.total_funds);
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
     getPlayerBets(): Promise<BigNumber> {
-        return new Promise(async (resolve) => {
-            let player = await this._getPlayer(this.playerId);
-            resolve(player.bets);
+        return new Promise(async (resolve, reject) => {
+            try {
+                let player = await this._getPlayer(this.playerId);
+                resolve(player.bets);
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
     getOpponentBets(): Promise<BigNumber> {
-        return new Promise(async (resolve) => {
-            let opponent = await this._getPlayer(this.opponentId);
-            resolve(opponent.bets);
+        return new Promise(async (resolve, reject) => {
+            try {
+                let opponent = await this._getPlayer(this.opponentId);
+                resolve(opponent.bets);
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
     getState(): Promise<GameState> {
         return new Promise(async (resolve, reject) => {
-            let state = await this.engine.game_state();
-            if (state.step >= 0 && state.step < 9) {
-                resolve(GameState.START);
-            } else if (state.step == 9) {
-                resolve(GameState.PREFLOP);
-            } else if (state.step < 12) {
-                resolve(GameState.FLOP);
-            } else if (state.step < 14) {
-                resolve(GameState.TURN);
-            } else if (state.step < 16) {
-                resolve(GameState.RIVER);
-            } else if (state.step == 16) {
-                resolve(GameState.SHOWDOWN);
-            } else if (state.step == 17) {
-                resolve(GameState.END);
-            } else {
-                reject(new Error("Unknown engine state"));
+            try {
+                let state = await this.engine.game_state();
+                if (state.step >= 0 && state.step < 9) {
+                    resolve(GameState.START);
+                } else if (state.step == 9) {
+                    resolve(GameState.PREFLOP);
+                } else if (state.step < 12) {
+                    resolve(GameState.FLOP);
+                } else if (state.step < 14) {
+                    resolve(GameState.TURN);
+                } else if (state.step < 16) {
+                    resolve(GameState.RIVER);
+                } else if (state.step == 16) {
+                    resolve(GameState.SHOWDOWN);
+                } else if (state.step == 17) {
+                    resolve(GameState.END);
+                } else {
+                    reject(new Error("Unknown engine state"));
+                }
+            } catch (err) {
+                reject(err);
             }
         });
     }
 
     getVerificationState(): Promise<VerificationState> {
-        throw new Error("Method not implemented.");
+        throw new Error("getVerificationState is not implemented.");
     }
 
     getResult(): Promise<GameResult> {
         return new Promise(async (resolve, reject) => {
-            let state = await this.engine.game_state();
-            if (state.step == EngineStep.GAME_OVER) {
-                let result = this._computeResult(state);
-                resolve(result);
-            } else {
-                reject(new Error("Game is not over yet"));
+            try {
+                let state = await this.engine.game_state();
+                if (state.step == EngineStep.GAME_OVER) {
+                    let result = this._computeResult(state);
+                    resolve(result);
+                } else {
+                    reject(new Error("Game is not over yet"));
+                }
+            } catch (err) {
+                reject(err);
             }
         });
     }
