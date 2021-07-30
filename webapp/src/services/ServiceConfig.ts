@@ -33,7 +33,7 @@ export class ServiceConfig {
     public static get(type: ServiceType): ServiceImpl {
         const defaultImpl = {};
         defaultImpl[ServiceType.Transport] = ServiceImpl.Web3;
-        defaultImpl[ServiceType.Engine] = ServiceImpl.Mock;
+        defaultImpl[ServiceType.Engine] = ServiceImpl.Wasm;
 
         const searchParams = new URLSearchParams(window.location.search);
         if (searchParams.has(type)) {
