@@ -1,4 +1,5 @@
 import { AudioManager } from "../../AudioManager";
+import { GameConstants } from "../../GameConstants";
 import { Card } from "../../services/Card";
 import { BetType, EventType, Game, GameFactory, GameState, VerificationState } from "../../services/Game";
 import { GameVars } from "./../../GameVars";
@@ -205,7 +206,7 @@ export class RoomManager {
 
         setTimeout(() => {
 
-            RoomManager.initTimer(300, false);
+            RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, false);
             RoomScene.currentInstance.startOpponentTurn();
         }, 2000);
 }
@@ -265,7 +266,7 @@ export class RoomManager {
         RoomManager.updateBoard();
         RoomManager.updateOpponentState();
         RoomManager.showBetButtons();
-        RoomManager.initTimer(300, true);
+        RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS - GameConstants.TIMEOUT_SAFETY_MARGIN_SECONDS, true);
     }
 
     private static initTimer(value: number, isPlayer: boolean): void {

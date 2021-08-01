@@ -49,6 +49,8 @@ export class GameConstants {
     public static readonly NUM_PLAYERS = 2;
     public static readonly MIN_FUNDS = BigNumber.from(10);
 
-    //Game constants
+    // Game constants
     public static readonly BIG_BLIND = BigNumber.from(10);
+    public static readonly TIMEOUT_SECONDS = 300;
+    public static readonly TIMEOUT_SAFETY_MARGIN_SECONDS = 60;
 }
