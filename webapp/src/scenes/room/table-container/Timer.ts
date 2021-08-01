@@ -8,7 +8,7 @@ export class Timer extends Phaser.GameObjects.Container {
     private timeout: number;
     private interval: NodeJS.Timeout;
 
-    constructor(scene: Phaser.Scene, isPlayer: boolean) {
+    constructor(scene: Phaser.Scene, private isPlayer: boolean) {
 
         super(scene);
 
@@ -72,7 +72,7 @@ export class Timer extends Phaser.GameObjects.Container {
 
             if (this.timeout === 0) {
                 clearInterval(this.interval);
-                RoomManager.onTimeOut();
+                RoomManager.onTimeOut(this.isPlayer);
             }
         }, 1000);
     }

@@ -141,56 +141,60 @@ export class RoomManager {
         return  RoomManager.game.getOpponentBets();
     }
 
-    public static playerCall(): void {
+    public static async playerCall(): Promise<void> {
 
         RoomManager.removeBetButtons();
-        RoomManager.game.call().then(() => {
+        try {
+            await RoomManager.game.call();
             RoomManager.showBet(BetType.CALL, GameVars.playerIndex);
-
+    
             RoomManager.updateBoard();
             RoomManager.updateOpponentState();
-        }).catch(() => {
+        } catch (error) {
             RoomManager.showBetButtons();
-        });
+        }
     }
 
-    public static playerCheck(): void {
+    public static async playerCheck(): Promise<void> {
 
         RoomManager.removeBetButtons();
-        RoomManager.game.check().then(() => {
+        try {
+            await RoomManager.game.check();
             RoomManager.showBet(BetType.CHECK, GameVars.playerIndex);
-
+    
             RoomManager.updateBoard();
             RoomManager.updateOpponentState();
-        }).catch(() => {
+        } catch (error) {
             RoomManager.showBetButtons();
-        });
+        }
     }
 
-    public static playerFold(): void {
+    public static async playerFold(): Promise<void> {
 
         RoomManager.removeBetButtons();
-        RoomManager.game.fold().then(() => {
+        try {
+            await RoomManager.game.fold();
             RoomManager.showBet(BetType.FOLD, GameVars.playerIndex);
-
+    
             RoomManager.updateBoard();
             RoomManager.updateOpponentState();
-        }).catch(() => {
+        } catch (error) {
             RoomManager.showBetButtons();
-        });
+        }
     }
 
-    public static playerRaise(value: ethers.BigNumber): void {
+    public static async playerRaise(value: ethers.BigNumber): Promise<void> {
 
         RoomManager.removeBetButtons();
-        RoomManager.game.raise(value).then(() => {
+        try {
+            await RoomManager.game.raise(value);
             RoomManager.showBet(BetType.RAISE, GameVars.playerIndex);
-
+    
             RoomManager.updateBoard();
             RoomManager.updateOpponentState();
-        }).catch(() => {
+        } catch (error) {
             RoomManager.showBetButtons();
-        });
+        }
     }
 
     public static async updateOpponentState(): Promise<void> {
@@ -253,9 +257,17 @@ export class RoomManager {
         GameManager.enterLobbyScene();
     }
 
-    public static onTimeOut(): void {
+    public static async onTimeOut(isPlayer: boolean): Promise<void> {
 
-        console.log("TIMEOUT!!! DO SOMETHING");
+        if (isPlayer) {
+            console.log("PLAYER TIMEOUT! Folding on his behalf...");
+            // TODO: should we attempt to check if possible?
+            await RoomManager.playerFold();
+        } else {
+            console.log("OPPONENT TIMEOUT! TODO: challenge game");
+            // TODO: add Game.challenge() method
+            // RoomManager.game.challenge();
+        }
     }
 
     private static onBetRequested(): void {
