@@ -194,22 +194,19 @@ export class RoomManager {
     }
 
     public static async updateOpponentState(): Promise<void> {
-        if (await RoomManager.game.getCurrentPlayerId() === GameVars.playerIndex || await RoomManager.game.getState() === GameState.SHOWDOWN) {
+        const state = await RoomManager.game.getState();
+        const currentPlayerId = await RoomManager.game.getCurrentPlayerId();
+        const playerIds = [GameVars.playerIndex, GameVars.opponentIndex];
+        const noCurrentPlayer = (state === GameState.SHOWDOWN || state === GameState.VERIFICATION || state === GameState.END || !playerIds.includes(currentPlayerId));
+        if (currentPlayerId === GameVars.playerIndex || noCurrentPlayer) {
             RoomScene.currentInstance.endOpponentTurn();
         } else {
-            setTimeout(() => {
+            setTimeout(async () => {
                 RoomScene.currentInstance.startOpponentTurn();
+                RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, false);
             }, 2000);
         }
     }
-    public static startOpponentTurn(): void {
-
-        setTimeout(() => {
-
-            RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, false);
-            RoomScene.currentInstance.startOpponentTurn();
-        }, 2000);
-}
 
     public static updateBoard(): void {
 
