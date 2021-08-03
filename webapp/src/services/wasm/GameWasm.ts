@@ -272,7 +272,7 @@ export class GameWasm implements Game {
 
             if (p2.message_out.length > 0) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
-                this.turnBasedGame.submitTurn(p2.message_out);
+                await this.turnBasedGame.submitTurn(p2.message_out);
             }
         } while (p2.status == StatusCode.CONTINUED);
 
@@ -303,7 +303,7 @@ export class GameWasm implements Game {
 
             if (receivedBet.message_out.length > 0) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
-                this.turnBasedGame.submitTurn(receivedBet.message_out);
+                await this.turnBasedGame.submitTurn(receivedBet.message_out);
             }
         } while (receivedBet.status == StatusCode.CONTINUED);
 
