@@ -77,6 +77,14 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         gameContextContract.on(gameEndFilter, this.onGameEnd.bind(this));
     }
 
+    /**
+     * Returns application player's address, which may be compared with contract information
+     * @returns a 20-byte hex string representing the player's address
+     */
+    async getPlayerAddress(): Promise<string> {
+        return await this.gameContract.signer.getAddress();
+    }
+
     // TURN SUBMISSION
     async submitTurn(data: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
@@ -109,7 +117,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
     async onTurnOver(gameIndex, turnIndex, turn) {
         await this.initWeb3();
-        const player = await this.gameContract.signer.getAddress();
+        const player = await this.getPlayerAddress();
         if (turn.player == player) {
             // turn sent by this player himself: ignore it
             return;
@@ -168,9 +176,13 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     // CLAIM RESULT HANDLING
     //
 
-    onClaimResult(gameIndex, claimedResult, claimer) {
+    async onClaimResult(gameIndex, claimedResult, claimer) {
+        const player = await this.getPlayerAddress();
+        if (claimer == player) {
+            // claimer is the player himself: ignore it
+            return;
+        }
         this.claimedResult = claimedResult;
-
         if (this.onResultClaimReceived) {
             this.onResultClaimReceived(claimedResult);
         }
