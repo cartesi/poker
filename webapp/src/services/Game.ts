@@ -222,27 +222,27 @@ export class GameFactory {
             if (!game.gameOpponent) {
                 return;
             }
-            // let choices = [0, 1, 2, 3];
-            // while (true) {
-            //     let i = Math.floor(Math.random() * choices.length);
-            //     let choice = choices[i];
-            //     try {
-            //         if (choice === 0) {
-            //             await game.gameOpponent.call();
-            //         } else if (choice === 1) {
+            let choices = [0, 1, 2, 3];
+            while (true) {
+                let i = Math.floor(Math.random() * choices.length);
+                let choice = choices[i];
+                try {
+                    if (choice === 0) {
+                        await game.gameOpponent.call();
+                    } else if (choice === 1) {
                         await game.gameOpponent.check();
-            //         } else if (choice === 2) {
-            //             await game.gameOpponent.fold();
-            //         } else if (choice === 3) {
-            //             let amount = Math.floor(Math.random() * 5);
-            //             await game.gameOpponent.raise(BigNumber.from(amount));
-            //         }
-            //         break;
-            //     } catch (e) {
-            //         // bet choice not allowed, remove that possibility and try again
-            //         choices.splice(i, 1);
-            //     }
-            // }
-        }, 1000);
+                    } else if (choice === 2) {
+                        await game.gameOpponent.fold();
+                    } else if (choice === 3) {
+                        let amount = Math.floor(Math.random() * 5);
+                        await game.gameOpponent.raise(BigNumber.from(amount));
+                    }
+                    break;
+                } catch (e) {
+                    // bet choice not allowed, remove that possibility and try again
+                    choices.splice(i, 1);
+                }
+            }
+        }, 6000);
     }
 }
