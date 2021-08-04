@@ -1,4 +1,4 @@
-import { BytesLike, ethers } from "ethers";
+import { ethers } from "ethers";
 import { TurnBasedGame } from "../TurnBasedGame";
 import TurnBasedGameJson from "../../abis/TurnBasedGame.json";
 import TurnBasedGameContextJson from "../../abis/TurnBasedGameContext.json";
@@ -9,8 +9,6 @@ import LoggerJson from "../../abis/Logger.json";
 import { Logger as LoggerContract } from "../../types";
 import { Logger__factory } from "../../types";
 import { ServiceConfig } from "../ServiceConfig";
-
-declare let window: any;
 
 /**
  * TurnBasedGame web3 implementation
