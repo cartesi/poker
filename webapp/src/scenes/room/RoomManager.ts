@@ -4,6 +4,7 @@ import { BetType, Game, GameFactory, VerificationState } from "../../services/Ga
 import { GameVars } from "./../../GameVars";
 import { RoomScene } from "./RoomScene";
 import { ethers } from "ethers";
+import { GameManager } from "../../GameManager";
 
 export class RoomManager {
 
@@ -230,11 +231,18 @@ export class RoomManager {
 
     public static onClickNext(): void {
 
-        RoomScene.currentInstance.resetTable();
+        // TODO: disabling for now the feature of playing several hands with the same opponent
+        // - requires Lobby to support joining a game with a specific player
+        // - requires more sophisticated logic to handle case when one of the players does not rejoin, locking his tokens again
 
-        setTimeout(() => {
-            RoomManager.startRound();
-        }, 500);
+        // RoomScene.currentInstance.resetTable();
+
+        // setTimeout(() => {
+        //     RoomManager.startRound();
+        // }, 500);
+
+        // reverts player back to the Lobby to join a new game
+        GameManager.enterLobbyScene();
     }
 
     private static onBetRequested(): void {

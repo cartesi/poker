@@ -207,7 +207,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
     public onClickReset(): void {
 
-        GameManager.enterRoomScene(); 
+        GameManager.enterLobbyScene();
 
         AudioManager.playSound("btn_click");
     }
@@ -268,7 +268,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
     public onClickExit(): void {
 
-        GameManager.enterLobbyScene();
+        GameManager.enterSplashScene();
     }
 
     public hideHands(): void {
