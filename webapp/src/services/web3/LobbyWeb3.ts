@@ -77,15 +77,20 @@ export class LobbyWeb3 {
         let encodedPlayerInfo = Web3Utils.toUint8Array(playerInfo);
 
         // joins game by calling Lobby smart contract
-        await lobbyContract.joinGame(
-            GameConstants.GAME_TEMPLATE_HASH,
-            GameConstants.GAME_METADATA,
-            validators,
-            GameConstants.NUM_PLAYERS,
-            GameConstants.MIN_FUNDS,
-            PokerToken.address,
-            playerFunds,
-            encodedPlayerInfo
-        );
+        await Web3Utils.sendTransaction("joinGame", async() => {
+            const tx = await lobbyContract.joinGame(
+                GameConstants.GAME_TEMPLATE_HASH,
+                GameConstants.GAME_METADATA,
+                validators,
+                GameConstants.NUM_PLAYERS,
+                GameConstants.MIN_FUNDS,
+                PokerToken.address,
+                playerFunds,
+                encodedPlayerInfo
+            );
+            console.log(
+                `Submitted join game request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
+            );
+        });
     }
 }
