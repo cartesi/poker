@@ -83,42 +83,53 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         return await this.gameContract.signer.getAddress();
     }
 
-    // TURN SUBMISSION
-    async submitTurn(data: string): Promise<string> {
-        return new Promise(async (resolve, reject) => {
-            await this.initWeb3();
-            const payload = ethers.utils.toUtf8Bytes(data);
-            let tx;
-            let lastError;
-            // TODO: we try several times here for the time being, but a better procedure would be to throw the exception right away and let the UI decide what to do
-            for (let i = 0; i < TurnBasedGameWeb3.MAX_ATTEMPTS; i++) {
-                try {
-                    const context = await this.gameContract.getContext(this.gameIndex);
-                    const turnIndex = context.turns.length;
-                    console.log(`turnIndex: ${turnIndex}`);
-                    tx = await this.gameContract.submitTurn(this.gameIndex, turnIndex, payload);
-                    console.log(
-                        `Submitted turn for game '${this.gameIndex}' and index '${turnIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
-                    );
+    /**
+     * Sends a transaction wrapping a given tx function call and applying a standard procedure of trying N times
+     * before failing.
+     * 
+     * @param title title of the transaction being made, to be used in error messages and logging
+     * @param txCall a function that submits a Web3 transaction
+     */
+    async sendTransaction(title: string, txCall: () => void) {
+        // submission will be attempted several times because sometimes the RPC endpoint is a little delayed
+        // - we may nevertheless fail immediately (without retrying) depending on the error
+        let lastError;
+        for (let i = 0; i < TurnBasedGameWeb3.MAX_ATTEMPTS; i++) {
+            try {
+                await txCall();
+                lastError = undefined;
+                break;
+            } catch (error) {
+                lastError = error;
+                if (error && error.message && error.message.includes && error.message.includes("MetaMask Tx Signature")) {
+                    // user rejected transaction: fail immediately
+                    // TODO: can we trust some error code instead of the MetaMask-specific error message?
                     break;
-                } catch (error) {
-                    if (error && error.message && error.message.includes && error.message.includes("MetaMask Tx Signature")) {
-                        // user rejected transaction: fail immediately
-                        return reject(error);
-                    }
-                    lastError = error;
-                    console.error(`Error submitting turn: attempt ${i + 1}/${TurnBasedGameWeb3.MAX_ATTEMPTS}`);
-                    await new Promise(resolve => setTimeout(resolve, TurnBasedGameWeb3.ATTEMPT_INTERVAL));
                 }
+                console.error(`${title}: error in attempt ${i + 1}/${TurnBasedGameWeb3.MAX_ATTEMPTS}`);
+                await new Promise(resolve => setTimeout(resolve, TurnBasedGameWeb3.ATTEMPT_INTERVAL));
             }
-            if (tx) {
-                resolve(data);
-            } else {
-                reject(lastError);
-            }
-        });
+        }
+        if (lastError) {
+            throw lastError;
+        }
     }
 
+    // TURN SUBMISSION
+    async submitTurn(data: string): Promise<string> {
+        await this.initWeb3();
+        const payload = ethers.utils.toUtf8Bytes(data);
+
+        await this.sendTransaction("submitTurn", async () => {
+            const context = await this.gameContract.getContext(this.gameIndex);
+            const turnIndex = context.turns.length;
+            const tx = await this.gameContract.submitTurn(this.gameIndex, turnIndex, payload);
+            console.log(
+                `Submitted turn '${turnIndex}' for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
+            );
+        });
+        return data;
+    }
     async onTurnOver(gameIndex, turnIndex, turn) {
         await this.initWeb3();
         const player = await this.getPlayerAddress();
@@ -179,7 +190,17 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     //
     // CLAIM RESULT HANDLING
     //
+    async claimResult(claimedResult: any): Promise<void> {
+        this.claimedResult = claimedResult;
+        await this.initWeb3();
 
+        await this.sendTransaction("claimResult", async () => {
+            const tx = await this.gameContract.claimResult(this.gameIndex, claimedResult);
+            console.log(
+                `Result was claimed for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
+            );
+        })
+    }
     async onClaimResult(gameIndex, claimedResult, claimer) {
         const player = await this.getPlayerAddress();
         if (claimer == player) {
@@ -191,53 +212,28 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             this.onResultClaimReceived(claimedResult);
         }
     }
-    claimResult(claimedResult: any): Promise<void> {
-        return new Promise(async (resolve, reject) => {
-            let tx;
-            this.claimedResult = claimedResult;
-            await this.initWeb3();
-            try {
-                tx = await this.gameContract.claimResult(this.gameIndex, claimedResult);
-                console.log(
-                    `Result was claimed for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
-                );
-            } catch (error) {
-                console.error("Error during claim result: " + error);
-            }
-            if (tx) {
-                resolve();
-            } else {
-                reject();
-            }
-        });
-    }
     receiveResultClaimed(): Promise<any> {
         return new Promise<any>((resolve: (any) => any) => {
             this.onResultClaimReceived = resolve;
         });
     }
+
     //
     // CONFIRM RESULT AND GAME END HANDLING
     //
+    async confirmResult(): Promise<void> {
+        await this.initWeb3();
+        await this.sendTransaction("confirmResult", async () => {
+            const tx = await this.gameContract.confirmResult(this.gameIndex);
+            console.log(
+                `Result was confirmed for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
+            );
+        });
+    }
     onGameEnd(gameIndex, confirmedResult) {
         if (this.onGameOverReceived) {
             this.onGameOverReceived(confirmedResult);
         }
-    }
-    confirmResult(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            await this.initWeb3();
-            try {
-                await this.gameContract.confirmResult(this.gameIndex);
-                console.log(
-                    `Result was confirmed for game '${this.gameIndex}'`
-                );
-                resolve();
-            } catch (error) {
-                console.error("Error during confirm result: " + error);
-                reject();
-            }
-        });
     }
     receiveGameOver(): Promise<any> {
         return new Promise<any>((resolve) => {
@@ -245,7 +241,9 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         });
     }
 
-    // challenge and verification
+    //
+    // CHALLENGE AND VERIFICATION
+    //
     challengeGame(msg: string, onGameChallenged?: (string) => any) {
         // TODO: call smart contract
         if (onGameChallenged) {
