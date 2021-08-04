@@ -91,6 +91,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             await this.initWeb3();
             const payload = ethers.utils.toUtf8Bytes(data);
             let tx;
+            let lastError;
             // TODO: we try several times here for the time being, but a better procedure would be to throw the exception right away and let the UI decide what to do
             for (let i = 0; i < TurnBasedGameWeb3.MAX_ATTEMPTS; i++) {
                 try {
@@ -103,6 +104,11 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                     );
                     break;
                 } catch (error) {
+                    if (error && error.message && error.message.includes && error.message.includes("MetaMask Tx Signature")) {
+                        // user rejected transaction: fail immediately
+                        return reject(error);
+                    }
+                    lastError = error;
                     console.error(`Error submitting turn: attempt ${i + 1}/${TurnBasedGameWeb3.MAX_ATTEMPTS}`);
                     await new Promise(resolve => setTimeout(resolve, TurnBasedGameWeb3.ATTEMPT_INTERVAL));
                 }
@@ -110,7 +116,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             if (tx) {
                 resolve(data);
             } else {
-                reject("Failure sending turn");
+                reject(lastError);
             }
         });
     }

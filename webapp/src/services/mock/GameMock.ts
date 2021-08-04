@@ -506,19 +506,19 @@ export class GameMock implements Game {
     }
 
     async _increaseBets(amount: BigNumber) {
-        if (this.playerBets.add(amount).gt(this.playerFunds)) {
+        const newPlayerBets = this.playerBets.add(amount);
+        if (newPlayerBets.gt(this.playerFunds)) {
             throw "Insufficient funds";
         }
-        this.playerBets = this.playerBets.add(amount);
 
+        // sends new bets over
+        await this.turnBasedGame.submitTurn(newPlayerBets.toString());
+
+        this.playerBets = newPlayerBets;
         if (this.playerBets.gt(this.opponentBets)) {
             // bet has been raised: current player becomes the bet leader
             this.betLeader = this.player;
         }
-
-        // sends new bets over
-        await this.turnBasedGame.submitTurn(this.playerBets.toString());
-
         if (this.player == this.betLeader) {
             // bet leader: will react when opponent's bet is received
             this.turnBasedGame.receiveTurnOver()

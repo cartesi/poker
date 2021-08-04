@@ -142,50 +142,54 @@ export class RoomManager {
 
     public static playerCall(): void {
 
+        RoomManager.removeBetButtons();
         RoomManager.game.call().then(() => {
             RoomManager.showBet(BetType.CALL, GameVars.playerIndex);
 
             RoomManager.updateBoard();
-            RoomManager.removeBetButtons();
             RoomManager.startOpponentTurn();
+        }).catch(() => {
+            RoomManager.showBetButtons();
         });
-
     }
 
     public static playerCheck(): void {
 
+        RoomManager.removeBetButtons();
         RoomManager.game.check().then(() => {
             RoomManager.showBet(BetType.CHECK, GameVars.playerIndex);
 
             RoomManager.updateBoard();
-            RoomManager.removeBetButtons();
             RoomManager.startOpponentTurn();
+        }).catch(() => {
+            RoomManager.showBetButtons();
         });
-
     }
 
     public static playerFold(): void {
 
+        RoomManager.removeBetButtons();
         RoomManager.game.fold().then(() => {
             RoomManager.showBet(BetType.FOLD, GameVars.playerIndex);
 
             RoomManager.updateBoard();
-            RoomManager.removeBetButtons();
             RoomManager.startOpponentTurn();
+        }).catch(() => {
+            RoomManager.showBetButtons();
         });
-
     }
 
     public static playerRaise(value: ethers.BigNumber): void {
 
+        RoomManager.removeBetButtons();
         RoomManager.game.raise(value).then(() => {
             RoomManager.showBet(BetType.RAISE, GameVars.playerIndex);
 
             RoomManager.updateBoard();
-            RoomManager.removeBetButtons();
             RoomManager.startOpponentTurn();
+        }).catch(() => {
+            RoomManager.showBetButtons();
         });
-
     }
 
     public static startOpponentTurn(): void {
