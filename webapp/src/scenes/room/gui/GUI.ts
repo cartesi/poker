@@ -168,8 +168,6 @@ export class GUI extends Phaser.GameObjects.Container {
 
     public async setStateText(): Promise<void> {
         const state = await RoomManager.getState();
-        console.log("STATE: " +  state);
-
         this.stateLayer.setText(state);
     }
 

@@ -1,6 +1,6 @@
 import { BigNumber } from "ethers";
 import { Card } from "../Card";
-import { BetType, Game, GameState, GameStates, VerificationState, VerificationStates } from "../Game";
+import { BetType, EventType, Game, GameState, GameStates, VerificationState, VerificationStates } from "../Game";
 import { PokerSolver } from "../PokerSolver";
 import { TurnBasedGame } from "../TurnBasedGame";
 
@@ -36,7 +36,7 @@ export class GameMock implements Game {
         onBetRequested?: () => any,
         onBetsReceived?: (betType: string, amount: BigNumber) => any,
         onEnd?: () => any,
-        onEvent?: (msg: string) => any,
+        onEvent?: (msg: string, type: EventType) => any,
         onVerification?: (state: string, msg: string) => any
     ) {
         this.opponent = this.player == ALICE ? BOB : ALICE;
@@ -597,6 +597,7 @@ export class GameMock implements Game {
                 this.turnBasedGame.receiveTurnOver()
                     .then((data) => this._betsReceived(data));
             }
+            this.onEvent(this.state, EventType.UPDATE_STATE);
         }
     }
 

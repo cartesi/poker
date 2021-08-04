@@ -1,6 +1,6 @@
 import { Card } from "../Card";
 import { Engine, EngineBetType, EnginePlayer, EngineResult, EngineState, EngineStep, StatusCode } from "../Engine";
-import { BetType, Game, GameResult, GameState, VerificationState } from "../Game";
+import { BetType, EventType, Game, GameResult, GameState, VerificationState } from "../Game";
 import { PokerSolver } from "../PokerSolver";
 import { TurnBasedGame } from "../TurnBasedGame";
 import { PokerEngine } from "./PokerEngine";
@@ -21,7 +21,7 @@ export class GameWasm implements Game {
         private onBetRequested: () => any = () => {},
         private onBetsReceived: (betType: string, amount: BigNumber) => any = () => {},
         private onEnd: () => any = () => {},
-        private onEvent: (msg: string) => any = () => {},
+        private onEvent: (msg: string, type: EventType) => any = () => {},
         private onVerification: (state: string, msg: string) => any = () => {}
     ) {
         this.engine = new PokerEngine(playerId);

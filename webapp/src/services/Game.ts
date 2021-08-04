@@ -49,6 +49,12 @@ export const VerificationStates = [
     VerificationState.ERROR,
 ];
 
+// event types
+export enum EventType {
+    UPDATE_STATE = "UPDATE STATE",
+    LOG = "LOG"
+}
+
 // bet types
 export enum BetType {
     CALL = "CALL",
@@ -115,7 +121,7 @@ export class GameFactory {
         onBetRequested: () => any,
         onBetsReceived: (betType: BetType, amount: BigNumber) => any,
         onEnd: () => any,
-        onEvent: (msg: string) => any,
+        onEvent: (msg: string, type: EventType) => any,
         onVerification: (state: VerificationState, msg: string) => any
     ): Game {
         // creates an appropriate TurnBasedGame
@@ -178,7 +184,7 @@ export class GameFactory {
         onBetRequested?: () => any,
         onBetsReceived?: (betType: string, amount: BigNumber) => any,
         onEnd?: () => any,
-        onEvent?: (msg: string) => any,
+        onEvent?: (msg: string, type: EventType) => any,
         onVerification?: (state: string, msg: string) => any
     ) {
         const impl = ServiceConfig.get(ServiceType.Engine);

@@ -1,6 +1,6 @@
 import { AudioManager } from "../../AudioManager";
 import { Card } from "../../services/Card";
-import { BetType, Game, GameFactory, VerificationState } from "../../services/Game";
+import { BetType, EventType, Game, GameFactory, GameState, VerificationState } from "../../services/Game";
 import { GameVars } from "./../../GameVars";
 import { RoomScene } from "./RoomScene";
 import { ethers } from "ethers";
@@ -33,26 +33,11 @@ export class RoomManager {
             GameVars.playerFunds,
             GameVars.opponentFunds,
             metadata,
-            () => {
-                // onBetRequested
-                RoomManager.onBetRequested();
-            },
-            (betType, amount) => {
-                // onBetsReceived
-                RoomManager.onBetsReceived(betType, amount);
-            },
-            () => {
-                // onEnd
-                RoomManager.onEnd();
-            },
-            (msg) => {
-                // onEvent: general event logging
-                console.log(msg);
-            },
-            (state, msg) => {
-                // onVerification
-                RoomManager.updateVerification(state, msg);
-            }
+            RoomManager.onBetRequested,
+            RoomManager.onBetsReceived,
+            RoomManager.onEnd,
+            RoomManager.onEvent,
+            RoomManager.updateVerification
         );
 
         // show waiting UI while game is starting
@@ -86,6 +71,19 @@ export class RoomManager {
         }
         RoomScene.currentInstance.updateVerificationLayer(state);
     }
+
+    public static onEvent(msg: string, type: EventType): void {
+
+        if (type === EventType.UPDATE_STATE) {
+            // state update
+            console.log(`STATE: ${msg}`);
+            RoomManager.updateBoard();
+        } else {
+            // general event logging
+            console.log(msg);
+        }
+    }
+
 
     public static async getOpponentFunds(): Promise<ethers.BigNumber> {
 
