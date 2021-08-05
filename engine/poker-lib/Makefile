@@ -67,6 +67,7 @@ POKER_LIB_OBJS=common.o \
             bignumber.o \
             solver.o \
             tmcg_participant.o \
+            mock_participant.o \
             poker-lib.o \
             referee.o \
             game-state.o \
