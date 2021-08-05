@@ -24,7 +24,7 @@ export class Web3Utils {
      * @param title title of the transaction being made, to be used in error messages and logging
      * @param txCall a function that submits a Web3 transaction
      */
-    public static async sendTransaction(title: string, txCall: () => void) {
+    public static async sendTransaction(title: string, txCall: () => Promise<void>) {
         // submission will be attempted several times because sometimes the RPC endpoint is a little delayed
         // - we may nevertheless fail immediately (without retrying) depending on the error
         let lastError;
