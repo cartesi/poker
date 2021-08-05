@@ -19,7 +19,7 @@ export class PokerEngine implements Engine {
         });
     }
 
-    async init(alice_funds: BigNumber, bob_funds: BigNumber, big_blind: BigNumber): Promise<EngineResult> {
+    async init(alice_funds: BigNumber, bob_funds: BigNumber, big_blind: BigNumber, encryption: boolean): Promise<EngineResult> {
         // Initialize libraries
         await this._callWorker("poker_init", 0, () => StatusCode.SUCCESS);
 

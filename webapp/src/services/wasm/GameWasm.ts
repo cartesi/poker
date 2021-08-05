@@ -5,6 +5,7 @@ import { PokerSolver } from "../PokerSolver";
 import { TurnBasedGame } from "../TurnBasedGame";
 import { PokerEngine } from "./PokerEngine";
 import { BigNumber } from "ethers";
+import { ServiceConfig } from "../ServiceConfig";
 
 export class GameWasm implements Game {
     // FIXME: if using a mock TurnBasedGame, stores a reference to the opponent's Game instance (with automatic responses)
@@ -40,7 +41,12 @@ export class GameWasm implements Game {
                 if (this.gameOpponent) this.gameOpponent.start();
 
                 console.log(`### [Player ${this.playerId}] Init engine ###`);
-                await this.engine.init(this.playerFunds, this.opponentFunds, this.bigBlind);
+                await this.engine.init(
+                    this.playerFunds,
+                    this.opponentFunds,
+                    this.bigBlind,
+                    ServiceConfig.isEncryptionEnabled()
+                );
                 console.log(`### [Player ${this.playerId}] Engine started ###`);
 
                 if (this._isDealer()) await this._createHandshake();

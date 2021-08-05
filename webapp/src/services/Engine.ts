@@ -1,7 +1,12 @@
 import { BigNumber } from "ethers";
 
 export interface Engine {
-    init(alice_funds: BigNumber, bob_funds: BigNumber, big_blind: BigNumber): Promise<EngineResult>;
+    init(
+        alice_funds: BigNumber,
+        bob_funds: BigNumber,
+        big_blind: BigNumber,
+        encryption: boolean
+    ): Promise<EngineResult>;
     create_handshake(): Promise<EngineResult>;
     process_handshake(message_in: string): Promise<EngineResult>;
     create_bet(type: bet_type, amount: BigNumber): Promise<EngineResult>;

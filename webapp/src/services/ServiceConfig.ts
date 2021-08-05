@@ -95,4 +95,12 @@ export class ServiceConfig {
     public setSigner(_signerIndex: number) {
         this.signerIndex = _signerIndex;
     }
+
+    public static isEncryptionEnabled(): boolean {
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.has("encryption") && searchParams.get("encryption") == "off") {
+            return false;
+        }
+        return true;
+    }
 }
