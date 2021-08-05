@@ -14,7 +14,7 @@ class player {
 protected:
     int _id;
     int _opponent_id;
-    participant _p;
+    participant* _p;
     referee _r;
 
     // saved initialization arguments

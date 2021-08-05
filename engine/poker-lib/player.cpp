@@ -1,16 +1,18 @@
 #include "player.h"
 #include "compression.h"
+#include "tmcg_participant.h"
 
 namespace poker {
 
 player::player(int id)
     : _id(id),  _opponent_id(_id==ALICE ? BOB : ALICE),
       _alice_money(0), _bob_money(0), _big_blind(0),
-      _p(participant(id, 3, false))
+      _p(new tmcg_participant(id, 3, false))
 {
 }
 
 player::~player() {
+    delete _p;
 }
 
 game_error player::init(money_t alice_money, money_t bob_money, money_t big_blind) {
@@ -40,12 +42,12 @@ game_error player::create_handshake(std::string& msg_out) {
     msgout.bob_money = _bob_money;
     msgout.big_blind = _big_blind;
 
-    if ((res=_p.create_group(msgout.vtmf)))
+    if ((res=_p->create_group(msgout.vtmf)))
         return res;
     if ((res=_r.step_vtmf_group(msgout.vtmf)))
         return res;
 
-    if ((res=_p.generate_key(_my_key)))
+    if ((res=_p->generate_key(_my_key)))
         return res;
     msgout.alice_key = _my_key;
 
@@ -127,12 +129,12 @@ game_error player::handle_vtmf(msg_vtmf* msgin, message** out) {
     msgout->bob_money = _bob_money;
     msgout->big_blind = _big_blind;
 
-    if (_p.load_group(msgin->vtmf))
+    if (_p->load_group(msgin->vtmf))
         return PRR_CREATE_VTMF;
     if ((res=_r.step_vtmf_group(msgin->vtmf)))
         return res;
 
-    if ((res=_p.generate_key(_my_key)))
+    if ((res=_p->generate_key(_my_key)))
         return res;
     msgout->bob_key = _my_key;
 
@@ -160,15 +162,15 @@ game_error player::handle_vtmf_response(msg_vtmf_response* msgin, message** out)
         return PRR_BOB_MONEY_DIVERGES;
     if (_big_blind != msgin->big_blind)
         return PRR_BIG_BLIND_DIVERGES;
-
-    if ((res=_p.create_vsshe_group(msgout->vsshe)))
+    
+    if ((res=_p->create_vsshe_group(msgout->vsshe)))
         return res; ////PRR_CREATE_VSSHE;
     if ((res=_r.step_vsshe_group(msgout->vsshe)))
         return res;
-    if (_p.create_stack())
+    if (_p->create_stack())
         return PRR_CREATE_STACK;
 
-    if (_p.shuffle_stack(msgout->stack, msgout->stack_proof))
+    if (_p->shuffle_stack(msgout->stack, msgout->stack_proof))
         return PRR_SHUFFLE_STACK;
     if ((res=_r.step_alice_mix(msgout->stack, msgout->stack_proof)))
         return res;
@@ -184,20 +186,20 @@ game_error player::handle_vsshe(msg_vsshe* msgin, message** out) {
     game_error res;
     auto msgout = new msg_vsshe_response();
     *out = msgout;
-
-    if ((res=_p.load_vsshe_group(msgin->vsshe)))
+    
+    if ((res=_p->load_vsshe_group(msgin->vsshe)))
         return res; ////PRR_CREATE_VSSHE;
     if ((res=_r.step_vsshe_group(msgin->vsshe)))
         return res;
-    if (_p.create_stack())
+    if (_p->create_stack())
         return PRR_CREATE_STACK;
 
-    if (_p.load_stack(msgin->stack, msgin->stack_proof))
+    if (_p->load_stack(msgin->stack, msgin->stack_proof))
         return PRR_LOAD_STACK;
     if ((res=_r.step_alice_mix(msgin->stack, msgin->stack_proof)))
         return res;
 
-    if (_p.shuffle_stack(msgout->stack, msgout->stack_proof))
+    if (_p->shuffle_stack(msgout->stack, msgout->stack_proof))
         return PRR_SHUFFLE_STACK;
     if ((res=_r.step_bob_mix(msgout->stack, msgout->stack_proof)))
         return res;
@@ -205,7 +207,7 @@ game_error player::handle_vsshe(msg_vsshe* msgin, message** out) {
     blob mix, proof;
     if ((res=_r.step_final_mix(mix, proof)))
         return res;
-    if (_p.load_stack(mix, proof))
+    if (_p->load_stack(mix, proof))
         return PRR_LOAD_FINAL_STACK;
 
     if ((res=deal_cards()))
@@ -228,7 +230,7 @@ game_error player::handle_vsshe_response(msg_vsshe_response* msgin, message** ou
     auto msgout = new msg_bob_private_cards();
     *out = msgout;
 
-    if (_p.load_stack(msgin->stack, msgin->stack_proof))
+    if (_p->load_stack(msgin->stack, msgin->stack_proof))
         return PRR_LOAD_STACK;
     if ((res=_r.step_bob_mix(msgin->stack, msgin->stack_proof)))
         return res;
@@ -236,7 +238,7 @@ game_error player::handle_vsshe_response(msg_vsshe_response* msgin, message** ou
     blob mix, proof;
     if ((res=_r.step_final_mix(mix, proof)))
         return res;
-    if (_p.load_stack(mix, proof))
+    if (_p->load_stack(mix, proof))
         return PRR_LOAD_FINAL_STACK;
 
     if ((res=deal_cards()))
@@ -407,7 +409,7 @@ game_error player::handle_card_proof(msg_card_proof* msgin) {
 
 game_error player::make_card_proof(blob& dst, int start_card_ix, int count) {
     for(auto i=start_card_ix; i < start_card_ix+count; i++) {
-        if (_p.prove_card_secret(i, dst))
+        if (_p->prove_card_secret(i, dst))
             return PRR_PROVE_OPPONENT_PRIVATE;
     }
     return SUCCESS;
@@ -415,7 +417,7 @@ game_error player::make_card_proof(blob& dst, int start_card_ix, int count) {
 
 game_error player::generate_key(blob& key) {
     game_error res;
-    if (_p.generate_key(_my_key))
+    if (_p->generate_key(_my_key))
         return PRR_GENERATE_KEY;
     key.set_data(_my_key.get_data());
     return SUCCESS;
@@ -430,12 +432,12 @@ game_error player::load_opponent_key(blob &key) {
     if ((res=_r.step_load_keys(alice_key, bob_key, eve_key)))
         return res;
 
-    if (_p.load_their_key(key))
+    if (_p->load_their_key(key))
         return PRR_LOAD_KEY;
-    if (_p.load_their_key(eve_key))
+    if (_p->load_their_key(eve_key))
         return PRR_LOAD_EVE_KEY;
 
-    if ((res=_p.finalize_key_generation()))
+    if ((res=_p->finalize_key_generation()))
         return res; ////PRR_FINALIZE_KEY_GENERATION;
 
     _my_key.clear();
@@ -444,7 +446,7 @@ game_error player::load_opponent_key(blob &key) {
 
 game_error player::deal_cards() {
     game_error res;
-    if (_p.take_cards_from_stack(NUM_CARDS))
+    if (_p->take_cards_from_stack(NUM_CARDS))
         return PRR_TAKE_CARDS_FROM_STACK;
     if ((res=_r.step_take_cards_from_stack()))
         return res;
@@ -455,7 +457,7 @@ game_error player::deal_cards() {
 game_error player::prove_opponent_cards(blob& proofs) {
     for(auto i=0; i<NUM_PRIVATE_CARDS; i++) {
         auto card_index = private_card_index(_opponent_id, i);
-        if (_p.prove_card_secret(card_index, proofs))
+        if (_p->prove_card_secret(card_index, proofs))
             return PRR_PROVE_OPPONENT_PRIVATE;
     }
     return SUCCESS;
@@ -466,7 +468,7 @@ game_error player::open_private_cards(blob& their_proof) {
     blob my_proofs;
     for(auto i=0; i<NUM_PRIVATE_CARDS; i++) {
         auto card_index = private_card_index(_id, i);
-        if (_p.prove_card_secret(card_index, my_proofs))
+        if (_p->prove_card_secret(card_index, my_proofs))
             return PRR_OPEN_MY_PRIVATE_CARDS;
     }
     auto alice_proofs = _id == ALICE ? my_proofs : their_proof;

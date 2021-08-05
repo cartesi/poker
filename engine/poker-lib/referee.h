@@ -12,7 +12,7 @@ namespace poker {
 */
 class referee {
     game_state  _g;
-    participant _eve;
+    participant* _eve;
     game_step   _step;
 public:    
     referee();
