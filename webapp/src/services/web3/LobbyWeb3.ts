@@ -70,14 +70,14 @@ export class LobbyWeb3 {
         // retrieves validator addresses for the selected chain
         const validators = GameConstants.VALIDATORS[chainId];
         if (!validators || !validators.length) {
-            console.error('No validators defined for the selected chain with ID ' + chainId);
+            console.error("No validators defined for the selected chain with ID " + chainId);
         }
 
         // Encode player infos
         let encodedPlayerInfo = Web3Utils.toUint8Array(playerInfo);
 
         // joins game by calling Lobby smart contract
-        await Web3Utils.sendTransaction("joinGame", async() => {
+        await Web3Utils.sendTransaction("joinGame", async () => {
             const tx = await lobbyContract.joinGame(
                 GameConstants.GAME_TEMPLATE_HASH,
                 GameConstants.GAME_METADATA,
@@ -88,9 +88,7 @@ export class LobbyWeb3 {
                 playerFunds,
                 encodedPlayerInfo
             );
-            console.log(
-                `Submitted join game request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
-            );
+            console.log(`Submitted join game request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
         });
     }
 }

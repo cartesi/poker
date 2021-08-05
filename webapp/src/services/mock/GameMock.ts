@@ -42,11 +42,11 @@ export class GameMock implements Game {
         this.opponent = this.player == ALICE ? BOB : ALICE;
         this.playerBets = BigNumber.from(0);
         this.opponentBets = BigNumber.from(0);
-        this.onEvent = onEvent ? onEvent : () => { };
-        this.onEnd = onEnd ? onEnd : () => { };
-        this.onBetRequested = onBetRequested ? onBetRequested : () => { };
-        this.onBetsReceived = onBetsReceived ? onBetsReceived : () => { };
-        this.onVerification = onVerification ? onVerification : () => { };
+        this.onEvent = onEvent ? onEvent : () => {};
+        this.onEnd = onEnd ? onEnd : () => {};
+        this.onBetRequested = onBetRequested ? onBetRequested : () => {};
+        this.onBetsReceived = onBetsReceived ? onBetsReceived : () => {};
+        this.onVerification = onVerification ? onVerification : () => {};
     }
 
     start(): Promise<void> {
@@ -61,13 +61,13 @@ export class GameMock implements Game {
         this.verificationState = VerificationState.NONE;
 
         // sets up fixed internal TurnBasedGame callbacks
-        this.turnBasedGame.receiveResultClaimed()
-            .then((claimedResult) => { this._resultReceived(claimedResult) });
-        this.turnBasedGame.receiveGameOver()
-            .then((fundsShare) => this._gameOverReceived(fundsShare));
+        this.turnBasedGame.receiveResultClaimed().then((claimedResult) => {
+            this._resultReceived(claimedResult);
+        });
+        this.turnBasedGame.receiveGameOver().then((fundsShare) => this._gameOverReceived(fundsShare));
         this.turnBasedGame.receiveGameChallenged(this._verificationReceived.bind(this));
         // this.turnBasedGame.receiveVerificationUpdate(this._verificationReceived.bind(this));
-        
+
         const promise = new Promise<void>((resolve) => {
             setTimeout(async () => {
                 if (this.player == ALICE) {
@@ -78,7 +78,7 @@ export class GameMock implements Game {
                     // defines initial info and sends it: group info (cryptoStuff) + key
                     this.cryptoStuff = "xkdkeoejf";
                     this.mykey = "ALICEKEY";
-                    const initialInfo = JSON.stringify({"cryptoStuff": this.cryptoStuff, "key": this.mykey});
+                    const initialInfo = JSON.stringify({ cryptoStuff: this.cryptoStuff, key: this.mykey });
                     this.onEvent(`Sending initial info ${initialInfo}...`);
                     await this.turnBasedGame.submitTurn(initialInfo);
 
@@ -98,14 +98,13 @@ export class GameMock implements Game {
 
                     // awaits for Bob's reshuffled deck
                     this._deckReceived(await this.turnBasedGame.receiveTurnOver());
-
                 } else {
                     // BOB
                     this.playerBets = BigNumber.from(2);
                     this.opponentBets = BigNumber.from(1);
 
                     // waits for Alice's "cryptostuff" (group info) and key
-                    this._initialInfoReceived(await this.turnBasedGame.receiveTurnOver())
+                    this._initialInfoReceived(await this.turnBasedGame.receiveTurnOver());
 
                     // defines key and sends it
                     this.mykey = "BOBKEY";
@@ -124,7 +123,6 @@ export class GameMock implements Game {
                 // advances state to start game (will deal private cards)
                 await this._advanceState();
                 resolve();
-
             }, 5000);
         });
         return promise;
@@ -521,8 +519,7 @@ export class GameMock implements Game {
         }
         if (this.player == this.betLeader) {
             // bet leader: will react when opponent's bet is received
-            this.turnBasedGame.receiveTurnOver()
-                .then((data) => this._betsReceived(data));
+            this.turnBasedGame.receiveTurnOver().then((data) => this._betsReceived(data));
         } else if (this.playerBets.eq(this.opponentBets)) {
             // player is not leading the round and has matched opponent bets: betting round is complete
             this._advanceState();
@@ -594,8 +591,7 @@ export class GameMock implements Game {
                 this.onBetRequested();
             } else {
                 // the other player will react after the first bet
-                this.turnBasedGame.receiveTurnOver()
-                    .then((data) => this._betsReceived(data));
+                this.turnBasedGame.receiveTurnOver().then((data) => this._betsReceived(data));
             }
             this.onEvent(this.state, EventType.UPDATE_STATE);
         }

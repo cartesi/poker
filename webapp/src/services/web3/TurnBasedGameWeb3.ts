@@ -168,7 +168,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             console.log(
                 `Result was claimed for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
             );
-        })
+        });
     }
     async onClaimResult(gameIndex, claimedResult, claimer) {
         const player = await this.getPlayerAddress();
