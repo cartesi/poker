@@ -23,7 +23,7 @@ static inline poker::player* read_player(char*& p) {
     return res;
 }
 
-// Reads INT from memory and advances pointer
+// Reads money_t from memory and advances pointer
 static inline poker::money_t read_money(char*& p) {
     poker::money_t res;
     res.parse_string(p);
@@ -31,7 +31,7 @@ static inline poker::money_t read_money(char*& p) {
     return res;
 }
 
-// Reads money_t from memory and advances pointer
+// Reads INT from memory and advances pointer
 static inline INT read_int(char*& p) {
     auto res =  *reinterpret_cast<INT*>(p);
     p += sizeof(INT);
@@ -81,8 +81,9 @@ static inline void worker_respond(poker::money_t& p, bool final=true) {
 
 extern "C" {
 
-void API poker_init() {
-    poker::init_poker_lib();
+void API poker_init(char* msg) {
+    auto encryption = read_int(msg);
+    poker::init_poker_lib(encryption);
     auto res = poker::game_error::SUCCESS;
     worker_respond(res);
 }

@@ -10,7 +10,7 @@
 
 namespace poker {
 
-int init_poker_lib();
+int init_poker_lib(bool encryption);
 
 } // namespace poker
 

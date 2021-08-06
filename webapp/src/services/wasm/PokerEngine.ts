@@ -19,9 +19,9 @@ export class PokerEngine implements Engine {
         });
     }
 
-    async init(alice_funds: BigNumber, bob_funds: BigNumber, big_blind: BigNumber, encryption: boolean): Promise<EngineResult> {
+    async init(alice_funds: BigNumber, bob_funds: BigNumber, big_blind: BigNumber, encryption: boolean = true): Promise<EngineResult> {
         // Initialize libraries
-        await this._callWorker("poker_init", 0, () => StatusCode.SUCCESS);
+        await this._callWorker("poker_init", makeMessage(encryption), () => StatusCode.SUCCESS);
 
         // create player instance
         await this._callWorker("poker_new_player", makeMessage(this.player_id), (results) => {
@@ -139,6 +139,7 @@ function makeMessage(...args): Uint8Array {
             case "string":
                 buffers.push(enc.encode(v + "\0"));
                 break;
+            case "boolean":
             case "number":
                 const b = new ArrayBuffer(4);
                 const v32 = new Int32Array(b);

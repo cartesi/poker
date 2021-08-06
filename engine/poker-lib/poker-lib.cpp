@@ -4,7 +4,7 @@
 
 namespace poker {
 
-int init_poker_lib() {
+int init_poker_lib(bool encryption) {
     init_libTMCG();
     return 0;
 }
