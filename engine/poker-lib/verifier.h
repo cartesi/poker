@@ -7,6 +7,7 @@
 #include "codec.h"
 #include "referee.h"
 #include <memory>
+#include <vector>
 
 namespace poker {
 

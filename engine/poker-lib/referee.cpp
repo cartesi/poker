@@ -2,13 +2,13 @@
 
 #include "validator.h"
 #include "tmcg_participant.h"
+#include "service_locator.h"
 
 namespace poker {
 
 referee::referee()
-  : _step(game_step::INIT_GAME), _eve(new tmcg_participant(1+NUM_PLAYERS, NUM_PLAYERS, true /* predictable */))
-{
-}
+    : _step(game_step::INIT_GAME),
+      _eve(service_locator::get_instance().new_participant(1 + NUM_PLAYERS, NUM_PLAYERS, true /* predictable */)) {}
 
 referee::~referee() {
     delete _eve;
