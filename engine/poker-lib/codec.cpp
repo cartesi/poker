@@ -114,19 +114,12 @@ game_error decoder::read(std::string &v, char expected_pfx) {
     if (!_in.good() || pfx != expected_pfx) return COD_ERROR;
     _in >> len;
     if (_in.get() != separator) return COD_ERROR;
-    if (!_in.good()) return COD_ERROR;
-    int tt=0;
-    int last=0;
+    if (!_in.good()) return COD_ERROR;4
     if (len) {
         v.resize(len);
         for(int i=0; i<len && _in.good(); i++) {
             v[i] = _in.get();
-            if (_in.good()) last = v[i];
-            tt+=1;
         }
-    }
-    if (!_in.good()) {
-        std::cout << "--- tt=" << tt << " len=" << len << " last:" << last << std::endl;
     }
     return _in.good() ? SUCCESS : COD_ERROR;
 }
