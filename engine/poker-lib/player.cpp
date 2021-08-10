@@ -1,4 +1,5 @@
 #include "player.h"
+#include "compression.h"
 
 namespace poker {
 
@@ -24,12 +25,12 @@ game_error player::init(money_t alice_money, money_t bob_money, money_t big_blin
     logger << "init " << alice_money.to_string() << ","
          << bob_money.to_string() << ","
          << big_blind.to_string() << std::endl;
-        
+
 
     return SUCCESS;
 }
 
-game_error player::create_handshake(blob& msg_out) {
+game_error player::create_handshake(std::string& msg_out) {
     game_error res;
     if (_id != ALICE)
         return PRR_INVALID_PLAYER;
@@ -47,14 +48,20 @@ game_error player::create_handshake(blob& msg_out) {
     if ((res=_p.generate_key(_my_key)))
         return res;
     msgout.alice_key = _my_key;
-    msgout.write(msg_out.out());
-    return SUCCESS;
+
+    std::ostringstream os;
+    msgout.write(os);
+    return compress_and_wrap(os.str(), msg_out);
 }
 
-game_error player::process_handshake(blob& msg_in, blob& msg_out) {
+game_error player::process_handshake(std::string& msg_in, std::string& msg_out) {
     game_error res;
-    auto& is = msg_in.in(false);
-    auto& os = msg_out.out();
+
+    std::string decompressed;
+    if ((res=unwrap_and_decompress(msg_in, decompressed)))
+        return res;
+
+    auto is = std::istringstream(decompressed);
     message* msgin = NULL;
     if ((res=message::decode(is, &msgin)))
         return res;
@@ -80,18 +87,29 @@ game_error player::process_handshake(blob& msg_in, blob& msg_out) {
         default:
             return PRR_INVALID_MSG_TYPE;
     }
+
     logger << "res = " << res << std::endl;
+    std::ostringstream os;
     if ((res==SUCCESS || res==CONTINUED) && msgout)
         msgout->write(os);
-    
+
     delete msgin;
     delete msgout;
+
+    msg_out = "";
+    auto ostr = os.str();
+    if (ostr.size()) {
+        game_error r = compress_and_wrap(ostr, msg_out);
+        if (r)
+            return r;
+    }
+
     return res;
 }
 
 game_error player::handle_vtmf(msg_vtmf* msgin, message** out) {
     logger << "handle_vtmf...\n";
-    game_error res;    
+    game_error res;
     auto msgout = new msg_vtmf_response();
     *out = msgout;
 
@@ -142,7 +160,7 @@ game_error player::handle_vtmf_response(msg_vtmf_response* msgin, message** out)
         return PRR_BOB_MONEY_DIVERGES;
     if (_big_blind != msgin->big_blind)
         return PRR_BIG_BLIND_DIVERGES;
-    
+
     if ((res=_p.create_vsshe_group(msgout->vsshe)))
         return res; ////PRR_CREATE_VSSHE;
     if ((res=_r.step_vsshe_group(msgout->vsshe)))
@@ -166,7 +184,7 @@ game_error player::handle_vsshe(msg_vsshe* msgin, message** out) {
     game_error res;
     auto msgout = new msg_vsshe_response();
     *out = msgout;
-    
+
     if ((res=_p.load_vsshe_group(msgin->vsshe)))
         return res; ////PRR_CREATE_VSSHE;
     if ((res=_r.step_vsshe_group(msgin->vsshe)))
@@ -197,7 +215,7 @@ game_error player::handle_vsshe(msg_vsshe* msgin, message** out) {
     if ((res=make_card_proof(_proof_of_their_cards, private_card_index(_opponent_id, 0), NUM_PRIVATE_CARDS)))
         return res;
     msgout->cards_proof = _proof_of_their_cards;
-    
+
     return CONTINUED;
 }
 
@@ -237,17 +255,17 @@ game_error player::handle_vsshe_response(msg_vsshe_response* msgin, message** ou
 
 game_error player::handle_bob_private_cards(msg_bob_private_cards* msgin) {
     logger << "handle_bob_private_cards...\n";
-    game_error res;    
+    game_error res;
     if (_id != BOB)
         return PRR_INVALID_PLAYER;
-    
+
     if ((res=open_private_cards(msgin->cards_proof)))
         return res;
 
     return SUCCESS;
 }
 
-game_error player::create_bet(bet_type type, money_t amt, blob& msg_out) {
+game_error player::create_bet(bet_type type, money_t amt, std::string& msg_out) {
     logger << "create_bet...\n";
     game_error res;
     msg_bet_request msgout;
@@ -259,11 +277,12 @@ game_error player::create_bet(bet_type type, money_t amt, blob& msg_out) {
     if ((res=_r.bet(_id, type, amt)))
         return res;
 
+    std::ostringstream os;
     auto step_changed = _r.step() != step;
     if (step_changed) {
         if (type == BET_FOLD && _r.step() == game_step::GAME_OVER) {
-            msgout.write(msg_out.out());
-            return SUCCESS;
+            msgout.write(os);
+            return compress_and_wrap(os.str(), msg_out);
         }
 
         int first_card, count;
@@ -279,14 +298,21 @@ game_error player::create_bet(bet_type type, money_t amt, blob& msg_out) {
          _public_proofs[_r.step()] = msgout.cards_proof;
 
     }
-    msgout.write(msg_out.out());
+    msgout.write(os);
+    if ((res=compress_and_wrap(os.str(), msg_out)))
+        return res;
+
     return step_changed ? CONTINUED : SUCCESS;
 }
 
-game_error player::process_bet(blob& msg_in, blob& out, bet_type* out_type, money_t* out_amt) {
+game_error player::process_bet(std::string& msg_in, std::string& out, bet_type* out_type, money_t* out_amt) {
     game_error res;
-    auto& is = msg_in.in(false);
-    auto& os = out.out();
+
+    std::string decompressed;
+    if ((res=unwrap_and_decompress(msg_in, decompressed)))
+        return res;
+
+    auto is = std::istringstream(decompressed);
     message* msgin = NULL;
     if ((res=message::decode(is, &msgin)))
         return res;
@@ -310,10 +336,19 @@ game_error player::process_bet(blob& msg_in, blob& out, bet_type* out_type, mone
         default:
             return PRR_INVALID_MSG_TYPE;
     }
+    
+    std::ostringstream os;
     if ((res==SUCCESS || res==CONTINUED) && msgout)
         msgout->write(os);
+    
     delete msgin;
     delete msgout;
+
+    out = "";
+    auto ostr = os.str();
+    if (ostr.size())
+        return compress_and_wrap(ostr, out);
+
     return res;
 }
 

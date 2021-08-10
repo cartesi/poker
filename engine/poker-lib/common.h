@@ -51,6 +51,7 @@ enum game_step {
 enum game_error {
     SUCCESS = 0,
     CONTINUED = 1,
+    END_OF_STREAM = 2,
 
     // Referee errors
     ERR_GAME_OVER = 100,
@@ -75,7 +76,7 @@ enum game_error {
     ERR_OPEN_PUBLIC_VERIFY_BOB_SECRET,
     ERR_OPEN_PUBLIC_OPEN_CARD,
     ERR_BET_NOT_ALLOWED,
-    ERR_NOT_PLAYER_TURN,    
+    ERR_NOT_PLAYER_TURN,
     ERR_INVALID_OPEN_CARDS_STEP,
     ERR_BET_PHASE_MISMATCH,
 
@@ -101,7 +102,7 @@ enum game_error {
     PRR_ALICE_MONEY_DIVERGES,
     PRR_BOB_MONEY_DIVERGES,
     PRR_BIG_BLIND_DIVERGES,
-    
+
     // solver errors
     SRR_UNKNOWN_CARD = 300,
     SRR_DUPLICATE_CARD,
@@ -132,7 +133,7 @@ enum game_error {
     TMC_VERIFYCARDSECRET,
     TMC_INVALID_CARD_INDEX,
     TMC_PROVE_CARD,
-    
+
     // Verifier
     VRF_UNKNOWN_MSG_TYPE = 700,
     VRF_DECODE_ERROR,
@@ -142,9 +143,20 @@ enum game_error {
     VRF_CURRENT_PLAYER_MISMATCH,
     VRF_OPEN_ALICE_PRIVATE_CARDS,
     VRF_OPEN_BOB_PRIVATE_CARDS,
-    
+
     // Big number
-    BIG_UNPARSEABLE =800
+    BIG_UNPARSEABLE =800,
+
+    // Compression
+    CPR_COMPRESS_INIT = 900,
+    CPR_DECOMPRESS_INIT,
+    CPR_COMPRESS,
+    CPR_COMPRESS_FLUSH,
+    CPR_DECOMPRESS,
+    CPR_HEADER_TOO_SMALL,
+    CPR_PAYLOAD_TOO_SMALL,
+    CPR_UNPARSEABLE_LEN,
+    CPR_EOF,
 };
 
 constexpr int private_card_index(int player, int card) {
@@ -172,6 +184,8 @@ constexpr int opponent_id(int player) {
 }
 
 game_error public_cards_range(game_step step, int& first_card_index, int& card_count);
+
+game_error read_exactly(std::istream& in, int len, std::string& dst);
 
 }
 

@@ -3,6 +3,7 @@
 
 #include <istream>
 #include "common.h"
+#include "messages.h"
 #include "codec.h"
 #include "referee.h"
 #include <memory>

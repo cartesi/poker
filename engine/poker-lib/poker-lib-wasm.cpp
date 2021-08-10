@@ -62,13 +62,13 @@ static inline void worker_respond(poker::player* p, bool final=true) {
     worker_respond(data, sizeof(INT), final);
 }
 
-static inline void worker_respond(poker::blob& p, bool final=true) {
-    worker_respond((char*)p.get_data(), p.size(), final);
+static inline void worker_respond(const std::string& p, bool final=true) {
+    worker_respond((char*)p.data(), p.size(), final);
 }
 
-static inline void worker_respond(char *p, bool final=true) {
-    worker_respond(p, strlen(p), final);
-}
+///static inline void worker_respond(char *p, bool final=true) {
+///    worker_respond(p, strlen(p), final);
+///}
 
 static inline void worker_respond(poker::money_t& p, bool final=true) {
     auto tmp = p.to_string();
@@ -108,7 +108,7 @@ void API player_init(char* msg) {
 
 void API player_create_handshake(char* msg) {
     auto player = read_player(msg);
-    poker::blob msg_out;
+    std::string msg_out;
     auto res = player->create_handshake(msg_out);
     worker_respond(res, false);
     worker_respond(msg_out, true);
@@ -116,9 +116,9 @@ void API player_create_handshake(char* msg) {
 
 void API player_process_handshake(char* msg) {
     auto player = read_player(msg);
-    poker::blob msg_in;
-    msg_in.set_data(msg);
-    poker::blob msg_out;
+    auto msglen = read_int(msg);
+    std::string msg_in(msg, msglen);
+    std::string msg_out;
     auto res = player->process_handshake(msg_in, msg_out);
     worker_respond(res, false);
     worker_respond(msg_out, true);
@@ -128,7 +128,7 @@ void API player_create_bet(char* msg) {
     auto player = read_player(msg);
     auto type = read_int(msg);
     auto amt = read_money(msg);
-    poker::blob msg_out;
+    std::string msg_out;
     auto res = player->create_bet((poker::bet_type)type, amt, msg_out);
     worker_respond(res, false);
     worker_respond(msg_out, true);
@@ -138,9 +138,9 @@ void API player_process_bet(char* msg) {
     poker::bet_type type=poker::bet_type::BET_NONE;
     poker::money_t amt=0;
     auto player = read_player(msg);
-    poker::blob msg_in;
-    msg_in.set_data(msg);
-    poker::blob msg_out;
+    auto msglen = read_int(msg);
+    std::string msg_in(msg, msglen);
+    std::string msg_out;
     auto res = player->process_bet(msg_in, msg_out, &type, &amt);
     worker_respond(res, false);
     worker_respond((INT)type, false);
@@ -171,7 +171,7 @@ void API player_game_state(char* msg) {
         p0.id, p0.total_funds.to_string().c_str(), p0.bets.to_string().c_str(), p0.cards[0], p0.cards[1],
         p1.id, p1.total_funds.to_string().c_str(), p1.bets.to_string().c_str(), p1.cards[0], p1.cards[1]);
 
-    worker_respond(json);
+    worker_respond(std::string(json));
 }
 
 } // extern "C"

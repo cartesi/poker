@@ -1,5 +1,6 @@
 #include <sstream>
 #include "codec.h"
+#include "compression.h"
 
 namespace poker {
 
@@ -10,6 +11,9 @@ static const char pfx_bignumber = '%';
 static const char separator = '|';
 
 encoder::encoder(std::ostream& out) : _out(out),  _written(0) {
+}
+
+encoder::~encoder() {
 }
 
 game_error encoder::write(int v) {
@@ -46,8 +50,13 @@ game_error encoder::write(const char* v, int len, char pfx) {
     ss << pfx << len << separator;
     auto s = ss.str();
     _out << s;
-    if (len)
-        _out.write(v, len);
+    if (len) {
+        for(int i=0; i<len; i++) {
+            _out.write(v+i, 1);
+            if (!_out.good())
+                return COD_ERROR;
+        }
+    }
     _written += len + s.size();
     return SUCCESS;
 }
@@ -106,10 +115,18 @@ game_error decoder::read(std::string &v, char expected_pfx) {
     _in >> len;
     if (_in.get() != separator) return COD_ERROR;
     if (!_in.good()) return COD_ERROR;
+    int tt=0;
+    int last=0;
     if (len) {
         v.resize(len);
-        for(int i=0; i<len && _in.good(); i++)
+        for(int i=0; i<len && _in.good(); i++) {
             v[i] = _in.get();
+            if (_in.good()) last = v[i];
+            tt+=1;
+        }
+    }
+    if (!_in.good()) {
+        std::cout << "--- tt=" << tt << " len=" << len << " last:" << last << std::endl;
     }
     return _in.good() ? SUCCESS : COD_ERROR;
 }
@@ -118,7 +135,7 @@ game_error decoder::read(blob& v) {
     std::string s;
     auto res = read(s, pfx_string);
     if (res) return res;
-    v.set_data(s.c_str());
+    v.set_data(s);
     return SUCCESS;
 }
 
@@ -140,256 +157,5 @@ game_error decoder::skip_padding() {
     }
     return _in.good() ? SUCCESS : COD_ERROR;
 }
-
-message::message(message_type t) : msgtype(t) {
-    
-}
-
-msg_vtmf::msg_vtmf() : message(MSG_VTMF) {
-    
-}
-
-game_error msg_vtmf::write(std::ostream& os)  {
-    game_error res;
-    encoder out(os);
-    if ((res=out.write(msgtype))) return res;
-    if ((res=out.write(alice_money))) return res;
-    if ((res=out.write(bob_money))) return res;
-    if ((res=out.write(big_blind))) return res;
-    if ((res=out.write(vtmf))) return res;
-    if ((res=out.write(alice_key))) return res;
-    out.pad(padding_size);
-    return SUCCESS;
-}
-
-game_error msg_vtmf::read(std::istream& is)  {
-    game_error res;
-    decoder in(is);
-    if ((res=in.read(alice_money))) return res;
-    if ((res=in.read(bob_money))) return res;
-    if ((res=in.read(big_blind))) return res;
-    if ((res=in.read(vtmf))) return res;
-    if ((res=in.read(alice_key))) return res;
-    return SUCCESS;
-}
-
-std::string msg_vtmf::to_string() {
-    return "msg_vtmf::";
-}
-
-msg_vtmf_response::msg_vtmf_response() : message(MSG_VTMF_RESPONSE) {
-}
-
-game_error msg_vtmf_response::write(std::ostream& os)  {
-    game_error res;
-    encoder out(os);
-    if ((res=out.write(msgtype))) return res;
-    if ((res=out.write(alice_money))) return res;
-    if ((res=out.write(bob_money))) return res;
-    if ((res=out.write(big_blind))) return res;
-    if ((res=out.write(bob_key))) return res;
-    out.pad(padding_size);
-    return SUCCESS;
-}
-
-game_error msg_vtmf_response::read(std::istream& is)  {
-    game_error res;
-    decoder in(is);
-    if ((res=in.read(alice_money))) return res;
-    if ((res=in.read(bob_money))) return res;
-    if ((res=in.read(big_blind))) return res;
-    if ((res=in.read(bob_key))) return res;
-    return SUCCESS;
-}
-
-std::string msg_vtmf_response::to_string() {
-    return "msg_vtmf_response";
-}
-
-msg_vsshe::msg_vsshe() : message(MSG_VSSHE) { 
-}
-
-game_error msg_vsshe::write(std::ostream& os)  {
-    game_error res;
-    encoder out(os);
-    if ((res=out.write(msgtype))) return res;
-    if ((res=out.write(vsshe))) return res;
-    if ((res=out.write(stack))) return res;
-    if ((res=out.write(stack_proof))) return res;
-    out.pad(padding_size);
-    return SUCCESS;
-}
-
-game_error msg_vsshe::read(std::istream& is)  {
-    game_error res;
-    decoder in(is);
-    if ((res=in.read(vsshe))) return res;
-    if ((res=in.read(stack))) return res;
-    if ((res=in.read(stack_proof))) return res;
-    return SUCCESS;
-}
-
-std::string msg_vsshe::to_string() {
-    return "msg_vsshe";
-}
-
-msg_vsshe_response::msg_vsshe_response() : message(MSG_VSSHE_RESPONSE) { 
-}
-
-game_error msg_vsshe_response::write(std::ostream& os)  {
-    game_error res;
-    encoder out(os);
-    if ((res=out.write(msgtype))) return res;
-    if ((res=out.write(stack))) return res;
-    if ((res=out.write(stack_proof))) return res;
-    if ((res=out.write(cards_proof))) return res;
-    out.pad(padding_size);
-    return SUCCESS;
-}
-
-game_error msg_vsshe_response::read(std::istream& is)  {
-    game_error res;
-    decoder in(is);
-    if ((res=in.read(stack))) return res;
-    if ((res=in.read(stack_proof))) return res;
-    if ((res=in.read(cards_proof))) return res;
-    return SUCCESS;
-}
-
-std::string msg_vsshe_response::to_string() {
-    return "msg_vsshe_response";
-}
-
-msg_bob_private_cards::msg_bob_private_cards() : message(MSG_BOB_PRIVATE_CARDS) {
-}
-
-game_error msg_bob_private_cards::write(std::ostream& os)  {
-    game_error res;
-    encoder out(os);
-    if ((res=out.write(msgtype))) return res;
-    if ((res=out.write(cards_proof))) return res;
-    out.pad(padding_size);
-    return SUCCESS;
-}
-
-game_error msg_bob_private_cards::read(std::istream& is)  {
-    game_error res;
-    decoder in(is);
-    if ((res=in.read(cards_proof))) return res;
-    return SUCCESS;
-}
-
-std::string msg_bob_private_cards::to_string() {
-    return "msg_bob_private_cards";
-}
-
-msg_bet_request::msg_bet_request() : message(MSG_BET_REQUEST) {
-
-}
-
-game_error msg_bet_request::write(std::ostream& os)  {
-    game_error res;
-    encoder out(os);
-
-    if ((res=out.write(msgtype))) return res;
-    if ((res=out.write(player_id))) return res;
-    if ((res=out.write(type))) return res;
-    if ((res=out.write(amt))) return res;
-    if ((res=out.write(cards_proof))) return res;
-    out.pad(padding_size);
-    return SUCCESS;
-}
-
-game_error msg_bet_request::read(std::istream& is)  {
-    game_error res;
-    decoder in(is);
-    if ((res=in.read(player_id))) return res;
-    if ((res=in.read(type))) return res;
-    if ((res=in.read(amt))) return res;
-    if ((res=in.read(cards_proof))) return res;
-    return SUCCESS;
-}
-
-std::string msg_bet_request::to_string() {
-    std::stringstream ss;
-    ss << "msg_bet_request player:" << player_id
-       << " type:" << type << " amt: " << (int)amt;
-    return ss.str();
-}
-
-msg_card_proof::msg_card_proof() : message(MSG_CARD_PROOF) {
-}
-
-game_error msg_card_proof::write(std::ostream& os)  {
-    game_error res;
-    encoder out(os);
-    if ((res=out.write(msgtype))) return res;
-    if ((res=out.write(player_id))) return res;
-    if ((res=out.write(type))) return res;
-    if ((res=out.write(amt))) return res;
-    if ((res=out.write(cards_proof))) return res;
-    out.pad(padding_size);
-    return SUCCESS;
-}
-
-game_error msg_card_proof::read(std::istream& is)  {
-    game_error res;
-    decoder in(is);
-    if ((res=in.read(player_id))) return res;
-    if ((res=in.read(type))) return res;
-    if ((res=in.read(amt))) return res;
-    if ((res=in.read(cards_proof))) return res;
-    return SUCCESS;
-}
-
-std::string msg_card_proof::to_string() {
-    std::stringstream ss;
-    ss << "msg_card_proof player:" << player_id;
-    return ss.str();
-}
-
-
-game_error message::decode(std::istream& is, message** msg) {
-    game_error res;
-    decoder in(is);
-    message* m = NULL;
-    message_type type;
-    if ((res=in.read(type)))
-        return res;
-
-    switch(type) {
-        case MSG_VTMF: 
-            m = new msg_vtmf();
-            break;
-        case MSG_VTMF_RESPONSE:
-            m = new msg_vtmf_response();
-            break;
-        case MSG_VSSHE:
-            m = new msg_vsshe();
-            break;
-        case MSG_VSSHE_RESPONSE:
-            m = new msg_vsshe_response();
-            break;
-        case MSG_BOB_PRIVATE_CARDS:
-            m = new msg_bob_private_cards();
-            break;
-        case MSG_BET_REQUEST:
-            m = new msg_bet_request();
-            break;
-        case MSG_CARD_PROOF:
-            m = new msg_card_proof();
-            break;
-        default:
-            return COD_INVALID_MSG_TYPE;
-    }
-
-    if ((res=m->read(is))) {
-        delete m;
-        return res;
-    }
-    *msg = m;
-    return SUCCESS;
-}
-
 
 }

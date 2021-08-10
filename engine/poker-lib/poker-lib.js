@@ -30,16 +30,17 @@ class Player {
         return this.callWorker('player_create_handshake', makeMessage(this._p), (results) => {
             return { 
                 res: parseInt(results[0]),
-                msg_out: parseString(results[1])
+                msg_out: results[1]
             };
         });
     }
 
     async process_handshake(msg_in) {
-        return this.callWorker('player_process_handshake', makeMessage(this._p, msg_in), (results) => {
+        window.msg_in = msg_in
+      return this.callWorker('player_process_handshake', makeMessage(this._p, msg_in), (results) => {
             return { 
                 res: parseInt(results[0]),
-                msg_out: parseString(results[1])
+                msg_out: results[1]
             };
         });
     }
@@ -48,7 +49,7 @@ class Player {
         return this.callWorker('player_create_bet', makeMessage(this._p, type, to_bignumber(amt)), (results) => {
             return { 
                 res: parseInt(results[0]),
-                msg_out: parseString(results[1])
+                msg_out: results[1]
             };
         });
     }
@@ -59,7 +60,7 @@ class Player {
                 res: parseInt(results[0]),
                 betType: parseInt(results[1]),
                 amount: parseBignumber(results[2]),
-                msg_out: parseString(results[3])
+                msg_out: results[3]
             };
         });
     }
@@ -100,12 +101,12 @@ class Player {
 
 
 function makeMessage(...args) {
-  const enc = new TextEncoder('utf8')
+  const enc = new TextEncoder('ascii')
   const buffers = []
   for(var i in args) {
     v = args[i];
     const t = typeof v;
-    switch(t) {
+    switch(t) {      
       case 'string':
         buffers.push(enc.encode(v+"\0"));
         break;
@@ -116,7 +117,14 @@ function makeMessage(...args) {
         buffers.push(b);
         break;
       default:
-        throw new Error(`Unsupported type ${t}`);
+        if (v instanceof Uint8Array) {
+          const b = new ArrayBuffer(4)
+          const len = new Int32Array(b)
+          len[0] = v.byteLength;
+          buffers.push(b);
+          buffers.push(v.buffer);
+        } else
+          throw new Error(`*** Unsupported type ${t}`);
     }
   }
   const size = buffers.reduce((m,a)=>m+a.byteLength, 0);
@@ -138,7 +146,7 @@ function parseBignumber(buffer) {
 }
 
 function parseString(buffer) {
-    const dec = new TextDecoder('utf8')
+    const dec = new TextDecoder('ascii')
     return dec.decode(buffer.buffer)
 }
 

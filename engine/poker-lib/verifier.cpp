@@ -1,4 +1,5 @@
 #include "verifier.h"
+#include "compression.h"
 
 namespace poker {
 
@@ -11,9 +12,14 @@ verifier:: ~verifier() {
 game_error verifier::verify(std::istream& logfile) {
     game_error res;
     logger << "*** verifying game...\n";
-    message* msg = NULL;
-    while(SUCCESS == (res=message::decode(logfile, &msg))) {
-        logger << "*** " << msg->to_string() << std::endl;
+
+    std::string serialized_msg;
+    while(SUCCESS == (res=unwrap_and_decompress_next(logfile, serialized_msg))) {
+        message* msg = NULL;
+        std::istringstream is(serialized_msg);
+        if ((res=message::decode(is, &msg)))
+            return res;
+        logger << "*** msg->to_string()  " << msg->to_string() << std::endl;
         switch(msg->msgtype) {
             case MSG_VTMF:
                 res = handle_vtmf((msg_vtmf*)msg);
@@ -45,7 +51,7 @@ game_error verifier::verify(std::istream& logfile) {
             break;
     }
     logger << "*** verification finished. code: " << res << std::endl;
-    return SUCCESS;
+    return res == END_OF_STREAM ? SUCCESS : res;
 }
 
 game_error verifier::handle_vtmf(msg_vtmf* msg) {

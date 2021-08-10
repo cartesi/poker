@@ -48,7 +48,7 @@ void test_the_happy_path() {
     assert_eql(uk, bob.public_card(TURN));
     assert_eql(uk, bob.public_card(RIVER));
 
-    std::map<int, blob> msg; // messages exchanged during game
+    std::map<int, std::string> msg; // messages exchanged during game
 
     // Start handshake
     assert_eql(SUCCESS, alice.create_handshake(msg[0]));
@@ -57,7 +57,7 @@ void test_the_happy_path() {
     assert_eql(CONTINUED, bob.process_handshake(msg[2], msg[3]));
     assert_eql(SUCCESS, alice.process_handshake(msg[3], msg[4]));
     assert_eql(SUCCESS, bob.process_handshake(msg[4], msg[5]));
-    assert_eql(true, msg[5].empty());
+    assert_eql(true, msg[5].size()==0);
     // Handhsake finished
     assert_neq(uk, alice.private_card(0));
     assert_neq(uk, alice.private_card(1));
@@ -75,7 +75,7 @@ void test_the_happy_path() {
     assert_eql(game_step::PREFLOP_BET, alice.step());
     assert_eql(BOB, alice.current_player());
     assert_eql(SUCCESS, bob.process_bet(msg[5], msg[6]));
-    assert_eql(true, msg[6].empty());
+    assert_eql(true, msg[6].size()==0);
     assert_eql(game_step::PREFLOP_BET, bob.step()); 
     assert_eql(BOB, bob.current_player());
 
@@ -89,7 +89,7 @@ void test_the_happy_path() {
     assert_neq(uk, alice.public_card(FLOP(2)));
 
     assert_eql(SUCCESS, bob.process_bet(msg[7], msg[8]));    
-    assert_eql(true, msg[8].empty());
+    assert_eql(true, msg[8].size()==0);
     assert_eql(BOB, bob.current_player());
     assert_neq(uk, bob.public_card(FLOP(0)));
     assert_neq(uk, bob.public_card(FLOP(1)));
@@ -104,7 +104,7 @@ void test_the_happy_path() {
     assert_eql(ALICE, bob.current_player());
     assert_eql(game_step::FLOP_BET, alice.step());
     assert_eql(SUCCESS, alice.process_bet(msg[8], msg[9]));
-    assert_eql(true, msg[9].empty());
+    assert_eql(true, msg[9].size()==0);
     assert_eql(ALICE, alice.current_player());
 
     // Flop: Alice checks
@@ -112,7 +112,7 @@ void test_the_happy_path() {
     assert_eql(CONTINUED, alice.create_bet(BET_CHECK, 0, msg[9]));
     assert_eql(SUCCESS, bob.process_bet(msg[9], msg[10]));
     assert_eql(SUCCESS, alice.process_bet(msg[10], msg[11]));
-    assert_eql(true, msg[11].empty());
+    assert_eql(true, msg[11].size()==0);
     assert_eql(BOB, alice.current_player());
     assert_eql(BOB, bob.current_player());
     assert_neq(uk, bob.public_card(TURN));
@@ -129,7 +129,7 @@ void test_the_happy_path() {
     
     assert_eql(BET_RAISE, type);
     assert_eql(30, amt);
-    assert_eql(true, msg[12].empty());
+    assert_eql(true, msg[12].size()==0);
     assert_eql(ALICE, alice.current_player());
     assert_eql(ALICE, bob.current_player());
 
@@ -141,7 +141,7 @@ void test_the_happy_path() {
     assert_eql(SUCCESS, bob.process_bet(msg[12], msg[13]));
     assert_eql(40, bob.game().players[ALICE].bets);
     assert_eql(SUCCESS, alice.process_bet(msg[13], msg[14]));
-    assert_eql(true, msg[14].empty());   
+    assert_eql(true, msg[14].size()==0);   
     assert_eql(game_step::RIVER_BET, alice.step());
     assert_eql(game_step::RIVER_BET, bob.step());
     assert_eql(BOB, alice.current_player());
@@ -150,13 +150,13 @@ void test_the_happy_path() {
     // Bob checks
     assert_eql(SUCCESS, bob.create_bet(BET_CHECK, 0, msg[14]));
     assert_eql(SUCCESS, alice.process_bet(msg[14], msg[15], &type, &amt));
-    assert_eql(true, msg[15].empty());   
+    assert_eql(true, msg[15].size()==0);   
 
     // Alice checks
     assert_eql(CONTINUED, alice.create_bet(BET_CHECK, 0, msg[15]));
     assert_eql(SUCCESS, bob.process_bet(msg[15], msg[16], &type, &amt));
     assert_eql(SUCCESS, alice.process_bet(msg[16], msg[17], &type, &amt));
-    assert_eql(true, msg[17].empty());   
+    assert_eql(true, msg[17].size()==0);   
     assert_neq(uk, bob.public_card(RIVER));
     assert_neq(uk, alice.public_card(RIVER));
 
@@ -170,18 +170,22 @@ void test_the_happy_path() {
     assert_neq(-1, bob.winner());
     assert_eql(alice.winner(), bob.winner());
 
+    int max_size = 0;
     std::stringstream ss;
     for(auto&& i: msg) {
-        assert_eql(0, i.second.size() % padding_size);
-        ss << i.second.get_data();
+        ss << i.second;
+        if (i.second.size() > max_size)
+            max_size = i.second.size();
     }
+    std::cout << "--- max_size = " << max_size << std::endl;
 
     // save verifier fixture
     /*
     auto qs = ss.str();
-    FILE *fp = fopen("test-game-data.bin","w");
-    fwrite(qs.c_str(), qs.size(),1, fp);
+    FILE *fp = fopen("test-game-data.bin","wb");
+    fwrite(qs.data(), qs.size(),1, fp);
     fclose(fp);
+    std::cout << "wrote game log" << std::endl;
     */
 
 }
@@ -192,7 +196,7 @@ void test_fold() {
     player bob(BOB);
     assert_eql(SUCCESS, bob.init(100, 300, 10));
 
-    std::map<int, blob> msg; // messages exchanged during game
+    std::map<int, std::string> msg; // messages exchanged during game
 
     // Start handshake
     assert_eql(SUCCESS, alice.create_handshake(msg[0]));
@@ -201,20 +205,18 @@ void test_fold() {
     assert_eql(CONTINUED, bob.process_handshake(msg[2], msg[3]));
     assert_eql(SUCCESS, alice.process_handshake(msg[3], msg[4]));
     assert_eql(SUCCESS, bob.process_handshake(msg[4], msg[5]));
-    assert_eql(true, msg[5].empty());
+    assert_eql(true, msg[5].size()==0);
 
     // Preflop: Alice folds
     assert_eql(SUCCESS, alice.create_bet(BET_FOLD, 0, msg[5]));
     assert_eql(game_step::GAME_OVER, alice.step());
     assert_eql(SUCCESS, bob.process_bet(msg[5], msg[6]));
-    assert_eql(true, msg[6].empty());
+    assert_eql(true, msg[6].size()==0);
     assert_eql(game_step::GAME_OVER, bob.step());
     assert_eql(BOB, alice.winner());
     assert_eql(BOB, bob.winner());
 
 }
-
-
 
 int main(int argc, char** argv) {
     test_the_happy_path();

@@ -5,6 +5,9 @@ namespace poker {
 blob::blob() : _out(_data), _in(_data), _auto_rewind(true) {
 }
 
+blob::blob(const char* s) : _data(s), _out(_data), _in(_data), _auto_rewind(true) {
+}
+
 blob::blob(const blob &other) : _data(other._data), _out(_data), _in(_data) {
 }
 

@@ -25,4 +25,23 @@ game_error public_cards_range(game_step step, int& first_card_index, int& card_c
     return SUCCESS;
 }
 
+game_error read_exactly(std::istream& in, int len, std::string& dst) {
+    char tmp[4096];
+    dst = "";
+    while(len) {
+        if (!in.good())
+            return END_OF_STREAM;
+        int chunk = std::min(len, (int)sizeof(tmp));
+        in.read(tmp, chunk);
+        auto actual = in.gcount();
+        if (!in.good() || actual==0)
+            return END_OF_STREAM;
+        dst += std::string(tmp, actual);
+        len -= actual;
+    }
+    return SUCCESS;
+}
+
+
+
 }

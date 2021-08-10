@@ -19,8 +19,10 @@ void the_happy_path() {
     assert_eql(SUCCESS, e.write(4567));
     assert_eql(SUCCESS, e.write("bar"));
     assert_eql(SUCCESS, e.pad(padding));
-    assert_eql(SUCCESS, e.write("baz"));
+    blob baz("baz");
+    assert_eql(SUCCESS, e.write(baz));
     assert_eql(SUCCESS, e.pad(padding));
+
     assert_eql("#123|$3|foo#4567|$3|bar-------$3|baz----", ss.str());
 
     std::istringstream is(ss.str());

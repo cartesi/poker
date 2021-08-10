@@ -3,7 +3,7 @@
 
 #include <map>
 #include "referee.h"
-#include "codec.h"
+#include "messages.h"
 
 namespace poker {
 
@@ -39,7 +39,7 @@ public:
     /// Creates a handshake request.
     /// Only Alice is allowed to start a handshake
     /// msg_out must be sent to Bob
-    game_error create_handshake(blob& msg_out);
+    game_error create_handshake(std::string& msg_out);
 
     /// Processes a handshake message (msg_in) from the opponent player.
     /// Returns:
@@ -50,7 +50,7 @@ public:
     ///
     /// Upon successful return, checl msg_out.empty() to determine
     /// if it must be sent to the opponent
-    game_error process_handshake(blob& msg_in, blob& msg_out);
+    game_error process_handshake(std::string& msg_in, std::string& msg_out);
 
     /// Creates a bet request message (msg_out)
     /// Returns:
@@ -60,7 +60,7 @@ public:
     ///   Other non-zero codes indicate an error condition
     ///
     /// Upon successful result,current_player() indicates the next player to place a bet
-    game_error create_bet(bet_type type, money_t amt, blob& msg_out);
+    game_error create_bet(bet_type type, money_t amt, std::string& msg_out);
 
     /// Processes a bet message from the opponent player.
     /// Returns
@@ -70,7 +70,7 @@ public:
     /// Upon successful return, check msg_out.empty() to determine
     /// if it must be sent to the opponent.
     /// The bet type and amount will be copied to out_type and out_amt, if they are not null
-    game_error process_bet(blob& msg_in, blob& msg_out, bet_type* out_type=NULL, money_t* out_amt=NULL);
+    game_error process_bet(std::string& msg_in, std::string& msg_out, bet_type* out_type=NULL, money_t* out_amt=NULL);
 
     /// Property accessors
     game_step  step() { return _r.step(); }
@@ -105,4 +105,5 @@ private:
 };
 
 } // namespace poker
+
 #endif // PLAYER_H

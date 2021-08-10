@@ -1,17 +1,21 @@
 BUILD_BASE = /poker/build
 INSTALL_DIR = $(BUILD_BASE)/poker-lib
 CXX = g++
+
 CXXFLAGS = -I$(BUILD_BASE)/include/poker-eval -I$(BUILD_BASE)/include -L$(BUILD_BASE)/lib \
-           -lgpg-error -lgcrypt -lgmp -lTMCG -lpoker-eval
+           -lgpg-error -lgcrypt -lgmp -lTMCG -lpoker-eval 
 
 ifeq ($(POKER_BUILD_ENV),wasm)
 CXX = emcc
 CXXFLAGS += -O3 -s ALLOW_TABLE_GROWTH \
             -s ALLOW_MEMORY_GROWTH=1 \
+            -lbrotlidec-static -lbrotlienc-static -lbrotlicommon-static \
             -s BUILD_AS_WORKER=1 \
             -s EXPORTED_RUNTIME_METHODS=['cwrap, UTF8ToString, free'] \
             --bind -fexceptions -std=c++11
 LOADER = node
+else
+    CXXFLAGS += -lbrotlidec -lbrotlienc -lbrotlicommon  
 endif
 
 ifeq ($(POKER_BUILD_ENV),risc-v)
@@ -21,6 +25,7 @@ endif
 
 TESTS = test-solver \
     test-player \
+    test-compression \
     test-codec \
     test-validator  \
     test-bignumber
@@ -56,12 +61,14 @@ INSTALL_FILES += $(PROGRAMS)
 all: $(PROGRAMS)
 
 POKER_LIB_OBJS=common.o \
+            player.o \
+            messages.o \
+            compression.o \
             bignumber.o \
             solver.o \
             participant.o \
             poker-lib.o \
             referee.o \
-            player.o \
             game-state.o \
             blob.o \
             verifier.o \

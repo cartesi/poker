@@ -16,7 +16,6 @@ public:
         set_libtmcg_cartesi_predictable(p->predictable());
     }
     ~libtmcg_guard() {
-        //logger << "<<< unpatching libtmcg\n" << std::endl;
         set_libtmcg_cartesi_predictable(0);
     }
 };
