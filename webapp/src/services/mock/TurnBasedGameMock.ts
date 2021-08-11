@@ -55,8 +55,10 @@ export class TurnBasedGameMock implements TurnBasedGame {
             this.turnDataQueue.unshift(data);
             return;
         }
-        resolve(data);
-        this.dispatchTurn();
+        setTimeout(() => {
+            resolve(data);
+            this.dispatchTurn();
+        }, 10)
     }
     //
     // CLAIM RESULT HANDLING

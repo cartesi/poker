@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { Card } from "../Card";
 import { BetType, EventType, Game, GameState, GameStates, VerificationState, VerificationStates } from "../Game";
 import { PokerSolver } from "../PokerSolver";
@@ -78,9 +78,9 @@ export class GameMock implements Game {
                     // defines initial info and sends it: group info (cryptoStuff) + key
                     this.cryptoStuff = "xkdkeoejf";
                     this.mykey = "ALICEKEY";
-                    const initialInfo = JSON.stringify({ cryptoStuff: this.cryptoStuff, key: this.mykey });
-                    this.onEvent(`Sending initial info ${initialInfo}...`);
-                    await this.turnBasedGame.submitTurn(initialInfo);
+                    const initialInfo = { cryptoStuff: this.cryptoStuff, key: this.mykey };
+                    this.onEvent(`Sending initial info ${JSON.stringify(initialInfo)}...`);
+                    await this._submitTurn(initialInfo);
 
                     // TODO: try to get this into GameFactory?
                     if (this.gameOpponent) {
@@ -94,7 +94,7 @@ export class GameMock implements Game {
                     // shuffles deck and sends it over
                     this._shuffleDeck();
                     this.onEvent(`Sending shuffled deck...`);
-                    await this.turnBasedGame.submitTurn(JSON.stringify(this.deck));
+                    await this._submitTurn(this.deck);
 
                     // awaits for Bob's reshuffled deck
                     this._deckReceived(await this.turnBasedGame.receiveTurnOver());
@@ -109,7 +109,7 @@ export class GameMock implements Game {
                     // defines key and sends it
                     this.mykey = "BOBKEY";
                     this.onEvent(`Sending key ${this.mykey}`);
-                    await this.turnBasedGame.submitTurn(this.mykey);
+                    await this._submitTurn(this.mykey);
 
                     // waits for Alice's shuffled deck
                     this._deckReceived(await this.turnBasedGame.receiveTurnOver());
@@ -117,7 +117,7 @@ export class GameMock implements Game {
                     // reshuffles deck and sends it back
                     this._shuffleDeck();
                     this.onEvent(`Sending reshuffled deck...`);
-                    await this.turnBasedGame.submitTurn(JSON.stringify(this.deck));
+                    await this._submitTurn(this.deck);
                 }
 
                 // advances state to start game (will deal private cards)
@@ -147,7 +147,7 @@ export class GameMock implements Game {
         if (this.opponentBets.eq(this.playerBets) && this.state != GameState.SHOWDOWN) {
             throw "Fold not allowed because player and opponent bets are equal: use check instead";
         }
-        await this.turnBasedGame.submitTurn("FOLD");
+        await this._submitTurn("FOLD");
         this._computeResultPlayerFold();
     }
 
@@ -280,22 +280,29 @@ export class GameMock implements Game {
         }
     }
 
-    _initialInfoReceived(stuff) {
-        this.onEvent(`initialInfoReceived ${stuff}`);
-        const stuffObj = JSON.parse(stuff);
-        this.cryptoStuff = stuffObj.cryptoStuff;
-        this.key = stuffObj.key;
+    async _submitTurn(data: any) {
+        await this.turnBasedGame.submitTurn(ethers.utils.toUtf8Bytes(JSON.stringify(data)));
     }
 
-    _keyReceived(key) {
-        this.onEvent(`keyReceived ${key}`);
-        this.key = key;
+    _decodeTurnData(data: Uint8Array): any {
+        return JSON.parse(ethers.utils.toUtf8String(data));
     }
 
-    _deckReceived(deck) {
-        this.onEvent(`deckReceived ${deck}`);
-        this.deck = JSON.parse(deck);
-        this.onEvent(`myDeck ${JSON.stringify(this.deck)}`);
+    _initialInfoReceived(data) {
+        const stuff = this._decodeTurnData(data);
+        this.onEvent(`initialInfoReceived ${JSON.stringify(stuff)}`);
+        this.cryptoStuff = stuff.cryptoStuff;
+        this.key = stuff.key;
+    }
+
+    _keyReceived(data) {
+        this.key = this._decodeTurnData(data);
+        this.onEvent(`keyReceived ${this.key}`);
+    }
+
+    _deckReceived(data) {
+        this.deck = this._decodeTurnData(data);
+        this.onEvent(`deckReceived ${JSON.stringify(this.deck)}`);
     }
 
     _shuffleDeck() {
@@ -356,7 +363,7 @@ export class GameMock implements Game {
             decryptedCards[cardIndex] = this.cheat.isCardCoopCheatOn ? card : this._decryptCard(card);
         }
 
-        await this.turnBasedGame.submitTurn(JSON.stringify(decryptedCards));
+        await this._submitTurn(decryptedCards);
     }
 
     async _dealPrivateCards() {
@@ -445,7 +452,8 @@ export class GameMock implements Game {
         }
     }
 
-    async _decryptedCardsReceived(cards) {
+    async _decryptedCardsReceived(data) {
+        const cards = this._decodeTurnData(data);
         this.onEvent(`decryptedCardsReceived ${JSON.stringify(cards)}`);
 
         if (cards == "FOLD") {
@@ -456,7 +464,6 @@ export class GameMock implements Game {
         }
 
         // updates deck
-        cards = JSON.parse(cards);
         for (const [index, card] of Object.entries(cards)) {
             if (!(card as string).match(VALID_CARD_PATTERN)) {
                 // cheat detected: triggers verification
@@ -510,7 +517,7 @@ export class GameMock implements Game {
         }
 
         // sends new bets over
-        await this.turnBasedGame.submitTurn(newPlayerBets.toString());
+        await this._submitTurn(newPlayerBets);
 
         this.playerBets = newPlayerBets;
         if (this.playerBets.gt(this.opponentBets)) {
@@ -526,7 +533,8 @@ export class GameMock implements Game {
         }
     }
 
-    async _betsReceived(opponentBets) {
+    async _betsReceived(data) {
+        let opponentBets = this._decodeTurnData(data);
         if (opponentBets == "FOLD") {
             // opponent gave up
             this.onBetsReceived(BetType.FOLD, 0);
