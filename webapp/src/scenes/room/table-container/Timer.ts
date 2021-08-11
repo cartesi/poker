@@ -1,5 +1,4 @@
 import { RoomManager } from '../RoomManager';
-import { GameConstants } from "../../../GameConstants";
 
 export class Timer extends Phaser.GameObjects.Container {
 
@@ -7,6 +6,7 @@ export class Timer extends Phaser.GameObjects.Container {
 
     private timeout: number;
     private interval: NodeJS.Timeout;
+    private tween: Phaser.Tweens.Tween;
 
     constructor(scene: Phaser.Scene, private isPlayer: boolean) {
 
@@ -52,6 +52,12 @@ export class Timer extends Phaser.GameObjects.Container {
 
     public pause(): void {
 
+        if (this.tween) {
+            this.tween.stop();
+        }
+        this.value.alpha = 1;
+        this.value.setColor("#FFFFFF");
+
         this.hide();
 
         clearInterval(this.interval);
@@ -70,7 +76,28 @@ export class Timer extends Phaser.GameObjects.Container {
             this.timeout--;
             this.value.text = new Date(this.timeout * 1000).toISOString().substr(15, 4);
 
+            if (this.timeout <= 10) {
+                this.value.setColor("#ff4747");
+            } else {
+                this.value.setColor("#FFFFFF");
+            }
+
+            if (this.timeout === 10) {
+                this.tween = this.scene.tweens.add({
+                    targets: this.value,
+                    alpha: 0,
+                    ease: Phaser.Math.Easing.Linear,
+                    duration: 500,
+                    yoyo: true,
+                    repeat: -1
+                }); 
+            }
+
             if (this.timeout === 0) {
+                if (this.tween) {
+                    this.tween.stop();
+                }
+                this.value.alpha = 1;
                 clearInterval(this.interval);
                 RoomManager.onTimeOut(this.isPlayer);
             }
