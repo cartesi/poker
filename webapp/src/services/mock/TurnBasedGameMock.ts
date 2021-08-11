@@ -29,7 +29,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
 
     // turn submission
-    submitTurn(data: string): Promise<string> {
+    submitTurn(data: Uint8Array): Promise<Uint8Array> {
         return new Promise((resolve, reject) => {
             try {
                 this.other.turnDataQueue.push(data);
@@ -42,7 +42,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
 
     receiveTurnOver() {
-        return new Promise<string>((resolve) => {
+        return new Promise<Uint8Array>((resolve) => {
             this.onTurnOverReceivedResolvers.push(resolve);
             this.dispatchTurn();
         });

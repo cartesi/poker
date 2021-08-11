@@ -85,14 +85,13 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     }
 
     // TURN SUBMISSION
-    async submitTurn(data: string): Promise<string> {
+    async submitTurn(data: Uint8Array): Promise<Uint8Array> {
         await this.initWeb3();
-        const payload = ethers.utils.toUtf8Bytes(data);
 
         await Web3Utils.sendTransaction("submitTurn", async () => {
             const context = await this.gameContract.getContext(this.gameIndex);
             const turnIndex = context.turns.length;
-            const tx = await this.gameContract.submitTurn(this.gameIndex, turnIndex, payload);
+            const tx = await this.gameContract.submitTurn(this.gameIndex, turnIndex, data);
             console.log(
                 `Submitted turn '${turnIndex}' for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
             );
@@ -117,7 +116,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         this.dispatchTurn();
     }
     async receiveTurnOver() {
-        return new Promise<string>(async (resolve) => {
+        return new Promise<Uint8Array>(async (resolve) => {
             await this.initWeb3();
             this.onTurnOverReceivedResolvers.push(resolve);
             this.dispatchTurn();
@@ -152,8 +151,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         if (nullTerminationIndex != -1) {
             dataBytes = dataBytesPadded.subarray(0, dataBytesPadded.indexOf(0));
         }
-        const data = ethers.utils.toUtf8String(dataBytes);
-        return data;
+        return dataBytes;
     }
 
     //

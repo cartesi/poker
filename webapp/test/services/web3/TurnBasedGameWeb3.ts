@@ -18,8 +18,8 @@ describe('TurnBasedGameWeb3', function () {
 
     let gameIndex: number;
 
-    let gameContractAlice: TurnBasedGameWeb3;
-    let gameContractBob: TurnBasedGameWeb3;
+    let turnBasedGameAlice: TurnBasedGameWeb3;
+    let turnBasedGameBob: TurnBasedGameWeb3;
 
     let aliceAddress: string;
     const aliceAccountIndex: number = 0;
@@ -91,40 +91,40 @@ describe('TurnBasedGameWeb3', function () {
 
         // create turnbasedgame instance for Alice
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
-        gameContractAlice = new TurnBasedGameWeb3(gameIndex);
-        await gameContractAlice.initWeb3();
+        turnBasedGameAlice = new TurnBasedGameWeb3(gameIndex);
+        await turnBasedGameAlice.initWeb3();
 
         // data alice will submit
-        let aliceData: string = "0x00000000000000010000000000000002";
+        let aliceData: Uint8Array = new Uint8Array([10,20]);
 
         // create turnbasedgame instance for Bob
         ServiceConfig.currentInstance.setSigner(bobAccountIndex);
-        gameContractBob = new TurnBasedGameWeb3(gameIndex);
-        await gameContractBob.initWeb3();
+        turnBasedGameBob = new TurnBasedGameWeb3(gameIndex);
+        await turnBasedGameBob.initWeb3();
 
         // set up callback for Bob receive Alice's turn
-        let turnOverPromise: Promise<any> = gameContractBob.receiveTurnOver();
+        let turnOverPromise: Promise<any> = turnBasedGameBob.receiveTurnOver();
 
         // alice submit a turn
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
-        await gameContractAlice.submitTurn(aliceData);
+        await turnBasedGameAlice.submitTurn(aliceData);
 
         await turnOverPromise.then((data) => {
-            expect(data).to.be.equal(aliceData);
+            expect(data).to.be.eql(aliceData);
         })
 
         // set up callback for Bob receive Alice's claim for the result
         ServiceConfig.currentInstance.setSigner(bobAccountIndex);
-        let claimResultPromise: Promise<any> = gameContractBob.receiveResultClaimed();
+        let claimResultPromise: Promise<any> = turnBasedGameBob.receiveResultClaimed();
 
         // set up callback for Alice receive game end event
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
-        let gameEndPromise: Promise<void> = gameContractAlice.receiveGameOver();
+        let gameEndPromise: Promise<void> = turnBasedGameAlice.receiveGameOver();
 
         // alice claim result
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
         let claimedResult: Array<number> = [10, 5];
-        await gameContractAlice.claimResult(claimedResult);
+        await turnBasedGameAlice.claimResult(claimedResult);
 
         // bob must receive the claim from alice
         await claimResultPromise.then((claimedResult) => {
@@ -134,7 +134,7 @@ describe('TurnBasedGameWeb3', function () {
 
         // bob confirms the result
         ServiceConfig.currentInstance.setSigner(bobAccountIndex);
-        await gameContractBob.confirmResult();
+        await turnBasedGameBob.confirmResult();
 
         // alice must receive the game end event
         await gameEndPromise.then((confirmedResult) => {

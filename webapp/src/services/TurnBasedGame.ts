@@ -6,8 +6,8 @@ import { BigNumber } from "ethers";
 
 export interface TurnBasedGame {
     // turn submission
-    submitTurn(data: string): Promise<string>;
-    receiveTurnOver(): Promise<string>;
+    submitTurn(data: Uint8Array): Promise<Uint8Array>;
+    receiveTurnOver(): Promise<Uint8Array>;
 
     // result claim and confirmation
     claimResult(data: Array<BigNumber>): Promise<void>;
