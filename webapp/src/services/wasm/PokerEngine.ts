@@ -43,7 +43,7 @@ export class PokerEngine implements Engine {
         return this._callWorker("player_create_handshake", makeMessage(this._player), (results) => {
             return {
                 status: parseInt(results[0]),
-                message_out: parseString(results[1]),
+                message_out: results[1],
             };
         });
     }
@@ -52,7 +52,7 @@ export class PokerEngine implements Engine {
         return this._callWorker("player_process_handshake", makeMessage(this._player, message_in), (results) => {
             return {
                 status: parseInt(results[0]),
-                message_out: parseString(results[1]),
+                message_out: results[1],
             };
         });
     }
@@ -61,7 +61,7 @@ export class PokerEngine implements Engine {
         return this._callWorker("player_create_bet", makeMessage(this._player, type, amount.toString()), (results) => {
             return {
                 status: parseInt(results[0]),
-                message_out: parseString(results[1]),
+                message_out: results[1],
             };
         });
     }
@@ -72,7 +72,7 @@ export class PokerEngine implements Engine {
                 status: parseInt(results[0]),
                 betType: parseInt(results[1]),
                 amount: parseBigNumber(results[2]),
-                message_out: parseString(results[3]),
+                message_out: results[3],
             };
         });
     }
@@ -147,7 +147,13 @@ function makeMessage(...args): Uint8Array {
                 buffers.push(b);
                 break;
             default:
-                throw new Error(`Unsupported type ${t}`);
+                if (v instanceof Uint8Array) {
+                    const b = new ArrayBuffer(4);
+                    const len = new Int32Array(b);
+                    len[0] = v.byteLength;
+                    buffers.push(b);
+                    buffers.push(v.buffer);
+                } else throw new Error(`*** Unsupported type ${t}`);
         }
     }
     const size = buffers.reduce((m, a) => m + a.byteLength, 0);
@@ -169,6 +175,6 @@ function parseBigNumber(buffer) {
 }
 
 function parseString(buffer) {
-    const dec = new TextDecoder("utf8");
+    const dec = new TextDecoder('ascii');
     return dec.decode(buffer.buffer);
 }

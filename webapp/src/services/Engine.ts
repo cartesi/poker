@@ -18,7 +18,7 @@ interface EngineResult {
     status: game_error;
     betType?: bet_type;
     amount?: BigNumber;
-    message_out?: string;
+    message_out?: Uint8Array;
 }
 
 const enum game_error {
