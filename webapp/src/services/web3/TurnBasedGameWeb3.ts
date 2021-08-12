@@ -108,6 +108,8 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
         // TODO: check turnIndex sequence?
 
+        console.log(`Received turn '${turnIndex}' for game '${this.gameIndex}'`);
+
         // retrieves turn data from Logger
         const data = await this.getLoggerData(turn.dataLogIndices);
 
