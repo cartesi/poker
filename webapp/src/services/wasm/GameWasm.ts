@@ -261,7 +261,7 @@ export class GameWasm implements Game {
         };
     }
 
-    private async _createHandshake(): Promise<string> {
+    private async _createHandshake(): Promise<Uint8Array> {
         console.log(`### [Player ${this.playerId}] Create Handshake ###`);
         let result = await this.engine.create_handshake();
         console.log(`### [Player ${this.playerId}] Submit turn ###`);

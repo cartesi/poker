@@ -8,9 +8,9 @@ export interface Engine {
         encryption: boolean
     ): Promise<EngineResult>;
     create_handshake(): Promise<EngineResult>;
-    process_handshake(message_in: string): Promise<EngineResult>;
+    process_handshake(message_in: Uint8Array): Promise<EngineResult>;
     create_bet(type: bet_type, amount: BigNumber): Promise<EngineResult>;
-    process_bet(message_in: string): Promise<EngineResult>;
+    process_bet(message_in: Uint8Array): Promise<EngineResult>;
     game_state(): Promise<game_state>;
 }
 

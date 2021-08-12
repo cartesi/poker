@@ -48,7 +48,7 @@ export class PokerEngine implements Engine {
         });
     }
 
-    async process_handshake(message_in: string): Promise<EngineResult> {
+    async process_handshake(message_in: Uint8Array): Promise<EngineResult> {
         return this._callWorker("player_process_handshake", makeMessage(this._player, message_in), (results) => {
             return {
                 status: parseInt(results[0]),
@@ -66,7 +66,7 @@ export class PokerEngine implements Engine {
         });
     }
 
-    async process_bet(message_in: string): Promise<EngineResult> {
+    async process_bet(message_in: Uint8Array): Promise<EngineResult> {
         return this._callWorker("player_process_bet", makeMessage(this._player, message_in), (results) => {
             return {
                 status: parseInt(results[0]),
