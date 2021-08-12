@@ -41,9 +41,10 @@ export class GameWasm implements Game {
                 if (this.gameOpponent) this.gameOpponent.start();
 
                 console.log(`### [Player ${this.playerId}] Init engine ###`);
+
                 await this.engine.init(
-                    this.playerFunds,
-                    this.opponentFunds,
+                    this._isDealer() ? this.playerFunds : this.opponentFunds,
+                    this._isDealer() ? this.opponentFunds : this.playerFunds,
                     this.bigBlind,
                     ServiceConfig.isEncryptionEnabled()
                 );
