@@ -284,8 +284,16 @@ export class GameMock implements Game {
         await this.turnBasedGame.submitTurn(ethers.utils.toUtf8Bytes(JSON.stringify(data)));
     }
 
-    _decodeTurnData(data: Uint8Array): any {
-        return JSON.parse(ethers.utils.toUtf8String(data));
+    _decodeTurnData(dataBytesPadded: Uint8Array): any {
+        let dataBytes = dataBytesPadded;
+        // removes Logger's padding
+        // TODO: optimize by looking for the first non-'0' byte starting from the end
+        const nullTerminationIndex = dataBytesPadded.indexOf(0);
+        if (nullTerminationIndex != -1) {
+            dataBytes = dataBytesPadded.subarray(0, dataBytesPadded.indexOf(0));
+        }
+        const data = JSON.parse(ethers.utils.toUtf8String(dataBytes));
+        return data;
     }
 
     _initialInfoReceived(data) {

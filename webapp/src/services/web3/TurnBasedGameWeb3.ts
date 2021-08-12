@@ -142,16 +142,8 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                 dataBytes8 = dataBytes8.concat(logEvents[0].args._data);
             }
         }
-        const dataBytesPadded = ethers.utils.concat(dataBytes8);
-        let dataBytes = dataBytesPadded;
-        // removes Logger's padding
-        // TODO: check if we should really remove Logger's padding or if engine should do deal with it
-        // TODO: optimize by looking for the first non-'0' byte starting from the end
-        const nullTerminationIndex = dataBytesPadded.indexOf(0);
-        if (nullTerminationIndex != -1) {
-            dataBytes = dataBytesPadded.subarray(0, dataBytesPadded.indexOf(0));
-        }
-        return dataBytes;
+        const data = ethers.utils.concat(dataBytes8);
+        return data;
     }
 
     //
