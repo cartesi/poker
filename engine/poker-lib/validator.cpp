@@ -66,12 +66,12 @@ static game_error raise(game_state& g, money_t amount) {
     if (player.bets > opponent.bets)
         return (g.error = GRR_BET_ALREADY_HIGHER);
 
-    if (amount < g.big_blind)
-        return (g.error = GRR_BET_BELOW_MINIMUM);
+    // TODO: restore this code when the UI code is able to deal with this logic
+    // if (amount < g.big_blind)
+    //     return (g.error = GRR_BET_BELOW_MINIMUM);
 
     if ((opponent.bets + amount) > opponent.total_funds)
-        return (g.error =
-                    GRR_BET_ABOVE_MAXIMUM);  // max bet is to force all in
+        return (g.error = GRR_BET_ABOVE_MAXIMUM);  // max bet is to force all in
 
     if ((g.error = bet(g, amount + last_raise)) != SUCCESS)
         return g.error;
