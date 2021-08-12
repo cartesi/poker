@@ -10,7 +10,7 @@ mock_participant::mock_participant(int participant_id, int num_participants, boo
 mock_participant::~mock_participant() {}
 
 game_error mock_participant::mock_participant::create_group(blob& group) {
-    logger << _pfx << "BarnettSmartVTMF_dlog done " << std::endl;
+    logger << _pfx << "[MOCK] BarnettSmartVTMF_dlog done " << std::endl;
     return SUCCESS;
 }
 
@@ -19,26 +19,26 @@ game_error mock_participant::load_group(blob& group) {
 }
 
 game_error mock_participant::generate_key(blob& key) {
-    logger << _pfx << "publishKey " << std::endl;
+    logger << _pfx << "[MOCK] publishKey " << std::endl;
     return SUCCESS;
 }
 
 game_error mock_participant::load_their_key(blob& key) {
-    logger << _pfx << "load_their_key " << std::endl;
+    logger << _pfx << "[MOCK] load_their_key " << std::endl;
     return SUCCESS;
 }
 
 game_error mock_participant::finalize_key_generation() {
-    logger << _pfx << "finalize_key_generation " << std::endl;
+    logger << _pfx << "[MOCK] finalize_key_generation " << std::endl;
     return SUCCESS;
 }
 
 game_error mock_participant::create_vsshe_group(blob& group) {
-    logger << _pfx << "create_vsshe_group" << std::endl;
+    logger << _pfx << "[MOCK] create_vsshe_group" << std::endl;
     return SUCCESS;
 }
 game_error mock_participant::load_vsshe_group(blob& group) {
-    logger << _pfx << "load_vsshe_group" << std::endl;
+    logger << _pfx << "[MOCK] load_vsshe_group" << std::endl;
     return SUCCESS;
 }
 
@@ -84,17 +84,17 @@ game_error mock_participant::take_cards_from_stack(int count) {
 }
 
 game_error mock_participant::prove_card_secret(int card_index, blob& my_proof) {
-    logger << _pfx << "prove_card_secret(" << card_index << ")" << std::endl;
+    logger << _pfx << "[MOCK] prove_card_secret(" << card_index << ")" << std::endl;
     return SUCCESS;
 }
 
 game_error mock_participant::self_card_secret(int card_index) {
-    logger << _pfx << "self_card_secret(" << card_index << ")" << std::endl;
+    logger << _pfx << "[MOCK] self_card_secret(" << card_index << ")" << std::endl;
     return SUCCESS;
 }
 
 game_error mock_participant::verify_card_secret(int card_index, blob& their_proof) {
-    logger << _pfx << "verify_card_secret(" << card_index << ")" << std::endl;
+    logger << _pfx << "[MOCK] verify_card_secret(" << card_index << ")" << std::endl;
     return SUCCESS;
 }
 
