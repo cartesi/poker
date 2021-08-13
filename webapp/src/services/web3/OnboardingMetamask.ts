@@ -7,7 +7,7 @@ import { GameConstants } from "../../GameConstants";
 
 declare let window: any;
 
-export class OnboardingWeb3 {
+export class OnboardingMetamask {
     private static metamaskOnboarding;
     private static accounts;
 

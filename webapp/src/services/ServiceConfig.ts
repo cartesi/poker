@@ -1,4 +1,8 @@
+import Portis from "@portis/web3";
 import { ethers } from "ethers";
+import { JsonRpcImpl } from "./web3/provider/JsonRpcImpl";
+import { PortisImpl } from "./web3/provider/PortisImpl";
+import { Provider, ProviderImpl } from "./web3/provider/Provider";
 
 export enum ServiceType {
     Transport = "transport",
@@ -16,12 +20,29 @@ declare let window: any;
 export class ServiceConfig {
     // Unique instance for the service's configurator
     public static currentInstance: ServiceConfig;
-    // Index for the account which will be signer for transactions
-    public signerIndex: number;
 
-    constructor() {
+    // TODO Comment
+    public provider: Provider;
+    public providerType: ProviderImpl;
+
+    // Index for the account which will be signer for transactions
+    public signerAddress: string;// TODO Use address instead of index
+
+    constructor(providerType: ProviderImpl) {
         ServiceConfig.currentInstance = this;
-        this.signerIndex = 0;
+        ServiceConfig.currentInstance.providerType = providerType;
+        ServiceConfig.createProvider(providerType);
+    }
+
+    public static createProvider(impl: ProviderImpl): void {
+        if (impl == ProviderImpl.Portis) {
+            ServiceConfig.currentInstance.provider = new PortisImpl();
+        } else if (impl == ProviderImpl.JsonRpc) {
+            ServiceConfig.currentInstance.provider = new JsonRpcImpl();
+        } else {
+            throw new Error("Provider not supported yet");
+        }
+        ServiceConfig.currentInstance.provider.init();
     }
 
     /**
@@ -33,7 +54,7 @@ export class ServiceConfig {
     public static get(type: ServiceType): ServiceImpl {
         const defaultImpl = {};
         defaultImpl[ServiceType.Transport] = ServiceImpl.Web3;
-        defaultImpl[ServiceType.Engine] = ServiceImpl.Wasm;
+        defaultImpl[ServiceType.Engine] = ServiceImpl.Mock;
 
         const searchParams = new URLSearchParams(window.location.search);
         if (searchParams.has(type)) {
@@ -48,52 +69,36 @@ export class ServiceConfig {
         }
     }
 
-
-    /**
-     * @returns true if Metamask was detected or false otherwise
-     */
-    public static isMetamask() {
-        if (typeof window !== "undefined" && window.ethereum) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     public static getChainId() {
-        if (typeof window !== "undefined" && !ServiceConfig.isMetamask()) {
-            throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
-        }
-
-        if (ServiceConfig.isMetamask()) { // Normal webapp usage
-            return window.ethereum.chainId;
-        } else { // Automated tests usage
+        // TODO Get chainId by chain name (legibility) 
+        if (ServiceConfig.currentInstance.provider.isWeb3Provider()) {
+            return "0x13881";
+        } else {
             return "0x7a69";
         }
     }
 
     public static getSigner() {
-        if (typeof window !== "undefined" && !ServiceConfig.isMetamask()) {
-            throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
-        }
-
         let provider;
-        if (ServiceConfig.isMetamask()) { // Normal webapp usage
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-        } else { // Automated test usage
+        if (ServiceConfig.currentInstance.provider.isWeb3Provider()) {
+            // Normal webapp usage
+            console.log("get signer web3");
+            provider = new ethers.providers.Web3Provider(ServiceConfig.currentInstance.provider.getWrapableProvider());
+        } else {
+            // Automated test usage
             provider = new ethers.providers.JsonRpcProvider();
         }
-        let signerIndex = ServiceConfig.currentInstance.signerIndex;
+        let signerAddress = ServiceConfig.currentInstance.signerAddress;
 
-        return provider.getSigner(signerIndex);
+        return provider.getSigner(signerAddress);
     }
 
     /**
-     * Sets the account which will interact with the network
-     * @param _signerIndex Account index (default index is 0)
+     * Sets the account address which will sign the calls to the network
+     * @param signerAddress Address
      */
-    public setSigner(_signerIndex: number) {
-        this.signerIndex = _signerIndex;
+    public setSigner(signerAddress: string) {
+        this.signerAddress = signerAddress;
     }
 
     public static isEncryptionEnabled(): boolean {

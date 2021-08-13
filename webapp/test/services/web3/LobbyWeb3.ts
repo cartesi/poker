@@ -6,24 +6,23 @@ import { PokerToken__factory } from "../../../src/types";
 import PokerToken from "../../../src/abis/PokerToken.json";
 import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
 import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
+import { ProviderImpl } from "../../../src/services/web3/provider/Provider";
 
 describe('LobbyWeb3', function () {
     // creates a service config instance
-    const serviceConfig: ServiceConfig = new ServiceConfig();
+    const serviceConfig: ServiceConfig = new ServiceConfig(ProviderImpl.JsonRpc);
 
-    const aliceAccountIndex: number = 0;
-    const bobAccountIndex: number = 1;
+    const aliceAddress: string = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
+    const bobAddress: string = '0x70997970c51812dc3a010c7d01b50e0d17dc79c8';
 
     this.timeout(60000);
 
     beforeEach(async () => {
-        ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
         const aliceSigner = ServiceConfig.getSigner();
-        const aliceAddress = await aliceSigner.getAddress();
 
-        ServiceConfig.currentInstance.setSigner(bobAccountIndex);
+        ServiceConfig.currentInstance.setSigner(bobAddress);
         const bobSigner = ServiceConfig.getSigner();
-        const bobAddress = await bobSigner.getAddress();
 
         const pokerTokenContractAlice = PokerToken__factory.connect(PokerToken.address, aliceSigner);
         const pokerTokenContractBob = PokerToken__factory.connect(PokerToken.address, bobSigner);
@@ -54,7 +53,7 @@ describe('LobbyWeb3', function () {
         const promiseIsGameReadyPlayer2: Promise<boolean> = new Promise<boolean>((resolve: (boolean) => void) => { gameReadyResolverPlayer2 = resolve; });
 
         // Player 1 joins the game
-        ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
         let gameReadyCallbackPlayer1 = function (index, context) {
             gameReadyResolverPlayer1(true);
             console.log("gameReadyCallbackPlayer1 was called with index=" + index);
@@ -62,7 +61,7 @@ describe('LobbyWeb3', function () {
         LobbyWeb3.joinGame(player1Info, gameReadyCallbackPlayer1);
 
         // Player 2 joins the game
-        ServiceConfig.currentInstance.setSigner(bobAccountIndex);
+        ServiceConfig.currentInstance.setSigner(bobAddress);
 
         let gameReadyCallbackPlayer2 = function (index, context) {
             gameReadyResolverPlayer2(true);
