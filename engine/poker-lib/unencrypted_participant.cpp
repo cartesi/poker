@@ -1,55 +1,66 @@
-#include "mock_participant.h"
+#include "unencrypted_participant.h"
 
 #include <algorithm>
 
 namespace poker {
 
-mock_participant::mock_participant(int participant_id, int num_participants, bool predictable)
-    : participant(participant_id, num_participants, predictable) {}
+void unencrypted_participant::init(int id, int num_participants, bool predictable) {
+    _id = id;
+    _num_participants = num_participants;
+    _predictable = predictable;
 
-mock_participant::~mock_participant() {}
+    char temp[10];
+    sprintf(temp, "[%d] ", _id);
+    _pfx = temp;
+}
 
-game_error mock_participant::mock_participant::create_group(blob& group) {
+int unencrypted_participant::id() { return _id; }
+
+int unencrypted_participant::num_participants() { return _num_participants; }
+
+bool unencrypted_participant::predictable() { return _predictable; }
+
+game_error unencrypted_participant::unencrypted_participant::create_group(blob& group) {
     logger << _pfx << "[MOCK] BarnettSmartVTMF_dlog done " << std::endl;
     return SUCCESS;
 }
 
-game_error mock_participant::load_group(blob& group) {
+game_error unencrypted_participant::load_group(blob& group) {
     return SUCCESS;
 }
 
-game_error mock_participant::generate_key(blob& key) {
+game_error unencrypted_participant::generate_key(blob& key) {
     logger << _pfx << "[MOCK] publishKey " << std::endl;
     return SUCCESS;
 }
 
-game_error mock_participant::load_their_key(blob& key) {
+game_error unencrypted_participant::load_their_key(blob& key) {
     logger << _pfx << "[MOCK] load_their_key " << std::endl;
     return SUCCESS;
 }
 
-game_error mock_participant::finalize_key_generation() {
+game_error unencrypted_participant::finalize_key_generation() {
     logger << _pfx << "[MOCK] finalize_key_generation " << std::endl;
     return SUCCESS;
 }
 
-game_error mock_participant::create_vsshe_group(blob& group) {
+game_error unencrypted_participant::create_vsshe_group(blob& group) {
     logger << _pfx << "[MOCK] create_vsshe_group" << std::endl;
     return SUCCESS;
 }
-game_error mock_participant::load_vsshe_group(blob& group) {
+game_error unencrypted_participant::load_vsshe_group(blob& group) {
     logger << _pfx << "[MOCK] load_vsshe_group" << std::endl;
     return SUCCESS;
 }
 
-game_error mock_participant::create_stack() {
-    for (auto i = 0; i < decksize; i++)
+game_error unencrypted_participant::create_stack() {
+    for (auto i = 0; i < DECK_SIZE; i++)
         stack.push_back(i);
 
     return SUCCESS;
 }
 
-game_error mock_participant::shuffle_stack(blob& mixed_stack, blob& stack_proof) {
+game_error unencrypted_participant::shuffle_stack(blob& mixed_stack, blob& stack_proof) {
     logger << _pfx << "shuffle_stack" << std::endl;
 
     if (!_predictable) {
@@ -61,18 +72,18 @@ game_error mock_participant::shuffle_stack(blob& mixed_stack, blob& stack_proof)
     return SUCCESS;
 }
 
-game_error mock_participant::load_stack(blob& mixed_stack, blob& mixed_stack_proof) {
+game_error unencrypted_participant::load_stack(blob& mixed_stack, blob& mixed_stack_proof) {
     logger << _pfx << "load_stack " << std::endl;
 
     char separator;
-    for (auto i = 0; i < decksize; i++) {
+    for (auto i = 0; i < DECK_SIZE; i++) {
         mixed_stack.in() >> separator;
         mixed_stack.in() >> stack[i];
     }
     return SUCCESS;
 }
 
-game_error mock_participant::take_cards_from_stack(int count) {
+game_error unencrypted_participant::take_cards_from_stack(int count) {
     logger << _pfx << "take_cards_from_stack(" << count << ")" << std::endl;
 
     for (size_t i = 0; i < count; i++) {
@@ -83,27 +94,27 @@ game_error mock_participant::take_cards_from_stack(int count) {
     return SUCCESS;
 }
 
-game_error mock_participant::prove_card_secret(int card_index, blob& my_proof) {
+game_error unencrypted_participant::prove_card_secret(int card_index, blob& my_proof) {
     logger << _pfx << "[MOCK] prove_card_secret(" << card_index << ")" << std::endl;
     return SUCCESS;
 }
 
-game_error mock_participant::self_card_secret(int card_index) {
+game_error unencrypted_participant::self_card_secret(int card_index) {
     logger << _pfx << "[MOCK] self_card_secret(" << card_index << ")" << std::endl;
     return SUCCESS;
 }
 
-game_error mock_participant::verify_card_secret(int card_index, blob& their_proof) {
+game_error unencrypted_participant::verify_card_secret(int card_index, blob& their_proof) {
     logger << _pfx << "[MOCK] verify_card_secret(" << card_index << ")" << std::endl;
     return SUCCESS;
 }
 
-game_error mock_participant::open_card(int card_index) {
+game_error unencrypted_participant::open_card(int card_index) {
     logger << _pfx << "open_card(" << card_index << ")" << std::endl;
     return SUCCESS;
 }
 
-size_t mock_participant::get_open_card(int card_index) {
+size_t unencrypted_participant::get_open_card(int card_index) {
     logger << _pfx << "get_open_card(" << card_index << ")" << std::endl;
     auto card_type = cards[card_index];
     logger << _pfx << "get_open_card(" << card_index << ") = " << card_type << std::endl;

@@ -10,17 +10,15 @@ namespace poker {
 int init_poker_lib(bool encryption) {
     init_libTMCG();
 
-    auto& sl = service_locator::get_instance();
-    sl.encryption = encryption;
-
-    return 0;
-}
-
-participant* service_locator::new_participant(int id, int num_participants, bool predictable) {
     if (encryption)
-        return new tmcg_participant(id, num_participants, predictable);
+        service_locator::instance().make_participant = []() -> i_participant* {
+            return new participant();
+        };
     else
-        return new mock_participant(id, num_participants, predictable);
+        service_locator::instance().make_participant = []() -> i_participant* {
+            return new unencrypted_participant();
+        };
+    return 0;
 }
 
 }  // namespace poker

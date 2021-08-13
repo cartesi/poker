@@ -1,31 +1,21 @@
-#ifndef TMCG_PARTICIPANT_H
-#define TMCG_PARTICIPANT_H
+#ifndef MOCK_PARTICIPANT_H
+#define MOCK_PARTICIPANT_H
 
-#include <libTMCG.hh>
-#include <map>
-#include <string>
+#include <vector>
 
 #include "i_participant.h"
 
 namespace poker {
 
-class participant : public i_participant {
+class unencrypted_participant : public i_participant {
     int _id;
     int _num_participants;
     bool _predictable;
     std::string _pfx;
-    SchindelhauerTMCG* _tmcg;
-    BarnettSmartVTMF_dlog* _vtmf;
-    GrothVSSHE* _vsshe;
-    TMCG_Stack<VTMF_Card> _stack;
-    TMCG_StackSecret<VTMF_CardSecret> _ss;
-    TMCG_Stack<VTMF_Card> _cards;
-    std::map<int, size_t> _open_cards;
+    std::vector<int> stack;
+    std::vector<int> cards;
 
    public:
-    participant();
-    ~participant();
-
     void init(int id, int num_participants, bool predictable) override;
     int id() override;
     int num_participants() override;
@@ -39,7 +29,7 @@ class participant : public i_participant {
     game_error load_their_key(blob& key) override;
     game_error finalize_key_generation() override;
 
-    // VSSHE - Verifiable Secret Shuffle of Homomorphic Encryptions.
+    // VSSHE - Verifiable Secret Shuffle of Homomorphic Encryptions
     game_error create_vsshe_group(blob& group) override;
     game_error load_vsshe_group(blob& group) override;
 
@@ -58,5 +48,4 @@ class participant : public i_participant {
 };
 
 }  // namespace poker
-
 #endif

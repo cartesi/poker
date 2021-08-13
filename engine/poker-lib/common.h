@@ -18,6 +18,7 @@ const int NUM_FLOP_CARDS = 3;
 const int NUM_PRIVATE_CARDS = 2;
 const int NUM_CARDS = NUM_PUBLIC_CARDS + (NUM_PLAYERS * NUM_PRIVATE_CARDS);
 const int HAND_SIZE = NUM_PUBLIC_CARDS + NUM_PRIVATE_CARDS;
+const int DECK_SIZE = 52;
 
 enum bet_type {
     BET_NONE = 0,

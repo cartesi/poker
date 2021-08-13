@@ -1,4 +1,4 @@
-#include "tmcg_participant.h"
+#include "participant.h"
 
 #include <iostream>
 #include <sstream>
@@ -9,7 +9,7 @@ namespace poker {
 
 class libtmcg_guard {
    public:
-    libtmcg_guard(participant* p) {
+    libtmcg_guard(i_participant* p) {
         //logger << "\n>>> patching libtmcg " << p->predictable() << std::endl;
         set_libtmcg_cartesi_predictable(p->predictable());
     }
@@ -18,16 +18,31 @@ class libtmcg_guard {
     }
 };
 
-tmcg_participant::tmcg_participant(int participant_id, int num_participants, bool predictable)
-    : participant(participant_id, num_participants, predictable), _vtmf(NULL), _tmcg(NULL), _vsshe(NULL) {}
+participant::participant() : _vtmf(NULL), _tmcg(NULL), _vsshe(NULL) {}
 
-tmcg_participant::~tmcg_participant() {
+participant::~participant() {
     delete _vtmf;
     delete _tmcg;
     delete _vsshe;
 }
 
-game_error tmcg_participant::create_group(blob& group) {
+void participant::init(int id, int num_participants, bool predictable) {
+    _id = id;
+    _num_participants = num_participants;
+    _predictable = predictable;
+
+    char temp[10];
+    sprintf(temp, "[%d] ", _id);
+    _pfx = temp;
+}
+
+int participant::id() { return _id; }
+
+int participant::num_participants() { return _num_participants; }
+
+bool participant::predictable() { return _predictable; }
+
+game_error participant::create_group(blob& group) {
     libtmcg_guard patch_ltmcg(this);
     _tmcg = new SchindelhauerTMCG(64, _num_participants, 6 /* bits  for 52 cards*/);
     _vtmf = new BarnettSmartVTMF_dlog();
@@ -40,7 +55,7 @@ game_error tmcg_participant::create_group(blob& group) {
     return SUCCESS;
 }
 
-game_error tmcg_participant::load_group(blob& group) {
+game_error participant::load_group(blob& group) {
     libtmcg_guard patch_ltmcg(this);
     _tmcg = new SchindelhauerTMCG(64, _num_participants, 6 /* bits for 52 cards*/);
     _vtmf = new BarnettSmartVTMF_dlog(group.in());
@@ -51,7 +66,7 @@ game_error tmcg_participant::load_group(blob& group) {
     return SUCCESS;
 }
 
-game_error tmcg_participant::generate_key(blob& key) {
+game_error participant::generate_key(blob& key) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "publishKey " << std::endl;
     _vtmf->KeyGenerationProtocol_GenerateKey();
@@ -59,7 +74,7 @@ game_error tmcg_participant::generate_key(blob& key) {
     return SUCCESS;
 }
 
-game_error tmcg_participant::load_their_key(blob& key) {
+game_error participant::load_their_key(blob& key) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "load_their_key " << std::endl;
     if (!_vtmf->KeyGenerationProtocol_UpdateKey(key.in())) {
@@ -69,17 +84,17 @@ game_error tmcg_participant::load_their_key(blob& key) {
     return SUCCESS;
 }
 
-game_error tmcg_participant::finalize_key_generation() {
+game_error participant::finalize_key_generation() {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "finalize_key_generation " << std::endl;
     _vtmf->KeyGenerationProtocol_Finalize();
     return SUCCESS;
 }
 
-game_error tmcg_participant::create_vsshe_group(blob& group) {
+game_error participant::create_vsshe_group(blob& group) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "create_vsshe_group" << std::endl;
-    _vsshe = new GrothVSSHE(decksize, _vtmf->p, _vtmf->q, _vtmf->k, _vtmf->g, _vtmf->h);
+    _vsshe = new GrothVSSHE(DECK_SIZE, _vtmf->p, _vtmf->q, _vtmf->k, _vtmf->g, _vtmf->h);
     if (!_vsshe->CheckGroup()) {
         logger << _pfx << "*** VRHE instance was not correctly generated!" << std::endl;
         return TMC_VSSHE_CHECKGROUP;
@@ -88,10 +103,10 @@ game_error tmcg_participant::create_vsshe_group(blob& group) {
     return SUCCESS;
 }
 
-game_error tmcg_participant::load_vsshe_group(blob& group) {
+game_error participant::load_vsshe_group(blob& group) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "load_vsshe_group" << std::endl;
-    _vsshe = new GrothVSSHE(decksize, group.in());
+    _vsshe = new GrothVSSHE(DECK_SIZE, group.in());
     if (!_vsshe->CheckGroup()) {
         logger << _pfx << "*** VRHE instance was not correctly generated!" << std::endl;
         return TMC_VSSHE_CHECKGROUP;
@@ -117,11 +132,11 @@ game_error tmcg_participant::load_vsshe_group(blob& group) {
     return SUCCESS;
 }
 
-game_error tmcg_participant::create_stack() {
+game_error participant::create_stack() {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "create_stack " << std::endl;
     TMCG_OpenStack<VTMF_Card> deck;
-    for (size_t type = 0; type < decksize; type++) {
+    for (size_t type = 0; type < DECK_SIZE; type++) {
         VTMF_Card c;
         _tmcg->TMCG_CreateOpenCard(c, _vtmf, type);
         deck.push(type, c);
@@ -131,7 +146,7 @@ game_error tmcg_participant::create_stack() {
     return SUCCESS;
 }
 
-game_error tmcg_participant::shuffle_stack(blob& mixed_stack, blob& stack_proof) {
+game_error participant::shuffle_stack(blob& mixed_stack, blob& stack_proof) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "shuffle_stack" << std::endl;
     TMCG_Stack<VTMF_Card> mix;
@@ -142,7 +157,7 @@ game_error tmcg_participant::shuffle_stack(blob& mixed_stack, blob& stack_proof)
     return SUCCESS;
 }
 
-game_error tmcg_participant::load_stack(blob& mixed_stack, blob& mixed_stack_proof) {
+game_error participant::load_stack(blob& mixed_stack, blob& mixed_stack_proof) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "load_stack " << std::endl;
     TMCG_Stack<VTMF_Card> s2;
@@ -160,7 +175,7 @@ game_error tmcg_participant::load_stack(blob& mixed_stack, blob& mixed_stack_pro
     return SUCCESS;
 }
 
-game_error tmcg_participant::take_cards_from_stack(int count) {
+game_error participant::take_cards_from_stack(int count) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "take_cards_from_stack(" << count << ")" << std::endl;
     for (size_t i = 0; i < count; i++) {
@@ -171,7 +186,7 @@ game_error tmcg_participant::take_cards_from_stack(int count) {
     return SUCCESS;
 }
 
-game_error tmcg_participant::prove_card_secret(int card_index, blob& my_proof) {
+game_error participant::prove_card_secret(int card_index, blob& my_proof) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "prove_card_secret(" << card_index << ")" << std::endl;
     blob dummy;  // not used b/c this is non-interactive proof
@@ -181,14 +196,14 @@ game_error tmcg_participant::prove_card_secret(int card_index, blob& my_proof) {
     return SUCCESS;
 }
 
-game_error tmcg_participant::self_card_secret(int card_index) {
+game_error participant::self_card_secret(int card_index) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "self_card_secret(" << card_index << ")" << std::endl;
     _tmcg->TMCG_SelfCardSecret(_cards[card_index], _vtmf);
     return SUCCESS;
 }
 
-game_error tmcg_participant::verify_card_secret(int card_index, blob& their_proof) {
+game_error participant::verify_card_secret(int card_index, blob& their_proof) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "verify_card_secret(" << card_index << ")" << std::endl;
     blob dummy;  // not used b/c this is non-interactive proof
@@ -199,11 +214,11 @@ game_error tmcg_participant::verify_card_secret(int card_index, blob& their_proo
     return SUCCESS;
 }
 
-game_error tmcg_participant::open_card(int card_index) {
+game_error participant::open_card(int card_index) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "open_card(" << card_index << ")" << std::endl;
     size_t card_type = _tmcg->TMCG_TypeOfCard(_cards[card_index], _vtmf);
-    if (card_type >= decksize) {
+    if (card_type >= DECK_SIZE) {
         logger << _pfx << "failed to open_card(" << card_index << ") = " << std::endl;
         return TMC_INVALID_CARD_INDEX;
     }
@@ -212,7 +227,7 @@ game_error tmcg_participant::open_card(int card_index) {
     return SUCCESS;
 }
 
-size_t tmcg_participant::get_open_card(int card_index) {
+size_t participant::get_open_card(int card_index) {
     logger << _pfx << "get_open_card(" << card_index << ")" << std::endl;
     auto card_type = _open_cards[card_index];
     logger << _pfx << "get_open_card(" << card_index << ") = " << card_type << std::endl;

@@ -1,6 +1,5 @@
 #include "player.h"
 #include "compression.h"
-#include "tmcg_participant.h"
 #include "service_locator.h"
 
 namespace poker {
@@ -8,8 +7,9 @@ namespace poker {
 player::player(int id)
     : _id(id),  _opponent_id(_id==ALICE ? BOB : ALICE),
       _alice_money(0), _bob_money(0), _big_blind(0),
-      _p(service_locator::get_instance().new_participant(id, 3, false))
+      _p(service_locator::instance().new_participant())
 {
+    _p->init(id, 3, false);
 }
 
 player::~player() {
