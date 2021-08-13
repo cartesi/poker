@@ -1,6 +1,6 @@
-import Portis from "@portis/web3";
 import { ethers } from "ethers";
 import { JsonRpcImpl } from "./web3/provider/JsonRpcImpl";
+import { MetamaskImpl } from "./web3/provider/MetamaskImpl";
 import { PortisImpl } from "./web3/provider/PortisImpl";
 import { Provider, ProviderImpl } from "./web3/provider/Provider";
 
@@ -25,8 +25,8 @@ export class ServiceConfig {
     public provider: Provider;
     public providerType: ProviderImpl;
 
-    // Index for the account which will be signer for transactions
-    public signerAddress: string;// TODO Use address instead of index
+    // Address for the account which will be signer for transactions
+    public signerAddress: string;
 
     constructor(providerType: ProviderImpl) {
         ServiceConfig.currentInstance = this;
@@ -37,12 +37,13 @@ export class ServiceConfig {
     public static createProvider(impl: ProviderImpl): void {
         if (impl == ProviderImpl.Portis) {
             ServiceConfig.currentInstance.provider = new PortisImpl();
+        } else if (impl == ProviderImpl.Metamask) {
+            ServiceConfig.currentInstance.provider = new MetamaskImpl();
         } else if (impl == ProviderImpl.JsonRpc) {
             ServiceConfig.currentInstance.provider = new JsonRpcImpl();
         } else {
             throw new Error("Provider not supported yet");
         }
-        ServiceConfig.currentInstance.provider.init();
     }
 
     /**
@@ -78,18 +79,29 @@ export class ServiceConfig {
         }
     }
 
-    public static getSigner() {
+    public static getProvider() {
         let provider;
         if (ServiceConfig.currentInstance.provider.isWeb3Provider()) {
             // Normal webapp usage
-            console.log("get signer web3");
-            provider = new ethers.providers.Web3Provider(ServiceConfig.currentInstance.provider.getWrapableProvider());
+            if (ServiceConfig.currentInstance.providerType == ProviderImpl.Portis) {
+                let portisProvider = ServiceConfig.currentInstance.provider.getRawProvider();
+                provider = new ethers.providers.Web3Provider(portisProvider.provider);
+            } else if (ServiceConfig.currentInstance.providerType == ProviderImpl.Metamask) {
+                let metamaskProvider = ServiceConfig.currentInstance.provider.getRawProvider();
+                provider = new ethers.providers.Web3Provider(metamaskProvider);
+            } else {
+                throw new Error("Unsupported web3 provider.");
+            }
         } else {
             // Automated test usage
             provider = new ethers.providers.JsonRpcProvider();
         }
-        let signerAddress = ServiceConfig.currentInstance.signerAddress;
+        return provider;
+    }
 
+    public static getSigner() {
+        let provider = ServiceConfig.getProvider();
+        let signerAddress = ServiceConfig.currentInstance.signerAddress;
         return provider.getSigner(signerAddress);
     }
 
