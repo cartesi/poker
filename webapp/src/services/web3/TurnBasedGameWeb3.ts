@@ -138,8 +138,11 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     async getLoggerData(logIndices: Array<number>) {
         let dataBytes8 = [];
         for (let index of logIndices) {
-            const filter = this.loggerContract.filters.MerkleRootCalculatedFromData(index, null, null, null);
-            const logEvents = await this.loggerContract.queryFilter(filter);
+            let logEvents;
+            await Web3Utils.sendTransaction("LoggerQueryFilter", async () => {
+                const filter = this.loggerContract.filters.MerkleRootCalculatedFromData(index, null, null, null);
+                logEvents = await this.loggerContract.queryFilter(filter);
+            });
             if (logEvents && logEvents.length && logEvents[0].args._data && logEvents[0].args._data.length) {
                 dataBytes8 = dataBytes8.concat(logEvents[0].args._data);
             }
