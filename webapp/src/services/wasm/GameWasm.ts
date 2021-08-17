@@ -252,7 +252,10 @@ export class GameWasm implements Game {
         let playerCards = state.players[this.playerId].cards.map(Card.fromIndex).concat(publicCards);
         let opponentCards = state.players[this.opponentId].cards.map(Card.fromIndex).concat(publicCards);
 
-        const winners = [this.playerId == state.winner, this.opponentId == state.winner];
+        const winners = Array(2);
+        winners[this.playerId] = (this.playerId === state.winner)
+        winners[this.opponentId] = (this.opponentId === state.winner);
+        
         const hands = PokerSolver.solve([playerCards, opponentCards]).bestHands;
 
         return {
