@@ -1,3 +1,4 @@
+import { GameConstants } from "../../../GameConstants";
 import { Provider } from "./Provider";
 
 /**
@@ -12,7 +13,7 @@ export class JsonRpcImpl implements Provider {
     // TODO Remove all hardcoded stuff
     constructor() {
         JsonRpcImpl.currentInstance = this;
-        this.rawProvider = "http://localhost:8545";
+        this.rawProvider = GameConstants.PROVIDER_JSONRPC_ENDPOINT;
     }
 
     getRawProvider(): any {

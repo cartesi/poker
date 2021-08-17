@@ -68,7 +68,7 @@ export class OnboardingPortis {
             }
 
             // Portis initialized but user is not logged in
-            if (this.isLogged == false || !this.accounts || !this.accounts.length) {
+            if (!this.isLogged || !this.accounts || !this.accounts.length) {
                 onChange({
                     label: "Connect to wallet",
                     onclick: this.connectWallet.bind(this),
