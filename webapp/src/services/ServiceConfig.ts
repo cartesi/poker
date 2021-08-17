@@ -21,8 +21,9 @@ export class ServiceConfig {
     // Unique instance for the service's configurator
     public static currentInstance: ServiceConfig;
 
-    // TODO Comment
+    // Object to connect to the network
     public provider: Provider;
+    // Type of connection (web3, JsonRpc, etc)
     public providerType: ProviderImpl;
 
     // Address for the account which will be signer for transactions

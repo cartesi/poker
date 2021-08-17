@@ -55,7 +55,20 @@ export class OnboardingPortis {
     private static async update(onChange) {
 
         try {
-            if (!this.isLogged || !this.accounts || !this.accounts.length) {
+            // While Portis is initializing
+            if (this.isLogged == null || this.isLogged == undefined) {
+                onChange({
+                    label: "Connecting to wallet...",
+                    onclick: undefined,
+                    loading: false,
+                    error: false,
+                    ready: false,
+                });
+                return;
+            }
+
+            // Portis initialized but user is not logged in
+            if (this.isLogged == false || !this.accounts || !this.accounts.length) {
                 onChange({
                     label: "Connect to wallet",
                     onclick: this.connectWallet.bind(this),
