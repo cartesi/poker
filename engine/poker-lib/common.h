@@ -48,7 +48,7 @@ enum game_step {
     TURN_BET = 13,
     OPEN_RIVER = 14,
     RIVER_BET = 15,
-    OPEN_OPONENT_CARDS = 16,
+    SHOWDOWN = 16,
     GAME_OVER = 17,
 };
 
@@ -120,6 +120,7 @@ enum game_error {
     GRR_BET_BELOW_MINIMUM,
     GRR_BET_ABOVE_MAXIMUM,
     GRR_INVALID_BET,
+    GRR_GAME_NOT_OVER,
 
     // CODEC
     COD_ERROR = 500,

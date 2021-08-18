@@ -107,6 +107,7 @@ namespace poker {
        bet_type type;
        money_t amt;
        blob cards_proof;
+       bool muck;
 
        msg_card_proof();
        virtual ~msg_card_proof() { }

@@ -47,6 +47,7 @@ public:
     bool eof() { return _in.eof(); }
     decoder(std::istream& in);
     game_error read(int& v);
+    game_error read(bool& v);
     game_error read(bignumber& v);
     game_error read(message_type& v);
     game_error read(bet_type& v);

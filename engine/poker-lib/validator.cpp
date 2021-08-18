@@ -1,5 +1,7 @@
-#include <iostream>
 #include "validator.h"
+
+#include <iostream>
+
 #include "solver.h"
 
 #define IS_DEALER(pid) pid == ALICE ? true : false
@@ -7,6 +9,7 @@
 namespace poker {
 
 static void end_phase(game_state& g);
+static void reset_last_agressor(game_state& g);
 static game_error bet(game_state& g, money_t amount);
 static game_error get_player_hand(game_state& g, int player, card_t* hand);
 static game_error call(game_state& g);
@@ -76,6 +79,7 @@ static game_error raise(game_state& g, money_t amount) {
     if ((g.error = bet(g, amount + last_raise)) != SUCCESS)
         return g.error;
 
+    g.last_aggressor = g.current_player;
     g.current_player = opponent.id;
     return SUCCESS;
 }
@@ -100,8 +104,26 @@ static game_error check(game_state& g) {
 
 static game_error fold(game_state& g) {
     g.winner = opponent_id(g.current_player);
-    g.phase = PHS_SHOWDOWN;
+    g.phase = PHS_GAME_OVER;
     g.current_player = g.winner;
+    return SUCCESS;
+}
+
+game_error share_funds(game_state& g) {
+    if (g.winner < 0)
+        return GRR_GAME_NOT_OVER;
+
+    if (g.winner == ALICE) {
+        g.result[ALICE] = g.players[ALICE].total_funds + g.players[BOB].bets;
+        g.result[BOB] = g.players[BOB].total_funds - g.players[BOB].bets;
+    } else if (g.winner == BOB) {
+        g.result[BOB] = g.players[BOB].total_funds + g.players[ALICE].bets;
+        g.result[ALICE] = g.players[ALICE].total_funds - g.players[ALICE].bets;
+    } else { // its a tie
+        g.result[BOB] = g.players[BOB].total_funds;
+        g.result[ALICE] = g.players[ALICE].total_funds;
+    }
+
     return SUCCESS;
 }
 
@@ -115,7 +137,7 @@ game_error decide_winner(game_state& g) {
     if ((g.error = get_player_hand(g, BOB, bob_hand)))
         return g.error;
     if ((g.error = poker_solver.compare_hands(alice_hand, bob_hand,
-                                                  HAND_SIZE, &result)))
+                                              HAND_SIZE, &result)))
         return g.error;
 
     if (result == 0)
@@ -123,22 +145,23 @@ game_error decide_winner(game_state& g) {
     else
         g.winner = result == 1 ? ALICE : BOB;
 
-    if (g.winner == ALICE) {
-        g.result[ALICE] = g.players[ALICE].total_funds + g.players[BOB].bets;
-        g.result[BOB]   = g.players[BOB].total_funds   - g.players[BOB].bets;
-    } else {
-        g.result[BOB]   = g.players[BOB].total_funds    + g.players[ALICE].bets;
-        g.result[ALICE] = g.players[ALICE].total_funds  - g.players[ALICE].bets;
-    }
-
+    share_funds(g);
+    g.phase = bet_phase::PHS_GAME_OVER;
     return SUCCESS;
 }
 
 static void end_phase(game_state& g) {
-    if (g.phase != PHS_SHOWDOWN) {
+    reset_last_agressor(g);
+
+    if (g.phase != PHS_GAME_OVER) {
         int aux = g.phase;
         g.phase = (bet_phase)++aux;
     }
+}
+
+static void reset_last_agressor(game_state& g) {
+    if (g.phase < PHS_RIVER)
+        g.last_aggressor = BOB;
 }
 
 static game_error bet(game_state& g, money_t amount) {

@@ -14,6 +14,7 @@ enum bet_phase {
     PHS_TURN,
     PHS_RIVER,
     PHS_SHOWDOWN,
+    PHS_GAME_OVER,
 };
 
 struct player_state {
@@ -32,7 +33,7 @@ class game_state {
 public:
     game_state()
         : error(SUCCESS),winner(-1), current_player(ALICE),
-          phase(PHS_PREFLOP),
+          last_aggressor(BOB), phase(PHS_PREFLOP), muck(false),
           players{player_state(ALICE), player_state(BOB)},
           public_cards{cards::uk, cards::uk, cards::uk, cards::uk, cards::uk}
         { }
@@ -41,10 +42,12 @@ public:
     game_error error;
     bet_phase phase;
     int winner;
+    int last_aggressor;
     player_state players[NUM_PLAYERS];
     card_t public_cards[NUM_PUBLIC_CARDS];
     money_t big_blind;
     money_t result[NUM_PLAYERS];
+    bool muck;
 
     std::string to_json(char* extra_fields=NULL);
     void dump();

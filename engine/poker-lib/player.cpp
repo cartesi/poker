@@ -5,7 +5,7 @@
 namespace poker {
 
 player::player(int id)
-    : _id(id),  _opponent_id(_id==ALICE ? BOB : ALICE),
+    : _id(id), _opponent_id(opponent_id(_id)),
       _alice_money(0), _bob_money(0), _big_blind(0),
       _p(service_locator::instance().new_participant())
 {
@@ -288,18 +288,17 @@ game_error player::create_bet(bet_type type, money_t amt, std::string& msg_out) 
             return compress_and_wrap(os.str(), msg_out);
         }
 
-        int first_card, count;
-        if (_r.step() == game_step::OPEN_OPONENT_CARDS) {
-            first_card = private_card_index(_id, 0);
-            count = 2;
-        } else {
-            if ((res=public_cards_range(_r.step(), first_card, count)))
+        if ((_r.step() != game_step::SHOWDOWN)) {
+            int first_card, count;
+            
+            if ((res = public_cards_range(_r.step(), first_card, count)))
                 return res;
-        }
-        if ((res=make_card_proof(msgout.cards_proof, first_card, count)))
-            return res;
-         _public_proofs[_r.step()] = msgout.cards_proof;
 
+            if ((res = make_card_proof(msgout.cards_proof, first_card, count)))
+                return res;
+
+            _public_proofs[_r.step()] = msgout.cards_proof;
+        }
     }
     msgout.write(os);
     if ((res=compress_and_wrap(os.str(), msg_out)))
@@ -332,7 +331,7 @@ game_error player::process_bet(std::string& msg_in, std::string& out, bet_type* 
             break;
         case MSG_CARD_PROOF:
             proof_msg = (msg_card_proof*)msgin;
-            res = handle_card_proof(proof_msg);
+            res = handle_card_proof(proof_msg, &msgout);
             if (out_type) *out_type = proof_msg->type;
             if (out_amt) *out_amt = proof_msg->amt;
             break;
@@ -349,10 +348,11 @@ game_error player::process_bet(std::string& msg_in, std::string& out, bet_type* 
 
     out = "";
     auto ostr = os.str();
+    auto compression = SUCCESS;
     if (ostr.size())
-        return compress_and_wrap(ostr, out);
+        compression = compress_and_wrap(ostr, out);
 
-    return res;
+    return compression == SUCCESS ? res : compression;
 }
 
 game_error player::handle_bet_request(msg_bet_request* msgin, message** out) {
@@ -360,7 +360,7 @@ game_error player::handle_bet_request(msg_bet_request* msgin, message** out) {
     game_error res;
 
     auto step = _r.step();
-    if ((_r.bet(opponent_id(_id), msgin->type, msgin->amt)))
+    if ((_r.bet(_opponent_id, msgin->type, msgin->amt)))
         return res;
 
     auto step_changed = _r.step() != step;
@@ -371,38 +371,59 @@ game_error player::handle_bet_request(msg_bet_request* msgin, message** out) {
 
         auto msgout = new msg_card_proof();
         *out = msgout;
+        msgout->player_id = _id;
         msgout->type = msgin->type;
         msgout->amt = msgin->amt;
-        if (_r.step() == game_step::OPEN_OPONENT_CARDS) {
-            if ((res=open_opponent_cards(msgin->cards_proof)))
+
+        if (_r.step() == game_step::SHOWDOWN) {
+            if ((res = make_card_proof(msgout->cards_proof, private_card_index(_id, 0), NUM_PRIVATE_CARDS))) {
                 return res;
-            if ((res=make_card_proof(msgout->cards_proof , private_card_index(_id, 0), NUM_PRIVATE_CARDS)))
-                return res;
+            }
+            return CONTINUED;
         } else {
             int first_card, count;
-            if ((res=public_cards_range(_r.step(), first_card, count)))
+            if ((res = public_cards_range(_r.step(), first_card, count)))
                 return res;
-            if ((res=make_card_proof(msgout->cards_proof , first_card, count)))
+            if ((res = make_card_proof(msgout->cards_proof, first_card, count)))
                 return res;
-            if ((res=open_public_cards(_r.step(), msgout->cards_proof, msgin->cards_proof)))
+            if ((res = open_public_cards(_r.step(), msgout->cards_proof, msgin->cards_proof)))
                 return res;
         }
     }
     return SUCCESS;
 }
 
-game_error player::handle_card_proof(msg_card_proof* msgin) {
+game_error player::handle_card_proof(msg_card_proof* msgin, message** out) {
     logger << "...handle_card_proof" << std::endl;
     game_error res;
-    if (_r.step() == game_step::OPEN_OPONENT_CARDS) {
-        if ((res=open_opponent_cards(msgin->cards_proof)))
-            return res;
+
+    if (_r.step() == game_step::SHOWDOWN) {
+        if (_r.game().last_aggressor == _id) {
+            if ((res = showdown(msgin->cards_proof, msgin->muck)))
+                return res;
+        } else {
+            auto msgout = new msg_card_proof();
+            *out = msgout;
+            msgout->player_id = _id;
+            msgout->type = msgin->type;
+            msgout->amt = msgin->amt;
+            
+            if ((res = showdown(msgin->cards_proof)))
+                return res;
+
+            if (_r.game().winner == _id || _r.game().winner == TIE) {
+                if ((res = make_card_proof(msgout->cards_proof, private_card_index(_id, 0), NUM_PRIVATE_CARDS)))
+                    return res;
+            } else {
+                msgout->muck = true;
+            }
+        }
     } else {
         auto p = _public_proofs.find(_r.step());
         if (p == _public_proofs.end())
             return PRR_PROOF_NOT_FOUND;
         auto my_proof = p->second;
-        if ((res=open_public_cards(_r.step(), my_proof, msgin->cards_proof)))
+        if ((res = open_public_cards(_r.step(), my_proof, msgin->cards_proof)))
             return res;
     }
     return SUCCESS;
@@ -491,13 +512,13 @@ game_error player::open_public_cards(game_step step, blob& my_proof, blob& their
     return SUCCESS;
 }
 
-game_error player::open_opponent_cards(blob& their_proof) {
+game_error player::showdown(blob& their_proof, bool muck) {
     game_error res;
 
     auto& my_proof = _proof_of_their_cards;
     auto alice_proofs = _id == ALICE ? my_proof : their_proof;
     auto bob_proofs = _id == BOB ? my_proof : their_proof;
-    if ((res=_r.step_open_opponent_cards(_opponent_id, alice_proofs, bob_proofs)))
+    if ((res = _r.step_showdown(_opponent_id, alice_proofs, bob_proofs, muck)))
         return res;
 
     return SUCCESS;

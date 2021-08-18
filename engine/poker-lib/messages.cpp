@@ -216,7 +216,7 @@ std::string msg_bet_request::to_string() {
     return ss.str();
 }
 
-msg_card_proof::msg_card_proof() : message(MSG_CARD_PROOF) {
+msg_card_proof::msg_card_proof() : message(MSG_CARD_PROOF), muck(false) {
 }
 
 game_error msg_card_proof::write(std::ostream& os)  {
@@ -227,6 +227,7 @@ game_error msg_card_proof::write(std::ostream& os)  {
     if ((res=out.write(type))) return res;
     if ((res=out.write(amt))) return res;
     if ((res=out.write(cards_proof))) return res;
+    if ((res=out.write(muck))) return res;
     return SUCCESS;
 }
 
@@ -237,6 +238,7 @@ game_error msg_card_proof::read(std::istream& is)  {
     if ((res=in.read(type))) return res;
     if ((res=in.read(amt))) return res;
     if ((res=in.read(cards_proof))) return res;
+    if ((res=in.read(muck))) return res;
     return SUCCESS;
 }
 

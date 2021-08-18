@@ -37,15 +37,15 @@ public:
     game_error step_turn_bet(int player_id, bet_type type, money_t amt);
     game_error step_open_river(blob& alice_proofs, blob& bob_proofs);
     game_error step_river_bet(int player_id, bet_type type, money_t amt);
-    game_error step_open_opponent_cards(int player_id, blob& alice_proofs, blob& bob_proofs);
+    game_error step_showdown(int player_id, blob& alice_proofs, blob& bob_proofs, bool muck);
 
     game_error bet(int player_id, bet_type type, money_t amt);
-    game_error compute_bet(bet_type type, money_t& amt, game_step next_step);
-
+    
     game_error open_public_cards(game_step step, blob& alice_proof, blob bob_proof);
     game_error open_private_cards(int player_id, blob& alice_proofs, blob& bob_proofs);
 
 private:
+    game_error compute_bet(bet_type type, money_t& amt, game_step next_step);
     game_error open_public_cards(blob& alice_proofs, blob& bob_proofs, int first_card_index, int card_count);
     game_error decide_winner();
 };

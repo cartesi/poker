@@ -154,6 +154,8 @@ void test_the_happy_path() {
     assert_eql(game_step::RIVER_BET, bob.step());
     assert_eql(BOB, alice.current_player());
     assert_eql(BOB, bob.current_player());
+    assert_neq(uk, bob.public_card(RIVER));
+    assert_neq(uk, alice.public_card(RIVER));
 
     // Bob checks
     assert_eql(SUCCESS, bob.create_bet(BET_CHECK, 0, msg[14]));
@@ -162,28 +164,34 @@ void test_the_happy_path() {
 
     // Alice checks
     assert_eql(CONTINUED, alice.create_bet(BET_CHECK, 0, msg[15]));
-    assert_eql(SUCCESS, bob.process_bet(msg[15], msg[16], &type, &amt));
+    assert_eql(game_step::SHOWDOWN, alice.step());
+    assert_eql(CONTINUED, bob.process_bet(msg[15], msg[16], &type, &amt));
+    assert_eql(game_step::SHOWDOWN, bob.step());
     assert_eql(SUCCESS, alice.process_bet(msg[16], msg[17], &type, &amt));
-    assert_eql(true, msg[17].empty());
-
-    assert_neq(uk, bob.public_card(RIVER));
-    assert_neq(uk, alice.public_card(RIVER));
-
     assert_eql(game_step::GAME_OVER, alice.step());
+    assert_eql(SUCCESS, bob.process_bet(msg[17], msg[18], &type, &amt));
+    assert_eql(game_step::GAME_OVER, bob.step());
+    assert_eql(true, msg[18].size()==0);
+
     assert_neq(uk, alice.opponent_card(0));
     assert_neq(uk, alice.opponent_card(1));
-    assert_eql(game_step::GAME_OVER, bob.step());
-    assert_neq(uk, bob.opponent_card(0));
-    assert_neq(uk, bob.opponent_card(1));
+
     assert_neq(-1, alice.winner());
     assert_neq(-1, bob.winner());
     assert_eql(alice.winner(), bob.winner());
 
     assert_neq(0, alice.game().result[ALICE]);
     assert_neq(0, alice.game().result[BOB]);
-    assert_neq(0, bob.game().result[ALICE]);
-    assert_neq(0, bob.game().result[BOB]);
+    assert_eql(alice.game().result[ALICE], bob.game().result[ALICE]);
+    assert_eql(alice.game().result[BOB], bob.game().result[BOB]);
 
+    if(alice.winner() == ALICE) {
+        assert_neq(uk, bob.opponent_card(0));
+        assert_neq(uk, bob.opponent_card(1));
+    } else { //Alice mucks
+        assert_eql(uk, bob.opponent_card(0));
+        assert_eql(uk, bob.opponent_card(1));
+    }
 }
 
 void test_fold() {

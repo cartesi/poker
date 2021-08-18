@@ -1,9 +1,9 @@
 #include <iostream>
 #include <vector>
 
-#include "poker-lib.h"
 #include "cards.h"
 #include "game-state.h"
+#include "poker-lib.h"
 #include "test-util.h"
 #include "validator.h"
 
@@ -90,21 +90,39 @@ int main(int argc, char **argv) {
 
     // Given ALICE's hand is better
     // Alice wins
-    set_state(cf.alice_high_ace);
+    reset_state();
+    setup_cards(g, cf.alice_high_ace);
+    setup_bets(g, bf.equal_bets);
+
     decide_winner(g);
+
     assert_eql(ALICE, g.winner);
+    assert_eql(g.result[ALICE], (bf.equal_bets.alice[0] + bf.equal_bets.bob[1]));
+    assert_eql(g.result[BOB], (bf.equal_bets.bob[0] - bf.equal_bets.bob[1]));
 
     // Given BOB's hand is better
     // BOB wins
-    set_state(cf.bob_high_ace);
+    reset_state();
+    setup_cards(g, cf.bob_high_ace);
+    setup_bets(g, bf.equal_bets);
+
     decide_winner(g);
+
     assert_eql(BOB, g.winner);
+    assert_eql(g.result[ALICE], (bf.equal_bets.alice[0] - bf.equal_bets.alice[1]));
+    assert_eql(g.result[BOB], (bf.equal_bets.bob[0] + bf.equal_bets.alice[1]));
 
     // Given ALICE's and BOB's hands are the same
     // Its a tie
-    set_state(cf.tie);
+    reset_state();
+    setup_cards(g, cf.tie);
+    setup_bets(g, bf.equal_bets);
+
     decide_winner(g);
+
     assert_eql(TIE, g.winner);
+    assert_eql(g.result[ALICE], bf.equal_bets.alice[0]);
+    assert_eql(g.result[BOB], bf.equal_bets.bob[0]);
 
     /**
      *
@@ -143,7 +161,7 @@ int main(int argc, char **argv) {
 
     assert_eql(err, SUCCESS);
     assert_eql(BOB, g.winner);
-    assert_eql(PHS_SHOWDOWN, g.phase);
+    assert_eql(PHS_GAME_OVER, g.phase);
     assert_eql(BOB, g.current_player);
 
     // Given BOB's bet is higher and ALICE already called the big blind
@@ -204,7 +222,7 @@ int main(int argc, char **argv) {
 
     assert_eql(err, SUCCESS);
     assert_eql(ALICE, g.winner);
-    assert_eql(PHS_SHOWDOWN, g.phase);
+    assert_eql(PHS_GAME_OVER, g.phase);
     assert_eql(ALICE, g.current_player);
 
     // Given bets are equal
@@ -280,7 +298,7 @@ int main(int argc, char **argv) {
 
     assert_eql(SUCCESS, err);
     assert_eql(ALICE, g.winner);
-    assert_eql(PHS_SHOWDOWN, g.phase);
+    assert_eql(PHS_GAME_OVER, g.phase);
     assert_eql(ALICE, g.current_player);
 
     // Given ALICE's bet is higher and BOB doesn't have funds
@@ -342,7 +360,7 @@ int main(int argc, char **argv) {
 
     assert_eql(SUCCESS, err);
     assert_eql(ALICE, g.winner);
-    assert_eql(PHS_SHOWDOWN, g.phase);
+    assert_eql(PHS_GAME_OVER, g.phase);
     assert_eql(ALICE, g.current_player);
 
     cout << "---- SUCCESS - " TEST_SUITE_NAME << endl;

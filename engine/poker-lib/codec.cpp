@@ -85,6 +85,10 @@ game_error decoder::read(int& v) {
     return SUCCESS;
 }
 
+game_error decoder::read(bool& v) {
+    return read((int&)v);
+}
+
 game_error decoder::read(message_type& v) {
     game_error res;
     int t;

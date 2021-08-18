@@ -250,7 +250,7 @@ game_error referee::step_river_bet(int player_id, bet_type type, money_t amt) {
 
     if (_g.phase != PHS_RIVER)
         return (_g.error = ERR_BET_PHASE_MISMATCH);
-    if ((res=compute_bet(type, amt, game_step::OPEN_OPONENT_CARDS)))
+    if ((res=compute_bet(type, amt, game_step::SHOWDOWN)))
         return res;
 
     return SUCCESS;
@@ -275,10 +275,11 @@ game_error referee::bet(int player_id, bet_type type, money_t amt) {
 game_error referee::compute_bet(bet_type type, money_t& amt, game_step next_step) {
     game_error res;
     auto phs = _g.phase;
-    if ((res=place_bet(_g, type, amt)))
+
+    if ((res = place_bet(_g, type, amt)))
         return res;
 
-    if (type == BET_FOLD && _g.phase == PHS_SHOWDOWN) {
+    if (_g.phase == PHS_GAME_OVER) {
         _step = game_step::GAME_OVER;
     } else {
         auto phs_changed = phs != _g.phase;
@@ -288,21 +289,30 @@ game_error referee::compute_bet(bet_type type, money_t& amt, game_step next_step
     return SUCCESS;
 }
 
-game_error referee::step_open_opponent_cards(int player_id, blob& alice_proofs, blob& bob_proofs) {
-    logger << "step_open_opponent_cards..." << std::endl;
+game_error referee::step_showdown(int player_id, blob& alice_proofs, blob& bob_proofs, bool muck) {
+    logger << "step_showdown..." << std::endl;
     game_error res;
-    if (_g.error) return ERR_GAME_OVER;
-    if (_step != game_step::OPEN_OPONENT_CARDS)
+    
+    if (_g.error)
+        return ERR_GAME_OVER;
+    if (_step != game_step::SHOWDOWN)
         return (_g.error = ERR_INVALID_MOVE);
 
-    if ((res=open_private_cards(player_id, alice_proofs, bob_proofs)))
-        return res;
+    if (muck) {
+        _g.muck = true;
+        _g.winner = opponent_id(player_id);
+        _g.phase = bet_phase::PHS_GAME_OVER;
+        _g.current_player = _g.winner;
+        share_funds(_g);
+    } else {
+        if ((res = open_private_cards(player_id, alice_proofs, bob_proofs)))
+            return res;
 
-    if ((res=decide_winner()))
-        return res;
-    
+        if ((res = decide_winner()))
+            return res;
+    }
+
     _step = game_step::GAME_OVER;
-    
     _g.dump();
 
     return SUCCESS;

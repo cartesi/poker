@@ -90,13 +90,13 @@ private:
     game_error handle_vsshe_response(msg_vsshe_response* msgin, message** out);
     game_error handle_bob_private_cards(msg_bob_private_cards* msgin);
     game_error handle_bet_request(msg_bet_request* msgin, message** out);
-    game_error handle_card_proof(msg_card_proof* msgin);
+    game_error handle_card_proof(msg_card_proof* msgin, message** out);
 
     game_error write_cards_proof(game_step step, blob& proof);
     game_error generate_key(blob& key);
     game_error load_opponent_key(blob &key);
     game_error make_card_proof(blob& proof, int start_card_ix, int count);
-    game_error open_opponent_cards(blob& their_proof);
+    game_error showdown(blob& their_proof, bool muck = false);
     game_error deal_cards();
     game_error prove_opponent_cards(blob& proofs);
     game_error open_public_cards(game_step step, blob& my_proof, blob& their_proof);

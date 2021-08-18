@@ -50,7 +50,9 @@ std::string game_state::to_json(char* extra_fields) {
             "{\"id\": %d, \"total_funds\": \"%s\", \"bets\": \"%s\", \"cards\":[%d, %d]},"
             "{\"id\": %d, \"total_funds\": \"%s\", \"bets\": \"%s\", \"cards\":[%d, %d]}"
         "],"
-        "\"result\":[\"%s\", \"%s\"]"
+        "\"result\":[\"%s\", \"%s\"], "
+        "\"last_aggressor\": %d, "
+        "\"muck\": %d "
         "%s %s" // extra fields
         "}",
         current_player, (int)error, winner,
@@ -58,7 +60,9 @@ std::string game_state::to_json(char* extra_fields) {
         public_cards[3], public_cards[4],
         p0.id, p0.total_funds.to_string().c_str(), p0.bets.to_string().c_str(), p0.cards[0], p0.cards[1],
         p1.id, p1.total_funds.to_string().c_str(), p1.bets.to_string().c_str(), p1.cards[0], p1.cards[1],
-        result[0].to_string().c_str(), result[1].to_string().c_str(),
+        result[0].to_string().c_str(), result[1].to_string().c_str(), 
+        last_aggressor, 
+        muck,
         (extra_fields ? "," : ""),  (extra_fields ? extra_fields : "")
     );
     return std::string(json);
