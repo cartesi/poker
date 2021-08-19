@@ -13,13 +13,18 @@ export class PokerEngine implements Engine {
         this.player_id = player_id;
         this.counter = new Date().getTime();
         this.callbacks = {};
-        this.worker = new Worker("/src/services/wasm/static/poker-lib-wasm.js");
+        this.worker = new Worker("assets/wasm/poker-lib-wasm.js");
         this.worker.addEventListener("message", (event) => {
             this._runCallback(event.data);
         });
     }
 
-    async init(alice_funds: BigNumber, bob_funds: BigNumber, big_blind: BigNumber, encryption: boolean = true): Promise<EngineResult> {
+    async init(
+        alice_funds: BigNumber,
+        bob_funds: BigNumber,
+        big_blind: BigNumber,
+        encryption: boolean = true
+    ): Promise<EngineResult> {
         // Initialize libraries
         await this._callWorker("poker_init", makeMessage(encryption), () => StatusCode.SUCCESS);
 
@@ -175,6 +180,6 @@ function parseBigNumber(buffer) {
 }
 
 function parseString(buffer) {
-    const dec = new TextDecoder('ascii');
+    const dec = new TextDecoder("ascii");
     return dec.decode(buffer.buffer);
 }

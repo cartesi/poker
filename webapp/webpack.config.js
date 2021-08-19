@@ -10,15 +10,6 @@ module.exports = {
     module: {
         rules: [
             { test: /\.ts$/, loader: "ts-loader", exclude: "/node_modules/" },
-            {
-                test: /\/static\/.*/,
-                use: {
-                    loader: "file-loader",
-                    options: {
-                        name: "[path][name].[ext]",
-                    },
-                },
-            },
         ],
     },
     devServer: {
