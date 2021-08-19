@@ -39,6 +39,7 @@ export class GameMock implements Game {
         onEvent?: (msg: string, type: EventType) => any,
         onVerification?: (state: string, msg: string) => any
     ) {
+        this.currentPlayer = player;
         this.opponent = this.player == ALICE ? BOB : ALICE;
         this.playerBets = BigNumber.from(0);
         this.opponentBets = BigNumber.from(0);
@@ -195,7 +196,7 @@ export class GameMock implements Game {
     }
 
     async getCurrentPlayerId() {
-        return this.player;
+        return this.currentPlayer;
     }
 
     async getPlayerFunds() {
@@ -527,6 +528,7 @@ export class GameMock implements Game {
         // sends new bets over
         await this._submitTurn(newPlayerBets);
 
+        this.currentPlayer = this.opponent;
         this.playerBets = newPlayerBets;
         if (this.playerBets.gt(this.opponentBets)) {
             // bet has been raised: current player becomes the bet leader
@@ -551,6 +553,7 @@ export class GameMock implements Game {
             return;
         }
 
+        this.currentPlayer = this.player;
         opponentBets = BigNumber.from(opponentBets);
         if (opponentBets.gt(this.playerBets)) {
             // opponent has raised and is now the bet leader

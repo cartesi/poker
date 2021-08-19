@@ -146,7 +146,7 @@ export class RoomManager {
             RoomManager.showBet(BetType.CALL, GameVars.playerIndex);
 
             RoomManager.updateBoard();
-            RoomManager.startOpponentTurn();
+            RoomManager.updateOpponentState();
         }).catch(() => {
             RoomManager.showBetButtons();
         });
@@ -159,7 +159,7 @@ export class RoomManager {
             RoomManager.showBet(BetType.CHECK, GameVars.playerIndex);
 
             RoomManager.updateBoard();
-            RoomManager.startOpponentTurn();
+            RoomManager.updateOpponentState();
         }).catch(() => {
             RoomManager.showBetButtons();
         });
@@ -172,7 +172,7 @@ export class RoomManager {
             RoomManager.showBet(BetType.FOLD, GameVars.playerIndex);
 
             RoomManager.updateBoard();
-            RoomManager.startOpponentTurn();
+            RoomManager.updateOpponentState();
         }).catch(() => {
             RoomManager.showBetButtons();
         });
@@ -185,18 +185,21 @@ export class RoomManager {
             RoomManager.showBet(BetType.RAISE, GameVars.playerIndex);
 
             RoomManager.updateBoard();
-            RoomManager.startOpponentTurn();
+            RoomManager.updateOpponentState();
         }).catch(() => {
             RoomManager.showBetButtons();
         });
     }
 
-    public static startOpponentTurn(): void {
-
-        setTimeout(() => {
-            RoomScene.currentInstance.startOpponentTurn();
-        }, 2000);
-}
+    public static async updateOpponentState(): Promise<void> {
+        if (await RoomManager.game.getCurrentPlayerId() === GameVars.playerIndex || await RoomManager.game.getState() === GameState.SHOWDOWN) {
+            RoomScene.currentInstance.endOpponentTurn();
+        } else {
+            setTimeout(() => {
+                RoomScene.currentInstance.startOpponentTurn();
+            }, 2000);
+        }
+    }
 
     public static updateBoard(): void {
 
@@ -246,6 +249,7 @@ export class RoomManager {
     private static onBetRequested(): void {
         
         RoomManager.updateBoard();
+        RoomManager.updateOpponentState();
         RoomManager.showBetButtons();
     }
 
@@ -253,8 +257,8 @@ export class RoomManager {
         
         console.log(`Bets received: type=${betType} ; amount=${amount}`);
         RoomManager.showBet(betType, GameVars.opponentIndex);
-        RoomScene.currentInstance.endOpponentTurn();
         RoomManager.updateBoard();
+        RoomManager.updateOpponentState();
     }
 
     private static async onEnd(): Promise<void> {
