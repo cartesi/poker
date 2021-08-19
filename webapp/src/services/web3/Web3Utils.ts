@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 
 export class Web3Utils {
     private static readonly MAX_ATTEMPTS = 5;
-    private static readonly ATTEMPT_INTERVAL = 3000;
+    private static readonly ATTEMPT_INTERVAL = 5000;
 
     /**
      * Converts a JavaScript Object to Uint8Array.
