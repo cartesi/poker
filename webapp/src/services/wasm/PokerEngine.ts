@@ -111,7 +111,7 @@ export class PokerEngine implements Engine {
         return new Promise((resolve, reject) => {
             const callbackId = this._registerCallback((results) => {
                 const finalResult = resultHandler(results);
-                console.log(`[Player ${this.player_id}] ---> finalResult:`, funcName, finalResult);
+                console.debug(`[Player ${this.player_id}] ---> finalResult:`, funcName, finalResult);
                 resolve(finalResult);
             });
             this.worker.postMessage({ funcName, callbackId, data });
