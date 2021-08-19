@@ -248,20 +248,27 @@ export class GameWasm implements Game {
     }
 
     private _computeResult(state: EngineState): GameResult {
-        let publicCards = state.public_cards.map(Card.fromIndex);
-        let playerCards = state.players[this.playerId].cards.map(Card.fromIndex).concat(publicCards);
-        let opponentCards = state.players[this.opponentId].cards.map(Card.fromIndex).concat(publicCards);
 
         const winners = Array(2);
         winners[this.playerId] = (this.playerId === state.winner)
         winners[this.opponentId] = (this.opponentId === state.winner);
-        
-        const hands = PokerSolver.solve([playerCards, opponentCards]).bestHands;
+
+        const hands = Array(2);
+        const publicCards = state.public_cards.map(Card.fromIndex);
+        const playerCards = state.players[this.playerId].cards.map(Card.fromIndex).concat(publicCards);
+        const opponentCards = state.players[this.opponentId].cards.map(Card.fromIndex).concat(publicCards);
+        if (!playerCards.includes(null)) {
+            hands[this.playerId] = playerCards;
+        }
+        if (!opponentCards.includes(null)) {
+            hands[this.opponentId] = opponentCards;
+        }
+        const bestHands = PokerSolver.solve(hands).bestHands;
 
         return {
             isWinner: winners,
             fundsShare: state.funds_share,
-            hands: hands,
+            hands: bestHands
         };
     }
 
