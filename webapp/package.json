@@ -20,6 +20,7 @@
     },
     "dependencies": {
         "@metamask/onboarding": "^1.0.0",
+        "@portis/web3": "^4.0.5",
         "@types/howler": "^2.2.1",
         "ethers": "^5.3.0",
         "howler": "^2.2.0",
