@@ -3,6 +3,7 @@
 #include "player.h"
 #include "verifier.h"
 #include "test-util.h"
+#include "poker-lib.h"
 
 using namespace poker;
 using namespace poker::cards;
@@ -219,6 +220,7 @@ void test_fold() {
 }
 
 int main(int argc, char** argv) {
+    init_poker_lib();
     test_the_happy_path();
     test_fold();
     std::cout << "---- SUCCESS - " TEST_SUITE_NAME << std::endl;
