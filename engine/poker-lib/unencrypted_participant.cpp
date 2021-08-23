@@ -1,6 +1,8 @@
 #include "unencrypted_participant.h"
 
 #include <algorithm>
+#include <random>
+#include <chrono>
 
 namespace poker {
 
@@ -64,7 +66,8 @@ game_error unencrypted_participant::shuffle_stack(blob& mixed_stack, blob& stack
     logger << _pfx << "shuffle_stack" << std::endl;
 
     if (!_predictable) {
-        std::random_shuffle(stack.begin(), stack.end());
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::shuffle(stack.begin(), stack.end(), std::default_random_engine(seed));
 
         for (auto i = 0; i < stack.size(); i++)
             mixed_stack.out() << "^" << stack[i];
