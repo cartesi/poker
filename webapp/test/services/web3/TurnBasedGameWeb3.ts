@@ -9,7 +9,6 @@ import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
 import TurnBasedGame from "../../../src/abis/TurnBasedGame.json";
 import { TurnBasedGameWeb3 } from "../../../src/services/web3/TurnBasedGameWeb3";
 import { ethers } from "ethers";
-import { Web3TestUtils } from "./Web3TestUtils";
 
 
 describe('TurnBasedGameWeb3', function () {
@@ -63,31 +62,39 @@ describe('TurnBasedGameWeb3', function () {
         const aliceInfo = { name: "Alice", avatar: 1 };
         const bobInfo = { name: "Bob", avatar: 2 };
 
+        // Creates a promise that will only be resolved when gameReady callback for player 1 is called
+        let gameReadyResolverPlayer1: (boolean) => void;
+        const promiseIsGameReadyPlayer1: Promise<boolean> = new Promise<boolean>((resolve: (boolean) => void) => { gameReadyResolverPlayer1 = resolve; });
+
+        // Creates a promise that will only be resolved when gameReady callback for player 2 is called
+        let gameReadyResolverPlayer2: (boolean) => void;
+        const promiseIsGameReadyPlayer2: Promise<boolean> = new Promise<boolean>((resolve: (boolean) => void) => { gameReadyResolverPlayer2 = resolve; });
+
         // Player 1 joins the game
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
-        let aliceGameReadyStatus: boolean = false;
         let aliceGameReadyCallback = function (index, context) {
             gameIndex = index;
-            aliceGameReadyStatus = true;
+            gameReadyResolverPlayer1(true);
             console.log("gameReadyCallbackPlayer1 was called with index=" + index);
         };
         await LobbyWeb3.joinGame(aliceInfo, aliceGameReadyCallback);
 
         // Player 2 joins the game
         ServiceConfig.currentInstance.setSigner(bobAccountIndex);
-
-        let bobGameReadyStatus: boolean = false;
         let bobGameReadyCallback = function (index, context) {
-            bobGameReadyStatus = true;
+            gameReadyResolverPlayer2(true);
             console.log("gameReadyCallbackPlayer2 was called with index=" + index);
         };
         await LobbyWeb3.joinGame(bobInfo, bobGameReadyCallback);
 
         // Alice and Bob must receive the gameReady event
         // to be able to submit their turns
-        await Web3TestUtils.waitUntil(5000);
-        expect(aliceGameReadyStatus).to.be.true;
-        expect(bobGameReadyStatus).to.be.true;
+        await promiseIsGameReadyPlayer1.then((isGameReady) => {
+            expect(isGameReady).to.be.true;
+        });
+        await promiseIsGameReadyPlayer2.then((isGameReady) => {
+            expect(isGameReady).to.be.true;
+        });
 
         // create turnbasedgame instance for Alice
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
@@ -95,7 +102,7 @@ describe('TurnBasedGameWeb3', function () {
         await turnBasedGameAlice.initWeb3();
 
         // data alice will submit
-        let aliceData: Uint8Array = new Uint8Array([10,20]);
+        let aliceData: Uint8Array = new Uint8Array([10, 20]);
 
         // create turnbasedgame instance for Bob
         ServiceConfig.currentInstance.setSigner(bobAccountIndex);

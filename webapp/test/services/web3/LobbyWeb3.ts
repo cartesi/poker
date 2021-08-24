@@ -6,14 +6,15 @@ import { PokerToken__factory } from "../../../src/types";
 import PokerToken from "../../../src/abis/PokerToken.json";
 import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
 import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
-import { Web3TestUtils } from "./Web3TestUtils";
 
-describe('LobbyWeb3', () => {
+describe('LobbyWeb3', function () {
     // creates a service config instance
     const serviceConfig: ServiceConfig = new ServiceConfig();
 
     const aliceAccountIndex: number = 0;
     const bobAccountIndex: number = 1;
+
+    this.timeout(60000);
 
     beforeEach(async () => {
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
@@ -44,27 +45,38 @@ describe('LobbyWeb3', () => {
         const player1Info = { name: "Alice", avatar: 1 };
         const player2Info = { name: "Bob", avatar: 2 };
 
+        // Creates a promise that will only be resolved when gameReady callback for player 1 is called
+        let gameReadyResolverPlayer1: (boolean) => void;
+        const promiseIsGameReadyPlayer1: Promise<boolean> = new Promise<boolean>((resolve: (boolean) => void) => { gameReadyResolverPlayer1 = resolve; });
+
+        // Creates a promise that will only be resolved when gameReady callback for player 2 is called
+        let gameReadyResolverPlayer2: (boolean) => void;
+        const promiseIsGameReadyPlayer2: Promise<boolean> = new Promise<boolean>((resolve: (boolean) => void) => { gameReadyResolverPlayer2 = resolve; });
+
         // Player 1 joins the game
         ServiceConfig.currentInstance.setSigner(aliceAccountIndex);
-        let gameReadyStatusPlayer1: boolean = false;
         let gameReadyCallbackPlayer1 = function (index, context) {
-            gameReadyStatusPlayer1 = true;
+            gameReadyResolverPlayer1(true);
+            console.log("gameReadyCallbackPlayer1 was called with index=" + index);
         };
-        await LobbyWeb3.joinGame(player1Info, gameReadyCallbackPlayer1);
+        LobbyWeb3.joinGame(player1Info, gameReadyCallbackPlayer1);
 
         // Player 2 joins the game
         ServiceConfig.currentInstance.setSigner(bobAccountIndex);
 
-        let gameReadyStatusPlayer2: boolean = false;
         let gameReadyCallbackPlayer2 = function (index, context) {
-            gameReadyStatusPlayer2 = true;
+            gameReadyResolverPlayer2(true);
+            console.log("gameReadyCallbackPlayer2 was called with index=" + index);
         };
-        await LobbyWeb3.joinGame(player2Info, gameReadyCallbackPlayer2);
+        LobbyWeb3.joinGame(player2Info, gameReadyCallbackPlayer2);
 
-        await Web3TestUtils.waitUntil(5000);
-
-        // Alice and Bob must receive the gameReady event
-        expect(gameReadyStatusPlayer1).to.be.true;
-        expect(gameReadyStatusPlayer2).to.be.true;
+        // Check if game ready callback was called for player 1
+        await promiseIsGameReadyPlayer1.then((isGameReady) => {
+            expect(isGameReady).to.be.true;
+        });
+        // Check if game ready callback was called for player 2
+        await promiseIsGameReadyPlayer2.then((isGameReady) => {
+            expect(isGameReady).to.be.true;
+        });
     });
 });
