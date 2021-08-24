@@ -303,11 +303,11 @@ export class GameWasm implements Game {
         await this.turnBasedGame.submitTurn(bet.message_out);
 
         if (bet.status == StatusCode.CONTINUED) {
-            await this._processBet();
+            this._processBet();
         }
 
         console.log(`### [Player ${this.playerId}] Bet Resolved ###`);
-        Promise.resolve();
+        return { type, amount };
     }
 
     private async _processBet(): Promise<Bet> {
@@ -323,6 +323,15 @@ export class GameWasm implements Game {
                 await this.turnBasedGame.submitTurn(receivedBet.message_out);
             }
         } while (receivedBet.status == StatusCode.CONTINUED);
+
+        this.onEvent(await this.getState(), EventType.UPDATE_STATE);
+        let state = await this.engine.game_state();
+
+        if (state.step == EngineStep.GAME_OVER && this._isDealer()) {
+            let fundsShare = state.funds_share;
+            console.log(`### [Player ${this.playerId}] Claim Result ###`);
+            await this.turnBasedGame.claimResult(fundsShare);
+        }
 
         return Promise.resolve({
             type: receivedBet.betType,
@@ -344,6 +353,7 @@ export class GameWasm implements Game {
     }
 
     private _waitOpponentBet() {
+        console.log(`### [Player ${this.playerId}] Wait opponent bet ###`);
         this._processBet().then(async (bet) => {
             let type = this._convertBetType(bet.type);
             this.onBetsReceived(type, bet.amount);
