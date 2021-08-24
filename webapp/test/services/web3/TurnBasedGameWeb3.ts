@@ -102,7 +102,7 @@ describe('TurnBasedGameWeb3', function () {
         await turnBasedGameAlice.initWeb3();
 
         // data alice will submit
-        let aliceData: Uint8Array = new Uint8Array([10, 20]);
+        let aliceData: Uint8Array = new Uint8Array([10, 20, 0, 0, 0, 0, 0, 0]);
 
         // create turnbasedgame instance for Bob
         ServiceConfig.currentInstance.setSigner(bobAccountIndex);
