@@ -325,13 +325,7 @@ export class GameWasm implements Game {
         } while (receivedBet.status == StatusCode.CONTINUED);
 
         this.onEvent(await this.getState(), EventType.UPDATE_STATE);
-        let state = await this.engine.game_state();
-
-        if (state.step == EngineStep.GAME_OVER && this._isDealer()) {
-            let fundsShare = state.funds_share;
-            console.log(`### [Player ${this.playerId}] Claim Result ###`);
-            await this.turnBasedGame.claimResult(fundsShare);
-        }
+        await this._checkGameOver();
 
         return Promise.resolve({
             type: receivedBet.betType,
@@ -339,16 +333,25 @@ export class GameWasm implements Game {
         });
     }
 
-    private async _onBet() {
+    private async _checkGameOver(isFold?: boolean): Promise<boolean> {
         let state = await this.engine.game_state();
+        if (state.step == EngineStep.GAME_OVER) {
+            if (isFold || this._isDealer()) {
+                let fundsShare = state.funds_share;
+                console.log(`### [Player ${this.playerId}] Claim Result ###`);
+                await this.turnBasedGame.claimResult(fundsShare);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-        if (state.step != EngineStep.GAME_OVER) {
+    private async _onBet() {
+        if ((await this._checkGameOver()) === false) {
+            let state = await this.engine.game_state();
             if (state.current_player == this.playerId) this.onBetRequested();
             else this._waitOpponentBet();
-        } else if (this._isDealer()) {
-            let fundsShare = state.funds_share;
-            console.log(`### [Player ${this.playerId}] Claim Result ###`);
-            await this.turnBasedGame.claimResult(fundsShare);
         }
     }
 
@@ -358,17 +361,15 @@ export class GameWasm implements Game {
             let type = this._convertBetType(bet.type);
             this.onBetsReceived(type, bet.amount);
 
-            let state = await this.engine.game_state();
-            if (state.step == EngineStep.GAME_OVER) {
-                if (type == BetType.FOLD || this._isDealer()) {
-                    let fundsShare = state.funds_share;
-                    console.log(`### [Player ${this.playerId}] Claim Result ###`);
-                    await this.turnBasedGame.claimResult(fundsShare);
+            const isFold = (type == BetType.FOLD);
+            const isGameOver = await this._checkGameOver(isFold);
+            if (!isGameOver) {
+                let state = await this.engine.game_state();
+                if (state.current_player == this.playerId) {
+                    this.onBetRequested();
+                } else {
+                    this._waitOpponentBet();
                 }
-            } else if (state.current_player == this.playerId) {
-                this.onBetRequested();
-            } else {
-                this._waitOpponentBet();
             }
         });
     }
