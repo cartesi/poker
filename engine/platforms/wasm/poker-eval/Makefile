@@ -1,8 +1,8 @@
 VER=master
-LIBNAME=XPokerEval-$(VER)
+LIBNAME=poker-eval-$(VER)
 
-XPokerEval: $(LIBNAME)
-	cd $(LIBNAME)/XPokerEval/XPokerEval.Pokersource  && \
+poker-eval: $(LIBNAME)
+	cd $(LIBNAME) && \
 	autoreconf --force --install && \
     emconfigure ./configure \
         --prefix=/poker/build \
@@ -17,10 +17,9 @@ XPokerEval: $(LIBNAME)
     make install
 
 $(LIBNAME):
-	wget   https://github.com/christophschmalhofer/poker/archive/refs/heads/master.zip && \
+	wget   https://github.com/cartesi-corp/poker-eval/archive/refs/heads/master.zip && \
     unzip master.zip && \
-    rm master.zip && \
-    mv poker-master $(LIBNAME)
+    rm master.zip
  
 clean:
 	rm -rf $(LIBNAME)

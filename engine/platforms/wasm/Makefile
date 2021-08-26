@@ -18,7 +18,7 @@ RUN_TOOLCHAIN=docker run --rm  \
         -e LD_LIBRARY_PATH=/poker/build/lib \
         -it $(IMGNAME):$(TAG) \
 
-LIBS=libgmp libgpg-error libgcrypt libtmcg XPokerEval brotli poker-lib
+LIBS=libgmp libgpg-error libgcrypt libtmcg poker-eval brotli poker-lib
 
 all: $(LIBS)
 
