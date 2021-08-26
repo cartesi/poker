@@ -16,7 +16,7 @@ class referee {
     game_step   _step;
 public:    
     referee();
-    ~referee();
+    virtual ~referee();
 
     game_step step() { return _step; }
     game_state& game() { return _g; }

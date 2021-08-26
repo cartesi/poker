@@ -10,7 +10,13 @@
 
 namespace poker {
 
-int init_poker_lib(bool encryption = true);
+struct poker_lib_options {
+    poker_lib_options() : encryption(true), logging(true) { }
+    bool encryption;
+    bool logging;
+};
+
+int init_poker_lib(poker_lib_options* opts=NULL);
 
 } // namespace poker
 

@@ -25,13 +25,21 @@ void blob::set_data(const char* d) {
     _data = d;
 }
 
+void blob::append(const std::string& s) {
+    _data += s;
+}
+
+void blob::append(const  blob& b) {
+    _data += b._data;
+}
+
 const char* blob::get_data() {
     return _data.c_str();
 }
 
 int blob::size() {
     return _data.size();
- }
+}
 
 void blob::clear() { _data.clear(); }
 

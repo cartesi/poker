@@ -24,7 +24,7 @@ class participant : public i_participant {
 
    public:
     participant();
-    ~participant();
+    virtual ~participant();
 
     void init(int id, int num_participants, bool predictable) override;
     int id() override;

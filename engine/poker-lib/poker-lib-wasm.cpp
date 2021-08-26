@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdio.h>
 #include "emscripten.h"
+#include "i_participant.h"
 
 #include "poker-lib.h"
 #include "player.h"
@@ -82,8 +83,9 @@ static inline void worker_respond(poker::money_t& p, bool final=true) {
 extern "C" {
 
 void API poker_init(char* msg) {
-    auto encryption = read_int(msg);
-    poker::init_poker_lib(encryption);
+    poker::poker_lib_options options;
+    options.encryption = read_int(msg);
+    poker::init_poker_lib(&options);
     auto res = poker::game_error::SUCCESS;
     worker_respond(res);
 }
@@ -151,28 +153,11 @@ void API player_process_bet(char* msg) {
 
 void API player_game_state(char* msg) {
     auto player = read_player(msg);
-    char json[1024];
     auto g = player->game();
-    auto& p0 = g.players[0];
-    auto& p1 = g.players[1];
-    snprintf(json, sizeof(json), "{"
-        "\"step\": %d, "
-        "\"current_player\": %d, "
-        "\"error\": %d, "
-        "\"winner\": %d, "
-        "\"public_cards\": [%d, %d, %d, %d, %d], "
-        "\"players\": ["
-            "{\"id\": %d, \"total_funds\": \"%s\", \"bets\": \"%s\", \"cards\":[%d, %d]},"
-            "{\"id\": %d, \"total_funds\": \"%s\", \"bets\": \"%s\", \"cards\":[%d, %d]}"
-        "]}",
-        (int)player->step(),
-        g.current_player, (int)g.error, g.winner,
-        g.public_cards[0], g.public_cards[1], g.public_cards[2],
-        g.public_cards[3], g.public_cards[4],
-        p0.id, p0.total_funds.to_string().c_str(), p0.bets.to_string().c_str(), p0.cards[0], p0.cards[1],
-        p1.id, p1.total_funds.to_string().c_str(), p1.bets.to_string().c_str(), p1.cards[0], p1.cards[1]);
-
-    worker_respond(std::string(json));
+    char extra_fields[100];
+    sprintf(extra_fields, "\"step\": %d", (int)player->step());
+    auto json = g.to_json(extra_fields);
+    worker_respond(json.c_str());
 }
 
 } // extern "C"

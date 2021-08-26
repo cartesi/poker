@@ -1,8 +1,9 @@
-#include "compression.h"
 #include <iostream>
 #include <vector>
 #include <sstream>
 #include <inttypes.h>
+#include "poker-lib.h"
+#include "compression.h"
 #include "common.h"
 #include "test-util.h"
 
@@ -55,6 +56,7 @@ void the_naive_happy_path() {
 }
 
 int main(int argc, char** argv) {
+    init_poker_lib();
     the_naive_happy_path();
     std::cout <<  "---- SUCCESS - " TEST_SUITE_NAME << std::endl;
     return 0;

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "poker-lib.h"
 #include "common.h"
 #include "solver.h"
 
@@ -59,6 +60,7 @@ bool assert_hand_name(
 }
 
 int main(int argc, char **argv) {
+  init_poker_lib();
   solver sol;
   failures = 0;
   testCount = 0;

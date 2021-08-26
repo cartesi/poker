@@ -119,9 +119,17 @@ game_error decide_winner(game_state& g) {
         return g.error;
 
     if (result == 0)
-        g.winner = 2;  // Tie
+        g.winner = TIE;
     else
         g.winner = result == 1 ? ALICE : BOB;
+
+    if (g.winner == ALICE) {
+        g.result[ALICE] = g.players[ALICE].total_funds + g.players[BOB].bets;
+        g.result[BOB]   = g.players[BOB].total_funds   - g.players[BOB].bets;
+    } else {
+        g.result[BOB]   = g.players[BOB].total_funds    + g.players[ALICE].bets;
+        g.result[ALICE] = g.players[ALICE].total_funds  - g.players[ALICE].bets;
+    }
 
     return SUCCESS;
 }

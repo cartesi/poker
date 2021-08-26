@@ -6,10 +6,13 @@
 
 namespace poker {
 
-extern std::ostream& logger;
+extern bool logging_enabled;
+
+#define logger if(!logging_enabled) {} else std::cout
 
 const int ALICE = 0;
 const int BOB = 1;
+const int TIE = 2;
 const int EVE = 3;
 const int VERIFIER = 4;
 const int NUM_PLAYERS = 2;
@@ -136,17 +139,22 @@ enum game_error {
     TMC_PROVE_CARD,
 
     // Verifier
-    VRF_UNKNOWN_MSG_TYPE = 700,
-    VRF_DECODE_ERROR,
+    PLB_UNKNOWN_MSG_TYPE = 700,
+    PLB_DECODE_ERROR,
     VRR_READ_VTMF,
     VRR_READ_ALICE_KEY,
     VRF_MESSAGE_NOT_FOUND,
     VRF_CURRENT_PLAYER_MISMATCH,
     VRF_OPEN_ALICE_PRIVATE_CARDS,
     VRF_OPEN_BOB_PRIVATE_CARDS,
+    VRF_EOF,
 
     // Big number
     BIG_UNPARSEABLE =800,
+    BIG_READ_ERROR,
+    VRF_INVALID_PLAYER_COUNT,
+    BIG_WRITE_ERROR,
+    VRF_PLAYER_ADDRESS_NOT_FOUND,
 
     // Compression
     CPR_COMPRESS_INIT = 900,
@@ -158,6 +166,12 @@ enum game_error {
     CPR_PAYLOAD_TOO_SMALL,
     CPR_UNPARSEABLE_LEN,
     CPR_EOF,
+    
+    // playback
+    PLB_MESSAGE_NOT_FOUND = 1000,
+    PLB_CURRENT_PLAYER_MISMATCH,
+    PLB_OPEN_ALICE_PRIVATE_CARDS,
+    PLB_OPEN_BOB_PRIVATE_CARDS,
 };
 
 constexpr int private_card_index(int player, int card) {
@@ -185,8 +199,8 @@ constexpr int opponent_id(int player) {
 }
 
 game_error public_cards_range(game_step step, int& first_card_index, int& card_count);
-
 game_error read_exactly(std::istream& in, int len, std::string& dst);
+std::string to_hex_dump(const void* addr, int len);
 
 }
 

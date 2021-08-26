@@ -24,11 +24,14 @@ CXXFLAGS += -Wl,-rpath-link=/mnt/poker
 endif
 
 TESTS = test-solver \
-    test-player \
     test-compression \
     test-codec \
-    test-validator  \
-    test-bignumber
+    test-validator \
+    test-game-generator \
+    test-player \
+    test-verifier \
+    test-bignumber \
+    test-game-playback
 
 # programs to build
 PROGRAMS =
@@ -48,8 +51,7 @@ PROGRAMS += poker-lib-wasm.js
     TEST_LOADER = node
 else
     PROGRAMS += verify
-    INSTALL_FILES += test-verifier-fixture.bin
-    TESTS += test-verifier
+    PROGRAMS += generate
 endif
 
 PROGRAMS += $(TESTS)
@@ -61,6 +63,11 @@ INSTALL_FILES += $(PROGRAMS)
 all: $(PROGRAMS)
 
 POKER_LIB_OBJS=common.o \
+            game-generator.o \
+            verifier.o \
+            validator.o \
+            game-playback.o \
+            blob.o \
             player.o \
             messages.o \
             compression.o \
@@ -71,10 +78,8 @@ POKER_LIB_OBJS=common.o \
             poker-lib.o \
             referee.o \
             game-state.o \
-            blob.o \
-            verifier.o \
-            codec.o \
-            validator.o
+            codec.o
+            
 
 poker-lib.a: $(POKER_LIB_OBJS)
 	ar rcs $@ $^
@@ -86,6 +91,9 @@ test-%: test-%.cpp poker-lib.a
 	$(CXX) $(CXXFLAGS)  -o $@ $^
 
 verify: verify.cpp poker-lib.a
+	$(CXX) $(CXXFLAGS)  -o $@ $^
+    
+generate: generate.cpp poker-lib.a
 	$(CXX) $(CXXFLAGS)  -o $@ $^
     
 install: $(PROGRAMS)

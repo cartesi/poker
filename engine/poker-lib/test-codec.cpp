@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <inttypes.h>
+#include "poker-lib.h"
 #include "common.h"
 #include "test-util.h"
 
@@ -56,10 +57,10 @@ void the_happy_path() {
     assert_eql(true, (b1==b2));
     assert_eql(123, ((int)b2));
 
-
 }
 
 int main(int argc, char** argv) {
+    init_poker_lib();
     the_happy_path();
     std::cout <<  "---- SUCCESS - " TEST_SUITE_NAME << std::endl;
     return 0;

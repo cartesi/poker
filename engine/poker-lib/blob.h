@@ -22,6 +22,8 @@ public:
     blob(const char* s);
     void set_data(const char* d);
     void set_data(const std::string& s) { _data=s; }
+    void append(const blob& b);
+    void append(const std::string& s);
     const char* get_data();
     const std::string& str() { return _data; }
     int size();

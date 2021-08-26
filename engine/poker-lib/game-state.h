@@ -28,9 +28,6 @@ struct player_state {
     card_t cards[NUM_PRIVATE_CARDS];
 };
 
-/*
- *  Game state representation
-*/
 class game_state {
 public:
     game_state()
@@ -40,15 +37,17 @@ public:
           public_cards{cards::uk, cards::uk, cards::uk, cards::uk, cards::uk}
         { }
 
-    int          current_player;
-    game_error   error;
-    bet_phase    phase;
-    int          winner;
+    int current_player;
+    game_error error;
+    bet_phase phase;
+    int winner;
     player_state players[NUM_PLAYERS];
-    card_t       public_cards[NUM_PUBLIC_CARDS];
-    money_t      big_blind;
+    card_t public_cards[NUM_PUBLIC_CARDS];
+    money_t big_blind;
+    money_t result[NUM_PLAYERS];
 
-    void         dump();
+    std::string to_json(char* extra_fields=NULL);
+    void dump();
     game_error get_player_hand(int player, card_t* hand);
 };
 

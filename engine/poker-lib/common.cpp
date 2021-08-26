@@ -2,8 +2,7 @@
 
 namespace poker {
 
-// TODO: allow controlling log target and verbosity
-std::ostream& logger = std::cout;
+bool logging_enabled = true;
 
 game_error public_cards_range(game_step step, int& first_card_index, int& card_count) {
     switch(step) {
@@ -42,6 +41,16 @@ game_error read_exactly(std::istream& in, int len, std::string& dst) {
     return SUCCESS;
 }
 
+std::string to_hex_dump(const void* addr, int len) {
+    std::string s = "";
+    unsigned char* data = (unsigned char*)addr;
+    for(auto i=0; i<len; i++) {
+        char tmp[10];
+        sprintf(tmp, "%02x ", (int)data[i]);
+        s += tmp;
+    }
+    return s;
+}
 
 
 }

@@ -12,7 +12,7 @@ class Player {
     
     async init(alice_money, bob_money, big_blind) {
         // Initialize libraries
-        await this.callWorker('poker_init', 0, () => 0);
+        await this.callWorker('poker_init', makeMessage(1), () => 0);
 
         // create player instance
         await this.callWorker('poker_new_player', makeMessage(this.player_id), (results) => {

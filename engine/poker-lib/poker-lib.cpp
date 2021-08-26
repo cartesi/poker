@@ -7,10 +7,16 @@
 
 namespace poker {
 
-int init_poker_lib(bool encryption) {
+static poker_lib_options default_options;
+
+int init_poker_lib(poker_lib_options* opts) {
+    if (!opts)
+        opts = &default_options;
+
     init_libTMCG();
 
-    if (encryption)
+    logging_enabled = opts->logging;
+    if (opts->encryption)
         service_locator::instance().make_participant = []() -> i_participant* {
             return new participant();
         };
