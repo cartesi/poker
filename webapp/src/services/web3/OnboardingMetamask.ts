@@ -5,10 +5,11 @@ import TurnBasedGameLobby from "../../abis/TurnBasedGameLobby.json";
 import { PokerToken__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
+import { AbstractOnboarding } from "./AbstractOnboarding";
 
 declare let window: any;
 
-export class OnboardingMetamask {
+export class OnboardingMetamask extends AbstractOnboarding {
     private static metamaskOnboarding;
     private static accounts;
 
@@ -25,6 +26,7 @@ export class OnboardingMetamask {
             }
 
             ServiceConfig.currentInstance.setChain(window.ethereum.chainId);
+            super.setProvider(window.ethereum);
 
             // attempts to retrieve connected account
             if (window.ethereum.selectedAddress) {
@@ -85,24 +87,10 @@ export class OnboardingMetamask {
             }
 
             // checks player's balance to see if he has enough tokens to play
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const playerAddress = await signer.getAddress();
-            const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
-            const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
-            if (playerFunds.lt(GameConstants.MIN_FUNDS)) {
-                onChange({
-                    label: `Sorry, you need at least ${GameConstants.MIN_FUNDS} POKER tokens on ${chainName} to play`,
-                    onclick: undefined,
-                    loading: false,
-                    error: true,
-                    ready: false,
-                });
-                return;
-            }
+            super.checkBalance(onChange, false, chainName);
 
             // checks player's allowance to see if the Lobby contract can manage the player's tokens
-            this.checkAllowance(onChange, false);
+            super.checkAllowance(onChange, false);
         } catch (error) {
             console.error(error);
             onChange({
@@ -148,74 +136,6 @@ export class OnboardingMetamask {
             // connects to ethereum wallet
             this.accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
             this.update(onChange);
-        }
-    }
-
-    /**
-     * Submits transaction to approve allowance for spending the user's tokens
-     * @param onChange
-     */
-    private static async approve(onChange) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
-        // for simplicity, at the moment we're requesting infinite approval
-        await pokerTokenContract.approve(TurnBasedGameLobby.address, ethers.constants.MaxUint256);
-        this.checkAllowance(onChange, true);
-    }
-
-    /**
-     * Checks allowance for spending the user's tokens
-     * - If not allowed, indicates approval is required
-     * - If allowance is set, indicates user's available tokens and that he's ready to play
-     * @param onChange
-     * @param loading boolean indicating whether allowance approval has already been requested
-     */
-    private static async checkAllowance(onChange, loading) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const playerAddress = await signer.getAddress();
-        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
-        const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
-        const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
-        const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
-
-        if (allowance.lt(playerFunds)) {
-            // game is not allowed to use player's tokens
-            if (loading) {
-                // allowance approval has already been requested
-                // - indicate process is underway
-                onChange({
-                    label: `Approving allowance...`,
-                    onclick: undefined,
-                    loading: true,
-                    error: false,
-                    ready: false,
-                });
-                // - schedule new allowance check
-                setTimeout(() => {
-                    this.checkAllowance(onChange, loading);
-                }, 1000);
-            } else {
-                // indicate that allowance approval is required
-                onChange({
-                    label: `Approve allowance for POKER tokens on ${chainName}`,
-                    onclick: this.approve.bind(this),
-                    loading: false,
-                    error: false,
-                    ready: false,
-                });
-            }
-        } else {
-            // game is allowed to use player's tokens
-            // - indicate user's available tokens and that he's ready to play
-            onChange({
-                label: `You have ${playerFunds.toNumber()} POKER tokens available on ${chainName}`,
-                onclick: undefined,
-                loading: false,
-                error: false,
-                ready: true,
-            });
         }
     }
 }
