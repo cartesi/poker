@@ -3,7 +3,7 @@ import { ChainId } from "../GameConstants";
 import { JsonRpcImpl } from "./web3/provider/JsonRpcImpl";
 import { MetamaskImpl } from "./web3/provider/MetamaskImpl";
 import { PortisImpl } from "./web3/provider/PortisImpl";
-import { Provider, ProviderImpl } from "./web3/provider/Provider";
+import { Provider, ProviderType } from "./web3/provider/Provider";
 
 export enum ServiceType {
     Transport = "transport",
@@ -25,7 +25,7 @@ export class ServiceConfig {
     // Connection object to the network
     public provider: Provider;
     // Type of connection
-    public providerType: ProviderImpl;
+    public providerType: ProviderType;
 
     // Network with default value
     public chainId: ChainId = ChainId.MATIC_TESTNET;
@@ -33,18 +33,18 @@ export class ServiceConfig {
     // Address for the account which will be signer for transactions
     public signerAddress: string;
 
-    constructor(providerType: ProviderImpl) {
+    constructor(providerType: ProviderType) {
         ServiceConfig.currentInstance = this;
         ServiceConfig.currentInstance.providerType = providerType;
         ServiceConfig.currentInstance.provider = ServiceConfig.createProvider(providerType);
     }
 
-    private static createProvider(impl: ProviderImpl): Provider {
-        if (impl == ProviderImpl.Portis) {
+    private static createProvider(impl: ProviderType): Provider {
+        if (impl == ProviderType.Portis) {
             return new PortisImpl();
-        } else if (impl == ProviderImpl.Metamask) {
+        } else if (impl == ProviderType.Metamask) {
             return new MetamaskImpl();
-        } else if (impl == ProviderImpl.JsonRpc) {
+        } else if (impl == ProviderType.JsonRpc) {
             return new JsonRpcImpl();
         } else {
             throw new Error("Provider not supported yet");
@@ -90,10 +90,10 @@ export class ServiceConfig {
         let provider;
         if (ServiceConfig.currentInstance.provider.isWeb3Provider()) {
             // Normal webapp usage
-            if (ServiceConfig.currentInstance.providerType == ProviderImpl.Portis) {
+            if (ServiceConfig.currentInstance.providerType == ProviderType.Portis) {
                 let portisProvider = ServiceConfig.currentInstance.provider.getRawProvider();
                 provider = new ethers.providers.Web3Provider(portisProvider.provider);
-            } else if (ServiceConfig.currentInstance.providerType == ProviderImpl.Metamask) {
+            } else if (ServiceConfig.currentInstance.providerType == ProviderType.Metamask) {
                 let metamaskProvider = ServiceConfig.currentInstance.provider.getRawProvider();
                 provider = new ethers.providers.Web3Provider(metamaskProvider);
             } else {

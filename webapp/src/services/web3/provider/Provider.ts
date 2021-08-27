@@ -1,4 +1,4 @@
-export enum ProviderImpl {
+export enum ProviderType {
     Portis = "Portis",
     Metamask = "Metamask",
     JsonRpc = "JsonRpc",

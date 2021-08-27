@@ -5,7 +5,7 @@ import TurnBasedGameLobby from "../../abis/TurnBasedGameLobby.json";
 import { PokerToken__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
-import { ProviderImpl } from "./provider/Provider";
+import { ProviderType } from "./provider/Provider";
 
 export class OnboardingPortis {
     private static portis: Portis;
@@ -16,7 +16,7 @@ export class OnboardingPortis {
      * Starts user onboarding using Web3
      */
     public static async start(onChange) {
-        if (ServiceConfig.currentInstance.providerType != ProviderImpl.Portis) {
+        if (ServiceConfig.currentInstance.providerType != ProviderType.Portis) {
             throw new Error("A Portis web3 provider was not found!");
         }
         if (!ServiceConfig.currentInstance.provider) {

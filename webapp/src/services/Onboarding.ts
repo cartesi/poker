@@ -2,7 +2,7 @@ import { ServiceConfig, ServiceType, ServiceImpl } from "./ServiceConfig";
 import { OnboardingMock } from "./mock/OnboardingMock";
 import { OnboardingPortis } from "./web3/OnboardingPortis";
 import { OnboardingMetamask } from "./web3/OnboardingMetamask";
-import { ProviderImpl } from "./web3/provider/Provider";
+import { ProviderType } from "./web3/provider/Provider";
 
 export class Onboarding {
     /**
@@ -23,10 +23,10 @@ export class Onboarding {
     }
 
     public static startWeb3Onboarding(onChange) {
-        let providerType: ProviderImpl = ServiceConfig.currentInstance.providerType;
-        if (providerType == ProviderImpl.Portis) {
+        let providerType: ProviderType = ServiceConfig.currentInstance.providerType;
+        if (providerType == ProviderType.Portis) {
             OnboardingPortis.start(onChange);
-        } else if (providerType == ProviderImpl.Metamask) {
+        } else if (providerType == ProviderType.Metamask) {
             OnboardingMetamask.start(onChange);
         } else {
             throw new Error("Unsupported web3 provider.");

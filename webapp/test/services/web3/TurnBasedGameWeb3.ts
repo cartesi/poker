@@ -9,12 +9,12 @@ import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
 import TurnBasedGame from "../../../src/abis/TurnBasedGame.json";
 import { TurnBasedGameWeb3 } from "../../../src/services/web3/TurnBasedGameWeb3";
 import { ethers } from "ethers";
-import { ProviderImpl } from "../../../src/services/web3/provider/Provider";
+import { ProviderType } from "../../../src/services/web3/provider/Provider";
 
 
 describe('TurnBasedGameWeb3', function () {
         // creates a service config instance
-        const serviceConfig: ServiceConfig = new ServiceConfig(ProviderImpl.JsonRpc);
+        const serviceConfig: ServiceConfig = new ServiceConfig(ProviderType.JsonRpc);
 
         let gameIndex: number;
 

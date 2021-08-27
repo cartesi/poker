@@ -6,11 +6,11 @@ import { PokerToken__factory } from "../../../src/types";
 import PokerToken from "../../../src/abis/PokerToken.json";
 import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
 import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
-import { ProviderImpl } from "../../../src/services/web3/provider/Provider";
+import { ProviderType } from "../../../src/services/web3/provider/Provider";
 
 describe('LobbyWeb3', function () {
     // creates a service config instance
-    const serviceConfig: ServiceConfig = new ServiceConfig(ProviderImpl.JsonRpc);
+    const serviceConfig: ServiceConfig = new ServiceConfig(ProviderType.JsonRpc);
 
     const aliceAddress: string = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
     const bobAddress: string = '0x70997970c51812dc3a010c7d01b50e0d17dc79c8';
