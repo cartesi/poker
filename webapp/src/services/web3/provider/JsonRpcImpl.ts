@@ -1,4 +1,5 @@
-import { GameConstants } from "../../../GameConstants";
+import { Chain, GameConstants } from "../../../GameConstants";
+import { ServiceConfig } from "../../ServiceConfig";
 import { Provider } from "./Provider";
 
 /**
@@ -13,7 +14,7 @@ export class JsonRpcImpl implements Provider {
     // TODO Remove all hardcoded stuff
     constructor() {
         JsonRpcImpl.currentInstance = this;
-        this.rawProvider = GameConstants.PROVIDER_JSONRPC_ENDPOINT;
+        this.rawProvider = GameConstants.CHAIN_ENDPOINTS[ServiceConfig.getChainId()];
     }
 
     getRawProvider(): any {

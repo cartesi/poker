@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { Chain } from "../GameConstants";
 import { JsonRpcImpl } from "./web3/provider/JsonRpcImpl";
 import { MetamaskImpl } from "./web3/provider/MetamaskImpl";
 import { PortisImpl } from "./web3/provider/PortisImpl";
@@ -21,10 +22,13 @@ export class ServiceConfig {
     // Unique instance for the service's configurator
     public static currentInstance: ServiceConfig;
 
-    // Object to connect to the network
+    // Connection object to the network
     public provider: Provider;
-    // Type of connection (web3, JsonRpc, etc)
+    // Type of connection
     public providerType: ProviderImpl;
+
+    // Network with default value
+    public chainId: Chain = Chain.MATIC_TESTNET;
 
     // Address for the account which will be signer for transactions
     public signerAddress: string;
@@ -32,16 +36,16 @@ export class ServiceConfig {
     constructor(providerType: ProviderImpl) {
         ServiceConfig.currentInstance = this;
         ServiceConfig.currentInstance.providerType = providerType;
-        ServiceConfig.createProvider(providerType);
+        ServiceConfig.currentInstance.provider = ServiceConfig.createProvider(providerType);
     }
 
-    public static createProvider(impl: ProviderImpl): void {
+    private static createProvider(impl: ProviderImpl): Provider {
         if (impl == ProviderImpl.Portis) {
-            ServiceConfig.currentInstance.provider = new PortisImpl();
+            return new PortisImpl();
         } else if (impl == ProviderImpl.Metamask) {
-            ServiceConfig.currentInstance.provider = new MetamaskImpl();
+            return new MetamaskImpl();
         } else if (impl == ProviderImpl.JsonRpc) {
-            ServiceConfig.currentInstance.provider = new JsonRpcImpl();
+            return new JsonRpcImpl();
         } else {
             throw new Error("Provider not supported yet");
         }
@@ -71,13 +75,15 @@ export class ServiceConfig {
         }
     }
 
-    public static getChainId() {
-        // TODO Get chainId by chain name (legibility) 
-        if (ServiceConfig.currentInstance.provider.isWeb3Provider()) {
-            return "0x13881";
-        } else {
-            return "0x7a69";
+    public setChain(chainId: Chain) {
+        this.chainId = chainId;
+    }
+
+    public static getChainId(): Chain {
+        if (!ServiceConfig.currentInstance.chainId) {
+            throw new Error("ChainId was not set.");
         }
+        return ServiceConfig.currentInstance.chainId;
     }
 
     public static getProvider() {

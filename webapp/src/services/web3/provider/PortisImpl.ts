@@ -1,7 +1,8 @@
 import { ethers } from "ethers";
 import Portis from "@portis/web3";
 import { Provider } from "./Provider";
-import { GameConstants } from "../../../GameConstants";
+import { Chain, GameConstants } from "../../../GameConstants";
+import { ServiceConfig } from "../../ServiceConfig";
 
 /**
  * A provider implementation using Portis
@@ -16,8 +17,8 @@ export class PortisImpl implements Provider {
         PortisImpl.currentInstance = this;
 
         let portis = new Portis(GameConstants.PROVIDER_PORTIS_APPID, {
-            nodeUrl: GameConstants.PROVIDER_WEB3_ENDPOINT,
-            chainId: GameConstants.PROVIDER_WEB3_CHAINID,
+            nodeUrl: GameConstants.CHAIN_ENDPOINTS[ServiceConfig.getChainId()],
+            chainId: ServiceConfig.getChainId(),
         });
         this.rawProvider = portis;
     }

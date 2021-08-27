@@ -4,6 +4,7 @@ import PokerToken from "../../abis/PokerToken.json";
 import TurnBasedGameLobby from "../../abis/TurnBasedGameLobby.json";
 import { PokerToken__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
+import { ServiceConfig } from "../ServiceConfig";
 
 declare let window: any;
 
@@ -22,6 +23,9 @@ export class OnboardingMetamask {
             if (!window.ethereum) {
                 throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
             }
+
+            ServiceConfig.currentInstance.setChain(window.ethereum.chainId);
+
             // attempts to retrieve connected account
             if (window.ethereum.selectedAddress) {
                 this.accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -68,7 +72,7 @@ export class OnboardingMetamask {
             this.metamaskOnboarding.stopOnboarding();
 
             // checks if the connected wallet's network is known/supported
-            const chainName = GameConstants.CHAINS[window.ethereum.chainId];
+            const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
             if (!chainName) {
                 onChange({
                     label: "Unsupported network",
@@ -174,7 +178,7 @@ export class OnboardingMetamask {
         const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
         const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
-        const chainName = GameConstants.CHAINS[window.ethereum.chainId];
+        const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
 
         if (allowance.lt(playerFunds)) {
             // game is not allowed to use player's tokens

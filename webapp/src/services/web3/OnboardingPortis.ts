@@ -80,8 +80,7 @@ export class OnboardingPortis {
             }
 
             // checks if the connected wallet's network is known/supported
-            // TODO Remove hardcoded value
-            const chainName = GameConstants.CHAINS['0x13881'];
+            const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
             if (!chainName) {
                 onChange({
                     label: "Unsupported network",
@@ -162,7 +161,7 @@ export class OnboardingPortis {
         const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
         const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
-        const chainName = GameConstants.CHAINS['0x13881']; // TODO Remove Hardcoded
+        const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
 
         if (allowance.lt(playerFunds)) {
             // game is not allowed to use player's tokens
