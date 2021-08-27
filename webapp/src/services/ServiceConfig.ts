@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Chain } from "../GameConstants";
+import { ChainId } from "../GameConstants";
 import { JsonRpcImpl } from "./web3/provider/JsonRpcImpl";
 import { MetamaskImpl } from "./web3/provider/MetamaskImpl";
 import { PortisImpl } from "./web3/provider/PortisImpl";
@@ -28,7 +28,7 @@ export class ServiceConfig {
     public providerType: ProviderImpl;
 
     // Network with default value
-    public chainId: Chain = Chain.MATIC_TESTNET;
+    public chainId: ChainId = ChainId.MATIC_TESTNET;
 
     // Address for the account which will be signer for transactions
     public signerAddress: string;
@@ -75,11 +75,11 @@ export class ServiceConfig {
         }
     }
 
-    public setChain(chainId: Chain) {
+    public setChain(chainId: ChainId) {
         this.chainId = chainId;
     }
 
-    public static getChainId(): Chain {
+    public static getChainId(): ChainId {
         if (!ServiceConfig.currentInstance.chainId) {
             throw new Error("ChainId was not set.");
         }

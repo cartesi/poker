@@ -1,4 +1,4 @@
-import { Chain, GameConstants } from "../../../GameConstants";
+import { ChainId, GameConstants } from "../../../GameConstants";
 import { ServiceConfig } from "../../ServiceConfig";
 import { Provider } from "./Provider";
 

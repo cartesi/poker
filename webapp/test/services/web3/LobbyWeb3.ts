@@ -1,6 +1,6 @@
 import { describe } from "mocha";
 import { expect } from 'chai';
-import { GameConstants, Chain } from "../../../src/GameConstants";
+import { GameConstants, ChainId } from "../../../src/GameConstants";
 import { ServiceConfig } from "../../../src/services/ServiceConfig";
 import { PokerToken__factory } from "../../../src/types";
 import PokerToken from "../../../src/abis/PokerToken.json";
@@ -18,7 +18,7 @@ describe('LobbyWeb3', function () {
     this.timeout(60000);
 
     beforeEach(async () => {
-        serviceConfig.setChain(Chain.LOCALHOST_HARDHAT);
+        serviceConfig.setChain(ChainId.LOCALHOST_HARDHAT);
 
         ServiceConfig.currentInstance.setSigner(aliceAddress);
         const aliceSigner = ServiceConfig.getSigner();

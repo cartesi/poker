@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import Portis from "@portis/web3";
 import { Provider } from "./Provider";
-import { Chain, GameConstants } from "../../../GameConstants";
+import { ChainId, GameConstants } from "../../../GameConstants";
 import { ServiceConfig } from "../../ServiceConfig";
 
 /**

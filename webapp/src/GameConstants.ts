@@ -3,7 +3,7 @@ import { BigNumber } from "ethers";
 /**
  * Possible chains
  */
-export enum Chain {
+export enum ChainId {
     MATIC_TESTNET = "0x13881",
     LOCALHOST_HARDHAT = "0x7a69",
     LOCALHOST = "0x539"
@@ -18,18 +18,18 @@ export class GameConstants {
 
     public static readonly SAVED_GAME_DATA_KEY = "poker-data";
 
-    public static readonly DEFAULT_CHAIN = Chain.MATIC_TESTNET;
+    public static readonly DEFAULT_CHAIN = ChainId.MATIC_TESTNET;
 
     public static readonly CHAIN_NAMES = {
-        [Chain.MATIC_TESTNET]: "Matic Testnet",
-        [Chain.LOCALHOST_HARDHAT]: "Local Network Hardhat",
-        [Chain.LOCALHOST]: "Local Network",
+        [ChainId.MATIC_TESTNET]: "Matic Testnet",
+        [ChainId.LOCALHOST_HARDHAT]: "Local Network Hardhat",
+        [ChainId.LOCALHOST]: "Local Network",
     };
 
     public static readonly CHAIN_ENDPOINTS = {
-        [Chain.MATIC_TESTNET]: "https://matic-mumbai.chainstacklabs.com",
-        [Chain.LOCALHOST_HARDHAT]: "http://localhost:8545",
-        [Chain.LOCALHOST]: "http://localhost:8545",
+        [ChainId.MATIC_TESTNET]: "https://matic-mumbai.chainstacklabs.com",
+        [ChainId.LOCALHOST_HARDHAT]: "http://localhost:8545",
+        [ChainId.LOCALHOST]: "http://localhost:8545",
     };
 
     // Provider constants
