@@ -7,14 +7,14 @@ import { ServiceConfig } from "../../ServiceConfig";
 /**
  * A provider implementation using Portis
  */
-export class PortisImpl implements Provider {
+export class PortisProvider implements Provider {
     // Unique instance for this provider implementation
     public static currentInstance: Provider;
 
     private rawProvider;
 
     constructor() {
-        PortisImpl.currentInstance = this;
+        PortisProvider.currentInstance = this;
 
         let portis = new Portis(GameConstants.PROVIDER_PORTIS_APPID, {
             nodeUrl: GameConstants.CHAIN_ENDPOINTS[ServiceConfig.getChainId()],

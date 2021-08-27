@@ -5,7 +5,7 @@ import { Provider } from "./Provider";
 /**
  * A provider implementation using JsonRpc
  */
-export class JsonRpcImpl implements Provider {
+export class JsonRpcProvider implements Provider {
     // Unique instance for this provider implementation
     public static currentInstance: Provider;
 
@@ -13,7 +13,7 @@ export class JsonRpcImpl implements Provider {
 
     // TODO Remove all hardcoded stuff
     constructor() {
-        JsonRpcImpl.currentInstance = this;
+        JsonRpcProvider.currentInstance = this;
         this.rawProvider = GameConstants.CHAIN_ENDPOINTS[ServiceConfig.getChainId()];
     }
 

@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 import { ChainId } from "../GameConstants";
-import { JsonRpcImpl } from "./web3/provider/JsonRpcImpl";
-import { MetamaskImpl } from "./web3/provider/MetamaskImpl";
-import { PortisImpl } from "./web3/provider/PortisImpl";
+import { JsonRpcProvider } from "./web3/provider/JsonRpcProvider";
+import { MetamaskProvider } from "./web3/provider/MetamaskProvider";
+import { PortisProvider } from "./web3/provider/PortisProvider";
 import { Provider, ProviderType } from "./web3/provider/Provider";
 
 export enum ServiceType {
@@ -41,11 +41,11 @@ export class ServiceConfig {
 
     private static createProvider(impl: ProviderType): Provider {
         if (impl == ProviderType.Portis) {
-            return new PortisImpl();
+            return new PortisProvider();
         } else if (impl == ProviderType.Metamask) {
-            return new MetamaskImpl();
+            return new MetamaskProvider();
         } else if (impl == ProviderType.JsonRpc) {
-            return new JsonRpcImpl();
+            return new JsonRpcProvider();
         } else {
             throw new Error("Provider not supported yet");
         }
