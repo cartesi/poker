@@ -60,7 +60,7 @@ export class OnboardingPortis {
                 onChange({
                     label: "Connecting to wallet...",
                     onclick: undefined,
-                    loading: false,
+                    loading: true,
                     error: false,
                     ready: false,
                 });
