@@ -35,11 +35,6 @@ export class GameConstants {
     // Provider constants
     public static readonly PROVIDER_PORTIS_APPID = '15ce62b0-b226-4e6f-9f8d-abbdf8f2cda2';
 
-    public static readonly PROVIDER_WEB3_ENDPOINT = 'https://matic-mumbai.chainstacklabs.com';
-    public static readonly PROVIDER_WEB3_CHAINID = '80001';
-
-    public static readonly PROVIDER_JSONRPC_ENDPOINT = 'http://localhost:8545';
-
     // TurnBasedGame constants
     public static readonly GAME_TEMPLATE_HASH = "0xe0a48889a480a63147341e87411fb7c8981c759eb245fd53afb317b527915c93";
     public static readonly GAME_METADATA = "0x";
