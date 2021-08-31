@@ -1,8 +1,4 @@
-import { ethers } from "ethers";
 import Portis from "@portis/web3";
-import PokerToken from "../../abis/PokerToken.json";
-import TurnBasedGameLobby from "../../abis/TurnBasedGameLobby.json";
-import { PokerToken__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
 import { ProviderType } from "./provider/Provider";
@@ -10,7 +6,6 @@ import { AbstractOnboarding } from "./AbstractOnboarding";
 
 export class OnboardingPortis extends AbstractOnboarding {
     private static portis: Portis;
-    private static accounts;
     private static isLogged;
 
     /**
@@ -30,12 +25,13 @@ export class OnboardingPortis extends AbstractOnboarding {
         this.portis.isLoggedIn()
             .then(({ error, result }) => {
                 this.isLogged = result;
+                this.update(onChange);
             });
 
         this.portis.onLogin(async (walletAddress, email, reputation) => {
             this.isLogged = true;
-            const web3Provider = new ethers.providers.Web3Provider(this.portis.provider);
-            this.accounts = await web3Provider.listAccounts();
+            ServiceConfig.currentInstance.setSigner(walletAddress);
+            this.update(onChange);
         });
 
         this.portis.onActiveWalletChanged(walletAddress => {
@@ -58,7 +54,7 @@ export class OnboardingPortis extends AbstractOnboarding {
 
         try {
             // While Portis is initializing
-            if (this.isLogged == null || this.isLogged == undefined) {
+            if (this.isLogged == undefined) {
                 onChange({
                     label: "Connecting to wallet...",
                     onclick: undefined,
@@ -70,7 +66,7 @@ export class OnboardingPortis extends AbstractOnboarding {
             }
 
             // Portis initialized but user is not logged in
-            if (!this.isLogged || !this.accounts || !this.accounts.length) {
+            if (this.isLogged == false) {
                 onChange({
                     label: "Connect to wallet",
                     onclick: this.connectWallet.bind(this),
