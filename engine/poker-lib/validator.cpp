@@ -114,14 +114,14 @@ game_error share_funds(game_state& g) {
         return GRR_GAME_NOT_OVER;
 
     if (g.winner == ALICE) {
-        g.result[ALICE] = g.players[ALICE].total_funds + g.players[BOB].bets;
-        g.result[BOB] = g.players[BOB].total_funds - g.players[BOB].bets;
+        g.funds_share[ALICE] = g.players[ALICE].total_funds + g.players[BOB].bets;
+        g.funds_share[BOB] = g.players[BOB].total_funds - g.players[BOB].bets;
     } else if (g.winner == BOB) {
-        g.result[BOB] = g.players[BOB].total_funds + g.players[ALICE].bets;
-        g.result[ALICE] = g.players[ALICE].total_funds - g.players[ALICE].bets;
+        g.funds_share[BOB] = g.players[BOB].total_funds + g.players[ALICE].bets;
+        g.funds_share[ALICE] = g.players[ALICE].total_funds - g.players[ALICE].bets;
     } else { // its a tie
-        g.result[BOB] = g.players[BOB].total_funds;
-        g.result[ALICE] = g.players[ALICE].total_funds;
+        g.funds_share[BOB] = g.players[BOB].total_funds;
+        g.funds_share[ALICE] = g.players[ALICE].total_funds;
     }
 
     return SUCCESS;

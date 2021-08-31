@@ -12,8 +12,8 @@ class unencrypted_participant : public i_participant {
     int _num_participants;
     bool _predictable;
     std::string _pfx;
-    std::vector<int> stack;
-    std::vector<int> cards;
+    std::vector<int> _stack;
+    std::vector<int> _cards;
 
    public:
     void init(int id, int num_participants, bool predictable) override;

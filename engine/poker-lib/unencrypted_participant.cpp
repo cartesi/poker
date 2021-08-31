@@ -57,7 +57,7 @@ game_error unencrypted_participant::load_vsshe_group(blob& group) {
 
 game_error unencrypted_participant::create_stack() {
     for (auto i = 0; i < DECK_SIZE; i++)
-        stack.push_back(i);
+        _stack.push_back(i);
 
     return SUCCESS;
 }
@@ -67,10 +67,10 @@ game_error unencrypted_participant::shuffle_stack(blob& mixed_stack, blob& stack
 
     if (!_predictable) {
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::shuffle(stack.begin(), stack.end(), std::default_random_engine(seed));
+        std::shuffle(_stack.begin(), _stack.end(), std::default_random_engine(seed));
 
-        for (auto i = 0; i < stack.size(); i++)
-            mixed_stack.out() << "^" << stack[i];
+        for (auto i = 0; i < _stack.size(); i++)
+            mixed_stack.out() << "^" << _stack[i];
     }
     return SUCCESS;
 }
@@ -81,7 +81,7 @@ game_error unencrypted_participant::load_stack(blob& mixed_stack, blob& mixed_st
     char separator;
     for (auto i = 0; i < DECK_SIZE; i++) {
         mixed_stack.in() >> separator;
-        mixed_stack.in() >> stack[i];
+        mixed_stack.in() >> _stack[i];
     }
     return SUCCESS;
 }
@@ -90,9 +90,9 @@ game_error unencrypted_participant::take_cards_from_stack(int count) {
     logger << _pfx << "take_cards_from_stack(" << count << ")" << std::endl;
 
     for (size_t i = 0; i < count; i++) {
-        int card = stack.back();
-        stack.pop_back();
-        cards.push_back(card);
+        int card = _stack.back();
+        _stack.pop_back();
+        _cards.push_back(card);
     }
     return SUCCESS;
 }
@@ -119,7 +119,7 @@ game_error unencrypted_participant::open_card(int card_index) {
 
 size_t unencrypted_participant::get_open_card(int card_index) {
     logger << _pfx << "get_open_card(" << card_index << ")" << std::endl;
-    auto card_type = cards[card_index];
+    auto card_type = _cards[card_index];
     logger << _pfx << "get_open_card(" << card_index << ") = " << card_type << std::endl;
     return card_type;
 }

@@ -46,7 +46,7 @@ public:
     player_state players[NUM_PLAYERS];
     card_t public_cards[NUM_PUBLIC_CARDS];
     money_t big_blind;
-    money_t result[NUM_PLAYERS];
+    money_t funds_share[NUM_PLAYERS];
     bool muck;
 
     std::string to_json(char* extra_fields=NULL);

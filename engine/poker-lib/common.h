@@ -1,8 +1,9 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "cards.h"
 #include <iostream>
+
+#include "cards.h"
 
 namespace poker {
 
@@ -151,7 +152,7 @@ enum game_error {
     VRF_EOF,
 
     // Big number
-    BIG_UNPARSEABLE =800,
+    BIG_UNPARSEABLE = 800,
     BIG_READ_ERROR,
     VRF_INVALID_PLAYER_COUNT,
     BIG_WRITE_ERROR,
@@ -167,7 +168,7 @@ enum game_error {
     CPR_PAYLOAD_TOO_SMALL,
     CPR_UNPARSEABLE_LEN,
     CPR_EOF,
-    
+
     // playback
     PLB_MESSAGE_NOT_FOUND = 1000,
     PLB_CURRENT_PLAYER_MISMATCH,
@@ -203,6 +204,6 @@ game_error public_cards_range(game_step step, int& first_card_index, int& card_c
 game_error read_exactly(std::istream& in, int len, std::string& dst);
 std::string to_hex_dump(const void* addr, int len);
 
-}
+}  // namespace poker
 
 #endif

@@ -97,8 +97,8 @@ int main(int argc, char **argv) {
     decide_winner(g);
 
     assert_eql(ALICE, g.winner);
-    assert_eql(g.result[ALICE], (bf.equal_bets.alice[0] + bf.equal_bets.bob[1]));
-    assert_eql(g.result[BOB], (bf.equal_bets.bob[0] - bf.equal_bets.bob[1]));
+    assert_eql(g.funds_share[ALICE], (bf.equal_bets.alice[0] + bf.equal_bets.bob[1]));
+    assert_eql(g.funds_share[BOB], (bf.equal_bets.bob[0] - bf.equal_bets.bob[1]));
 
     // Given BOB's hand is better
     // BOB wins
@@ -109,8 +109,8 @@ int main(int argc, char **argv) {
     decide_winner(g);
 
     assert_eql(BOB, g.winner);
-    assert_eql(g.result[ALICE], (bf.equal_bets.alice[0] - bf.equal_bets.alice[1]));
-    assert_eql(g.result[BOB], (bf.equal_bets.bob[0] + bf.equal_bets.alice[1]));
+    assert_eql(g.funds_share[ALICE], (bf.equal_bets.alice[0] - bf.equal_bets.alice[1]));
+    assert_eql(g.funds_share[BOB], (bf.equal_bets.bob[0] + bf.equal_bets.alice[1]));
 
     // Given ALICE's and BOB's hands are the same
     // Its a tie
@@ -121,8 +121,8 @@ int main(int argc, char **argv) {
     decide_winner(g);
 
     assert_eql(TIE, g.winner);
-    assert_eql(g.result[ALICE], bf.equal_bets.alice[0]);
-    assert_eql(g.result[BOB], bf.equal_bets.bob[0]);
+    assert_eql(g.funds_share[ALICE], bf.equal_bets.alice[0]);
+    assert_eql(g.funds_share[BOB], bf.equal_bets.bob[0]);
 
     /**
      *

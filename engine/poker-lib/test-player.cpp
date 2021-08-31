@@ -23,8 +23,8 @@ void test_the_happy_path() {
     assert_eql(5, alice.game().players[ALICE].bets);
     assert_eql(300, alice.game().players[BOB].total_funds);
     assert_eql(10, alice.game().players[BOB].bets);
-    assert_eql(0, alice.game().result[ALICE]);
-    assert_eql(0, alice.game().result[BOB]);
+    assert_eql(0, alice.game().funds_share[ALICE]);
+    assert_eql(0, alice.game().funds_share[BOB]);
     assert_eql(uk, alice.private_card(0));
     assert_eql(uk, alice.private_card(1));
     assert_eql(uk, alice.opponent_card(0));
@@ -42,8 +42,8 @@ void test_the_happy_path() {
     assert_eql(5, bob.game().players[ALICE].bets);
     assert_eql(300, bob.game().players[BOB].total_funds);
     assert_eql(10, bob.game().players[BOB].bets);
-    assert_eql(0, bob.game().result[ALICE]);
-    assert_eql(0, bob.game().result[BOB]);
+    assert_eql(0, bob.game().funds_share[ALICE]);
+    assert_eql(0, bob.game().funds_share[BOB]);
 
     assert_eql(uk, bob.private_card(0));
     assert_eql(uk, bob.private_card(1));
@@ -180,10 +180,10 @@ void test_the_happy_path() {
     assert_neq(-1, bob.winner());
     assert_eql(alice.winner(), bob.winner());
 
-    assert_neq(0, alice.game().result[ALICE]);
-    assert_neq(0, alice.game().result[BOB]);
-    assert_eql(alice.game().result[ALICE], bob.game().result[ALICE]);
-    assert_eql(alice.game().result[BOB], bob.game().result[BOB]);
+    assert_neq(0, alice.game().funds_share[ALICE]);
+    assert_neq(0, alice.game().funds_share[BOB]);
+    assert_eql(alice.game().funds_share[ALICE], bob.game().funds_share[ALICE]);
+    assert_eql(alice.game().funds_share[BOB], bob.game().funds_share[BOB]);
 
     if(alice.winner() == ALICE) {
         assert_neq(uk, bob.opponent_card(0));

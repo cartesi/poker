@@ -141,18 +141,26 @@ game_error game_playback::handle_card_proof(msg_card_proof* msg) {
     game_error res;
     int first_card, count;
 
-    if (_r.step() == game_step::OPEN_OPONENT_CARDS) {
-        logger << "game_step::OPEN_OPONENT_CARDS)" << std::endl; 
-        blob& alice_proof = msg->player_id == ALICE ? msg->cards_proof : _bet_card_proof;
-        blob& bob_proof   = msg->player_id == BOB   ? msg->cards_proof : _bet_card_proof;
+    if (_r.step() == game_step::SHOWDOWN) {
+        logger << "game_step::SHOWDOWN" << std::endl;
 
-        if ((res=_r.open_private_cards(BOB, alice_proof, _bob_private_cards_proof)))
-            return PLB_OPEN_BOB_PRIVATE_CARDS;
-
-        if ((res=_r.step_open_opponent_cards(ALICE, _alice_private_cards_proof, bob_proof)))
-            return res;
-    } 
-    else {
+        if (msg->muck) {  // Last player lost and mucked
+            blob dummy;  //not used b/c no cards will be revealed
+            if ((res = _r.step_showdown(msg->player_id, dummy, dummy, msg->muck)))
+                return res;
+        } else {
+            // Last agressor starts the showdown by revealing its cards
+            if (msg->player_id == _r.game().last_aggressor) {
+                blob last_agressor_proof = _r.game().last_aggressor == ALICE ? _alice_private_cards_proof : _bob_private_cards_proof;
+                if ((res = _r.open_private_cards(msg->player_id, last_agressor_proof, msg->cards_proof)))
+                    return res;
+            } else {  // Last player won and now reveals its cards or its a tie
+                blob proof = _r.game().last_aggressor == ALICE ? _bob_private_cards_proof : _alice_private_cards_proof;
+                if ((res = _r.step_showdown(msg->player_id, msg->cards_proof, proof, msg->muck)))
+                    return res;
+            }
+        }
+    } else {
         int first_card, count;
         if ((res=public_cards_range(_r.step(), first_card, count)))
             return res;
@@ -163,5 +171,4 @@ game_error game_playback::handle_card_proof(msg_card_proof* msg) {
     }
     return SUCCESS;
 }
-
 }

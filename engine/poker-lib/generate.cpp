@@ -1,7 +1,8 @@
-#include <iostream>
 #include <fstream>
-#include "poker-lib.h"
+#include <iostream>
+
 #include "game-generator.h"
+#include "poker-lib.h"
 
 using namespace poker;
 
@@ -18,15 +19,14 @@ void save(const char* dir, const char* name, std::string& data) {
         std::cerr << "Error writing to " << path << std::endl;
         exit(-1);
     }
-    int padding = 4*1024;
-    for(; len % padding != 0; len++) {
-        char t=0;
+    int padding = 4 * 1024;
+    for (; len % padding != 0; len++) {
+        char t = 0;
         fwrite(&t, 1, 1, fp);
     }
-    
+
     fclose(fp);
 }
-
 
 /*
    Generates game files for verification
@@ -35,13 +35,13 @@ void save(const char* dir, const char* name, std::string& data) {
     cd engine/platforms/x64
     make shell
     cd poker-lib
-    poker-lib-src/generate 200 100 10 /poker/xfer
+    poker-lib-src/generate 200 100 10 -1 /poker/xfer
     poker-lib-src/verify /poker/xfer/player-info.raw  /poker/xfer/turn-metadata.raw  /poker/xfer/verification-info.raw /poker/xfer/turn-data.raw /poker/xfer/result.raw
 */
-int main(int argc, char**argv) {
+int main(int argc, char** argv) {
     game_error res;
-    if (argc != 5) {
-        fprintf(stderr, "Usage: %s <alice_money> <bob_money> <big_blind> <dest_directory>\n", argv[0]);
+    if (argc != 6) {
+        fprintf(stderr, "Usage: %s <alice_money> <bob_money> <big_blind> <last_aggressor> <dest_directory>\n", argv[0]);
         exit(-1);
     }
     init_poker_lib();
@@ -49,8 +49,9 @@ int main(int argc, char**argv) {
     gen.alice_money.parse_string(argv[1], 10);
     gen.bob_money.parse_string(argv[2], 10);
     gen.big_blind.parse_string(argv[3], 10);
-    char * dir =  argv[4];
-    if ((res=gen.generate())) {
+    gen.last_aggressor = std::stoi(std::string(argv[4]));
+    char* dir = argv[5];
+    if ((res = gen.generate())) {
         std::cerr << "Error " << (int)res << " generating game" << std::endl;
         exit(-1);
     }
@@ -61,16 +62,14 @@ int main(int argc, char**argv) {
     save(dir, "turn-data.raw", gen.raw_turn_data);
     auto output = std::string("placeholder");
     save(dir, "output.raw", output);
-    
-    std::cout 
+
+    std::cout
         << "Game files saved on " << dir << std::endl
         << "Game state: " << gen.game.to_json() << std::endl
         << "Alice address: " << gen.alice_addr.to_string(16) << std::endl
         << "Bob address: " << gen.bob_addr.to_string(16) << std::endl
         << "Challenger address: " << gen.challenger_addr.to_string(16) << std::endl
-        << "Claimer address: " << gen.claimer_addr.to_string(16) << std::endl
-        ;
+        << "Claimer address: " << gen.claimer_addr.to_string(16) << std::endl;
 
     return 0;
 }
-
