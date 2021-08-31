@@ -12,11 +12,12 @@ enum Wallet {
 
 const PORTIS_APP_ID = "15ce62b0-b226-4e6f-9f8d-abbdf8f2cda2";
 
-const CHAIN_URL = "https://matic-mumbai.chainstacklabs.com";
-const CHAIN_ID = "0x13881";
+const DEFAULT_CHAIN_URL = "https://matic-mumbai.chainstacklabs.com";
+const DEFAULT_CHAIN_ID = "0x13881";
 
 class PokerFaucet {
     private selectedWallet = Wallet.PORTIS;
+    private provider;
 
     public static readonly CHAINS = {
         "0x13881": "Matic Testnet",
@@ -27,26 +28,12 @@ class PokerFaucet {
     async init() {
         this.initGUI();
 
-        let provider = await this.getProvider();
-        if (!provider) {
-            throw new Error("Unable to instantiate the provider to connect to the network");
-        }
+        this.provider = await this.getProvider();
 
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-        const network = PokerFaucet.CHAINS[CHAIN_ID]
-            ? PokerFaucet.CHAINS[CHAIN_ID]
-            : "Unsupported Network";
-
-        const tokenContract = new ethers.Contract(PokerToken.address, PokerToken.abi, signer);
-        document.getElementById("network").innerHTML = network;
-        document.getElementById("address").innerHTML = address;
-        document.getElementById("balance").innerHTML = await tokenContract.balanceOf(address);
+        await this.updateGUI();
 
         this.setWalletRadioListener();
         this.setRequestButtonListener();
-
-        (document.getElementById("requestButton") as HTMLButtonElement).disabled = false;
     }
 
     initGUI() {
@@ -60,18 +47,36 @@ class PokerFaucet {
         }
 
         // Loading info (Portis takes some time to load)
+        this.showLoadingInfo();
+    }
+
+    showLoadingInfo() {
+        (document.getElementById("requestButton") as HTMLButtonElement).disabled = true;
+
         document.getElementById("network").innerHTML = "Loading...";
         document.getElementById("address").innerHTML = "Loading...";
         document.getElementById("balance").innerHTML = "Loading...";
+    }
 
-        // Disbable request button until provider is ready
-        (document.getElementById("requestButton") as HTMLButtonElement).disabled = true;
+    async updateGUI() {
+        const signer = this.provider.getSigner();
+        const address = await signer.getAddress();
+        const network = PokerFaucet.CHAINS[DEFAULT_CHAIN_ID]
+            ? PokerFaucet.CHAINS[DEFAULT_CHAIN_ID]
+            : "Unsupported Network";
+
+        const tokenContract = new ethers.Contract(PokerToken.address, PokerToken.abi, signer);
+        document.getElementById("network").innerHTML = network;
+        document.getElementById("address").innerHTML = address;
+        document.getElementById("balance").innerHTML = await tokenContract.balanceOf(address);
+
+        (document.getElementById("requestButton") as HTMLButtonElement).disabled = false;
     }
 
     setWalletRadioListener() {
         let radios = document.getElementsByName("wallet");
         for (let i = 0; i < radios.length; i++) {
-            radios[i].addEventListener("change", (e) => {
+            radios[i].addEventListener("change", async (e) => {
                 let id = (e.target as HTMLElement).id;
                 switch (id) {
                     case Wallet.PORTIS:
@@ -83,6 +88,9 @@ class PokerFaucet {
                     default:
                         throw new Error("Unsupported wallet was found");
                 };
+                this.showLoadingInfo();
+                this.provider = await this.getProvider();
+                await this.updateGUI();
             });
         }
     }
@@ -93,13 +101,22 @@ class PokerFaucet {
     }
 
     async getProvider(): Promise<any> {
-        if (this.selectedWallet == Wallet.PORTIS) {
-            return this.getProviderFromPortis();
-        } else if (this.selectedWallet == Wallet.METAMASK) {
-            return this.getProviderFromMetamask();
+        switch (this.selectedWallet) {
+            case Wallet.PORTIS:
+                this.provider = this.getProviderFromPortis();
+                break;
+            case Wallet.METAMASK:
+                this.provider = this.getProviderFromMetamask();
+                break;
+            default:
+                throw new Error("Unsupported wallet was found");
+        };
+        if (this.provider) {
+            return this.provider
         } else {
-            throw new Error("Unsupported wallet was found");
+            throw new Error("Unable to instantiate the provider to connect to the network");
         }
+
     }
 
     async getProviderFromPortis(): Promise<any> {
@@ -108,8 +125,8 @@ class PokerFaucet {
         let portis;
         try {
             portis = new Portis(PORTIS_APP_ID, {
-                nodeUrl: CHAIN_URL,
-                chainId: CHAIN_ID,
+                nodeUrl: DEFAULT_CHAIN_URL,
+                chainId: DEFAULT_CHAIN_ID,
             });
         } catch (error) {
             console.log(error);
@@ -134,11 +151,13 @@ class PokerFaucet {
             return;
         }
         // sets up hooks to update web3 when accounts or chain change
-        window.ethereum.on("accountsChanged", () => {
-            location.reload();
+        window.ethereum.on("accountsChanged", async () => {
+            this.showLoadingInfo();
+            await this.updateGUI();
         });
-        window.ethereum.on("chainChanged", () => {
-            location.reload();
+        window.ethereum.on("chainChanged", async () => {
+            this.showLoadingInfo();
+            await this.updateGUI();
         });
 
         // connects to ethereum account
@@ -148,8 +167,7 @@ class PokerFaucet {
     }
 
     async request() {
-        const provider = await this.getProvider();
-        const signer = provider.getSigner();
+        const signer = this.provider.getSigner();
         const address = await signer.getAddress();
 
         const faucetContract = new ethers.Contract(PokerTokenFaucet.address, PokerTokenFaucet.abi, signer);
@@ -158,6 +176,9 @@ class PokerFaucet {
 
         const amount = await faucetContract.TOKEN_AMOUNT();
         alert(`Requested ${amount} POKER tokens for ${address}`);
+
+        this.showLoadingInfo();
+        await this.updateGUI();
     }
 }
 
