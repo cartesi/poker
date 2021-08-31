@@ -19,6 +19,7 @@
         "webpack-dev-server": "3.11.0"
     },
     "dependencies": {
+        "@portis/web3": "^4.0.5",
         "ethers": "^5.1.0"
     },
     "scripts": {
