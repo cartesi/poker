@@ -1,5 +1,4 @@
 import { ethers } from "ethers";
-import MetaMaskOnboarding from "@metamask/onboarding";
 import PokerToken from "../../abis/PokerToken.json";
 import TurnBasedGameLobby from "../../abis/TurnBasedGameLobby.json";
 import { PokerToken__factory } from "../../types";
@@ -34,7 +33,7 @@ export class AbstractOnboarding {
 
         const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
-        if (playerFunds < ethers.BigNumber.from(GameConstants.MIN_FUNDS)) {
+        if (playerFunds.lt(ethers.BigNumber.from(GameConstants.MIN_FUNDS))) {
             onChange({
                 label: `Sorry, you need at least ${GameConstants.MIN_FUNDS} POKER tokens on ${chainName} to play`,
                 onclick: undefined,
@@ -62,6 +61,8 @@ export class AbstractOnboarding {
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
         const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
         const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
+
+        if (playerFunds.lt(ethers.BigNumber.from(GameConstants.MIN_FUNDS))) return;
 
         if (allowance.lt(playerFunds)) {
             // game is not allowed to use player's tokens
