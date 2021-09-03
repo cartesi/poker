@@ -2,6 +2,7 @@ import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
+import { ErrorHandler } from "../../services/ErrorHandler";
 import { MatchingLayer } from "./MatchingLayer";
 
 export class LobbyScene extends Phaser.Scene {
@@ -61,6 +62,15 @@ export class LobbyScene extends Phaser.Scene {
 
         this.matchingLayer = new MatchingLayer(this);
         this.add.existing(this.matchingLayer);
+
+        let errorText = new Phaser.GameObjects.Text(this, 200, 230, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        errorText.setOrigin(.5, 0);
+        errorText.setShadow(1, 1, "#000000", 5);
+        this.topContainer.add(errorText);
+        ErrorHandler.setOnError((title: string, error: any) => {
+            errorText.setText(`Error executing ${title}`);
+            setTimeout(() => errorText.setText(""), ErrorHandler.ATTEMPT_INTERVAL);
+        });
 
         this.onOrientationChange();
     }

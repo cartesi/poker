@@ -10,8 +10,7 @@ import { PokerToken__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
 import { Web3Utils } from "./Web3Utils";
-
-declare let window: any;
+import { ErrorHandler } from "../ErrorHandler";
 
 export class LobbyWeb3 {
     /**
@@ -77,7 +76,7 @@ export class LobbyWeb3 {
         let encodedPlayerInfo = Web3Utils.toUint8Array(playerInfo);
 
         // joins game by calling Lobby smart contract
-        await Web3Utils.sendTransaction("joinGame", async () => {
+        await ErrorHandler.execute("joinGame", async () => {
             const tx = await lobbyContract.joinGame(
                 GameConstants.GAME_TEMPLATE_HASH,
                 GameConstants.GAME_METADATA,
