@@ -45,7 +45,7 @@ export class LobbyScene extends Phaser.Scene {
             if (errorText.active) {
                 errorIndex = index;
                 errorText.setText(`Error executing ${title}`);
-                setTimeout(() => { if (errorText.active) { errorText.setText("") }}, ErrorHandler.ATTEMPT_INTERVAL);
+                setTimeout(() => { if (errorText.active) { errorText.setText("") }}, ErrorHandler.getAttemptInterval());
             } else {
                 ErrorHandler.interrupt(index);
             }

@@ -1,19 +1,39 @@
 export class ErrorHandler {
-    public static readonly ATTEMPT_INTERVAL = 5000;
-    
+    private static readonly DEFAULT_ATTEMPT_INTERVAL = 5000;
+    private static attemptInterval = ErrorHandler.DEFAULT_ATTEMPT_INTERVAL;
+
     private static onError: (index: number, title: string, error: any) => any = () => {};
 
     private static nextExecIndex = 0;
     private static executions = {};
 
     /**
+     * Returns the interval to wait when each execution fails, before attempting it again.
+     * @returns an amount of time in milliseconds
+     */
+    public static getAttemptInterval(): number {
+        return this.attemptInterval;
+    }
+
+    /**
+     * Defines the interval to wait when each execution fails, before attempting it again.
+     * @param interval a positive number representing an amount of time in milliseconds
+     */
+    public static setAttemptInterval(interval: number): void {
+        if (isNaN(interval) || interval <= 0) {
+            throw `Attempt interval must be a positive number, but received '${interval}'`;
+        }
+        this.attemptInterval = interval;
+    }
+
+    /**
      * Wraps a given function call applying a standard procedure of repeatedly trying with a
-     * configures interval, reporting any failures/errors.
+     * configured interval, reporting any failures/errors.
      *
      * @param title title of the execution, to be used in error messages and logging
      * @param exec function to be executed
      */
-     public static async execute(title: string, exec: () => Promise<void>) {
+    public static async execute(title: string, exec: () => Promise<void>) {
         const execIndex = this.nextExecIndex++;
         this.executions[execIndex] = exec;
         while (true) {
@@ -25,16 +45,16 @@ export class ErrorHandler {
                 await exec();
                 delete this.executions[execIndex];
             } catch (error) {
-                console.log(`Error while executing ${title} (exec index '${execIndex}'): ${JSON.stringify(error)}`);
+                console.log(`Error while executing '${title}' (exec index '${execIndex}'): ${JSON.stringify(error)}`);
                 ErrorHandler.onError(execIndex, title, error);
-                await new Promise((resolve) => setTimeout(resolve, ErrorHandler.ATTEMPT_INTERVAL));
+                await new Promise((resolve) => setTimeout(resolve, ErrorHandler.getAttemptInterval()));
             }
         }
     }
 
     /**
      * Defines procedure to be executed when an error is reported.
-     * 
+     *
      * @param onError callback that receives a title and an error object
      */
     public static setOnError(onError: (index: number, title: string, error: any) => any) {
