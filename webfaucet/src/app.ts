@@ -12,7 +12,7 @@ enum Wallet {
 
 const PORTIS_APP_ID = "15ce62b0-b226-4e6f-9f8d-abbdf8f2cda2";
 
-const DEFAULT_CHAIN_URL = "https://matic-mumbai.chainstacklabs.com";
+const DEFAULT_CHAIN_URL = "https://matic-testnet-archive-rpc.bwarelabs.com";
 const DEFAULT_CHAIN_ID = "0x13881";
 
 class PokerFaucet {

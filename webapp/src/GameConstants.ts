@@ -27,7 +27,7 @@ export class GameConstants {
     };
 
     public static readonly CHAIN_ENDPOINTS = {
-        [ChainId.MATIC_TESTNET]: "https://matic-mumbai.chainstacklabs.com",
+        [ChainId.MATIC_TESTNET]: "https://matic-testnet-archive-rpc.bwarelabs.com",
         [ChainId.LOCALHOST_HARDHAT]: "http://localhost:8545",
         [ChainId.LOCALHOST]: "http://localhost:8545",
     };
