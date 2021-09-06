@@ -32,6 +32,25 @@ export class LobbyScene extends Phaser.Scene {
         this.backContainer = new Phaser.GameObjects.Container(this);
         this.add.existing(this.backContainer);
 
+        this.topContainer = new Phaser.GameObjects.Container(this);
+        this.topContainer.setPosition(GameConstants.GAME_WIDTH / 2, 0);
+        this.add.existing(this.topContainer);
+
+        let errorIndex: number;
+        let errorText = new Phaser.GameObjects.Text(this, 200, 230, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        errorText.setOrigin(.5, 0);
+        errorText.setShadow(1, 1, "#000000", 5);
+        this.topContainer.add(errorText);
+        ErrorHandler.setOnError((index: number, title: string, error: any) => {
+            if (errorText.active) {
+                errorIndex = index;
+                errorText.setText(`Error executing ${title}`);
+                setTimeout(() => { if (errorText.active) { errorText.setText("") }}, ErrorHandler.ATTEMPT_INTERVAL);
+            } else {
+                ErrorHandler.interrupt(index);
+            }
+        });
+
         let backButton = new Phaser.GameObjects.Image(this, 50, 50, "texture_atlas_1", "btn_back");
         backButton.setInteractive();
         backButton.on("pointerover", () => {
@@ -42,13 +61,10 @@ export class LobbyScene extends Phaser.Scene {
         }, this);
         backButton.on("pointerup", () => {
             AudioManager.playSound("btn_click");
+            ErrorHandler.interrupt(errorIndex);
             GameManager.enterSplashScene();
         }, this);
         this.backContainer.add(backButton);
-
-        this.topContainer = new Phaser.GameObjects.Container(this);
-        this.topContainer.setPosition(GameConstants.GAME_WIDTH / 2, 0);
-        this.add.existing(this.topContainer);
 
         let title = new Phaser.GameObjects.Image(this, 0, 10, "texture_atlas_1", "logo_main");
         title.setOrigin(.5, 0);
@@ -62,15 +78,6 @@ export class LobbyScene extends Phaser.Scene {
 
         this.matchingLayer = new MatchingLayer(this);
         this.add.existing(this.matchingLayer);
-
-        let errorText = new Phaser.GameObjects.Text(this, 200, 230, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
-        errorText.setOrigin(.5, 0);
-        errorText.setShadow(1, 1, "#000000", 5);
-        this.topContainer.add(errorText);
-        ErrorHandler.setOnError((title: string, error: any) => {
-            errorText.setText(`Error executing ${title}`);
-            setTimeout(() => errorText.setText(""), ErrorHandler.ATTEMPT_INTERVAL);
-        });
 
         this.onOrientationChange();
     }
