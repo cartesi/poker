@@ -36,21 +36,6 @@ export class LobbyScene extends Phaser.Scene {
         this.topContainer.setPosition(GameConstants.GAME_WIDTH / 2, 0);
         this.add.existing(this.topContainer);
 
-        let errorIndex: number;
-        let errorText = new Phaser.GameObjects.Text(this, 200, 230, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
-        errorText.setOrigin(.5, 0);
-        errorText.setShadow(1, 1, "#000000", 5);
-        this.topContainer.add(errorText);
-        ErrorHandler.setOnError((index: number, title: string, error: any) => {
-            if (errorText.active) {
-                errorIndex = index;
-                errorText.setText(`Error executing ${title}`);
-                setTimeout(() => { if (errorText.active) { errorText.setText("") }}, ErrorHandler.getAttemptInterval());
-            } else {
-                ErrorHandler.interrupt(index);
-            }
-        });
-
         let backButton = new Phaser.GameObjects.Image(this, 50, 50, "texture_atlas_1", "btn_back");
         backButton.setInteractive();
         backButton.on("pointerover", () => {
@@ -61,7 +46,6 @@ export class LobbyScene extends Phaser.Scene {
         }, this);
         backButton.on("pointerup", () => {
             AudioManager.playSound("btn_click");
-            ErrorHandler.interrupt(errorIndex);
             GameManager.enterSplashScene();
         }, this);
         this.backContainer.add(backButton);
@@ -75,6 +59,17 @@ export class LobbyScene extends Phaser.Scene {
         powered.setOrigin(.5, 0);
         powered.setShadow(1, 1, "#000000", 5);
         this.topContainer.add(powered);
+
+        let errorText = new Phaser.GameObjects.Text(this, 200, 230, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        errorText.setOrigin(.5, 0);
+        errorText.setShadow(1, 1, "#000000", 5);
+        this.topContainer.add(errorText);
+        ErrorHandler.setOnError((index: number, title: string, error: any) => {
+            if (errorText.active) {
+                errorText.setText(`Error executing ${title}`);
+                setTimeout(() => { if (errorText.active) { errorText.setText("") }}, ErrorHandler.getAttemptInterval());
+            }
+        });
 
         this.matchingLayer = new MatchingLayer(this);
         this.add.existing(this.matchingLayer);

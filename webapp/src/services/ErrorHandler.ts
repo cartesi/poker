@@ -62,7 +62,7 @@ export class ErrorHandler {
     }
 
     /**
-     * Interrupts execution identified by the provided index
+     * Interrupts execution identified by the provided index.
      * @param index execution index to interrupt
      */
     public static interrupt(index: number) {
@@ -71,5 +71,13 @@ export class ErrorHandler {
         }
         console.log(`Interrupting error handling for exec index '${index}'`);
         delete this.executions[index];
+    }
+
+    /**
+     * Interrupts all current executions.
+     */
+     public static interruptAll() {
+        console.debug(`Interrupting error handling for ALL executions`);
+        this.executions = {};
     }
 }

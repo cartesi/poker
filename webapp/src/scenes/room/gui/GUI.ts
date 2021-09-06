@@ -3,6 +3,7 @@ import { GameVars } from "../../../GameVars";
 import { GameConstants } from "../../../GameConstants";
 import { RoomManager } from "../RoomManager";
 import { WinnerLayer } from "./WinnerLayer";
+import { ErrorHandler } from "../../../services/ErrorHandler";
 
 export class GUI extends Phaser.GameObjects.Container {
 
@@ -41,6 +42,17 @@ export class GUI extends Phaser.GameObjects.Container {
         this.cartesi.setScale(.5);
         this.cartesi.setShadow(1, 1, "#000000", 5);
         this.topContainer.add(this.cartesi);
+
+        let errorText = new Phaser.GameObjects.Text(this.scene, 295, 60, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        errorText.setOrigin(0, .5);
+        errorText.setShadow(1, 1, "#000000", 5);
+        this.topContainer.add(errorText);
+        ErrorHandler.setOnError((index: number, title: string, error: any) => {
+            if (errorText.active) {
+                errorText.setText(`Error executing ${title}`);
+                setTimeout(() => { if (errorText.active) { errorText.setText("") }}, ErrorHandler.getAttemptInterval());
+            }
+        });
 
         this.scene.tweens.add({
             targets: [title, this.cartesi],

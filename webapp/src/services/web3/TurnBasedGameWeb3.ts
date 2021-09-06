@@ -9,7 +9,7 @@ import LoggerJson from "../../abis/Logger.json";
 import { Logger as LoggerContract } from "../../types";
 import { Logger__factory } from "../../types";
 import { ServiceConfig } from "../ServiceConfig";
-import { Web3Utils } from "./Web3Utils";
+import { ErrorHandler } from "../ErrorHandler";
 
 /**
  * TurnBasedGame web3 implementation
@@ -88,7 +88,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     async submitTurn(data: Uint8Array): Promise<Uint8Array> {
         await this.initWeb3();
 
-        await Web3Utils.sendTransaction("submitTurn", async () => {
+        await ErrorHandler.execute("submitTurn", async () => {
             const context = await this.gameContract.getContext(this.gameIndex);
             const turnIndex = context.turns.length;
             const tx = await this.gameContract.submitTurn(this.gameIndex, turnIndex, data);
@@ -139,7 +139,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         let dataBytes8 = [];
         for (let index of logIndices) {
             let logEvents;
-            await Web3Utils.sendTransaction("LoggerQueryFilter", async () => {
+            await ErrorHandler.execute("LoggerQueryFilter", async () => {
                 const filter = this.loggerContract.filters.MerkleRootCalculatedFromData(index, null, null, null);
                 logEvents = await this.loggerContract.queryFilter(filter);
             });
@@ -158,7 +158,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         this.claimedResult = claimedResult;
         await this.initWeb3();
 
-        await Web3Utils.sendTransaction("claimResult", async () => {
+        await ErrorHandler.execute("claimResult", async () => {
             const tx = await this.gameContract.claimResult(this.gameIndex, claimedResult);
             console.log(
                 `Result was claimed for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
@@ -187,7 +187,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     //
     async confirmResult(): Promise<void> {
         await this.initWeb3();
-        await Web3Utils.sendTransaction("confirmResult", async () => {
+        await ErrorHandler.execute("confirmResult", async () => {
             const tx = await this.gameContract.confirmResult(this.gameIndex);
             console.log(
                 `Result was confirmed for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`

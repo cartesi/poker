@@ -75,4 +75,49 @@ describe("ErrorHandler", function () {
         await new Promise((resolve) => setTimeout(resolve, ErrorHandler.getAttemptInterval() * 2));
         expect(attempts).to.equal(0);
     });
+
+    it("Should interrupt all executions when requested", async () => {
+        ErrorHandler.setAttemptInterval(10);
+        let execIndices = [];
+        ErrorHandler.setOnError((index, title, error) => {
+            execIndices.push(index);
+        });
+        let attempts1 = 0;
+        ErrorHandler.execute("ErrorHandler Exec 1", async () => {
+            attempts1++;
+            throw "Expected failure 1";
+        });
+        let attempts2 = 0;
+        ErrorHandler.execute("ErrorHandler Exec 2", async () => {
+            attempts2++;
+            throw "Expected failure 2";
+        });
+        let attempts3 = 0;
+        ErrorHandler.execute("ErrorHandler Exec 3", async () => {
+            attempts3++;
+            throw "Expected failure 3";
+        });
+        await new Promise((resolve) => setTimeout(resolve, ErrorHandler.getAttemptInterval() * 2));
+        expect(attempts1).to.be.gt(0);
+        expect(attempts2).to.be.gt(0);
+        expect(attempts3).to.be.gt(0);
+
+        ErrorHandler.interrupt(execIndices[0]);
+        attempts1 = 0;
+        attempts2 = 0;
+        attempts3 = 0;
+        await new Promise((resolve) => setTimeout(resolve, ErrorHandler.getAttemptInterval() * 2));
+        expect(attempts1).to.equal(0);
+        expect(attempts2).to.be.gt(0);
+        expect(attempts3).to.be.gt(0);
+        
+        ErrorHandler.interruptAll();
+        attempts1 = 0;
+        attempts2 = 0;
+        attempts3 = 0;
+        await new Promise((resolve) => setTimeout(resolve, ErrorHandler.getAttemptInterval() * 2));
+        expect(attempts1).to.equal(0);
+        expect(attempts2).to.equal(0);
+        expect(attempts3).to.equal(0);
+    });
 });

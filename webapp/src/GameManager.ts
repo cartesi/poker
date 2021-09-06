@@ -5,6 +5,7 @@ import { AudioManager } from "./AudioManager";
 import { Lobby } from "./services/Lobby";
 import { LobbyScene } from "./scenes/lobby/LobbyScene";
 import { ethers } from "ethers";
+import { ErrorHandler } from "./services/ErrorHandler";
 
 export class GameManager {
 
@@ -61,11 +62,13 @@ export class GameManager {
 
     public static enterSplashScene(): void {
 
+        ErrorHandler.interruptAll();
         GameVars.currentScene.scene.start("SplashScene");
     }
 
     public static enterLobbyScene(): void {
 
+        ErrorHandler.interruptAll();
         GameVars.currentScene.scene.start("LobbyScene");
 
         const { name, avatar } = GameVars.gameData;
@@ -91,6 +94,7 @@ export class GameManager {
 
     public static enterRoomScene(): void {
 
+        ErrorHandler.interruptAll();
         GameVars.currentScene.scene.start("RoomScene");
     }
 
@@ -107,6 +111,7 @@ export class GameManager {
 
     public static setCurrentScene(scene: Phaser.Scene): void {
 
+        ErrorHandler.interruptAll();
         GameVars.currentScene = scene;
     }
 
