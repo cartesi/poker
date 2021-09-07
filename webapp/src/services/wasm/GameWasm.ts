@@ -248,10 +248,9 @@ export class GameWasm implements Game {
     }
 
     private _computeResult(state: EngineState): GameResult {
-
         const winners = Array(2);
-        winners[this.playerId] = (this.playerId === state.winner)
-        winners[this.opponentId] = (this.opponentId === state.winner);
+        winners[this.playerId] = this.playerId === state.winner;
+        winners[this.opponentId] = this.opponentId === state.winner;
 
         const hands = Array(2);
         const publicCards = state.public_cards.map(Card.fromIndex);
@@ -268,7 +267,7 @@ export class GameWasm implements Game {
         return {
             isWinner: winners,
             fundsShare: state.funds_share,
-            hands: bestHands
+            hands: bestHands,
         };
     }
 
@@ -296,7 +295,7 @@ export class GameWasm implements Game {
         return Promise.resolve();
     }
 
-    private async _createBet(type: EngineBetType, amount: BigNumber = BigNumber.from(0)): Promise<any> {
+    private async _createBet(type: EngineBetType, amount: BigNumber = BigNumber.from(0)): Promise<Bet> {
         console.log(`### [Player ${this.playerId}] Created bet ###`);
         let bet = await this.engine.create_bet(type, amount);
         console.log(`### [Player ${this.playerId}] Submit turn ###`);
@@ -327,16 +326,16 @@ export class GameWasm implements Game {
         this.onEvent(await this.getState(), EventType.UPDATE_STATE);
         await this._checkGameOver();
 
-        return Promise.resolve({
+        return {
             type: receivedBet.betType,
             amount: receivedBet.amount,
-        });
+        };
     }
 
     private async _checkGameOver(isFold?: boolean): Promise<boolean> {
         let state = await this.engine.game_state();
         if (state.step == EngineStep.GAME_OVER) {
-            if (isFold || this._isDealer()) {
+            if (isFold || state.last_aggressor == this.playerId) {
                 let fundsShare = state.funds_share;
                 console.log(`### [Player ${this.playerId}] Claim Result ###`);
                 await this.turnBasedGame.claimResult(fundsShare);
@@ -348,8 +347,8 @@ export class GameWasm implements Game {
     }
 
     private async _onBet() {
+        let state = await this.engine.game_state();
         if ((await this._checkGameOver()) === false) {
-            let state = await this.engine.game_state();
             if (state.current_player == this.playerId) this.onBetRequested();
             else this._waitOpponentBet();
         }
@@ -361,7 +360,7 @@ export class GameWasm implements Game {
             let type = this._convertBetType(bet.type);
             this.onBetsReceived(type, bet.amount);
 
-            const isFold = (type == BetType.FOLD);
+            const isFold = type == BetType.FOLD;
             const isGameOver = await this._checkGameOver(isFold);
             if (!isGameOver) {
                 let state = await this.engine.game_state();

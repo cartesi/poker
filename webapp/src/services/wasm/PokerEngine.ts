@@ -85,24 +85,19 @@ export class PokerEngine implements Engine {
     async game_state(): Promise<EngineState> {
         return this._callWorker("player_game_state", makeMessage(this._player), (results) => {
             let state = JSON.parse(parseString(results[0]), (key, value) => {
-                return key == "total_funds" || key == "bets" ? BigNumber.from(value) : value;
+                switch (key) {
+                    case "total_funds":
+                    case "bets":
+                        return BigNumber.from(value);
+                    case "funds_share":
+                        const fundsShare = Array(2);
+                        fundsShare[0] = BigNumber.from(value[0]);
+                        fundsShare[1] = BigNumber.from(value[1]);
+                        return fundsShare;
+                    default:
+                        return value;
+                }
             });
-
-            const fundsShare = Array(2);
-            const alice = state.players[0];
-            const bob = state.players[1];
-            if (state.winner == 2) {
-                fundsShare[0] = alice.total_funds;
-                fundsShare[1] = bob.total_funds;
-            } else if (state.winner == 0) {
-                fundsShare[0] = alice.total_funds.add(bob.bets);
-                fundsShare[1] = bob.total_funds.sub(bob.bets);
-            } else if (state.winner == 1) {
-                fundsShare[0] = alice.total_funds.sub(alice.bets);
-                fundsShare[1] = bob.total_funds.add(alice.bets);
-            }
-            state.funds_share = fundsShare;
-
             return state;
         });
     }
