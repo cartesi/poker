@@ -24,6 +24,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
     gameContract: TurnBasedGameContract;
     loggerContract: LoggerContract;
+    gameContextContract: any;
 
     turnDataQueue: Array<any>;
     onTurnOverReceivedResolvers: Array<(any) => any>;
@@ -58,22 +59,31 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         this.loggerContract = Logger__factory.connect(LoggerJson.address, signer);
         this.gameContract = TurnBasedGame__factory.connect(TurnBasedGameJson.address, signer);
         const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContextJson.address, signer);
-        const gameContextContract = contextContract.attach(this.gameContract.address);
+        this.gameContextContract = contextContract.attach(this.gameContract.address);
 
         // cancels any current event listening
-        gameContextContract.removeAllListeners();
+        this.gameContextContract.removeAllListeners();
 
         // sets up listener for TurnOver events for this game
-        const turnOverFilter = gameContextContract.filters.TurnOver(this.gameIndex, null, null);
-        gameContextContract.on(turnOverFilter, this.onTurnOver.bind(this));
+        const turnOverFilter = this.gameContextContract.filters.TurnOver(this.gameIndex, null, null);
+        this.gameContextContract.on(turnOverFilter, this.onTurnOver.bind(this));
 
         // sets up listener for GameResultClaimed event
-        const gameResultClaimedFilter = gameContextContract.filters.GameResultClaimed(this.gameIndex, null, null);
-        gameContextContract.on(gameResultClaimedFilter, this.onClaimResult.bind(this));
+        const gameResultClaimedFilter = this.gameContextContract.filters.GameResultClaimed(this.gameIndex, null, null);
+        this.gameContextContract.on(gameResultClaimedFilter, this.onClaimResult.bind(this));
 
         // sets up listener for GameEnd event
-        const gameEndFilter = gameContextContract.filters.GameOver(this.gameIndex, null);
-        gameContextContract.on(gameEndFilter, this.onGameEnd.bind(this));
+        const gameEndFilter = this.gameContextContract.filters.GameOver(this.gameIndex, null);
+        this.gameContextContract.on(gameEndFilter, this.onGameEnd.bind(this));
+    }
+
+    /**
+     * Remove blockchain listeners.
+     * This is especially useful to correctly finish the process for automated tests
+     * using this service.
+     */
+    removeListeners() {
+        this.gameContextContract.removeAllListeners();
     }
 
     /**

@@ -134,5 +134,9 @@ describe('TurnBasedGameWeb3', function () {
                         expect(claimedResult[0] == 10).to.be.true;
                         expect(claimedResult[1] == 5).to.be.true;
                 });
+
+                // Remove listeners
+                turnBasedGameAlice.removeListeners();
+                turnBasedGameBob.removeListeners();
         });
 });
