@@ -21,3 +21,5 @@ RUN mkdir /poker && \
     ./emsdk install latest  && \
     ./emsdk activate latest && \
     echo "source /poker/emsdk/emsdk_env.sh" >> /root/.bashrc
+
+RUN npm install --global yarn
