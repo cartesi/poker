@@ -30,8 +30,7 @@ TESTS = test-solver \
     test-game-generator \
     test-player \
     test-verifier \
-    test-bignumber \
-    test-game-playback
+    test-bignumber
 
 # programs to build
 PROGRAMS =
@@ -52,6 +51,7 @@ PROGRAMS += poker-lib-wasm.js
 else
     PROGRAMS += verify
     PROGRAMS += generate
+    TESTS += test-game-playback
 endif
 
 PROGRAMS += $(TESTS)

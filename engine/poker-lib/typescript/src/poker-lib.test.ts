@@ -86,9 +86,11 @@ describe('A complete game', () => {
     r15 = await alice.create_bet(EngineBetType.BET_CHECK, BigNumber.from(0));
     expect(r15.status).to.equal(StatusCode.CONTINUED);
     let r16 = await bob.process_bet(r15.message_out);
-    expect(r16.status).to.equal(StatusCode.SUCCESS);
+    expect(r16.status).to.equal(StatusCode.CONTINUED);
     let r17 = await alice.process_bet(r16.message_out);
     expect(r17.status).to.equal(StatusCode.SUCCESS);
+    let r18 = await bob.process_bet(r17.message_out);
+    expect(r18.status).to.equal(StatusCode.SUCCESS);
 
     const gAlice = await await alice.game_state();
     console.log(gAlice);
