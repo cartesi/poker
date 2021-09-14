@@ -54,7 +54,8 @@ export class GameWasm implements Game {
                 await this._processHandshake();
 
                 resolve();
-                this._onBet();
+
+                await this._checkNextAction();
             } catch (err) {
                 reject(err);
             }
@@ -65,9 +66,9 @@ export class GameWasm implements Game {
         return new Promise(async (resolve, reject) => {
             console.log(`### [Player ${this.playerId}] CALL ###`);
             try {
-                await this._createBet(EngineBetType.BET_CALL);
+                const result = await this._createBet(EngineBetType.BET_CALL);
                 resolve();
-                this._onBet();
+                this._onBet(result);
             } catch (err) {
                 reject(err);
             }
@@ -78,9 +79,9 @@ export class GameWasm implements Game {
         return new Promise(async (resolve, reject) => {
             console.log(`### [Player ${this.playerId}] CHECK ###`);
             try {
-                await this._createBet(EngineBetType.BET_CHECK);
+                const result = await this._createBet(EngineBetType.BET_CHECK);
                 resolve();
-                this._onBet();
+                this._onBet(result);
             } catch (err) {
                 reject(err);
             }
@@ -103,9 +104,9 @@ export class GameWasm implements Game {
         return new Promise(async (resolve, reject) => {
             console.log(`### [Player ${this.playerId}] RAISE ###`);
             try {
-                await this._createBet(EngineBetType.BET_RAISE, amount);
+                const result = await this._createBet(EngineBetType.BET_RAISE, amount);
                 resolve();
-                this._onBet();
+                this._onBet(result);
             } catch (err) {
                 reject(err);
             }
@@ -295,44 +296,50 @@ export class GameWasm implements Game {
         return Promise.resolve();
     }
 
-    private async _createBet(type: EngineBetType, amount: BigNumber = BigNumber.from(0)): Promise<Bet> {
+    private async _createBet(type: EngineBetType, amount: BigNumber = BigNumber.from(0)): Promise<EngineResult> {
         console.log(`### [Player ${this.playerId}] Created bet ###`);
         let bet = await this.engine.create_bet(type, amount);
         console.log(`### [Player ${this.playerId}] Submit turn ###`);
         await this.turnBasedGame.submitTurn(bet.message_out);
-
-        if (bet.status == StatusCode.CONTINUED) {
-            this._processBet();
-        }
-
+        
         console.log(`### [Player ${this.playerId}] Bet Resolved ###`);
-        return { type, amount };
+        return bet;
     }
 
     private async _processBet(): Promise<Bet> {
         console.log(`### [Player ${this.playerId}] Process bet ###`);
-        let receivedBet: EngineResult;
+        let receivedResult: EngineResult;
+        let receivedBetType: BetType;
         do {
             let message_in = await this.turnBasedGame.receiveTurnOver();
             console.log(`### [Player ${this.playerId}] On turn received ###`);
-            receivedBet = await this.engine.process_bet(message_in);
 
-            if (receivedBet.message_out.length > 0) {
-                console.log(`### [Player ${this.playerId}] Submit turn ###`);
-                await this.turnBasedGame.submitTurn(receivedBet.message_out);
+            receivedResult = await this.engine.process_bet(message_in);
+            const betType = this._convertBetType(receivedResult.betType);
+
+            // reaction to received result
+            if (betType && betType != receivedBetType) {
+                // it's a new bet: notify that it has just been received
+                receivedBetType = betType;
+                this.onBetsReceived(receivedBetType, receivedResult.amount);
+            } else {
+                // not a new bet: just notify that game state may have been updated
+                this.onEvent(await this.getState(), EventType.UPDATE_STATE);
             }
-        } while (receivedBet.status == StatusCode.CONTINUED);
 
-        this.onEvent(await this.getState(), EventType.UPDATE_STATE);
-        await this._checkGameOver();
+            if (receivedResult.message_out.length > 0) {
+                console.log(`### [Player ${this.playerId}] Submit turn ###`);
+                await this.turnBasedGame.submitTurn(receivedResult.message_out);
+            }
+        } while (receivedResult.status == StatusCode.CONTINUED);
 
         return {
-            type: receivedBet.betType,
-            amount: receivedBet.amount,
+            type: receivedBetType,
+            amount: receivedResult.amount,
         };
     }
 
-    private async _checkGameOver(isFold?: boolean): Promise<boolean> {
+    private async _checkNextAction(isFold?: boolean): Promise<boolean> {
         let state = await this.engine.game_state();
         if (state.step == EngineStep.GAME_OVER) {
             if (isFold || state.last_aggressor == this.playerId) {
@@ -340,37 +347,37 @@ export class GameWasm implements Game {
                 console.log(`### [Player ${this.playerId}] Claim Result ###`);
                 await this.turnBasedGame.claimResult(fundsShare);
             }
-            return true;
-        } else {
             return false;
-        }
-    }
-
-    private async _onBet() {
-        let state = await this.engine.game_state();
-        if ((await this._checkGameOver()) === false) {
-            if (state.current_player == this.playerId) this.onBetRequested();
-            else this._waitOpponentBet();
-        }
-    }
-
-    private _waitOpponentBet() {
-        console.log(`### [Player ${this.playerId}] Wait opponent bet ###`);
-        this._processBet().then(async (bet) => {
-            let type = this._convertBetType(bet.type);
-            this.onBetsReceived(type, bet.amount);
-
-            const isFold = type == BetType.FOLD;
-            const isGameOver = await this._checkGameOver(isFold);
-            if (!isGameOver) {
-                let state = await this.engine.game_state();
-                if (state.current_player == this.playerId) {
-                    this.onBetRequested();
-                } else {
-                    this._waitOpponentBet();
-                }
+        } else {
+            if (state.current_player == this.playerId) {
+                // game is not over and it's the player's turn: notify UI to request a bet
+                this.onBetRequested();
+            } else {
+                // game is not over and it's the opponent's turn: wait for his input
+                this._waitOpponentBet();
             }
-        });
+            return true;
+        }
+    }
+
+    private async _onBet(result: EngineResult) {
+        let isFold = false;
+        if (result.status == StatusCode.CONTINUED) {
+            // interaction is not over: keep exchanging data until it's over and check if opponent has folded
+            const bet = await this._processBet();
+            isFold = (bet.type == BetType.FOLD);
+        }
+        // bet processing is complete: define what to do next
+        this._checkNextAction(isFold);
+    }
+
+    private async _waitOpponentBet() {
+        console.log(`### [Player ${this.playerId}] Wait opponent bet ###`);
+        const bet = await this._processBet();
+
+        // bet processing is complete: check if opponent has folded and define what to do next
+        const isFold = (bet.type == BetType.FOLD);
+        this._checkNextAction(isFold);
     }
 
     private _convertBetType(engineType: EngineBetType): BetType {
@@ -416,6 +423,6 @@ export class GameWasm implements Game {
 }
 
 interface Bet {
-    type: EngineBetType;
+    type: BetType;
     amount: BigNumber;
 }
