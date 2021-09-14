@@ -131,8 +131,8 @@ describe('TurnBasedGameWeb3', function () {
 
                 // bob must receive the claim from alice
                 await claimResultPromise.then((claimedResult) => {
-                        expect(claimedResult[0] == 10).to.be.true;
-                        expect(claimedResult[1] == 5).to.be.true;
+                        expect(claimedResult[0].eq(ethers.BigNumber.from(10)));
+                        expect(claimedResult[1].eq(ethers.BigNumber.from(5)));
                 });
 
                 // Remove listeners
