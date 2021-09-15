@@ -382,6 +382,8 @@ export class GameWasm implements Game {
 
     private _convertBetType(engineType: EngineBetType): BetType {
         switch (engineType) {
+            case EngineBetType.BET_NONE:
+                return BetType.NONE;
             case EngineBetType.BET_CALL:
                 return BetType.CALL;
             case EngineBetType.BET_CHECK:

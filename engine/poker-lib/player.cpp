@@ -372,8 +372,8 @@ game_error player::handle_bet_request(msg_bet_request* msgin, message** out) {
         auto msgout = new msg_card_proof();
         *out = msgout;
         msgout->player_id = _id;
-        msgout->type = msgin->type;
-        msgout->amt = msgin->amt;
+        msgout->type = bet_type::BET_NONE;
+        msgout->amt = 0;
 
         if (_r.step() == game_step::SHOWDOWN) {
             if ((res = make_card_proof(msgout->cards_proof, private_card_index(_id, 0), NUM_PRIVATE_CARDS))) {
@@ -405,9 +405,9 @@ game_error player::handle_card_proof(msg_card_proof* msgin, message** out) {
             auto msgout = new msg_card_proof();
             *out = msgout;
             msgout->player_id = _id;
-            msgout->type = msgin->type;
-            msgout->amt = msgin->amt;
-            
+            msgout->type = bet_type::BET_NONE;
+            msgout->amt = 0;
+
             if ((res = showdown(msgin->cards_proof)))
                 return res;
 

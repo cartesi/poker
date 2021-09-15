@@ -57,6 +57,7 @@ export enum EventType {
 
 // bet types
 export enum BetType {
+    NONE = "NONE",
     CALL = "CALL",
     CHECK = "CHECK",
     RAISE = "RAISE",
