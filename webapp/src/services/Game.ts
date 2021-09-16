@@ -11,8 +11,11 @@ import { BigNumber } from "ethers";
 export enum GameState {
     START = "START",
     PREFLOP = "PREFLOP",
+    OPEN_FLOP = "OPEN_FLOP",
     FLOP = "FLOP",
+    OPEN_TURN = "OPEN_TURN",
     TURN = "TURN",
+    OPEN_RIVER = "OPEN_RIVER",
     RIVER = "RIVER",
     SHOWDOWN = "SHOWDOWN",
     END = "END",

@@ -209,11 +209,17 @@ export class GameWasm implements Game {
                     resolve(GameState.START);
                 } else if (state.step == 9) {
                     resolve(GameState.PREFLOP);
-                } else if (state.step < 12) {
+                } else if (state.step == 10) {
+                    resolve(GameState.OPEN_FLOP);
+                } else if (state.step == 11) {
                     resolve(GameState.FLOP);
-                } else if (state.step < 14) {
+                } else if (state.step == 12) {
+                    resolve(GameState.OPEN_TURN);
+                } else if (state.step == 13) {
                     resolve(GameState.TURN);
-                } else if (state.step < 16) {
+                } else if (state.step == 14) {
+                    resolve(GameState.OPEN_RIVER);
+                } else if (state.step == 15) {
                     resolve(GameState.RIVER);
                 } else if (state.step == 16) {
                     resolve(GameState.SHOWDOWN);
