@@ -89,6 +89,7 @@ int main(int argc, char **argv) {
      */
 
     // Given ALICE's hand is better
+    // When deciding winner
     // Alice wins
     reset_state();
     setup_cards(g, cf.alice_high_ace);
@@ -101,6 +102,7 @@ int main(int argc, char **argv) {
     assert_eql(g.funds_share[BOB], (bf.equal_bets.bob[0] - bf.equal_bets.bob[1]));
 
     // Given BOB's hand is better
+    // When deciding winner
     // BOB wins
     reset_state();
     setup_cards(g, cf.bob_high_ace);
@@ -113,7 +115,8 @@ int main(int argc, char **argv) {
     assert_eql(g.funds_share[BOB], (bf.equal_bets.bob[0] + bf.equal_bets.alice[1]));
 
     // Given ALICE's and BOB's hands are the same
-    // Its a tie
+    // When deciding winner
+    // It's a tie
     reset_state();
     setup_cards(g, cf.tie);
     setup_bets(g, bf.equal_bets);
@@ -132,7 +135,8 @@ int main(int argc, char **argv) {
 
     // Given bets are equal
     // When BOB checks
-    // It works
+    // Game advances to FLOP
+    // And BOB is the current player
     set_state(PHS_PREFLOP, BOB, bf.equal_bets);
 
     err = place_bet(g, BET_CHECK);
@@ -143,7 +147,8 @@ int main(int argc, char **argv) {
 
     // Given BOB's bet is higher
     // When ALICE calls the big blind
-    // It works
+    // Game remais on PREFLOP
+    // And BOB is the current player
     set_state(PHS_PREFLOP, ALICE, bf.first_action);
 
     err = place_bet(g, BET_CALL);
@@ -154,7 +159,7 @@ int main(int argc, char **argv) {
 
     // Given BOB's bet is higher
     // When ALICE folds
-    // It works
+    // BOB wins
     set_state(PHS_PREFLOP, ALICE, bf.first_action);
 
     err = place_bet(g, BET_FOLD);
@@ -166,7 +171,8 @@ int main(int argc, char **argv) {
 
     // Given BOB's bet is higher and ALICE already called the big blind
     // When ALICE calls
-    // It works
+    // Game advances to FLOP
+    // And BOB is the current player
     set_state(PHS_PREFLOP, ALICE, bf.bob_higher_bet);
 
     err = place_bet(g, BET_CALL);
@@ -193,7 +199,8 @@ int main(int argc, char **argv) {
 
     // Given bets are equal
     // When BOB raises
-    // It works
+    // Game remains on FLOP
+    // And ALICE is the current player
     set_state(PHS_FLOP, BOB, bf.equal_bets);
 
     err = place_bet(g, BET_RAISE, BIG_BLIND);
@@ -204,7 +211,8 @@ int main(int argc, char **argv) {
 
     // Given bets are equal
     // When BOB checks
-    // It works
+    // Game remains on FLOP
+    // And ALICE is the current player
     set_state(PHS_FLOP, BOB, bf.equal_bets);
 
     err = place_bet(g, BET_CHECK);
@@ -215,7 +223,7 @@ int main(int argc, char **argv) {
 
     // Given bets are equal
     // When BOB folds
-    // It works
+    // ALICE wins
     set_state(PHS_FLOP, BOB, bf.equal_bets);
 
     err = place_bet(g, BET_FOLD);
@@ -227,7 +235,8 @@ int main(int argc, char **argv) {
 
     // Given bets are equal
     // When ALICE checks
-    // It works
+    // Game advances to TURN
+    // And BOB is the current player
     set_state(PHS_FLOP, ALICE, bf.equal_bets);
 
     err = place_bet(g, BET_CHECK);
@@ -236,14 +245,14 @@ int main(int argc, char **argv) {
     assert_eql(PHS_TURN, g.phase);
     assert_eql(BOB, g.current_player);
 
+    // TODO: restore this code when the UI code is able to deal with this logic
     // Given bets are equal
     // When ALICE raises less than the big blind
     // It fails
-    set_state(PHS_FLOP, ALICE, bf.equal_bets);
+    //set_state(PHS_FLOP, ALICE, bf.equal_bets);
 
-    err = place_bet(g, BET_RAISE, BIG_BLIND - 1);
+    //err = place_bet(g, BET_RAISE, BIG_BLIND - 1);
 
-    // TODO: restore this code when the UI code is able to deal with this logic
     // assert_eql(GRR_BET_BELOW_MINIMUM, err);
     // assert_eql(GRR_BET_BELOW_MINIMUM, g.error);
 
@@ -259,7 +268,8 @@ int main(int argc, char **argv) {
 
     // Given ALICE's bet is higher
     // When BOB calls
-    // It works
+    // Game advances to TURN
+    // And BOB is the current player
     set_state(PHS_FLOP, BOB, bf.alice_higher_bet);
 
     err = place_bet(g, BET_CALL);
@@ -270,7 +280,8 @@ int main(int argc, char **argv) {
 
     // Given ALICE's bet is higher
     // When BOB raises
-    // It works
+    // Game remains in FLOP
+    // And ALICE is the current player
     set_state(PHS_FLOP, BOB, bf.alice_higher_bet);
 
     err = place_bet(g, BET_RAISE, BIG_BLIND);
@@ -291,7 +302,7 @@ int main(int argc, char **argv) {
 
     // Given ALICE's bet is higher
     // When BOB folds
-    // It works
+    // ALICE wins
     set_state(PHS_FLOP, BOB, bf.alice_higher_bet);
 
     err = place_bet(g, BET_FOLD);
@@ -353,7 +364,7 @@ int main(int argc, char **argv) {
 
     // Given BOB's bet is higher
     // When BOB folds
-    // It works
+    // ALICE wins
     set_state(PHS_FLOP, BOB, bf.bob_higher_bet);
 
     err = place_bet(g, BET_FOLD);
