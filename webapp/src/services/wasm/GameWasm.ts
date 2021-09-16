@@ -210,15 +210,15 @@ export class GameWasm implements Game {
                 } else if (state.step == 9) {
                     resolve(GameState.PREFLOP);
                 } else if (state.step == 10) {
-                    resolve(GameState.OPEN_FLOP);
+                    resolve(GameState.WAITING_FLOP);
                 } else if (state.step == 11) {
                     resolve(GameState.FLOP);
                 } else if (state.step == 12) {
-                    resolve(GameState.OPEN_TURN);
+                    resolve(GameState.WAITING_TURN);
                 } else if (state.step == 13) {
                     resolve(GameState.TURN);
                 } else if (state.step == 14) {
-                    resolve(GameState.OPEN_RIVER);
+                    resolve(GameState.WAITING_RIVER);
                 } else if (state.step == 15) {
                     resolve(GameState.RIVER);
                 } else if (state.step == 16) {
@@ -324,7 +324,7 @@ export class GameWasm implements Game {
             const betType = this._convertBetType(receivedResult.betType);
 
             // reaction to received result
-            if (betType && betType != receivedBetType) {
+            if (betType && betType != BetType.NONE && betType != receivedBetType) {
                 // it's a new bet: notify that it has just been received
                 receivedBetType = betType;
                 this.onBetsReceived(receivedBetType, receivedResult.amount);
