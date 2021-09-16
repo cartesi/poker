@@ -49,6 +49,7 @@ export class RoomManager {
             setTimeout(() => {
                 RoomScene.currentInstance.distributeFirstCards();
                 RoomScene.currentInstance.updateBoard();
+                RoomManager.updateOpponentState();
             }, 1000);
         });
 
