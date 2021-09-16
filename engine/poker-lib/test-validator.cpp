@@ -15,6 +15,11 @@ using namespace poker::cards;
 
 #define BIG_BLIND 10
 
+#define ALICE_FUNDS(f) f.alice[0]
+#define ALICE_BETS(f) f.alice[1]
+#define BOB_FUNDS(f) f.bob[0]
+#define BOB_BETS(f) f.bob[1]
+
 struct card_fixture {
     vector<card_t> alice, bob, community;
 };
@@ -98,8 +103,8 @@ int main(int argc, char **argv) {
     decide_winner(g);
 
     assert_eql(ALICE, g.winner);
-    assert_eql(g.funds_share[ALICE], (bf.equal_bets.alice[0] + bf.equal_bets.bob[1]));
-    assert_eql(g.funds_share[BOB], (bf.equal_bets.bob[0] - bf.equal_bets.bob[1]));
+    assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.equal_bets) + BOB_BETS(bf.equal_bets));
+    assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.equal_bets) - BOB_BETS(bf.equal_bets));
 
     // Given BOB's hand is better
     // When deciding winner
@@ -111,8 +116,8 @@ int main(int argc, char **argv) {
     decide_winner(g);
 
     assert_eql(BOB, g.winner);
-    assert_eql(g.funds_share[ALICE], (bf.equal_bets.alice[0] - bf.equal_bets.alice[1]));
-    assert_eql(g.funds_share[BOB], (bf.equal_bets.bob[0] + bf.equal_bets.alice[1]));
+    assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.equal_bets) - ALICE_BETS(bf.equal_bets));
+    assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.equal_bets) + ALICE_BETS(bf.equal_bets));
 
     // Given ALICE's and BOB's hands are the same
     // When deciding winner
@@ -124,8 +129,8 @@ int main(int argc, char **argv) {
     decide_winner(g);
 
     assert_eql(TIE, g.winner);
-    assert_eql(g.funds_share[ALICE], bf.equal_bets.alice[0]);
-    assert_eql(g.funds_share[BOB], bf.equal_bets.bob[0]);
+    assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.equal_bets));
+    assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.equal_bets));
 
     /**
      *
@@ -168,6 +173,8 @@ int main(int argc, char **argv) {
     assert_eql(BOB, g.winner);
     assert_eql(PHS_GAME_OVER, g.phase);
     assert_eql(BOB, g.current_player);
+    assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.first_action) - ALICE_BETS(bf.first_action));
+    assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.first_action) + ALICE_BETS(bf.first_action));
 
     // Given BOB's bet is higher and ALICE already called the big blind
     // When ALICE calls
@@ -232,6 +239,8 @@ int main(int argc, char **argv) {
     assert_eql(ALICE, g.winner);
     assert_eql(PHS_GAME_OVER, g.phase);
     assert_eql(ALICE, g.current_player);
+    assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.equal_bets) + BOB_BETS(bf.equal_bets));
+    assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.equal_bets) - BOB_BETS(bf.equal_bets));
 
     // Given bets are equal
     // When ALICE checks
@@ -311,6 +320,8 @@ int main(int argc, char **argv) {
     assert_eql(ALICE, g.winner);
     assert_eql(PHS_GAME_OVER, g.phase);
     assert_eql(ALICE, g.current_player);
+    assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.alice_higher_bet) + BOB_BETS(bf.alice_higher_bet));
+    assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.alice_higher_bet) - BOB_BETS(bf.alice_higher_bet));
 
     // Given ALICE's bet is higher and BOB doesn't have funds
     // When BOB calls
@@ -373,6 +384,8 @@ int main(int argc, char **argv) {
     assert_eql(ALICE, g.winner);
     assert_eql(PHS_GAME_OVER, g.phase);
     assert_eql(ALICE, g.current_player);
+    assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.bob_higher_bet) + BOB_BETS(bf.bob_higher_bet));
+    assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.bob_higher_bet) - BOB_BETS(bf.bob_higher_bet));
 
     cout << "---- SUCCESS - " TEST_SUITE_NAME << endl;
     return 0;

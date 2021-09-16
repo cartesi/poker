@@ -8,6 +8,7 @@
 
 namespace poker {
 
+static void end_game(game_state& g);
 static void end_phase(game_state& g);
 static void reset_last_agressor(game_state& g);
 static game_error bet(game_state& g, money_t amount);
@@ -104,8 +105,7 @@ static game_error check(game_state& g) {
 
 static game_error fold(game_state& g) {
     g.winner = opponent_id(g.current_player);
-    g.phase = PHS_GAME_OVER;
-    g.current_player = g.winner;
+    end_game(g);
     return SUCCESS;
 }
 
@@ -145,8 +145,7 @@ game_error decide_winner(game_state& g) {
     else
         g.winner = result == 1 ? ALICE : BOB;
 
-    share_funds(g);
-    g.phase = bet_phase::PHS_GAME_OVER;
+    end_game(g);
     return SUCCESS;
 }
 
@@ -157,6 +156,12 @@ static void end_phase(game_state& g) {
         int aux = g.phase;
         g.phase = (bet_phase)++aux;
     }
+}
+
+static void end_game(game_state& g) {
+    share_funds(g);
+    g.current_player = g.winner;
+    g.phase = bet_phase::PHS_GAME_OVER;
 }
 
 static void reset_last_agressor(game_state& g) {
