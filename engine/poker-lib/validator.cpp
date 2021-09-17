@@ -160,7 +160,7 @@ static void end_phase(game_state& g) {
 
 static void end_game(game_state& g) {
     share_funds(g);
-    g.current_player = g.winner;
+    g.current_player = NONE;
     g.phase = bet_phase::PHS_GAME_OVER;
 }
 

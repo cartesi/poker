@@ -103,6 +103,8 @@ int main(int argc, char **argv) {
     decide_winner(g);
 
     assert_eql(ALICE, g.winner);
+    assert_eql(PHS_GAME_OVER, g.phase);
+    assert_eql(NONE, g.current_player);
     assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.equal_bets) + BOB_BETS(bf.equal_bets));
     assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.equal_bets) - BOB_BETS(bf.equal_bets));
 
@@ -116,6 +118,8 @@ int main(int argc, char **argv) {
     decide_winner(g);
 
     assert_eql(BOB, g.winner);
+    assert_eql(PHS_GAME_OVER, g.phase);
+    assert_eql(NONE, g.current_player);
     assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.equal_bets) - ALICE_BETS(bf.equal_bets));
     assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.equal_bets) + ALICE_BETS(bf.equal_bets));
 
@@ -129,6 +133,8 @@ int main(int argc, char **argv) {
     decide_winner(g);
 
     assert_eql(TIE, g.winner);
+    assert_eql(PHS_GAME_OVER, g.phase);
+    assert_eql(NONE, g.current_player);
     assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.equal_bets));
     assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.equal_bets));
 
@@ -172,7 +178,7 @@ int main(int argc, char **argv) {
     assert_eql(err, SUCCESS);
     assert_eql(BOB, g.winner);
     assert_eql(PHS_GAME_OVER, g.phase);
-    assert_eql(BOB, g.current_player);
+    assert_eql(NONE, g.current_player);
     assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.first_action) - ALICE_BETS(bf.first_action));
     assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.first_action) + ALICE_BETS(bf.first_action));
 
@@ -238,7 +244,7 @@ int main(int argc, char **argv) {
     assert_eql(err, SUCCESS);
     assert_eql(ALICE, g.winner);
     assert_eql(PHS_GAME_OVER, g.phase);
-    assert_eql(ALICE, g.current_player);
+    assert_eql(NONE, g.current_player);
     assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.equal_bets) + BOB_BETS(bf.equal_bets));
     assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.equal_bets) - BOB_BETS(bf.equal_bets));
 
@@ -319,7 +325,7 @@ int main(int argc, char **argv) {
     assert_eql(SUCCESS, err);
     assert_eql(ALICE, g.winner);
     assert_eql(PHS_GAME_OVER, g.phase);
-    assert_eql(ALICE, g.current_player);
+    assert_eql(NONE, g.current_player);
     assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.alice_higher_bet) + BOB_BETS(bf.alice_higher_bet));
     assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.alice_higher_bet) - BOB_BETS(bf.alice_higher_bet));
 
@@ -383,7 +389,7 @@ int main(int argc, char **argv) {
     assert_eql(SUCCESS, err);
     assert_eql(ALICE, g.winner);
     assert_eql(PHS_GAME_OVER, g.phase);
-    assert_eql(ALICE, g.current_player);
+    assert_eql(NONE, g.current_player);
     assert_eql(g.funds_share[ALICE], ALICE_FUNDS(bf.bob_higher_bet) + BOB_BETS(bf.bob_higher_bet));
     assert_eql(g.funds_share[BOB], BOB_FUNDS(bf.bob_higher_bet) - BOB_BETS(bf.bob_higher_bet));
 

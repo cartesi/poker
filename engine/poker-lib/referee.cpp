@@ -302,7 +302,7 @@ game_error referee::step_showdown(int player_id, blob& alice_proofs, blob& bob_p
         _g.muck = true;
         _g.winner = opponent_id(player_id);
         _g.phase = bet_phase::PHS_GAME_OVER;
-        _g.current_player = _g.winner;
+        _g.current_player = NONE;
         share_funds(_g);
     } else {
         if ((res = open_private_cards(player_id, alice_proofs, bob_proofs)))

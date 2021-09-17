@@ -11,6 +11,7 @@ extern bool logging_enabled;
 
 #define logger if(!logging_enabled) {} else std::cout
 
+const int NONE = -1;
 const int ALICE = 0;
 const int BOB = 1;
 const int TIE = 2;
