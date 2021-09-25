@@ -6,10 +6,12 @@ import { PokerToken__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
 import { AbstractOnboarding } from "./AbstractOnboarding";
+import { ProviderType } from "./provider/Provider";
 
 declare let window: any;
 
 export class OnboardingMetamask extends AbstractOnboarding {
+    private static metamask: any;
     private static metamaskOnboarding;
     private static accounts;
 
@@ -17,6 +19,14 @@ export class OnboardingMetamask extends AbstractOnboarding {
      * Starts user onboarding using Web3
      */
     public static async start(onChange) {
+        if (ServiceConfig.currentInstance.providerType != ProviderType.Metamask) {
+            throw new Error("A Metamask web3 provider was not found!");
+        }
+
+        if (!ServiceConfig.currentInstance.provider) {
+            throw new Error("No web3 provider was found!");
+        }
+
         if (!this.metamaskOnboarding) {
             this.metamaskOnboarding = new MetaMaskOnboarding();
         }
@@ -25,19 +35,22 @@ export class OnboardingMetamask extends AbstractOnboarding {
                 throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
             }
 
-            ServiceConfig.currentInstance.setChain(window.ethereum.chainId);
-            super.setProvider(window.ethereum);
+
+            this.metamask = ServiceConfig.currentInstance.provider.getRawProvider();
+            ServiceConfig.currentInstance.setChain(this.metamask.chainId);
+            super.setProvider(this.metamask);
 
             // attempts to retrieve connected account
-            if (window.ethereum.selectedAddress) {
-                this.accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+            if (this.metamask.selectedAddress) {
+                console.log(this.metamask.selectedAddress);
+                this.accounts = await this.metamask.request({ method: "eth_requestAccounts" });
             }
             // sets up hooks to update web3 when accounts or chain change
-            window.ethereum.on("accountsChanged", (newAccounts) => {
+            this.metamask.on("accountsChanged", (newAccounts) => {
                 this.accounts = newAccounts;
                 this.update(onChange);
             });
-            window.ethereum.on("chainChanged", () => {
+            this.metamask.on("chainChanged", () => {
                 this.update(onChange);
             });
         }
@@ -123,7 +136,7 @@ export class OnboardingMetamask extends AbstractOnboarding {
      * @param onChange
      */
     private static async connectWallet(onChange) {
-        if (!window.ethereum) {
+        if (!this.metamask) {
             // ethereum not available
             onChange({
                 label: "Cannot connect to window.ethereum, even though Metamask should be installed!",
@@ -134,7 +147,7 @@ export class OnboardingMetamask extends AbstractOnboarding {
             });
         } else {
             // connects to ethereum wallet
-            this.accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+            this.accounts = await this.metamask.request({ method: "eth_requestAccounts" });
             this.update(onChange);
         }
     }
