@@ -10,14 +10,23 @@ namespace poker {
     *  Messages transfered during live game and result verification
    */
    class message {
-   public:
-       message_type msgtype;
+   protected:
+       int _version;
+       message_type _msgtype;
 
+   public:
+       int player_id;
+       
        message(message_type t);
        virtual ~message() { }
-       virtual game_error write(std::ostream& os) = 0;
-       virtual game_error read(std::istream& is) = 0;
+
+       message_type type() { return _msgtype; }
+       int version() { return _version; }
+       
+       virtual game_error write(std::ostream& os);
+       virtual game_error read(std::istream& is);
        virtual std::string to_string() = 0;
+
        static game_error decode(std::istream& is, message** msg);
    };
 
@@ -89,7 +98,6 @@ namespace poker {
 
    class msg_bet_request : public message {
    public:
-       int player_id;
        bet_type type;
        money_t amt;
        blob cards_proof;
@@ -103,7 +111,6 @@ namespace poker {
 
    class msg_card_proof : public message {
    public:
-       int player_id;
        bet_type type;
        money_t amt;
        blob cards_proof;

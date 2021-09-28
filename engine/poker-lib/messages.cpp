@@ -1,10 +1,10 @@
 #include <sstream>
+#include "poker-lib.h"
 #include "messages.h"
 
 namespace poker {
 
-message::message(message_type t) : msgtype(t) {
-
+message::message(message_type t) : _version(poker_version), _msgtype(t), player_id(-1) {
 }
 
 game_error message::decode(std::istream& is, message** msg) {
@@ -17,7 +17,7 @@ game_error message::decode(std::istream& is, message** msg) {
         return res;
 
     switch(type) {
-        case MSG_VTMF: 
+        case MSG_VTMF:
             m = new msg_vtmf();
             break;
         case MSG_VTMF_RESPONSE:
@@ -50,14 +50,33 @@ game_error message::decode(std::istream& is, message** msg) {
     return SUCCESS;
 }
 
-msg_vtmf::msg_vtmf() : message(MSG_VTMF) {
+game_error message::write(std::ostream& os)  {
+    game_error res;
+    encoder out(os);
+    if ((res=out.write(_msgtype))) return res;
+    if ((res=out.write(_version))) return res;
+    if ((res=out.write(player_id))) return res;
+    return SUCCESS;
+}
 
+game_error message::read(std::istream& is)  {
+    game_error res;
+    decoder in(is);
+    // _msgtype has already been read by message::decode()
+    if ((res=in.read(_version))) return res;
+    if (_version != poker_version) return COD_VERSION_MISMATCH;
+    if ((res=in.read(player_id))) return res;
+    return SUCCESS;
+}
+
+msg_vtmf::msg_vtmf() : message(MSG_VTMF) {
 }
 
 game_error msg_vtmf::write(std::ostream& os)  {
     game_error res;
+    if ((res=message::write(os))) return res;
+
     encoder out(os);
-    if ((res=out.write(msgtype))) return res;
     if ((res=out.write(alice_money))) return res;
     if ((res=out.write(bob_money))) return res;
     if ((res=out.write(big_blind))) return res;
@@ -68,6 +87,8 @@ game_error msg_vtmf::write(std::ostream& os)  {
 
 game_error msg_vtmf::read(std::istream& is)  {
     game_error res;
+    if ((res=message::read(is))) return res;
+
     decoder in(is);
     if ((res=in.read(alice_money))) return res;
     if ((res=in.read(bob_money))) return res;
@@ -86,8 +107,9 @@ msg_vtmf_response::msg_vtmf_response() : message(MSG_VTMF_RESPONSE) {
 
 game_error msg_vtmf_response::write(std::ostream& os)  {
     game_error res;
+    if ((res=message::write(os))) return res;
+
     encoder out(os);
-    if ((res=out.write(msgtype))) return res;
     if ((res=out.write(alice_money))) return res;
     if ((res=out.write(bob_money))) return res;
     if ((res=out.write(big_blind))) return res;
@@ -97,6 +119,8 @@ game_error msg_vtmf_response::write(std::ostream& os)  {
 
 game_error msg_vtmf_response::read(std::istream& is)  {
     game_error res;
+    if ((res=message::read(is))) return res;
+
     decoder in(is);
     if ((res=in.read(alice_money))) return res;
     if ((res=in.read(bob_money))) return res;
@@ -109,13 +133,14 @@ std::string msg_vtmf_response::to_string() {
     return "msg_vtmf_response";
 }
 
-msg_vsshe::msg_vsshe() : message(MSG_VSSHE) { 
+msg_vsshe::msg_vsshe() : message(MSG_VSSHE) {
 }
 
 game_error msg_vsshe::write(std::ostream& os)  {
     game_error res;
+    if ((res=message::write(os))) return res;
+
     encoder out(os);
-    if ((res=out.write(msgtype))) return res;
     if ((res=out.write(vsshe))) return res;
     if ((res=out.write(stack))) return res;
     if ((res=out.write(stack_proof))) return res;
@@ -124,6 +149,8 @@ game_error msg_vsshe::write(std::ostream& os)  {
 
 game_error msg_vsshe::read(std::istream& is)  {
     game_error res;
+    if ((res=message::read(is))) return res;
+
     decoder in(is);
     if ((res=in.read(vsshe))) return res;
     if ((res=in.read(stack))) return res;
@@ -135,13 +162,14 @@ std::string msg_vsshe::to_string() {
     return "msg_vsshe";
 }
 
-msg_vsshe_response::msg_vsshe_response() : message(MSG_VSSHE_RESPONSE) { 
+msg_vsshe_response::msg_vsshe_response() : message(MSG_VSSHE_RESPONSE) {
 }
 
 game_error msg_vsshe_response::write(std::ostream& os)  {
     game_error res;
+    if ((res=message::write(os))) return res;
+
     encoder out(os);
-    if ((res=out.write(msgtype))) return res;
     if ((res=out.write(stack))) return res;
     if ((res=out.write(stack_proof))) return res;
     if ((res=out.write(cards_proof))) return res;
@@ -150,6 +178,8 @@ game_error msg_vsshe_response::write(std::ostream& os)  {
 
 game_error msg_vsshe_response::read(std::istream& is)  {
     game_error res;
+    if ((res=message::read(is))) return res;
+
     decoder in(is);
     if ((res=in.read(stack))) return res;
     if ((res=in.read(stack_proof))) return res;
@@ -166,14 +196,17 @@ msg_bob_private_cards::msg_bob_private_cards() : message(MSG_BOB_PRIVATE_CARDS) 
 
 game_error msg_bob_private_cards::write(std::ostream& os)  {
     game_error res;
+    if ((res=message::write(os))) return res;
+
     encoder out(os);
-    if ((res=out.write(msgtype))) return res;
     if ((res=out.write(cards_proof))) return res;
     return SUCCESS;
 }
 
 game_error msg_bob_private_cards::read(std::istream& is)  {
     game_error res;
+    if ((res=message::read(is))) return res;
+
     decoder in(is);
     if ((res=in.read(cards_proof))) return res;
     return SUCCESS;
@@ -189,10 +222,9 @@ msg_bet_request::msg_bet_request() : message(MSG_BET_REQUEST) {
 
 game_error msg_bet_request::write(std::ostream& os)  {
     game_error res;
-    encoder out(os);
+    if ((res=message::write(os))) return res;
 
-    if ((res=out.write(msgtype))) return res;
-    if ((res=out.write(player_id))) return res;
+    encoder out(os);
     if ((res=out.write(type))) return res;
     if ((res=out.write(amt))) return res;
     if ((res=out.write(cards_proof))) return res;
@@ -201,8 +233,9 @@ game_error msg_bet_request::write(std::ostream& os)  {
 
 game_error msg_bet_request::read(std::istream& is)  {
     game_error res;
+    if ((res=message::read(is))) return res;
+
     decoder in(is);
-    if ((res=in.read(player_id))) return res;
     if ((res=in.read(type))) return res;
     if ((res=in.read(amt))) return res;
     if ((res=in.read(cards_proof))) return res;
@@ -221,9 +254,9 @@ msg_card_proof::msg_card_proof() : message(MSG_CARD_PROOF), muck(false) {
 
 game_error msg_card_proof::write(std::ostream& os)  {
     game_error res;
+    if ((res=message::write(os))) return res;
+
     encoder out(os);
-    if ((res=out.write(msgtype))) return res;
-    if ((res=out.write(player_id))) return res;
     if ((res=out.write(type))) return res;
     if ((res=out.write(amt))) return res;
     if ((res=out.write(cards_proof))) return res;
@@ -233,8 +266,9 @@ game_error msg_card_proof::write(std::ostream& os)  {
 
 game_error msg_card_proof::read(std::istream& is)  {
     game_error res;
+    if ((res=message::read(is))) return res;
+
     decoder in(is);
-    if ((res=in.read(player_id))) return res;
     if ((res=in.read(type))) return res;
     if ((res=in.read(amt))) return res;
     if ((res=in.read(cards_proof))) return res;

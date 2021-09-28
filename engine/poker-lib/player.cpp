@@ -33,12 +33,13 @@ game_error player::init(money_t alice_money, money_t bob_money, money_t big_blin
     return SUCCESS;
 }
 
-game_error player::create_handshake(std::string& msg_out) {
+game_error player::create_handshake(std::string&msg_out) {
     game_error res;
     if (_id != ALICE)
         return PRR_INVALID_PLAYER;
 
     msg_vtmf msgout;
+    msgout.player_id = _id;
     msgout.alice_money = _alice_money;
     msgout.bob_money = _bob_money;
     msgout.big_blind = _big_blind;
@@ -69,8 +70,11 @@ game_error player::process_handshake(std::string& msg_in, std::string& msg_out) 
     if ((res=message::decode(is, &msgin)))
         return res;
 
+    if (msgin->player_id != opponent_id(_id))
+        return PRR_INVALID_OPPONNENT;
+            
     message* msgout = NULL;
-    switch(msgin->msgtype) {
+    switch(msgin->type()) {
         case MSG_VTMF:
             res = handle_vtmf((msg_vtmf*)msgin, &msgout);
             logger << "******* > " << msgout << std::endl;
@@ -115,6 +119,7 @@ game_error player::handle_vtmf(msg_vtmf* msgin, message** out) {
     game_error res;
     auto msgout = new msg_vtmf_response();
     *out = msgout;
+    msgout->player_id = _id;
 
     if (_id != BOB)
         return PRR_INVALID_PLAYER;
@@ -153,6 +158,7 @@ game_error player::handle_vtmf_response(msg_vtmf_response* msgin, message** out)
     game_error res;
     auto msgout = new  msg_vsshe();
     *out = msgout;
+    msgout->player_id = _id;
 
     if ((res=load_opponent_key(msgin->bob_key)))
         return res;
@@ -164,8 +170,10 @@ game_error player::handle_vtmf_response(msg_vtmf_response* msgin, message** out)
     if (_big_blind != msgin->big_blind)
         return PRR_BIG_BLIND_DIVERGES;
     
+    msgout->player_id = _id;
+
     if ((res=_p->create_vsshe_group(msgout->vsshe)))
-        return res; ////PRR_CREATE_VSSHE;
+        return res;
     if ((res=_r.step_vsshe_group(msgout->vsshe)))
         return res;
     if (_p->create_stack())
@@ -187,6 +195,7 @@ game_error player::handle_vsshe(msg_vsshe* msgin, message** out) {
     game_error res;
     auto msgout = new msg_vsshe_response();
     *out = msgout;
+    msgout->player_id = _id;
     
     if ((res=_p->load_vsshe_group(msgin->vsshe)))
         return res; ////PRR_CREATE_VSSHE;
@@ -230,6 +239,7 @@ game_error player::handle_vsshe_response(msg_vsshe_response* msgin, message** ou
     game_error res;
     auto msgout = new msg_bob_private_cards();
     *out = msgout;
+    msgout->player_id = _id;
 
     if (_p->load_stack(msgin->stack, msgin->stack_proof))
         return PRR_LOAD_STACK;
@@ -269,7 +279,7 @@ game_error player::handle_bob_private_cards(msg_bob_private_cards* msgin) {
 }
 
 game_error player::create_bet(bet_type type, money_t amt, std::string& msg_out) {
-    logger << "create_bet...\n";
+    logger << _id << ": create_bet...\n";
     game_error res;
     msg_bet_request msgout;
 
@@ -308,6 +318,7 @@ game_error player::create_bet(bet_type type, money_t amt, std::string& msg_out) 
 }
 
 game_error player::process_bet(std::string& msg_in, std::string& out, bet_type* out_type, money_t* out_amt) {
+    logger << _id << ": process_bet...\n";
     game_error res;
 
     std::string decompressed;
@@ -319,10 +330,13 @@ game_error player::process_bet(std::string& msg_in, std::string& out, bet_type* 
     if ((res=message::decode(is, &msgin)))
         return res;
 
+    if (msgin->player_id != opponent_id(_id))
+        return PRR_INVALID_OPPONNENT;
+
     message* msgout = NULL;
     msg_bet_request* bet_msg;
     msg_card_proof* proof_msg;
-    switch(msgin->msgtype) {
+    switch(msgin->type()) {
         case MSG_BET_REQUEST:
             bet_msg = (msg_bet_request*)msgin;
             res = handle_bet_request(bet_msg, &msgout);
@@ -520,6 +534,9 @@ game_error player::showdown(blob& their_proof, bool muck) {
     auto bob_proofs = _id == BOB ? my_proof : their_proof;
     if ((res = _r.step_showdown(_opponent_id, alice_proofs, bob_proofs, muck)))
         return res;
+
+    logger << ">>> " << _id << ": " << _r.game().to_json() << std::endl;
+
 
     return SUCCESS;
 }

@@ -42,7 +42,7 @@ verify:
 LIBSCLEAN := $(addsuffix .clean,$(LIBS))
 
 clean: $(LIBSCLEAN)
-	rm -rf build
+	rm -r build
 
 $(LIBSCLEAN): %.clean:
 	$(MAKE) -C $* clean

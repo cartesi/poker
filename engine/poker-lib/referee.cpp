@@ -313,7 +313,6 @@ game_error referee::step_showdown(int player_id, blob& alice_proofs, blob& bob_p
     }
 
     _step = game_step::GAME_OVER;
-    _g.dump();
 
     return SUCCESS;
 }

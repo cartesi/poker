@@ -19,6 +19,7 @@ public:
     virtual ~referee();
 
     game_step step() { return _step; }
+
     game_state& game() { return _g; }
 
     game_error step_init_game(money_t alice_money, money_t bob_money, money_t big_blind);

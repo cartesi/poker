@@ -18,4 +18,4 @@ $(LIBNAME):
     rm v$(VER).zip 
 
 clean:
-	rm -rf $(LIBNAME)
+	rm -r $(LIBNAME)

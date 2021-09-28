@@ -38,14 +38,18 @@ LIBSCLEAN := $(addsuffix .clean,$(LIBS))
 $(XFER_BASE):
 	mkdir -p $(XFER_BASE)
 
+ALICE_MONEY ?= 100
+BOB_MONEY ?= 100
+BIG_BLIND ?= 10
+AGGRESSOR ?= -1 
 generate: $(XFER_BASE)
-	$(RUN_TOOLCHAIN) /poker/build/poker-lib/generate 300 200 10 /poker/xfer
+	$(RUN_TOOLCHAIN) /bin/bash -c "POKER_LOGGING=1  /poker/build/poker-lib/generate $(ALICE_MONEY) $(BOB_MONEY) $(BIG_BLIND) $(AGGRESSOR) /poker/xfer"
 
 verify:
 	$(RUN_TOOLCHAIN) /poker/build/poker-lib/verify /poker/xfer/player-info.raw  /poker/xfer/turn-metadata.raw  /poker/xfer/verification-info.raw /poker/xfer/turn-data.raw /poker/xfer/result.raw
 
 clean: $(LIBSCLEAN)
-	rm -rf build
+	rm -r build
 
 $(LIBSCLEAN): %.clean:
 	$(MAKE) -C $* clean

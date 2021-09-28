@@ -50,7 +50,6 @@ public:
     bool muck;
 
     std::string to_json(char* extra_fields=NULL);
-    void dump();
     game_error get_player_hand(int player, card_t* hand);
 };
 

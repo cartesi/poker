@@ -1,12 +1,8 @@
 #!/bin/bash
 
-MACHINES_DIR=.machines
+MACHINES_DIR=`pwd`/../../../blockchain/descartes-env/machines
 MACHINE_TEMP_DIR=.temp
 CARTESI_PLAYGROUND_DOCKER=cartesi/playground:0.3.0
-
-if [ $1 ]; then
-  MACHINES_DIR=$1
-fi
 
 if [ -d "$MACHINE_TEMP_DIR" ]; then
   rm -r $MACHINE_TEMP_DIR

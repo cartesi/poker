@@ -2,6 +2,7 @@ FROM gcc:latest
 
 ENV POKER_BUILD_ENV=wasm
 ENV PATH=${PATH}:/poker/emsdk/node/14.15.5_64bit/bin
+ENV POKER_LOGGING=0
 
 RUN apt-get update --allow-insecure-repositories && \
     apt-get install -y --allow-unauthenticated texi2html texinfo  && \

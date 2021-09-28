@@ -18,6 +18,8 @@ else
     CXXFLAGS += -lbrotlidec -lbrotlienc -lbrotlicommon  
 endif
 
+CXXFLAGS +=  -std=c++11
+
 ifeq ($(POKER_BUILD_ENV),risc-v)
 CXX = riscv64-cartesi-linux-gnu-g++
 CXXFLAGS += -Wl,-rpath-link=/mnt/poker

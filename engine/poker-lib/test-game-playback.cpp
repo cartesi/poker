@@ -8,10 +8,14 @@
 
 using namespace poker;
 
-void the_happy_path() {
+static std::string base_dir;
+
+void test_the_happy_path() {
     game_generator gen;
     assert_eql(SUCCESS, gen.generate());
-    auto& g = gen.game;
+    auto& g = gen.alice_game;
+    if (gen.bob_game.muck)
+        g = gen.bob_game;
 
     std::istringstream is(gen.raw_turn_data);
     std::cout << "  -> size = " << gen.raw_turn_data.size() << "\n";
@@ -43,9 +47,9 @@ void the_happy_path() {
     assert_eql(g.funds_share[BOB], vg.funds_share[BOB]);
 }
 
-void playback_game(const std::string dir, const std::string game) {
+game_state playback_fixture(const std::string game) {
     std::cout << "Replaying game: " << game << std::endl;
-    std::string path = dir + "/" + game + "/turn-data.raw";
+    std::string path = base_dir + "/" + game + "/turn-data.raw";
     std::ifstream ifs(path, std::ifstream::in);
 
     if (!ifs.good()) {
@@ -55,8 +59,35 @@ void playback_game(const std::string dir, const std::string game) {
 
     game_playback vcr;
     assert_eql(SUCCESS, vcr.playback(ifs));
-
     ifs.close();
+
+    return vcr.game();
+}
+
+void test_alice_mucks() {
+    auto g = playback_fixture("alice-mucks");
+    assert_eql(BOB, g.winner);
+    assert_eql(BOB, g.last_aggressor);
+    assert_eql(true, g.muck);
+    assert_eql(cards::uk, g.players[ALICE].cards[0]);
+    assert_eql(cards::uk, g.players[ALICE].cards[1]);
+}
+
+void test_tie() {
+    auto g = playback_fixture("tie");
+    assert_eql(TIE, g.winner);
+}
+
+void test_alice_last_aggressor() {
+    auto g = playback_fixture("alice-last-aggressor");
+    assert_neq(-1, g.winner);
+    assert_eql(ALICE, g.last_aggressor);
+}
+
+void test_bob_last_aggressor() {
+    auto g = playback_fixture("bob-last-aggressor");
+    assert_neq(-1, g.winner);
+    assert_eql(BOB, g.last_aggressor);
 }
 
 std::string fixture_path(const char* cmd) {
@@ -64,20 +95,19 @@ std::string fixture_path(const char* cmd) {
     std::string cmd_str(cmd);
     std::string path = cmd_str.substr(0, cmd_str.find_last_of("/"));
     path.append("/fixtures");
-
     std::cout << "Base dir" << path << std::endl;
     return path;
 }
 
 int main(int argc, char** argv) {
+    base_dir = fixture_path(argv[0]);
     init_poker_lib();
-    the_happy_path();
 
-    auto base_dir = fixture_path(argv[0]);
-    playback_game(base_dir, "alice-mucks");
-    playback_game(base_dir, "alice-last-aggressor");
-    playback_game(base_dir, "bob-last-aggressor");
-    playback_game(base_dir, "tie");
+    test_the_happy_path();
+    test_tie();
+    test_alice_last_aggressor();
+    test_bob_last_aggressor();
+    test_alice_mucks();
 
     std::cout << "SUCCESS" << std::endl;
     return 0;

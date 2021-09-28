@@ -23,15 +23,11 @@ int main(int argc, char**argv) {
     if (argc !=6)
         return usage(argc, argv);
     
-    logger << "verifier is starting \n";
-        
-    logger << "initializing library... \n";
     poker_lib_options opts;
-    opts.logging = true;
     init_poker_lib(&opts);
-
+    
     logger << "opening files... \n";
-    std::ifstream player_info,  turn_metadata,  verification_info,  turn_data;
+    std::ifstream player_info, turn_metadata, verification_info, turn_data;
     std::ofstream output;
 
     logger << "library initialized \n";
@@ -40,16 +36,19 @@ int main(int argc, char**argv) {
     open_read(verification_info, argv[3]);
     open_read(turn_data, argv[4]);
     open_write(output, argv[5]);
-
     
     logger << "verifying... \n";
     verifier ver(player_info, turn_metadata, verification_info, turn_data, output);
     auto res = ver.verify();
-    std::cout << std::endl << ver.game().to_json() << std::endl;
-    for(auto&& r: ver.result())
-        std::cout << r.to_string() << " ";
+    if (res) {
+        std::cout << std::endl << ver.game().to_json() << std::endl;
+        return (int)res;
+    }
 
+    for(auto&& r: ver.results())
+        std::cout << r.to_string() << " ";
     std::cout << std::endl;
+
     return 0;
 }
 

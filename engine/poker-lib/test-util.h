@@ -5,7 +5,7 @@
     std::cerr <<  "..." #actual << " == " << #expected << std::endl; \
     auto a = (actual); \
     if (!(a == (expected))) { \
-        std::cerr << "Assertion failed. Expected '" #actual "' to be " << #expected << ", got: " << a << std::endl; \
+        std::cerr << "Assertion failed. " << __FILE__ << ":" << __LINE__ << ". Expected '" #actual "' to be " << #expected << ", got: " << a << std::endl; \
         exit(65); \
     }}
 
@@ -13,7 +13,7 @@
     std::cerr <<  "..." #actual << " != " << #expected << std::endl; \
     auto a = (actual); \
     if (a == (expected)) { \
-        std::cerr << "Assertion failed. Expected != '" #actual "' to not be " << #expected << ", got: " << a << std::endl; \
+        std::cerr << "Assertion failed." << __FILE__ << ":" << __LINE__ << ".Expected != '" #actual "' to not be " << #expected << ", got: " << a << std::endl; \
         exit(65); \
     }}
 

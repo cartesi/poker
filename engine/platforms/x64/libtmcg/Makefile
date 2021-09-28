@@ -23,4 +23,4 @@ $(LIBNAME):
     cd $(LIBNAME)
 
 clean:
-	rm -rf $(LIBNAME)
+	rm -r $(LIBNAME)

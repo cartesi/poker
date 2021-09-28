@@ -22,4 +22,4 @@ $(LIBNAME):
     rm $(LIBNAME).tar
 
 clean:
-	rm -rf $(LIBNAME)
+	rm -r $(LIBNAME)

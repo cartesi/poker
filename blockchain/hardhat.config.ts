@@ -14,11 +14,13 @@ const config: HardhatUserConfig = {
     networks: {
         localhost: {
             url: "http://localhost:8545",
-            gas: 95000000
+            gas: 95000000,
+            timeout: 400000
         },
         matic_testnet: {
             url: "https://matic-testnet-archive-rpc.bwarelabs.com",
             chainId: 80001,
+            gas: 9500000,
             accounts: mnemonic ? { mnemonic } : undefined,
         },
     },

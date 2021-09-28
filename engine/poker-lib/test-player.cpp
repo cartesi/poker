@@ -186,16 +186,17 @@ void test_the_happy_path() {
     assert_eql(alice.game().funds_share[BOB], bob.game().funds_share[BOB]);
 
     if(alice.winner() == ALICE) {
+        std::cout << "-----> 1 \n";
         assert_neq(uk, bob.opponent_card(0));
         assert_neq(uk, bob.opponent_card(1));
     } else { //Alice mucks
+        std::cout << "-----> 2 \n";
         assert_eql(uk, bob.opponent_card(0));
         assert_eql(uk, bob.opponent_card(1));
     }
 }
 
 void test_fold() {
-    
     player alice(ALICE);
     assert_eql(SUCCESS, alice.init(100, 300, 10));
     player bob(BOB);
@@ -220,7 +221,6 @@ void test_fold() {
     assert_eql(game_step::GAME_OVER, bob.step());
     assert_eql(BOB, alice.winner());
     assert_eql(BOB, bob.winner());
-
 }
 
 int main(int argc, char** argv) {

@@ -11,13 +11,11 @@
 
 using namespace poker;
 
-
-void the_naive_happy_path() {
+void test_the_naive_happy_path() {
     std::vector<std::string> test_cases{
         "1",
         "",
         "1234",
-        "AAAAAAAAAA",
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
         std::string(77000, '!')
     };
@@ -30,6 +28,7 @@ void the_naive_happy_path() {
         assert_eql(foo, baz);
 
         assert_eql(SUCCESS, compress_and_wrap(foo, bar));
+        assert_eql(0, bar.size() % wrap_padding_size);        
         assert_eql(SUCCESS, unwrap_and_decompress(bar, baz));
         assert_eql(foo, baz);
     }
@@ -43,10 +42,11 @@ void the_naive_happy_path() {
     assert_eql(SUCCESS, compress_and_wrap(s2, m2));
     os << m1 << m2;
 
+    assert_eql(0, os.str().size() % wrap_padding_size);
+
     std::istringstream is(os.str());    
     std::string mm1, mm2, mm3;
     assert_eql(SUCCESS, unwrap_and_decompress_next(is, mm1));
-
     assert_eql(s1, mm1);
     assert_eql(SUCCESS, unwrap_and_decompress_next(is, mm2));
     assert_eql(s2, mm2);
@@ -57,7 +57,7 @@ void the_naive_happy_path() {
 
 int main(int argc, char** argv) {
     init_poker_lib();
-    the_naive_happy_path();
+    test_the_naive_happy_path();
     std::cout <<  "---- SUCCESS - " TEST_SUITE_NAME << std::endl;
     return 0;
 }

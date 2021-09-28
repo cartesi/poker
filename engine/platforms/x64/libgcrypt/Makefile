@@ -22,4 +22,4 @@ $(LIBNAME):
     rm libgcrypt-$(LIBVERSION).zip
 
 clean:
-	rm -rf libgcrypt-$(LIBVERSION)
+	rm -r libgcrypt-$(LIBVERSION)

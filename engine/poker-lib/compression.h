@@ -5,6 +5,9 @@
 
 namespace poker {
 
+const int wrap_max_len = 1024 * 64;
+const int wrap_padding_size = 4096;
+
 std::string wrap(const std::string& data);
 game_error unwrap(const std::string& in, std::string& out);
 

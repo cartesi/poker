@@ -16,4 +16,4 @@ $(LIBNAME):
     rm libgpg-error-$(LIBVERSION).tar
 
 clean:
-	rm -rf libgpg-error-$(LIBVERSION)
+	rm -r libgpg-error-$(LIBVERSION)

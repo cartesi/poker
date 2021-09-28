@@ -19,6 +19,6 @@ $(LIBNAME):
     rm gmp-$(VER).tar
 
 clean:
-	rm -rf $(LIBNAME)
+	rm -r $(LIBNAME)
     
 .PHONY: libgmp

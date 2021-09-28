@@ -15,4 +15,4 @@ $(LIBNAME):
     rm gmp-$(LIBVERSION).tar
 
 clean:
-	rm -rf gmp-$(LIBVERSION)
+	rm -r gmp-$(LIBVERSION)

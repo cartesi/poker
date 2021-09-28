@@ -19,11 +19,13 @@ class game_playback {
     blob _bob_private_cards_proof;
     blob _bet_card_proof;
     std::vector<std::unique_ptr<message>> _messages;
+    int _last_player_id; // sender of the last msg replayed
 public:
     game_playback();
     virtual ~game_playback();
     game_error playback(std::istream& logfile);
     game_state& game() { return _r.game(); }
+    int last_player_id() { return _last_player_id; }
 private:
     game_error handle_vtmf(msg_vtmf* msg); 
     game_error handle_vtmf_response(msg_vtmf_response* msg);

@@ -3,7 +3,7 @@
 
 namespace poker {
 
-game_playback::game_playback() {
+game_playback::game_playback() : _last_player_id(-1) {
 }
 
 game_playback:: ~game_playback() {
@@ -19,7 +19,7 @@ game_error game_playback::playback(std::istream& logfile) {
         if ((res=message::decode(is, &msg)))
             return res;
         logger << "*** " << msg->to_string() << std::endl;
-        switch(msg->msgtype) {
+        switch(msg->type()) {
             case MSG_VTMF:
                 res = handle_vtmf((msg_vtmf*)msg);
                 break;

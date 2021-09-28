@@ -1,10 +1,13 @@
-all: platforms poker-lib
+SUBDIRS=platforms poker-lib
+SUBSMAKE := $(addsuffix .make,$(SUBDIRS))
+SUBSCLEAN := $(addsuffix .clean,$(SUBDIRS))
 
-platforms:
-	$(MAKE) -C $@
+all: $(SUBSMAKE)
 
-poker-lib:
-	$(MAKE) -C $@
+clean: $(SUBSCLEAN)
 
+$(SUBSMAKE): %.make:
+	$(MAKE) -C $*
 
-.PHONY: platforms poker-lib
+$(SUBSCLEAN): %.clean:
+	$(MAKE) -C $* clean

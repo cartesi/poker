@@ -21,27 +21,6 @@ game_error game_state::get_player_hand(int player, card_t* hand) {
     return SUCCESS;
 }
 
-void game_state::dump() {
-    logger << ">>> Winner: " << winner << " ";
-    logger << "Public cards: ";
-    for (auto i = 0; i < NUM_PUBLIC_CARDS; i++)
-        logger << public_cards[i] << " ";
-    logger << "Alice's cards: ";
-    for (auto i = 0; i < NUM_PRIVATE_CARDS; i++)
-        logger << players[ALICE].cards[i] << " ";
-    logger << "Bob's cards: ";
-    for (auto i = 0; i < NUM_PRIVATE_CARDS; i++)
-        logger << players[BOB].cards[i] << " ";
-
-    logger << "Alice's funds: " << players[ALICE].total_funds << " ";
-    logger << "Alice's bets: " << players[ALICE].bets << " ";
-    logger << "Bob's funds: " << players[BOB].total_funds << " ";
-    logger << "Bob's bets: " << players[BOB].bets << " ";
-    
-    logger << "Result: " << funds_share[ALICE].to_string() << ", " << funds_share[BOB].to_string();
-    logger << std::endl;
-}
-
 std::string game_state::to_json(char* extra_fields) {
     char json[1024];
     auto& p0 = players[0];

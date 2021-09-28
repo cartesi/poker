@@ -1,8 +1,10 @@
+#include <memory>
+#include <cstring>
 #include "common.h"
 
 namespace poker {
 
-bool logging_enabled = true;
+bool logging_enabled = false;
 
 game_error public_cards_range(game_step step, int& first_card_index, int& card_count) {
     switch(step) {
@@ -24,9 +26,8 @@ game_error public_cards_range(game_step step, int& first_card_index, int& card_c
     return SUCCESS;
 }
 
-game_error read_exactly(std::istream& in, int len, std::string& dst) {
+game_error read_exactly(std::istream& in, int len, char* dst) {
     char tmp[4096];
-    dst = "";
     while(len) {
         if (!in.good())
             return END_OF_STREAM;
@@ -35,9 +36,23 @@ game_error read_exactly(std::istream& in, int len, std::string& dst) {
         auto actual = in.gcount();
         if (!in.good() || actual==0)
             return END_OF_STREAM;
-        dst += std::string(tmp, actual);
+
+        memcpy(dst, tmp, actual);
+        dst += actual;
         len -= actual;
     }
+    return SUCCESS;
+}
+
+game_error read_exactly(std::istream& in, int len, std::string& dst) {
+    game_error res;
+    std::shared_ptr<char> p(new char[len]);
+
+    if (( res = read_exactly(in, len, p.get())))
+      return res;
+    
+    dst = std::string(p.get(), len);
+
     return SUCCESS;
 }
 

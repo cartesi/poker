@@ -1,4 +1,5 @@
 #include <vector>
+#include <sstream>
 #include <brotli/decode.h>
 #include <brotli/encode.h>
 
@@ -9,28 +10,51 @@ namespace poker {
 static BROTLI_BOOL compress_stream(BrotliEncoderState* enc, BrotliEncoderOperation op, std::vector<uint8_t>* output, uint8_t* input, size_t input_length);
 static BROTLI_BOOL decompress_stream(BrotliDecoderState* dec, std::vector<uint8_t>* output, uint8_t* input, size_t input_length);
 
-#define STR(x) #x
-#define HEADER_FMT(len) "%0" STR(len) "d"
-#define HEADER_LEN 8
+struct wrap_header {
+  int32_t total_len;
+  int32_t data_len;
+};
 
 std::string wrap(const std::string& data) {
-    char header[1+HEADER_LEN];
-    sprintf(header, HEADER_FMT(HEADER_LEN), (int)data.size());
-    return std::string(header) + data;
+    wrap_header hdr;
+
+    hdr.data_len = data.size();
+    hdr.total_len = sizeof(hdr) + hdr.data_len;
+
+    auto pads = 0;
+    auto mod = hdr.total_len % wrap_padding_size;
+    if (mod != 0)
+      pads += (wrap_padding_size - mod);;    
+    hdr.total_len += pads;
+
+    std::ostringstream os;
+    os.write((const char*)&hdr, sizeof(hdr));
+    os.write(data.data(), data.size());
+    for(; pads; pads--)
+      os.write("#", 1);
+
+    return os.str();
 }
 
 game_error unwrap(const std::string& in, std::string& out) {
-    if (in.size() < HEADER_LEN)
-        return CPR_HEADER_TOO_SMALL;
+    wrap_header hdr;
 
-    int len = 0;
-    if (1 != sscanf(in.c_str(), HEADER_FMT(HEADER_LEN), &len))
-        return CPR_UNPARSEABLE_LEN;
+    if (in.size() < sizeof(wrap_header))
+        return CPR_INVALID_DATA_LENGTH;
 
-    if (in.size() < len + HEADER_LEN)
-        return CPR_PAYLOAD_TOO_SMALL;
+    std::istringstream is(in);
+    is.read((char*)&hdr, sizeof(hdr));
+    if (!is.good())
+        return CPR_READ_ERROR;
 
-    out = in.substr(HEADER_LEN, len);
+    if (hdr.data_len > wrap_max_len)
+      return CPR_DATA_TOO_BIG;
+
+    if (in.size() < sizeof(hdr) + hdr.data_len)
+      return CPR_INSUFFICIENT_DATA;
+    
+    out = in.substr(sizeof(hdr), hdr.data_len);
+
     return SUCCESS;
 }
 
@@ -104,16 +128,23 @@ game_error unwrap_and_decompress(const std::string& in, std::string &out) {
 
 game_error unwrap_next(std::istream& in, std::string& out) {
     game_error res;
-    std::string header;
-    if ((res=read_exactly(in, HEADER_LEN, header)))
+    wrap_header hdr;
+
+    if ((res = read_exactly(in, sizeof(hdr), (char*)&hdr)))
         return res;
 
-    int len;
-    if (1 != sscanf(header.c_str(), HEADER_FMT(HEADER_LEN), &len))
-        return CPR_UNPARSEABLE_LEN;
+    if (hdr.data_len > wrap_max_len)
+      return CPR_DATA_TOO_BIG;
 
-    if ((res=read_exactly(in, len, out)))
+    if ((res = read_exactly(in, hdr.data_len, out)))
         return res;
+
+    for (int pads = hdr.total_len - sizeof(hdr) - hdr.data_len; pads > 0; pads--) {
+      char tmp;
+      in.read(&tmp, 1);
+      if (!in.good())
+        return CPR_READ_ERROR;
+    }
 
     return SUCCESS;
 }

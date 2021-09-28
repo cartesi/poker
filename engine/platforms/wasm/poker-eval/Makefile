@@ -22,4 +22,4 @@ $(LIBNAME):
     rm master.zip
  
 clean:
-	rm -rf $(LIBNAME)
+	rm -r $(LIBNAME)

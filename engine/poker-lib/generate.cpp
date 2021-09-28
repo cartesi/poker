@@ -6,6 +6,25 @@
 
 using namespace poker;
 
+void save_turns(const char* dir,  std::vector<std::tuple<int, std::string>>& turns) {
+    for(int i=0; i<turns.size(); i++) {
+        auto player = std::get<0>(turns[i]);
+        auto data = std::get<1>(turns[i]);
+        char path[1024];
+        snprintf(path, sizeof(path), "%s/turn-%02d-%01d.raw", dir, i, player);
+        FILE *fp = fopen(path, "wb");
+        if (!fp) {
+            std::cerr << "Error creating " << path << std::endl;
+            exit(-1);
+        }
+        if (1 != fwrite(data.data(), data.size(), 1, fp)) {
+            std::cerr << "Error writing to " << path << std::endl;
+            exit(-1);
+        }
+        fclose(fp);
+    }
+}
+
 void save(const char* dir, const char* name, std::string& data) {
     std::string path = std::string(dir) + std::string("/") + std::string(name);
     std::cout << "Saving " << path << std::endl;
@@ -50,6 +69,7 @@ int main(int argc, char** argv) {
     gen.bob_money.parse_string(argv[2], 10);
     gen.big_blind.parse_string(argv[3], 10);
     gen.last_aggressor = std::stoi(std::string(argv[4]));
+    std::cout << "=====> agg = " << gen.last_aggressor << "\n";
     char* dir = argv[5];
     if ((res = gen.generate())) {
         std::cerr << "Error " << (int)res << " generating game" << std::endl;
@@ -62,10 +82,15 @@ int main(int argc, char** argv) {
     save(dir, "turn-data.raw", gen.raw_turn_data);
     auto output = std::string("placeholder");
     save(dir, "output.raw", output);
+    save_turns(dir, gen.turns);
 
-    std::cout
+    std::cout 
         << "Game files saved on " << dir << std::endl
-        << "Game state: " << gen.game.to_json() << std::endl
+        << "-------------------" << std::endl
+        << "Game state (ALICE): " << gen.alice_game.to_json() << std::endl
+        << "-------------------" << std::endl
+        << "Game state (BOB)  : " << gen.bob_game.to_json() << std::endl
+        << "-------------------" << std::endl
         << "Alice address: " << gen.alice_addr.to_string(16) << std::endl
         << "Bob address: " << gen.bob_addr.to_string(16) << std::endl
         << "Challenger address: " << gen.challenger_addr.to_string(16) << std::endl

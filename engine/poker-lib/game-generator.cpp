@@ -7,8 +7,8 @@ namespace poker {
 game_error game_generator::generate() {
     game_error res;
 
-    std::array<player, 2> players{player(ALICE), player(BOB)};
-    std::vector<std::tuple<int, std::string>> msgs;  // tuple(sender, msg)
+
+    std::array<player,2> players{ player(ALICE), player(BOB) };
 
     for (auto& p : players)
         if ((res = p.init(alice_money, bob_money, big_blind)))
@@ -20,7 +20,7 @@ game_error game_generator::generate() {
     int p = ALICE;  // current player
     if ((res = players[p].create_handshake(msg1)))
         return res;
-    msgs.push_back({p, msg1});
+    turns.push_back({p, msg1});
     do {
         p = opponent_id(p);
         if (r[p] == CONTINUED) {
@@ -28,7 +28,7 @@ game_error game_generator::generate() {
             logger << "\nHANDSHAKE " << p << "\n";
             r[p] = players[p].process_handshake(msg1, msg2);
             if (msg2.size()) {
-                msgs.push_back({p, msg2});
+                turns.push_back({p, msg2});
                 msg1 = msg2;
             }
         }
@@ -47,14 +47,18 @@ game_error game_generator::generate() {
         if (!players[p].game_over()) {
             r = {CONTINUED, CONTINUED};
             if (last_aggressor >= 0 && players[p].game().phase == bet_phase::PHS_RIVER) {
+                logger << "-=> player " << p << " AAA" << std::endl;
                 if (p == last_aggressor) {
+                    logger << "-=> player " << p << " RAISE" << std::endl;
                     t = BET_RAISE;
                     did_raise = true;
                     amount = 10;
                 } else if (did_raise) {
+                    logger << "-=> player " << p << " CALL" << std::endl;
                     t = BET_CALL;
                     amount = 0;
                 } else {
+                    logger << "-=> player " << p << " CHECK" << std::endl;
                     t = BET_CHECK;
                 }
             }
@@ -63,7 +67,7 @@ game_error game_generator::generate() {
             if (r[p] != SUCCESS && r[p] != CONTINUED)
                 return r[p];
             t = BET_CHECK;
-            msgs.push_back({p, msg1});
+            turns.push_back({p, msg1});
             do {
                 p = opponent_id(p);
                 if (r[p] == CONTINUED) {
@@ -71,7 +75,7 @@ game_error game_generator::generate() {
                     r[p] = players[p].process_bet(msg1, msg2);
                     logger << "\n== " << p << " PROCESS BET: " << r[p] << "\n";
                     if (msg2.size()) {
-                        msgs.push_back({p, msg2});
+                        turns.push_back({p, msg2});
                         msg1 = msg2;
                     }
                 }
@@ -88,21 +92,23 @@ game_error game_generator::generate() {
     if (r[BOB] != SUCCESS)
         return r[BOB];
 
-    game = players[ALICE].game();
-
+    alice_game = players[ALICE].game();
+    bob_game = players[BOB].game();    
+    
     // generate turn data
     raw_turn_data.clear();
-    for (auto&& m : msgs)
+    for(auto&& m: turns)
         raw_turn_data += std::get<1>(m);
 
     // generate turn meta-data
     std::ostringstream os;
-    char filler[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    char nplayers[4] = {0, 0, 0, (char)msgs.size()};
+
+    char filler[12] = { 0,0,0,0,0,0,0,0,0,0,0,0 };
+    char nplayers[4] = { 0, 0, 0, (char)turns.size() };
     os.write(nplayers, sizeof(nplayers));
 
     // turn-metadata: player addresses
-    for (auto& m : msgs) {
+    for(auto& m: turns) {
         auto& sender = std::get<0>(m);
         auto& data = std::get<1>(m);
         auto& addr = ALICE == sender ? alice_addr : bob_addr;
@@ -111,14 +117,14 @@ game_error game_generator::generate() {
     }
 
     // turn-metadata: timestamps
-    for (auto& m : msgs) {
+    for(auto& m: turns) {
         char tmp[32];
         memset(tmp, 0, sizeof(tmp));
         os.write(tmp, 32);
     }
 
     // turn-metadata: turn-data sizes
-    for (auto& m : msgs) {
+    for(auto& m: turns) {
         auto& data = std::get<1>(m);
         char tmp[32];
         bignumber sz = (int)data.size();

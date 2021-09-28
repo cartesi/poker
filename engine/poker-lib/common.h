@@ -9,7 +9,7 @@ namespace poker {
 
 extern bool logging_enabled;
 
-#define logger if(!logging_enabled) {} else std::cout
+#define logger if(!logging_enabled) {} else std::cerr
 
 const int NONE = -1;
 const int ALICE = 0;
@@ -89,6 +89,7 @@ enum game_error {
     // player errors
     PRR_INVALID_PLAYER = 200,
     PRR_INVALID_MSG_TYPE,
+    PRR_INVALID_OPPONNENT,
     PRR_CREATE_VTMF,
     PRR_GENERATE_KEY,
     PRR_LOAD_KEY,
@@ -127,6 +128,7 @@ enum game_error {
     // CODEC
     COD_ERROR = 500,
     COD_INVALID_MSG_TYPE,
+    COD_VERSION_MISMATCH,
 
     // TMCG
     TMC_CHECK_GROUP = 600,
@@ -165,9 +167,10 @@ enum game_error {
     CPR_COMPRESS,
     CPR_COMPRESS_FLUSH,
     CPR_DECOMPRESS,
-    CPR_HEADER_TOO_SMALL,
-    CPR_PAYLOAD_TOO_SMALL,
-    CPR_UNPARSEABLE_LEN,
+    CPR_INVALID_DATA_LENGTH,
+    CPR_INSUFFICIENT_DATA,
+    CPR_READ_ERROR,
+    CPR_DATA_TOO_BIG,
     CPR_EOF,
 
     // playback
@@ -202,6 +205,7 @@ constexpr int opponent_id(int player) {
 }
 
 game_error public_cards_range(game_step step, int& first_card_index, int& card_count);
+game_error read_exactly(std::istream& in, int len, char*dst);
 game_error read_exactly(std::istream& in, int len, std::string& dst);
 std::string to_hex_dump(const void* addr, int len);
 
