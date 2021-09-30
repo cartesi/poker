@@ -5,7 +5,15 @@ import * as fs from "fs";
 This script uses the turn based game contract to run and verify a poker game.
 It sends to the contract a complete set of game turns previously saved in files and triggers the C++ game verifier.
 
-1. Make sure that the C++ poker engine is built for platforms x64 and risc-v. You only need to do this once.
+1. Start descartes
+   cd /<poker-base>/blockchain/descartes-env
+  make start
+
+2. Open a new terminal window and deploy contracts to the blockchain
+   cd /<poker-base>/blockchain
+   yarn deploy   
+
+3. Make sure that the C++ poker engine is built for platforms x64 and risc-v. You only need to do this once.
    cd /<poker-base>/engine/platforms/x64
    make
    cd /<poker-base>/engine/platforms/risc-v
@@ -15,11 +23,11 @@ It sends to the contract a complete set of game turns previously saved in files 
    cd /<poker-base>/engine/platforms/risc-v
    make machine
 
-3. Generate a poker game and save the turns in files
+5. Generate a poker game and save the turns in files
    cd /<poker-base>/engine/platforms/x64
    make generate
 
-4. Run the game
+6. Run the game
    cd /<poker-base>/blockchain
    npx hardhat --network localhost run --no-compile ./test-integration/test-poker.ts
 */
