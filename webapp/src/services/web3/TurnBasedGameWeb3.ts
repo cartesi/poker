@@ -17,9 +17,6 @@ import { ErrorHandler } from "../ErrorHandler";
  * Expects webapp to be connected to the blockchain
  */
 export class TurnBasedGameWeb3 implements TurnBasedGame {
-    private static readonly MAX_ATTEMPTS = 5;
-    private static readonly ATTEMPT_INTERVAL = 3000;
-
     gameIndex: number;
 
     gameContract: TurnBasedGameContract;
