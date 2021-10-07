@@ -264,9 +264,8 @@ export class RoomManager {
             // TODO: should we attempt to check if possible?
             await RoomManager.playerFold();
         } else {
-            console.log("OPPONENT TIMEOUT! TODO: challenge game");
-            // TODO: add Game.challenge() method
-            // RoomManager.game.challenge();
+            console.log("OPPONENT TIMEOUT! Challenging game...");
+            RoomManager.game.challengeGame("Timeout");
         }
     }
 

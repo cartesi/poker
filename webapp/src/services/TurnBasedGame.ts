@@ -2,7 +2,7 @@ import { ServiceConfig, ServiceType, ServiceImpl } from "./ServiceConfig";
 import { TurnBasedGameMock } from "./mock/TurnBasedGameMock";
 import { TurnBasedGameWeb3 } from "./web3/TurnBasedGameWeb3";
 import { BigNumber } from "ethers";
-// import { TurnBasedGameWeb3 } from "./web3/TurnBasedGameWeb3";
+import { VerificationState } from "./Game";
 
 export interface TurnBasedGame {
     // turn submission
@@ -16,10 +16,10 @@ export interface TurnBasedGame {
     receiveGameOver(): Promise<Array<BigNumber>>;
 
     // challenge and verification
-    challengeGame(msg: string, onGameChallenged?: (string) => any);
-    receiveGameChallenged(onGameChallengeReceived: (string) => any);
-    receiveVerificationUpdate(onVerificationUpdate?: (VerificationState, string) => any);
-    applyVerificationResult(onApplyResultSent: (any) => any);
+    challengeGame(msg: string): Promise<void>;
+    receiveGameChallenged(): Promise<string>;
+    receiveVerificationUpdate(): Promise<[VerificationState, string]>;
+    applyVerificationResult(): Promise<void>;
 }
 
 export class TurnBasedGameFactory {

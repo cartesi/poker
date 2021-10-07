@@ -113,6 +113,10 @@ export class GameWasm implements Game {
         });
     }
 
+    async challengeGame(msg: string) {
+        await this.turnBasedGame.challengeGame(msg);
+    }
+
     cheat: {
         switchCards: (card1: Card, card2: Card) => any;
         toggleCardCooperation: () => any;

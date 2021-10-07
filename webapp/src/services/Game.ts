@@ -80,6 +80,8 @@ export interface Game {
     fold(): Promise<void>;
     raise(amount: BigNumber): Promise<void>;
 
+    challengeGame(msg: string): Promise<void>,
+
     cheat: {
         switchCards: (card1: Card, card2: Card) => any;
         toggleCardCooperation: () => any;

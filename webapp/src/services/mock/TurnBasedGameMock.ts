@@ -1,4 +1,4 @@
-import { resolveProperties } from "ethers/lib/utils";
+import { VerificationState } from "../Game";
 import { TurnBasedGame } from "../TurnBasedGame";
 
 /**
@@ -58,7 +58,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
         setTimeout(() => {
             resolve(data);
             this.dispatchTurn();
-        }, 10)
+        }, 10);
     }
     //
     // CLAIM RESULT HANDLING
@@ -75,7 +75,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
         return new Promise(async (resolve) => {
             this.claimedResult = claimedResult;
             resolve();
-            this.other.onClaimResult(null, claimedResult, null)
+            this.other.onClaimResult(null, claimedResult, null);
         });
     }
     receiveResultClaimed() {
@@ -105,27 +105,35 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
 
     // challenge and verification
-    challengeGame(msg: string, onGameChallenged?: (string) => any) {
-        if (onGameChallenged) {
-            onGameChallenged(msg);
+    onGameChallenged(gameIndex, msg) {
+        if (this.onGameChallengeReceived) {
+            this.onGameChallengeReceived(msg);
         }
-        if (this.other.onGameChallengeReceived) {
-            this.other.onGameChallengeReceived(msg);
-        }
-        // TODO: move triggerVerification and other logic here
     }
-    receiveGameChallenged(onGameChallengeReceived: (string) => any) {
-        this.onGameChallengeReceived = onGameChallengeReceived;
+    challengeGame(msg: string): Promise<void> {
+        return new Promise<void>((resolve) => {
+            resolve();
+            this.onGameChallenged(null, msg);
+            this.other.onGameChallenged(null, msg);
+            // TODO: move triggerVerification and other logic here
+        });
     }
-    receiveVerificationUpdate(onVerificationUpdate?: (VerificationState, string) => any) {
-        this.onVerificationUpdate = onVerificationUpdate;
+    receiveGameChallenged(): Promise<any> {
+        return new Promise<any>((resolve) => {
+            this.onGameChallengeReceived = resolve;
+        });
     }
-    applyVerificationResult(onApplyResultSent: (any) => any) {
-        if (onApplyResultSent) {
-            onApplyResultSent(this.claimedResult);
-        }
-        if (this.other.onGameOverReceived) {
-            this.other.onGameOverReceived(this.claimedResult);
-        }
+    receiveVerificationUpdate(): Promise<[VerificationState, string]> {
+        return new Promise<any>((resolve) => {
+            this.onVerificationUpdate = resolve;
+        });
+    }
+    applyVerificationResult(): Promise<any> {
+        return new Promise<void>((resolve) => {
+            resolve();
+            // TODO: compute a result considering that the cheater should lose everything
+            this.onGameEnd(null, this.claimedResult);
+            this.other.onGameEnd(null, this.claimedResult);
+        });
     }
 }

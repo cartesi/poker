@@ -10,6 +10,7 @@ import { Logger as LoggerContract } from "../../types";
 import { Logger__factory } from "../../types";
 import { ServiceConfig } from "../ServiceConfig";
 import { ErrorHandler } from "../ErrorHandler";
+import { VerificationState } from "../Game";
 
 /**
  * TurnBasedGame web3 implementation
@@ -215,22 +216,20 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     //
     // CHALLENGE AND VERIFICATION
     //
-    challengeGame(msg: string, onGameChallenged?: (string) => any) {
+    async challengeGame(msg: string): Promise<void> {
         // TODO: call smart contract
-        if (onGameChallenged) {
-            onGameChallenged(msg);
-        }
     }
-    receiveGameChallenged(onGameChallengeReceived: (string) => any) {
-        this.onGameChallengeReceived = onGameChallengeReceived;
+    receiveGameChallenged(): Promise<any> {
+        return new Promise<any>((resolve) => {
+            this.onGameChallengeReceived = resolve;
+        });
     }
-    receiveVerificationUpdate(onVerificationUpdate?: (VerificationState, string) => any) {
-        this.onVerificationUpdate = onVerificationUpdate;
+    receiveVerificationUpdate(): Promise<[VerificationState, string]> {
+        return new Promise<any>((resolve) => {
+            this.onVerificationUpdate = resolve;
+        });
     }
-    applyVerificationResult(onApplyResultSent: (any) => any) {
+    async applyVerificationResult(): Promise<any> {
         // TODO: call smart contract
-        if (onApplyResultSent) {
-            onApplyResultSent(this.claimedResult);
-        }
     }
 }

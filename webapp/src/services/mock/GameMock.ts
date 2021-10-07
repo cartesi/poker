@@ -66,7 +66,7 @@ export class GameMock implements Game {
             this._resultReceived(claimedResult);
         });
         this.turnBasedGame.receiveGameOver().then((fundsShare) => this._gameOverReceived(fundsShare));
-        this.turnBasedGame.receiveGameChallenged(this._verificationReceived.bind(this));
+        this.turnBasedGame.receiveGameChallenged().then((string) => this._verificationReceived(string));
         // this.turnBasedGame.receiveVerificationUpdate(this._verificationReceived.bind(this));
 
         const promise = new Promise<void>((resolve) => {
@@ -161,6 +161,10 @@ export class GameMock implements Game {
             throw "Cannot raise when opponent's bets are not higher";
         }
         await this._increaseBets(callAmount.add(amount));
+    }
+
+    async challengeGame(msg: string) {
+        await this.turnBasedGame.challengeGame(msg);
     }
 
     // Methods that maliciously alter game state on purpose
