@@ -2,18 +2,16 @@
 #define SERVICE_LOCATOR_H
 
 #include "participant.h"
+#include "poker-lib.h"
 #include "unencrypted_participant.h"
 
 namespace poker {
 
 class service_locator {
-    typedef i_participant* (*factory)();
-
+    poker_lib_options* _opts;
     service_locator() {}
 
    public:
-    factory make_participant;
-
     service_locator(service_locator const&) = delete;
     void operator=(service_locator const&) = delete;
 
@@ -22,7 +20,16 @@ class service_locator {
         return instance;
     }
 
-    i_participant* new_participant() { return make_participant(); }
+    static void load(poker_lib_options* opts) {
+        instance()._opts = opts;
+    }
+
+    i_participant* new_participant() {
+        if (_opts->encryption)
+            return new participant();
+        else
+            return new unencrypted_participant(_opts->winner);
+    }
 };
 
 }  //namespace poker

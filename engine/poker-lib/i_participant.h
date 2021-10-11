@@ -11,7 +11,7 @@ namespace poker {
 */
 class i_participant {
    public:
-   virtual ~i_participant() { }
+    virtual ~i_participant() {}
 
     virtual void init(int id, int num_participants, bool predictable) = 0;
 

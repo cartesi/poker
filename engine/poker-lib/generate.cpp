@@ -6,13 +6,13 @@
 
 using namespace poker;
 
-void save_turns(const char* dir,  std::vector<std::tuple<int, std::string>>& turns) {
-    for(int i=0; i<turns.size(); i++) {
+void save_turns(const char* dir, std::vector<std::tuple<int, std::string>>& turns) {
+    for (int i = 0; i < turns.size(); i++) {
         auto player = std::get<0>(turns[i]);
         auto data = std::get<1>(turns[i]);
         char path[1024];
         snprintf(path, sizeof(path), "%s/turn-%02d-%01d.raw", dir, i, player);
-        FILE *fp = fopen(path, "wb");
+        FILE* fp = fopen(path, "wb");
         if (!fp) {
             std::cerr << "Error creating " << path << std::endl;
             exit(-1);
@@ -54,23 +54,28 @@ void save(const char* dir, const char* name, std::string& data) {
     cd engine/platforms/x64
     make shell
     cd poker-lib
-    poker-lib-src/generate 200 100 10 -1 /poker/xfer
+    poker-lib-src/generate 200 100 10 -1 -1 /poker/xfer
     poker-lib-src/verify /poker/xfer/player-info.raw  /poker/xfer/turn-metadata.raw  /poker/xfer/verification-info.raw /poker/xfer/turn-data.raw /poker/xfer/result.raw
 */
 int main(int argc, char** argv) {
     game_error res;
-    if (argc != 6) {
-        fprintf(stderr, "Usage: %s <alice_money> <bob_money> <big_blind> <last_aggressor> <dest_directory>\n", argv[0]);
+    if (argc != 7) {
+        fprintf(stderr, "Usage: %s <alice_money> <bob_money> <big_blind> <last_aggressor> <winner> <dest_directory>\n", argv[0]);
         exit(-1);
     }
-    init_poker_lib();
     game_generator gen;
+    poker_lib_options opt;
+
     gen.alice_money.parse_string(argv[1], 10);
     gen.bob_money.parse_string(argv[2], 10);
     gen.big_blind.parse_string(argv[3], 10);
     gen.last_aggressor = std::stoi(std::string(argv[4]));
-    std::cout << "=====> agg = " << gen.last_aggressor << "\n";
-    char* dir = argv[5];
+    opt.winner = std::stoi(std::string(argv[5]));
+    
+    opt.encryption = opt.winner != -1 ? false : true;
+    init_poker_lib(&opt);
+
+    char* dir = argv[6];
     if ((res = gen.generate())) {
         std::cerr << "Error " << (int)res << " generating game" << std::endl;
         exit(-1);
@@ -84,7 +89,7 @@ int main(int argc, char** argv) {
     save(dir, "output.raw", output);
     save_turns(dir, gen.turns);
 
-    std::cout 
+    std::cout
         << "Game files saved on " << dir << std::endl
         << "-------------------" << std::endl
         << "Game state (ALICE): " << gen.alice_game.to_json() << std::endl

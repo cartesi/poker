@@ -14,10 +14,13 @@ class unencrypted_participant : public i_participant {
     std::string _pfx;
     std::vector<int> _stack;
     std::vector<int> _cards;
+    int _winner;
 
     void split_cards(std::string const& str, const char delim, std::vector<std::string>& out);
 
    public:
+    unencrypted_participant(int winner = -1);
+
     void init(int id, int num_participants, bool predictable) override;
     int id() override;
     int num_participants() override;

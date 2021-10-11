@@ -14,18 +14,9 @@ int init_poker_lib(poker_lib_options* opts) {
         opts = &default_options;
 
     init_libTMCG();
-
     logging_enabled = opts->logging;
-    if (opts->encryption)
-        service_locator::instance().make_participant = []() -> i_participant* {
-            return new participant();
-        };
-    else
-        service_locator::instance().make_participant = []() -> i_participant* {
-            return new unencrypted_participant();
-        };
+    service_locator::load(opts);
 
-    logger << "poker-lib was initialized" << std::endl;
     return 0;
 }
 

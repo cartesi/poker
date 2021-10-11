@@ -2,6 +2,7 @@
 #define POKER_LIB_H
 
 #include <cstdlib>
+
 #include "participant.h"
 #include "solver.h"
 
@@ -14,16 +15,17 @@ namespace poker {
 const int poker_version = 0x010000;
 
 struct poker_lib_options {
-    poker_lib_options() : encryption(true), logging(false) {
-      auto env_logging = getenv("POKER_LOGGING");
-      logging = env_logging && 0==strcmp(env_logging, "1");
+    poker_lib_options() : encryption(true), logging(false), winner(-1) {
+        auto env_logging = getenv("POKER_LOGGING");
+        logging = env_logging && 0 == strcmp(env_logging, "1");
     }
     bool encryption;
     bool logging;
+    int winner;
 };
 
-int init_poker_lib(poker_lib_options* opts=NULL);
+int init_poker_lib(poker_lib_options* opts = NULL);
 
-} // namespace poker
+}  // namespace poker
 
 #endif

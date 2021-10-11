@@ -8,6 +8,17 @@ namespace poker {
 
 const char delimiter = '^';
 
+struct seed_generator {
+    constexpr unsigned int alice_wins() { return 3778684908; }
+    constexpr unsigned int bob_wins() { return 936824680; }
+    constexpr unsigned int tie() { return 3682333436; }
+    unsigned int random() {
+        return std::chrono::system_clock::now().time_since_epoch().count();
+    }
+};
+
+unencrypted_participant::unencrypted_participant(int winner) : _winner(winner) {}
+
 void unencrypted_participant::init(int id, int num_participants, bool predictable) {
     _id = id;
     _num_participants = num_participants;
@@ -52,6 +63,7 @@ game_error unencrypted_participant::create_vsshe_group(blob& group) {
     logger << _pfx << "[MOCK] create_vsshe_group" << std::endl;
     return SUCCESS;
 }
+
 game_error unencrypted_participant::load_vsshe_group(blob& group) {
     logger << _pfx << "[MOCK] load_vsshe_group" << std::endl;
     return SUCCESS;
@@ -68,7 +80,22 @@ game_error unencrypted_participant::shuffle_stack(blob& mixed_stack, blob& stack
     logger << _pfx << "shuffle_stack" << std::endl;
 
     if (!_predictable) {
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        unsigned int seed;
+        auto gen = seed_generator();
+        switch (_winner) {
+            case ALICE:
+                seed = gen.alice_wins();
+                break;
+            case BOB:
+                seed = gen.bob_wins();
+                break;
+            case TIE:
+                seed = gen.tie();
+                break;
+            default:
+                seed = gen.random();
+                break;
+        }
         std::shuffle(_stack.begin(), _stack.end(), std::default_random_engine(seed));
 
         for (auto i = 0; i < _stack.size(); i++)
