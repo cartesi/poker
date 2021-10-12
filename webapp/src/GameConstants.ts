@@ -36,7 +36,7 @@ export class GameConstants {
     public static readonly PROVIDER_PORTIS_APPID = '15ce62b0-b226-4e6f-9f8d-abbdf8f2cda2';
 
     // TurnBasedGame constants
-    public static readonly GAME_TEMPLATE_HASH = "0xe0a48889a480a63147341e87411fb7c8981c759eb245fd53afb317b527915c93";
+    public static readonly GAME_TEMPLATE_HASH = "0x3da6a2b476b694955ee04a43181fd169ee06afbcb449c9b2dc7e542a49200862";
     public static readonly GAME_METADATA = "0x";
     public static readonly VALIDATORS = {
         // Matic validators: known accounts used by the validator nodes

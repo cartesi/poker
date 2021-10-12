@@ -7,11 +7,11 @@ import { TurnBasedGame as TurnBasedGameContract } from "../../types";
 import { TurnBasedGame__factory } from "../../types";
 import { TurnBasedGameContext__factory } from "../../types";
 import LoggerJson from "../../abis/Logger.json";
-import { Logger as LoggerContract } from "../../types";
-import { Logger__factory } from "../../types";
+import { Logger as LoggerContract } from "@cartesi/logger/dist/src/types";
+import { Logger__factory } from "@cartesi/logger/dist/src/types";
 import DescartesJson from "../../abis/Descartes.json";
-import { DescartesInterface as DescartesContract } from "../../types";
-import { DescartesInterface__factory as Descartes__factory } from "../../types";
+import { Descartes as DescartesContract } from "@cartesi/descartes-sdk/dist/src/types";
+import { Descartes__factory } from "@cartesi/descartes-sdk/dist/src/types";
 import { ServiceConfig } from "../ServiceConfig";
 import { ErrorHandler } from "../ErrorHandler";
 import { VerificationState } from "../Game";
@@ -92,7 +92,12 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
      * using this service.
      */
     removeListeners() {
-        this.gameContextContract.removeAllListeners();
+        if (this.descartesContract) {
+            this.descartesContract.removeAllListeners();
+        }
+        if (this.gameContextContract) {
+            this.gameContextContract.removeAllListeners();
+        }
     }
 
     /**
@@ -235,20 +240,32 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         });
     }
     onGameChallenged(gameIndex, descartesIndex, author) {
+        if (this.onGameChallengeReceived) {
+            this.onGameChallengeReceived(gameIndex);
+        }
         // turns off previous listener for DescartesFinished events, if there was one
         if (this.descartesFinishedListener) {
             this.descartesContract.off("DescartesFinished", this.descartesFinishedListener);
         }
         // creates listener based on provided `descartesIndex`
+        // TODO: create listeners for all Descartes states
+        const self = this;
         this.descartesFinishedListener = function (descartesIndexFinished: BigNumber, state: string) {
             if (descartesIndexFinished.eq(descartesIndex)) {
                 const stateStr = ethers.utils.toUtf8String(state);
-                if (stateStr === "ConsensusResult") {
+                let verificationState: VerificationState;
+                if (stateStr.startsWith("ConsensusResult")) {
                     // result successfully computed: apply it
-                    this.applyVerificationResult();
+                    verificationState = VerificationState.ENDED;
+                    self.applyVerificationResult();
                 } else {
                     // error computing result: try again
-                    this.challengeGame(`Verification failed with state ${stateStr}`);
+                    verificationState = VerificationState.ERROR;
+                    self.challengeGame(`Verification failed with state ${stateStr}`);
+                }
+                if (self.onVerificationUpdate) {
+                    // TODO: use challenge message once onGameChallenged includes it
+                    self.onVerificationUpdate(verificationState, "challenge-message");
                 }
             }
         };
