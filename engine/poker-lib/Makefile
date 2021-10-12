@@ -3,7 +3,7 @@ INSTALL_DIR = $(BUILD_BASE)/poker-lib
 CXX = g++
 
 CXXFLAGS = -I$(BUILD_BASE)/include/poker-eval -I$(BUILD_BASE)/include -L$(BUILD_BASE)/lib \
-           -lgpg-error -lgcrypt -lgmp -lTMCG -lpoker-eval 
+           -lgpg-error -lgcrypt -lgmp -lTMCG -lpoker-eval -fPIC
 
 ifeq ($(POKER_BUILD_ENV),wasm)
 CXX = emcc
@@ -26,6 +26,7 @@ CXXFLAGS += -Wl,-rpath-link=/mnt/poker
 endif
 
 TESTS = test-solver \
+    test-poker-lib-c-api \
     test-compression \
     test-codec \
     test-validator \
@@ -33,6 +34,8 @@ TESTS = test-solver \
     test-player \
     test-verifier \
     test-bignumber
+
+TARGETS=
 
 # programs to build
 PROGRAMS =
@@ -50,21 +53,26 @@ PROGRAMS += poker-lib-wasm.js
         poker-lib.js \
         test-poker-lib.html
     TEST_LOADER = node
+else ifeq ($(POKER_BUILD_ENV),x64)
+    TARGETS += node-addon
 else
     PROGRAMS += verify
     PROGRAMS += generate
+    PROGRAMS += libpoker.so
     TESTS += test-game-playback
 endif
 
 PROGRAMS += $(TESTS)
 INSTALL_FILES += $(PROGRAMS)
+TARGETS += $(PROGRAMS)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@  $^
 
-all: $(PROGRAMS)
+all: $(TARGETS)
 
 POKER_LIB_OBJS=common.o \
+            poker-lib-c-api.o \
             game-generator.o \
             verifier.o \
             validator.o \
@@ -86,8 +94,15 @@ POKER_LIB_OBJS=common.o \
 poker-lib.a: $(POKER_LIB_OBJS)
 	ar rcs $@ $^
 
+libpoker.so: $(POKER_LIB_OBJS)
+	$(CXX) -shared -o $@ $(POKER_LIB_OBJS) && \
+  cp $@ $(BUILD_BASE)/lib
+
 poker-lib-wasm.js: poker-lib.a poker-lib-wasm.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@
+
+node-addon:
+	make -C node-addon BUILD_DEST=$(BUILD_BASE)/lib
 
 test-%: test-%.cpp poker-lib.a
 	$(CXX) $(CXXFLAGS)  -o $@ $^

@@ -24,6 +24,8 @@ int init_poker_lib(poker_lib_options* opts) {
         service_locator::instance().make_participant = []() -> i_participant* {
             return new unencrypted_participant();
         };
+
+    logger << "poker-lib was initialized" << std::endl;
     return 0;
 }
 
