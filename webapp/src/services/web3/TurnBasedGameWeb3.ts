@@ -36,7 +36,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     onResultClaimReceived: (claimedResult: any) => any;
     onGameOverReceived: (confirmedResult: any) => any;
 
-    descartesFinishedListener: (descartesIndexFinished: BigNumber, state: string) => void;
+    descartesListeners: object = {};
     onGameChallengeReceived: (msg: string) => any;
     onVerificationUpdate: (state: VerificationState, msg: string) => any;
 
@@ -239,38 +239,26 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             console.log(`Challenged game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
         });
     }
-    onGameChallenged(gameIndex, descartesIndex, author) {
+    onGameChallenged(gameIndex, descartesIndex, author, message) {
         if (this.onGameChallengeReceived) {
             this.onGameChallengeReceived(gameIndex);
         }
-        // turns off previous listener for DescartesFinished events, if there was one
-        if (this.descartesFinishedListener) {
-            this.descartesContract.off("DescartesFinished", this.descartesFinishedListener);
+        if (this.onVerificationUpdate) {
+            this.onVerificationUpdate(VerificationState.STARTED, message);
         }
-        // creates listener based on provided `descartesIndex`
-        // TODO: create listeners for all Descartes states
-        const self = this;
-        this.descartesFinishedListener = function (descartesIndexFinished: BigNumber, state: string) {
-            if (descartesIndexFinished.eq(descartesIndex)) {
-                const stateStr = ethers.utils.toUtf8String(state);
-                let verificationState: VerificationState;
-                if (stateStr.startsWith("ConsensusResult")) {
-                    // result successfully computed: apply it
-                    verificationState = VerificationState.ENDED;
-                    self.applyVerificationResult();
-                } else {
-                    // error computing result: try again
-                    verificationState = VerificationState.ERROR;
-                    self.challengeGame(`Verification failed with state ${stateStr}`);
-                }
-                if (self.onVerificationUpdate) {
-                    // TODO: use challenge message once onGameChallenged includes it
-                    self.onVerificationUpdate(verificationState, "challenge-message");
-                }
-            }
-        };
-        // sets up listener for DescartesFinished events
-        this.descartesContract.on("DescartesFinished", this.descartesFinishedListener);
+
+        // turns off previous listeners for Descartes events, if there were any
+        for (let eventName in this.descartesListeners) {
+            this.descartesContract.off(eventName, this.descartesListeners[eventName]);
+        }
+
+        // builds listeners for Descartes events targeting this specific challenge
+        this.descartesListeners = this.buildDescartesListeners(descartesIndex, author, message);
+
+        // sets up listeners on Descartes contract
+        for (let eventName in this.descartesListeners) {
+            this.descartesContract.on(eventName, this.descartesListeners[eventName]);
+        }
     }
     receiveGameChallenged(): Promise<any> {
         return new Promise<any>((resolve) => {
@@ -290,5 +278,62 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                 `Applying verification result for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
             );
         });
+    }
+
+    buildDescartesListeners(descartesIndex: BigNumber, author: string, message: string): object {
+        const self = this;
+        const listeners = {};
+
+        listeners["DescartesCreated"] = function (descartesIndexEvent: BigNumber) {
+            if (descartesIndexEvent.eq(descartesIndex)) {
+                console.log(`Received 'DescartesCreated' event for Descartes computation ${descartesIndex}`);
+                self.onVerificationUpdate(VerificationState.STARTED, message);
+            }
+        };
+
+        listeners["ClaimSubmitted"] = function (descartesIndexEvent: BigNumber) {
+            if (descartesIndexEvent.eq(descartesIndex)) {
+                console.log(`Received 'ClaimSubmitted' event for Descartes computation ${descartesIndex}`);
+                self.onVerificationUpdate(VerificationState.RESULT_SUBMITTED, message);
+            }
+        };
+
+        listeners["Confirmed"] = function (descartesIndexEvent: BigNumber) {
+            if (descartesIndexEvent.eq(descartesIndex)) {
+                console.log(`Received 'Confirmed' event for Descartes computation ${descartesIndex}`);
+                self.onVerificationUpdate(VerificationState.RESULT_CONFIRMED, message);
+            }
+        };
+
+        listeners["ChallengeStarted"] = function (descartesIndexEvent: BigNumber) {
+            if (descartesIndexEvent.eq(descartesIndex)) {
+                console.log(`Received 'ChallengeStarted' event for Descartes computation ${descartesIndex}`);
+                self.onVerificationUpdate(VerificationState.RESULT_CHALLENGED, message);
+            }
+        };
+
+        listeners["DescartesFinished"] = function (descartesIndexEvent: BigNumber, state: string) {
+            if (descartesIndexEvent.eq(descartesIndex)) {
+                console.log(`Received 'DescartesFinished' event for Descartes computation ${descartesIndex}`);
+                const stateStr = ethers.utils.toUtf8String(state);
+                let verificationState: VerificationState;
+                if (stateStr.startsWith("ConsensusResult")) {
+                    // result successfully computed: apply it
+                    verificationState = VerificationState.ENDED;
+                    self.applyVerificationResult();
+                } else {
+                    // error computing result: try again if this is the author
+                    verificationState = VerificationState.ERROR;
+                    if (ServiceConfig.currentInstance.signerAddress == author) {
+                        self.challengeGame(`Verification failed with state ${stateStr}`);
+                    }
+                }
+                if (self.onVerificationUpdate) {
+                    self.onVerificationUpdate(verificationState, message);
+                }
+            }
+        };
+
+        return listeners;
     }
 }

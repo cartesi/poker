@@ -171,12 +171,20 @@ describe("TurnBasedGameWeb3", function () {
         ServiceConfig.currentInstance.setSigner(bobAddress);
         turnBasedGame.challengeGame("Challenge Test");
 
-        // TODO: check intermediary verification states
-        // let state: VerificationState = await Promise.resolve(verificationUpdatePromise)[0];
-        // expect(state).eq(VerificationState.STARTED);
-
-        // check verification end
+        // check verification states
         let state = await Promise.resolve(verificationUpdatePromise);
+        expect(state).eq(VerificationState.STARTED);
+
+        verificationUpdatePromise = turnBasedGame.receiveVerificationUpdate();
+        state = await Promise.resolve(verificationUpdatePromise);
+        expect(state).eq(VerificationState.RESULT_SUBMITTED);
+
+        verificationUpdatePromise = turnBasedGame.receiveVerificationUpdate();
+        state = await Promise.resolve(verificationUpdatePromise);
+        expect(state).eq(VerificationState.RESULT_CONFIRMED);
+
+        verificationUpdatePromise = turnBasedGame.receiveVerificationUpdate();
+        state = await Promise.resolve(verificationUpdatePromise);
         expect(state).eq(VerificationState.ENDED);
 
         // check game end: result should give all funds to alice
