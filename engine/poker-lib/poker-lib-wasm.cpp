@@ -85,6 +85,7 @@ extern "C" {
 void API poker_init(char* msg) {
     poker::poker_lib_options options;
     options.encryption = read_int(msg);
+    options.winner = read_int(msg);
     poker::init_poker_lib(&options);
     auto res = poker::game_error::SUCCESS;
     worker_respond(res);

@@ -58,7 +58,8 @@ export class GameImpl implements Game {
                     this._isDealer() ? this.playerFunds : this.opponentFunds,
                     this._isDealer() ? this.opponentFunds : this.playerFunds,
                     this.bigBlind,
-                    ServiceConfig.isEncryptionEnabled()
+                    ServiceConfig.isEncryptionEnabled(),
+                    ServiceConfig.getPredefinedWinnerId()
                 );
                 console.log(`### [Player ${this.playerId}] Engine started ###`);
 

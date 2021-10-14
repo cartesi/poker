@@ -112,4 +112,12 @@ export class ServiceConfig {
         }
         return true;
     }
+
+    public static getPredefinedWinnerId(): number {
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get("encryption") == "off" && searchParams.has("winner")) {
+            return Number(searchParams.get("winner"));
+        }
+        return -1;
+    }
 }
