@@ -19,7 +19,6 @@ export interface TurnBasedGame {
     challengeGame(msg: string): Promise<void>;
     receiveGameChallenged(): Promise<string>;
     receiveVerificationUpdate(): Promise<[VerificationState, string]>;
-    applyVerificationResult(): Promise<void>;
 }
 
 export class TurnBasedGameFactory {
@@ -31,8 +30,8 @@ export class TurnBasedGameFactory {
     public static create(gameIndex: number): TurnBasedGame {
         const impl = ServiceConfig.get(ServiceType.Transport);
         if (impl === ServiceImpl.Mock) {
-            // mock TurnBasedGame
-            return new TurnBasedGameMock();
+            // mock TurnBasedGame (assumes playerIndex=0, meaning that it is ALICE's instance)
+            return new TurnBasedGameMock(gameIndex, 0);
         } else if (impl == ServiceImpl.Web3) {
             // web3 TurnBasedGame
             return new TurnBasedGameWeb3(gameIndex);

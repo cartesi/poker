@@ -518,6 +518,16 @@ export class GameMock implements Game {
     }
 
     async _gameOverReceived(fundsShare: Array<BigNumber>) {
+        // updates official result
+        if (!this.result) {
+            // if there was no computed result, one must be created
+            // - obs: in this case we are sure the result came from a verification, so whoever has more funds now is the winner
+            this.result = {};
+            this.result.isWinner[this.playerIndex] = fundsShare[this.playerIndex] > fundsShare[this.opponentIndex];
+            this.result.isWinner[this.opponentIndex] = fundsShare[this.opponentIndex] > fundsShare[this.playerIndex];
+        }
+        this.result.fundsShare = fundsShare;
+
         // ends game
         this.state = GameState.END;
         this.onEnd();
@@ -668,24 +678,6 @@ export class GameMock implements Game {
         this.result = { isWinner, fundsShare, hands };
     }
 
-    _computeResultVerification() {
-        // cheater loses everything, half of which goes to his opponent
-        const winner = this._isCheater() ? this.opponent : this.player;
-        const loser = winner == this.player ? this.opponent : this.player;
-        const winnerFunds =
-            winner == this.player
-                ? this.playerFunds.add(this.opponentFunds.div(2))
-                : this.playerFunds.div(2).add(this.opponentFunds);
-        const isWinner = Array(2);
-        isWinner[winner] = true;
-        isWinner[loser] = false;
-        const fundsShare = Array(2);
-        fundsShare[winner] = winnerFunds;
-        fundsShare[loser] = 0;
-        const hands = this._computePokerResult().bestHands;
-        this.result = { isWinner, fundsShare, hands };
-    }
-
     _computePokerResult() {
         const hands = Array(2);
         const communityCards = this._getCommunityCards();
@@ -709,38 +701,10 @@ export class GameMock implements Game {
         this.onEvent(`triggerVerification: ${message}`);
         await this.turnBasedGame.challengeGame(message);
         this.state = GameState.VERIFICATION;
-        setTimeout(() => this._setVerificationState(VerificationState.STARTED, message), 3000);
     }
 
     _verificationReceived(message) {
         this.onEvent(`verificationReceived: ${message}`);
         this.state = GameState.VERIFICATION;
-        setTimeout(() => this._setVerificationState(VerificationState.STARTED, message), 3000);
-    }
-
-    _setVerificationState(newState, message) {
-        // sets verification state and triggers callback
-        this.verificationState = newState;
-        this.onVerification(this.verificationState, message);
-
-        if (newState == VerificationState.ENDED) {
-            // verification ended, game ends with cheater losing everything
-            this.state = GameState.END;
-            this._computeResultVerification();
-            this.onEnd();
-        } else {
-            // simulates verification progress (one step every 5 sec, let's skip VerificationStates.RESULT_CHALLENGED)
-            newState = this._incrementVerificationState(newState);
-            if (newState == VerificationState.RESULT_CHALLENGED) {
-                newState = this._incrementVerificationState(newState);
-            }
-            setTimeout(() => this._setVerificationState(newState, message), 5000);
-        }
-    }
-
-    _incrementVerificationState(state) {
-        // verification states ordering
-        const newState = Math.min(VerificationStates.indexOf(state) + 1, VerificationStates.length - 1);
-        return VerificationStates[newState];
     }
 }

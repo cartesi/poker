@@ -55,7 +55,7 @@ export const VerificationStates = [
 // event types
 export enum EventType {
     UPDATE_STATE = "UPDATE STATE",
-    LOG = "LOG"
+    LOG = "LOG",
 }
 
 // bet types
@@ -80,7 +80,7 @@ export interface Game {
     fold(): Promise<void>;
     raise(amount: BigNumber): Promise<void>;
 
-    challengeGame(msg: string): Promise<void>,
+    challengeGame(msg: string): Promise<void>;
 
     cheat: {
         switchCards: (card1: Card, card2: Card) => any;
@@ -150,8 +150,8 @@ export class GameFactory {
         if (turnBasedGame instanceof TurnBasedGameMock) {
             // if using a mock Transport, we need an internal game instance for the opponent, with automatic responses
             // 1. creates the opponent's TurnBasedGameMock and connects it to the game's instance
-            const turnBasedGameOpponent = TurnBasedGameFactory.create(gameIndex);
-            turnBasedGame.connect(turnBasedGameOpponent as TurnBasedGameMock);
+            const turnBasedGameOpponent = new TurnBasedGameMock(gameIndex, opponentIndex);
+            turnBasedGame.connect(turnBasedGameOpponent);
 
             // 2. creates the opponent's game using his own TurnBasedGameMock and configuring automatic responses
             game.gameOpponent = this.createInstance(

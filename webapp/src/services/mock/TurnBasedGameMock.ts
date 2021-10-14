@@ -1,5 +1,7 @@
-import { VerificationState } from "../Game";
+import { ethers } from "ethers";
+import { VerificationState, VerificationStates } from "../Game";
 import { TurnBasedGame } from "../TurnBasedGame";
+import { LobbyMock } from "./LobbyMock";
 
 /**
  * TurnBasedGame mock implementation
@@ -17,8 +19,10 @@ export class TurnBasedGameMock implements TurnBasedGame {
 
     onGameChallengeReceived: (string) => any;
     onVerificationUpdate: (VerificationState, string) => any;
+    challengerIndex: number;
+    verificationState: VerificationState;
 
-    constructor() {
+    constructor(private gameIndex, private playerIndex: number) {
         this.turnDataQueue = [];
         this.onTurnOverReceivedResolvers = [];
     }
@@ -34,7 +38,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
             try {
                 this.other.turnDataQueue.push(data);
                 resolve(data);
-                this.other.dispatchTurn();
+                this.other._dispatchTurn();
             } catch (error) {
                 reject(error);
             }
@@ -44,10 +48,11 @@ export class TurnBasedGameMock implements TurnBasedGame {
     receiveTurnOver() {
         return new Promise<Uint8Array>((resolve) => {
             this.onTurnOverReceivedResolvers.push(resolve);
-            this.dispatchTurn();
+            this._dispatchTurn();
         });
     }
-    dispatchTurn() {
+
+    private _dispatchTurn() {
         const data = this.turnDataQueue.shift();
         if (!data) return;
         const resolve = this.onTurnOverReceivedResolvers.shift();
@@ -57,25 +62,28 @@ export class TurnBasedGameMock implements TurnBasedGame {
         }
         setTimeout(() => {
             resolve(data);
-            this.dispatchTurn();
+            this._dispatchTurn();
         }, 10);
     }
+
     //
     // CLAIM RESULT HANDLING
     //
-    onClaimResult(gameIndex, claimedResult, claimer) {
+    private _onClaimResult(claimedResult) {
         // set state
         this.claimedResult = claimedResult;
         // call listener
-        if (this.onResultClaimReceived) {
-            this.onResultClaimReceived(claimedResult);
-        }
+        setTimeout(() => {
+            if (this.onResultClaimReceived) {
+                this.onResultClaimReceived(claimedResult);
+            }
+        }, 10);
     }
     claimResult(claimedResult: any): Promise<void> {
         return new Promise(async (resolve) => {
             this.claimedResult = claimedResult;
             resolve();
-            this.other.onClaimResult(null, claimedResult, null);
+            this.other._onClaimResult(claimedResult);
         });
     }
     receiveResultClaimed() {
@@ -83,10 +91,11 @@ export class TurnBasedGameMock implements TurnBasedGame {
             this.onResultClaimReceived = resolve;
         });
     }
+
     //
     // CONFIRM RESULT AND GAME END HANDLING
     //
-    onGameEnd(gameIndex, confirmedResult) {
+    private _onGameEnd(confirmedResult) {
         if (this.onGameOverReceived) {
             this.onGameOverReceived(confirmedResult);
         }
@@ -94,8 +103,8 @@ export class TurnBasedGameMock implements TurnBasedGame {
     confirmResult(): Promise<void> {
         return new Promise<void>((resolve) => {
             resolve();
-            this.onGameEnd(null, this.claimedResult);
-            this.other.onGameEnd(null, this.claimedResult);
+            this._onGameEnd(this.claimedResult);
+            this.other._onGameEnd(this.claimedResult);
         });
     }
     receiveGameOver(): Promise<any> {
@@ -104,36 +113,76 @@ export class TurnBasedGameMock implements TurnBasedGame {
         });
     }
 
-    // challenge and verification
-    onGameChallenged(gameIndex, msg) {
+    //
+    // CHALLENGE AND VERIFICATION
+    //
+    private _setVerificationState(gameIndex, newState, message) {
+        // sets verification state and triggers callback
+        this.verificationState = newState;
+        if (this.onVerificationUpdate) {
+            this.onVerificationUpdate(this.verificationState, message);
+        }
+        if (newState == VerificationState.ENDED) {
+            // verification ended, game ends with cheater losing everything
+            const result = this._computeResultVerification();
+            this._onGameEnd(result);
+            this.other._onGameEnd(result);
+        } else {
+            // simulates verification progress (one step every 5 sec, let's skip VerificationStates.RESULT_CHALLENGED)
+            newState = this._incrementVerificationState(newState);
+            if (newState == VerificationState.RESULT_CHALLENGED) {
+                newState = this._incrementVerificationState(newState);
+            }
+            setTimeout(() => this._setVerificationState(gameIndex, newState, message), 5000);
+        }
+    }
+
+    private _incrementVerificationState(state) {
+        // verification states ordering
+        const newState = Math.min(VerificationStates.indexOf(state) + 1, VerificationStates.length - 1);
+        return VerificationStates[newState];
+    }
+
+    private _computeResultVerification() {
+        // challenger is assumed to be the honest part and will win everything
+        // - players funds are extracted from LobbyMock (since necessarily we have config `transport=mock`)
+        const winner = this.challengerIndex;
+        const loser = winner == this.playerIndex ? this.other.playerIndex : this.playerIndex;
+        const isWinner = Array(2);
+        isWinner[winner] = true;
+        isWinner[loser] = false;
+        const fundsShare = Array(2);
+        fundsShare[winner] = LobbyMock.PLAYER_FUNDS.mul(2);
+        fundsShare[loser] = ethers.BigNumber.from(0);
+        const hands = Array(2);
+        return { isWinner, fundsShare, hands };
+    }
+
+    private _onGameChallenged(gameIndex, msg, challengerIndex) {
+        this.challengerIndex = challengerIndex;
         if (this.onGameChallengeReceived) {
             this.onGameChallengeReceived(msg);
         }
+        setTimeout(() => this._setVerificationState(gameIndex, VerificationState.STARTED, msg), 3000);
     }
+
     challengeGame(msg: string): Promise<void> {
         return new Promise<void>((resolve) => {
             resolve();
-            this.onGameChallenged(null, msg);
-            this.other.onGameChallenged(null, msg);
-            // TODO: move triggerVerification and other logic here
+            this._onGameChallenged(this.gameIndex, msg, this.playerIndex);
+            this.other._onGameChallenged(this.gameIndex, msg, this.playerIndex);
         });
     }
+
     receiveGameChallenged(): Promise<any> {
         return new Promise<any>((resolve) => {
             this.onGameChallengeReceived = resolve;
         });
     }
+
     receiveVerificationUpdate(): Promise<[VerificationState, string]> {
         return new Promise<any>((resolve) => {
             this.onVerificationUpdate = resolve;
-        });
-    }
-    applyVerificationResult(): Promise<any> {
-        return new Promise<void>((resolve) => {
-            resolve();
-            // TODO: compute a result considering that the cheater should lose everything
-            this.onGameEnd(null, this.claimedResult);
-            this.other.onGameEnd(null, this.claimedResult);
         });
     }
 }
