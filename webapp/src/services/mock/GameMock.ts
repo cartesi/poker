@@ -489,11 +489,11 @@ export class GameMock implements Game {
     }
 
     async _processShowdown() {
-        // computes result
-        this._computeResult();
-
         if (this.player != this.betLeader) {
             // player made the call and has now seen opponent's cards
+
+            // computes result
+            this._computeResult();
             if (this.result.isWinner[this.player]) {
                 // player won: reveals private cards to prove that he won
                 this.onEvent(`Showing cards to opponent...`);
@@ -508,6 +508,9 @@ export class GameMock implements Game {
     }
 
     async _resultReceived(opponentResult: Array<BigNumber>) {
+        if (!this.result) {
+            this._computeResult();
+        }
         if (JSON.stringify(this.result.fundsShare) !== JSON.stringify(opponentResult)) {
             // result mismatch: trigger a verification!
             await this._triggerVerification("Result mismatch");

@@ -197,7 +197,11 @@ export class RoomManager {
         }
     }
 
+    private static updateOpponentStateTimeout;
     public static async updateOpponentState(): Promise<void> {
+        if (this.updateOpponentStateTimeout) {
+            clearTimeout(this.updateOpponentStateTimeout);
+        }
         const state = await RoomManager.game.getState();
         const currentPlayerId = await RoomManager.game.getCurrentPlayerId();
         const playerIds = [GameVars.playerIndex, GameVars.opponentIndex];
@@ -205,7 +209,7 @@ export class RoomManager {
         if (currentPlayerId === GameVars.playerIndex || noCurrentPlayer) {
             RoomScene.currentInstance.endOpponentTurn();
         } else {
-            setTimeout(async () => {
+            this.updateOpponentStateTimeout = setTimeout(async () => {
                 RoomScene.currentInstance.startOpponentTurn();
                 RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, false);
             }, 2000);
@@ -292,6 +296,7 @@ export class RoomManager {
 
     private static async onEnd(): Promise<void> {
 
+        RoomManager.updateOpponentState();
         let endData = await RoomManager.game.getResult();
 
         setTimeout(() => {

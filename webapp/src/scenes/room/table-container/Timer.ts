@@ -74,7 +74,13 @@ export class Timer extends Phaser.GameObjects.Container {
 
         this.interval = setInterval(() => {
             this.timeout--;
-            this.value.text = new Date(this.timeout * 1000).toISOString().substr(15, 4);
+            try {
+                this.value.text = new Date(this.timeout * 1000).toISOString().substr(15, 4);
+            } catch (error) {
+                // Timer no longer valid, clear interval and return
+                clearInterval(this.interval);
+                return;
+            }
 
             if (this.timeout <= 10) {
                 this.value.setColor("#ff4747");
