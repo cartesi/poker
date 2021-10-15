@@ -527,17 +527,23 @@ export class GameMock implements Game {
     }
 
     async _gameOverReceived(fundsShare: Array<BigNumber>) {
+        this.onEvent(`GameOver received: ${JSON.stringify(fundsShare)}`);
         // updates official result
         if (!this.result) {
             // if there was no computed result, one must be created
-            // - obs: in this case we are sure the result came from a verification, so whoever has more funds now is the winner
             this.result = {};
-            this.result.isWinner = [];
-            this.result.isWinner[this.playerIndex] = fundsShare[this.playerIndex] > fundsShare[this.opponentIndex];
-            this.result.isWinner[this.opponentIndex] = fundsShare[this.opponentIndex] > fundsShare[this.playerIndex];
         }
-        this.result.fundsShare = fundsShare;
-
+        if (JSON.stringify(this.result.fundsShare) !== JSON.stringify(fundsShare)) {
+            // fundsShare received from GameOver event is different than the current one: verification has overridden our local result computation
+            // - update result with official values
+            this.result.fundsShare = fundsShare;
+            // - redefine winners: anyone who has not lost money is considered a winner
+            this.result.isWinner = Array(2);
+            this.result.isWinner[this.player] = fundsShare[this.player] >= this.playerFunds;
+            this.result.isWinner[this.opponent] = fundsShare[this.opponent] >= this.opponentFunds;
+            // - set hands as unknown (if there was game-specific data included in the GameOver event we could do better)
+            this.result.hands = Array(2);
+        }
         // ends game
         this.state = GameState.END;
         this.onEnd();

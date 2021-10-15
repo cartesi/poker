@@ -158,14 +158,10 @@ export class TurnBasedGameMock implements TurnBasedGame {
         // - players funds are extracted from LobbyMock (since necessarily we have config `transport=mock`)
         const winner = this.challengerIndex;
         const loser = winner == this.playerIndex ? this.other.playerIndex : this.playerIndex;
-        const isWinner = Array(2);
-        isWinner[winner] = true;
-        isWinner[loser] = false;
         const fundsShare = Array(2);
         fundsShare[winner] = LobbyMock.PLAYER_FUNDS.mul(2);
         fundsShare[loser] = ethers.BigNumber.from(0);
-        const hands = Array(2);
-        return { isWinner, fundsShare, hands };
+        return fundsShare;
     }
 
     private _onGameChallenged(gameIndex, msg, challengerIndex) {
