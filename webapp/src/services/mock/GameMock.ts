@@ -66,64 +66,70 @@ export class GameMock implements Game {
             this._resultReceived(claimedResult);
         });
         this.turnBasedGame.receiveGameOver().then((fundsShare) => this._gameOverReceived(fundsShare));
-        this.turnBasedGame.receiveGameChallenged().then((string) => this._verificationReceived(string));
-        // this.turnBasedGame.receiveVerificationUpdate(this._verificationReceived.bind(this));
+        this.turnBasedGame.receiveGameChallenged().then((message: string) => this._gameChallengedReceived(message));
+        this.turnBasedGame
+            .receiveVerificationUpdate()
+            .then((update: [VerificationState, string]) => this._verificationReceived(update[0], update[1]));
 
-        const promise = new Promise<void>((resolve) => {
+        const promise = new Promise<void>((resolve, reject) => {
             setTimeout(async () => {
-                if (this.player == ALICE) {
-                    // ALICE
-                    this.playerBets = BigNumber.from(1);
-                    this.opponentBets = BigNumber.from(2);
+                try {
+                    if (this.player == ALICE) {
+                        // ALICE
+                        this.playerBets = BigNumber.from(1);
+                        this.opponentBets = BigNumber.from(2);
 
-                    // defines initial info and sends it: group info (cryptoStuff) + key
-                    this.cryptoStuff = "xkdkeoejf";
-                    this.mykey = "ALICEKEY";
-                    const initialInfo = { cryptoStuff: this.cryptoStuff, key: this.mykey };
-                    this.onEvent(`Sending initial info ${JSON.stringify(initialInfo)}...`);
-                    await this._submitTurn(initialInfo);
+                        // defines initial info and sends it: group info (cryptoStuff) + key
+                        this.cryptoStuff = "xkdkeoejf";
+                        this.mykey = "ALICEKEY";
+                        const initialInfo = { cryptoStuff: this.cryptoStuff, key: this.mykey };
+                        this.onEvent(`Sending initial info ${JSON.stringify(initialInfo)}...`);
+                        await this._submitTurn(initialInfo);
 
-                    // TODO: try to get this into GameFactory?
-                    if (this.gameOpponent) {
-                        // starts opponent game if applicable
-                        this.gameOpponent.start();
+                        // TODO: try to get this into GameFactory?
+                        if (this.gameOpponent) {
+                            // starts opponent game if applicable
+                            this.gameOpponent.start().catch((error) => reject(error));
+                        }
+
+                        // waits for Bob to submit his key
+                        this._keyReceived(await this.turnBasedGame.receiveTurnOver());
+
+                        // shuffles deck and sends it over
+                        this._shuffleDeck();
+                        this.onEvent(`Sending shuffled deck...`);
+                        await this._submitTurn(this.deck);
+
+                        // awaits for Bob's reshuffled deck
+                        this._deckReceived(await this.turnBasedGame.receiveTurnOver());
+                    } else {
+                        // BOB
+                        this.playerBets = BigNumber.from(2);
+                        this.opponentBets = BigNumber.from(1);
+
+                        // waits for Alice's "cryptostuff" (group info) and key
+                        this._initialInfoReceived(await this.turnBasedGame.receiveTurnOver());
+
+                        // defines key and sends it
+                        this.mykey = "BOBKEY";
+                        this.onEvent(`Sending key ${this.mykey}`);
+                        await this._submitTurn(this.mykey);
+
+                        // waits for Alice's shuffled deck
+                        this._deckReceived(await this.turnBasedGame.receiveTurnOver());
+
+                        // reshuffles deck and sends it back
+                        this._shuffleDeck();
+                        this.onEvent(`Sending reshuffled deck...`);
+                        await this._submitTurn(this.deck);
                     }
 
-                    // waits for Bob to submit his key
-                    this._keyReceived(await this.turnBasedGame.receiveTurnOver());
-
-                    // shuffles deck and sends it over
-                    this._shuffleDeck();
-                    this.onEvent(`Sending shuffled deck...`);
-                    await this._submitTurn(this.deck);
-
-                    // awaits for Bob's reshuffled deck
-                    this._deckReceived(await this.turnBasedGame.receiveTurnOver());
-                } else {
-                    // BOB
-                    this.playerBets = BigNumber.from(2);
-                    this.opponentBets = BigNumber.from(1);
-
-                    // waits for Alice's "cryptostuff" (group info) and key
-                    this._initialInfoReceived(await this.turnBasedGame.receiveTurnOver());
-
-                    // defines key and sends it
-                    this.mykey = "BOBKEY";
-                    this.onEvent(`Sending key ${this.mykey}`);
-                    await this._submitTurn(this.mykey);
-
-                    // waits for Alice's shuffled deck
-                    this._deckReceived(await this.turnBasedGame.receiveTurnOver());
-
-                    // reshuffles deck and sends it back
-                    this._shuffleDeck();
-                    this.onEvent(`Sending reshuffled deck...`);
-                    await this._submitTurn(this.deck);
+                    // advances state to start game (will deal private cards)
+                    await this._advanceState();
+                    resolve();
+                } catch (error) {
+                    reject(error);
                 }
-
-                // advances state to start game (will deal private cards)
-                await this._advanceState();
-                resolve();
             }, 5000);
         });
         return promise;
@@ -526,6 +532,7 @@ export class GameMock implements Game {
             // if there was no computed result, one must be created
             // - obs: in this case we are sure the result came from a verification, so whoever has more funds now is the winner
             this.result = {};
+            this.result.isWinner = [];
             this.result.isWinner[this.playerIndex] = fundsShare[this.playerIndex] > fundsShare[this.opponentIndex];
             this.result.isWinner[this.opponentIndex] = fundsShare[this.opponentIndex] > fundsShare[this.playerIndex];
         }
@@ -706,8 +713,21 @@ export class GameMock implements Game {
         this.state = GameState.VERIFICATION;
     }
 
-    _verificationReceived(message) {
-        this.onEvent(`verificationReceived: ${message}`);
+    _gameChallengedReceived(message: string) {
+        this.onEvent(`GameChallenged received: ${message}`);
+        // setup promise again (in case there's another challenge)
+        this.turnBasedGame.receiveGameChallenged().then((message: string) => this._gameChallengedReceived(message));
+    }
+
+    _verificationReceived(state: VerificationState, message: string) {
+        this.onEvent(`verificationReceived: ${message} (${state})`);
+        // setup promise again for next verification updates
+        this.turnBasedGame
+            .receiveVerificationUpdate()
+            .then((update: [VerificationState, string]) => this._verificationReceived(update[0], update[1]));
         this.state = GameState.VERIFICATION;
+        if (this.onVerification) {
+            this.onVerification(state, message);
+        }
     }
 }

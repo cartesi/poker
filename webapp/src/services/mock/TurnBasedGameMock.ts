@@ -17,8 +17,8 @@ export class TurnBasedGameMock implements TurnBasedGame {
     onResultClaimReceived: (any) => any;
     onGameOverReceived: (any) => any;
 
-    onGameChallengeReceived: (string) => any;
-    onVerificationUpdate: (VerificationState, string) => any;
+    onGameChallengeReceived: (message: string) => any;
+    onVerificationUpdate: (update: [VerificationState, string]) => any;
     challengerIndex: number;
     verificationState: VerificationState;
 
@@ -35,6 +35,16 @@ export class TurnBasedGameMock implements TurnBasedGame {
     // turn submission
     submitTurn(data: Uint8Array): Promise<Uint8Array> {
         return new Promise((resolve, reject) => {
+            if (this.claimedResult !== undefined) {
+                // claim has been made: no longer accepts submissions
+                reject("Game result has been claimed: turn submissions no longer accepted");
+                return;
+            }
+            if (this.challengerIndex !== undefined) {
+                // game has been challenged: no longer accepts submissions
+                reject("Game has been challenged: turn submissions no longer accepted");
+                return;
+            }
             try {
                 this.other.turnDataQueue.push(data);
                 resolve(data);
@@ -120,7 +130,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
         // sets verification state and triggers callback
         this.verificationState = newState;
         if (this.onVerificationUpdate) {
-            this.onVerificationUpdate(this.verificationState, message);
+            this.onVerificationUpdate([this.verificationState, message]);
         }
         if (newState == VerificationState.ENDED) {
             // verification ended, game ends with cheater losing everything

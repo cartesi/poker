@@ -52,6 +52,9 @@ export class RoomManager {
                 RoomScene.currentInstance.updateBoard();
                 RoomManager.updateOpponentState();
             }, 1000);
+        }).catch(error => {
+            console.error(JSON.stringify(error));
+            RoomScene.currentInstance.hideWaitingFirstCards();
         });
 
     }
@@ -68,6 +71,8 @@ export class RoomManager {
 
     public static updateVerification(state: VerificationState, msg: string): void {
 
+        RoomManager.removeBetButtons();
+        RoomManager.updateOpponentState();
         if (state == VerificationState.STARTED) {
             RoomManager.showVerificationLayer(msg);
         }

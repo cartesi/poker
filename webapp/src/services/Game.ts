@@ -236,6 +236,9 @@ export class GameFactory {
             }
             let choices = [0, 1, 2, 3];
             while (true) {
+                if (choices.length == 0) {
+                    break;
+                }
                 let i = Math.floor(Math.random() * choices.length);
                 let choice = choices[i];
                 try {
