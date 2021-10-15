@@ -318,9 +318,11 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                 const stateStr = ethers.utils.toUtf8String(state);
                 let verificationState: VerificationState;
                 if (stateStr.startsWith("ConsensusResult")) {
-                    // result successfully computed: apply it
+                    // result successfully computed: apply it if this is the author
                     verificationState = VerificationState.ENDED;
-                    self.applyVerificationResult();
+                    if (ServiceConfig.currentInstance.signerAddress == author) {
+                        self.applyVerificationResult();
+                    }
                 } else {
                     // error computing result: try again if this is the author
                     verificationState = VerificationState.ERROR;
