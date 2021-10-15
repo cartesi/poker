@@ -19,7 +19,7 @@ export class GameMock implements Game {
     gameOpponent: GameMock;
 
     // opponent id (inferred from player's id)
-    opponent: number;
+    opponentIndex: number;
 
     // game bets
     playerBets: BigNumber;
@@ -29,7 +29,7 @@ export class GameMock implements Game {
     [x: string]: any;
 
     constructor(
-        private player: number,
+        private playerIndex: number,
         private playerFunds: BigNumber,
         private opponentFunds: BigNumber,
         private turnBasedGame: TurnBasedGame,
@@ -39,8 +39,8 @@ export class GameMock implements Game {
         onEvent?: (msg: string, type: EventType) => any,
         onVerification?: (state: string, msg: string) => any
     ) {
-        this.currentPlayer = player;
-        this.opponent = this.player == ALICE ? BOB : ALICE;
+        this.currentPlayer = playerIndex;
+        this.opponentIndex = this.playerIndex == ALICE ? BOB : ALICE;
         this.playerBets = BigNumber.from(0);
         this.opponentBets = BigNumber.from(0);
         this.onEvent = onEvent ? onEvent : () => {};
@@ -74,7 +74,7 @@ export class GameMock implements Game {
         const promise = new Promise<void>((resolve, reject) => {
             setTimeout(async () => {
                 try {
-                    if (this.player == ALICE) {
+                    if (this.playerIndex == ALICE) {
                         // ALICE
                         this.playerBets = BigNumber.from(1);
                         this.opponentBets = BigNumber.from(2);
@@ -244,7 +244,7 @@ export class GameMock implements Game {
         let cards = [];
         if (this.cheat.didSwitchCards) {
             cards.push(this.deck[52], this.deck[53]);
-        } else if (this.player == ALICE) {
+        } else if (this.playerIndex == ALICE) {
             cards.push(this._getCard(0));
             cards.push(this._getCard(1));
         } else {
@@ -259,7 +259,7 @@ export class GameMock implements Game {
             return [99, 99].map(Card.fromIndex);
         }
         let cards = [];
-        if (this.opponent == ALICE) {
+        if (this.opponentIndex == ALICE) {
             cards.push(this._getCard(0));
             cards.push(this._getCard(1));
         } else {
@@ -335,7 +335,7 @@ export class GameMock implements Game {
         // creates deck secrets
         this.deckSecrets = [];
         for (let i = 0; i < 52; i++) {
-            this.deckSecrets.push(`s${this.player}_${i}_`);
+            this.deckSecrets.push(`s${this.playerIndex}_${i}_`);
         }
         // encrypts deck
         for (let i = 0; i < 52; i++) {
@@ -387,7 +387,7 @@ export class GameMock implements Game {
 
     async _dealPrivateCards() {
         // sends opponent's private cards
-        if (this.player == ALICE) {
+        if (this.playerIndex == ALICE) {
             // Alice first sends Bob's private cards and then waits for Bob to reveal hers
             this.onEvent(`Dealing opponent's private cards...`);
             await this._sendPrivateCards(BOB);
@@ -411,7 +411,7 @@ export class GameMock implements Game {
     }
 
     async _dealFlop() {
-        if (this.player == this.betLeader) {
+        if (this.playerIndex == this.betLeader) {
             // decrypts Flop cards and sends them over
             this.onEvent(`Dealing FLOP cards...`);
             await this._sendCards(4, 5, 6);
@@ -427,7 +427,7 @@ export class GameMock implements Game {
     }
 
     async _dealTurn() {
-        if (this.player == this.betLeader) {
+        if (this.playerIndex == this.betLeader) {
             // decrypts Turn card and sends it over
             this.onEvent(`Dealing TURN card...`);
             await this._sendCards(7);
@@ -443,7 +443,7 @@ export class GameMock implements Game {
     }
 
     async _dealRiver() {
-        if (this.player == this.betLeader) {
+        if (this.playerIndex == this.betLeader) {
             // decrypts River card and sends it over
             this.onEvent(`Dealing RIVER card...`);
             await this._sendCards(8);
@@ -459,10 +459,10 @@ export class GameMock implements Game {
     }
 
     async _dealShowdown() {
-        if (this.player == this.betLeader) {
+        if (this.playerIndex == this.betLeader) {
             // bet leader has received the call and needs to reveal his cards
             this.onEvent(`Showing cards to opponent...`);
-            await this._sendPrivateCards(this.player);
+            await this._sendPrivateCards(this.playerIndex);
             // waits for opponent to send his cards (or fold)
             this._decryptedCardsReceived(await this.turnBasedGame.receiveTurnOver());
         } else {
@@ -495,15 +495,15 @@ export class GameMock implements Game {
     }
 
     async _processShowdown() {
-        if (this.player != this.betLeader) {
+        if (this.playerIndex != this.betLeader) {
             // player made the call and has now seen opponent's cards
 
             // computes result
             this._computeResult();
-            if (this.result.isWinner[this.player]) {
+            if (this.result.isWinner[this.playerIndex]) {
                 // player won: reveals private cards to prove that he won
                 this.onEvent(`Showing cards to opponent...`);
-                await this._sendPrivateCards(this.player);
+                await this._sendPrivateCards(this.playerIndex);
                 // submits computed result
                 await this.turnBasedGame.claimResult(this.result.fundsShare);
             } else {
@@ -539,8 +539,8 @@ export class GameMock implements Game {
             this.result.fundsShare = fundsShare;
             // - redefine winners: anyone who has not lost money is considered a winner
             this.result.isWinner = Array(2);
-            this.result.isWinner[this.player] = fundsShare[this.player] >= this.playerFunds;
-            this.result.isWinner[this.opponent] = fundsShare[this.opponent] >= this.opponentFunds;
+            this.result.isWinner[this.playerIndex] = fundsShare[this.playerIndex] >= this.playerFunds;
+            this.result.isWinner[this.opponentIndex] = fundsShare[this.opponentIndex] >= this.opponentFunds;
             // - set hands as unknown (if there was game-specific data included in the GameOver event we could do better)
             this.result.hands = Array(2);
         }
@@ -558,13 +558,13 @@ export class GameMock implements Game {
         // sends new bets over
         await this._submitTurn(newPlayerBets);
 
-        this.currentPlayer = this.opponent;
+        this.currentPlayer = this.opponentIndex;
         this.playerBets = newPlayerBets;
         if (this.playerBets.gt(this.opponentBets)) {
             // bet has been raised: current player becomes the bet leader
-            this.betLeader = this.player;
+            this.betLeader = this.playerIndex;
         }
-        if (this.player == this.betLeader) {
+        if (this.playerIndex == this.betLeader) {
             // bet leader: will react when opponent's bet is received
             this.turnBasedGame.receiveTurnOver().then((data) => this._betsReceived(data));
         } else if (this.playerBets.eq(this.opponentBets)) {
@@ -583,12 +583,12 @@ export class GameMock implements Game {
             return;
         }
 
-        this.currentPlayer = this.player;
+        this.currentPlayer = this.playerIndex;
         opponentBets = BigNumber.from(opponentBets);
         if (opponentBets.gt(this.playerBets)) {
             // opponent has raised and is now the bet leader
             this.onBetsReceived(BetType.RAISE, opponentBets);
-            this.betLeader = this.opponent;
+            this.betLeader = this.opponentIndex;
         } else if (opponentBets.eq(this.opponentBets)) {
             // opponent has kept the same amount of bets: it's a check
             this.onBetsReceived(BetType.CHECK, opponentBets);
@@ -602,7 +602,7 @@ export class GameMock implements Game {
 
         this.opponentBets = opponentBets;
 
-        if (this.player != this.betLeader) {
+        if (this.playerIndex != this.betLeader) {
             // received bet leader's bet, now player needs to place his bet
             this.onBetRequested();
         } else {
@@ -635,7 +635,7 @@ export class GameMock implements Game {
                 await this._dealRiver();
             }
             this.state = nextState;
-            if (this.player == this.betLeader) {
+            if (this.playerIndex == this.betLeader) {
                 // bet leader needs to bet first
                 this.onBetRequested();
             } else {
@@ -658,15 +658,15 @@ export class GameMock implements Game {
         const result = this._computePokerResult();
 
         const fundsShare = Array(2);
-        if (result.winners[this.player] && result.winners[this.opponent]) {
-            fundsShare[this.player] = this.playerFunds;
-            fundsShare[this.opponent] = this.opponentFunds;
-        } else if (result.winners[this.player]) {
-            fundsShare[this.player] = this.playerFunds.add(this.opponentBets);
-            fundsShare[this.opponent] = this.opponentFunds.sub(this.opponentBets);
+        if (result.winners[this.playerIndex] && result.winners[this.opponentIndex]) {
+            fundsShare[this.playerIndex] = this.playerFunds;
+            fundsShare[this.opponentIndex] = this.opponentFunds;
+        } else if (result.winners[this.playerIndex]) {
+            fundsShare[this.playerIndex] = this.playerFunds.add(this.opponentBets);
+            fundsShare[this.opponentIndex] = this.opponentFunds.sub(this.opponentBets);
         } else {
-            fundsShare[this.player] = this.playerFunds.sub(this.playerBets);
-            fundsShare[this.opponent] = this.opponentFunds.add(this.playerBets);
+            fundsShare[this.playerIndex] = this.playerFunds.sub(this.playerBets);
+            fundsShare[this.opponentIndex] = this.opponentFunds.add(this.playerBets);
         }
 
         this.result = { isWinner: result.winners, fundsShare, hands: result.bestHands };
@@ -674,22 +674,22 @@ export class GameMock implements Game {
 
     _computeResultPlayerFold() {
         const isWinner = Array(2);
-        isWinner[this.player] = false;
-        isWinner[this.opponent] = true;
+        isWinner[this.playerIndex] = false;
+        isWinner[this.opponentIndex] = true;
         const fundsShare = Array(2);
-        fundsShare[this.player] = this.playerFunds.sub(this.playerBets);
-        fundsShare[this.opponent] = this.opponentFunds.add(this.playerBets);
+        fundsShare[this.playerIndex] = this.playerFunds.sub(this.playerBets);
+        fundsShare[this.opponentIndex] = this.opponentFunds.add(this.playerBets);
         const hands = this._computePokerResult().bestHands;
         this.result = { isWinner, fundsShare, hands };
     }
 
     _computeResultOpponentFold() {
         const isWinner = Array(2);
-        isWinner[this.player] = true;
-        isWinner[this.opponent] = false;
+        isWinner[this.playerIndex] = true;
+        isWinner[this.opponentIndex] = false;
         const fundsShare = Array(2);
-        fundsShare[this.player] = this.playerFunds.add(this.opponentBets);
-        fundsShare[this.opponent] = this.opponentFunds.sub(this.opponentBets);
+        fundsShare[this.playerIndex] = this.playerFunds.add(this.opponentBets);
+        fundsShare[this.opponentIndex] = this.opponentFunds.sub(this.opponentBets);
         const hands = this._computePokerResult().bestHands;
         this.result = { isWinner, fundsShare, hands };
     }
@@ -700,9 +700,9 @@ export class GameMock implements Game {
         if (!communityCards.includes(null)) {
             const playerHand = this._getPlayerCards().concat(communityCards);
             const opponentHand = this._getOpponentCards().concat(communityCards);
-            hands[this.player] = playerHand;
+            hands[this.playerIndex] = playerHand;
             if (!opponentHand.includes(null)) {
-                hands[this.opponent] = opponentHand;
+                hands[this.opponentIndex] = opponentHand;
             }
         }
         const result = PokerSolver.solve(hands);
