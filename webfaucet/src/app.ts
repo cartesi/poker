@@ -27,13 +27,11 @@ class PokerFaucet {
 
     async init() {
         this.initGUI();
-
-        this.provider = await this.getProvider();
-
-        await this.updateGUI();
-
         this.setWalletRadioListener();
         this.setRequestButtonListener();
+
+        this.provider = await this.getProvider();
+        await this.updateGUI();
     }
 
     initGUI() {
