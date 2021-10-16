@@ -22,8 +22,6 @@ import { VerificationState } from "../Game";
  * Expects webapp to be connected to the blockchain
  */
 export class TurnBasedGameWeb3 implements TurnBasedGame {
-    gameIndex: number;
-
     descartesContract: DescartesContract;
     loggerContract: LoggerContract;
     gameContract: TurnBasedGameContract;
@@ -40,8 +38,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     onGameChallengeReceived: (msg: string) => any;
     onVerificationUpdate: (update: [VerificationState, string]) => any;
 
-    constructor(gameIndex: number) {
-        this.gameIndex = gameIndex;
+    constructor(private gameIndex: number) {
         this.turnDataQueue = [];
         this.onTurnOverReceivedResolvers = [];
     }
@@ -312,15 +309,47 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             }
         };
 
-        listeners["DescartesFinished"] = function (descartesIndexEvent: BigNumber, state: string) {
+        listeners["DescartesFinished"] = async function (descartesIndexEvent: BigNumber, state: string) {
             if (descartesIndexEvent.eq(descartesIndex)) {
                 console.log(`Received 'DescartesFinished' event for Descartes computation ${descartesIndex}`);
                 const stateStr = ethers.utils.toUtf8String(state);
                 let verificationState: VerificationState;
                 if (stateStr.startsWith("ConsensusResult")) {
-                    // result successfully computed: apply it if this is the author
+                    // result successfully computed: apply it if this user has the most funds at stake (i.e., if this is the party most interested in applying the result)
                     verificationState = VerificationState.ENDED;
-                    if (ServiceConfig.currentInstance.signerAddress == author) {
+                    let shouldApplyResult = true;
+                    try {
+                        const result = await self.descartesContract.getResult(descartesIndex);
+                        const fundsShare = ethers.utils.arrayify(result[3]);
+                        const fundsPlayer0 = BigNumber.from(fundsShare.slice(0, 32));
+                        const fundsPlayer1 = BigNumber.from(fundsShare.slice(32, 64));
+                        console.log(
+                            `Retrieved result from Descartes computation '${descartesIndex}': fundsShare = [${fundsPlayer0.toString()}, ${fundsPlayer1.toString()}]`
+                        );
+                        const playerIndex = await self.getPlayerIndex();
+                        const isLowerStake =
+                            (playerIndex === 0 && fundsPlayer0 < fundsPlayer1) ||
+                            (playerIndex === 1 && fundsPlayer1 < fundsPlayer0);
+                        const isEqualStakeAndNotAuthor =
+                            fundsPlayer0.eq(fundsPlayer1) && ServiceConfig.currentInstance.signerAddress !== author;
+                        if (isLowerStake || isEqualStakeAndNotAuthor) {
+                            // let the opponent apply the result
+                            // - either this player has a lower stake locked in the game result, or stakes are equal and player is not the challenge author
+                            console.log(
+                                `Will NOT apply verification result: isLowerStake=${isLowerStake}, isEqualStakeAndNotAuthor=${isEqualStakeAndNotAuthor}`
+                            );
+                            shouldApplyResult = false;
+                        } else {
+                            console.log(
+                                `Will apply verification result: isLowerStake=${isLowerStake}, isEqualStakeAndNotAuthor=${isEqualStakeAndNotAuthor}`
+                            );
+                        }
+                    } catch (error) {
+                        console.error(
+                            `Error retrieving verification result from Descartes: will attempt to apply result anyway - ${error}`
+                        );
+                    }
+                    if (shouldApplyResult) {
                         self.applyVerificationResult();
                     }
                 } else {
@@ -337,5 +366,14 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         };
 
         return listeners;
+    }
+
+    async getPlayerIndex(): Promise<number> {
+        await this.initWeb3();
+        const context = await this.gameContract.getContext(this.gameIndex);
+        // obs: uses hexlify to avoid issues with uppercase vs lowercase hex representations
+        const signerAddress = ethers.utils.hexlify(ServiceConfig.currentInstance.signerAddress);
+        const playerAddress0 = ethers.utils.hexlify(context.players[0]);
+        return signerAddress == playerAddress0 ? 0 : 1;
     }
 }

@@ -56,6 +56,34 @@ describe("TurnBasedGameWeb3", function () {
         await pokerTokenContractBob.approve(TurnBasedGameLobby.address, bobFunds);
     });
 
+    it("should retrieve correct player index", async () => {
+        // Players join the game
+        let gameReadyPromiseResolver: (number) => void;
+        const gameReadyPromise = new Promise<number>((resolve) => {
+            gameReadyPromiseResolver = resolve;
+        });
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        await LobbyWeb3.joinGame(aliceInfo, () => {});
+        ServiceConfig.currentInstance.setSigner(bobAddress);
+        await LobbyWeb3.joinGame(bobInfo, (index, context) => {
+            gameReadyPromiseResolver(index);
+        });
+
+        // retrieves gameIndex from GameReady event
+        let gameIndex: number = await Promise.resolve(gameReadyPromise);
+
+        // instantiates TurnBasedGameWeb3
+        const turnBasedGame = new TurnBasedGameWeb3(gameIndex);
+
+        // tests getPlayerIndex
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        expect(await turnBasedGame.getPlayerIndex()).to.equal(0);
+        ServiceConfig.currentInstance.setSigner(bobAddress);
+        expect(await turnBasedGame.getPlayerIndex()).to.equal(1);
+
+        turnBasedGame.removeListeners();
+    });
+
     it("should allow a player to submit a turn, claim for a result and confirm the result", async () => {
         // Creates a promise that will only be resolved when gameReady callback for player 1 is called
         let gameReadyResolverPlayer1: (boolean) => void;
@@ -151,16 +179,17 @@ describe("TurnBasedGameWeb3", function () {
             gameReadyPromiseResolver = resolve;
         });
         ServiceConfig.currentInstance.setSigner(aliceAddress);
-        LobbyWeb3.joinGame(aliceInfo, () => {});
+        await LobbyWeb3.joinGame(aliceInfo, () => {});
         ServiceConfig.currentInstance.setSigner(bobAddress);
-        LobbyWeb3.joinGame(bobInfo, (index, context) => {
+        await LobbyWeb3.joinGame(bobInfo, (index, context) => {
             gameReadyPromiseResolver(index);
         });
 
         // retrieves gameIndex from GameReady event
         let gameIndex: number = await Promise.resolve(gameReadyPromise);
 
-        // creates TurnBasedGame instance
+        // creates TurnBasedGame instance for alice
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
         const turnBasedGame = new TurnBasedGameWeb3(gameIndex);
 
         // sets up callbacks to receive verification updates and game end
@@ -170,6 +199,9 @@ describe("TurnBasedGameWeb3", function () {
         // bob challenges game (and will lose all funds)
         ServiceConfig.currentInstance.setSigner(bobAddress);
         turnBasedGame.challengeGame("Challenge Test");
+
+        // set alice again as current user
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
 
         // check verification states
         let [state] = await Promise.resolve(verificationUpdatePromise);
@@ -188,6 +220,7 @@ describe("TurnBasedGameWeb3", function () {
         expect(state).eq(VerificationState.ENDED);
 
         // check game end: result should give all funds to alice
+        // obs: alice's TurnBasedGameWeb3 instance will only submits a tx to apply the result if alice is the interested party (has the most funds in the result)
         const result = await Promise.resolve(gameOverPromise);
         expect(result.length).to.equal(2);
         console.log(`Result: [${result[0].toString()}, ${result[1].toString()}]`);
