@@ -172,19 +172,19 @@ describe("TurnBasedGameWeb3", function () {
         turnBasedGame.challengeGame("Challenge Test");
 
         // check verification states
-        let state = await Promise.resolve(verificationUpdatePromise);
+        let [state] = await Promise.resolve(verificationUpdatePromise);
         expect(state).eq(VerificationState.STARTED);
 
         verificationUpdatePromise = turnBasedGame.receiveVerificationUpdate();
-        state = await Promise.resolve(verificationUpdatePromise);
+        [state] = await Promise.resolve(verificationUpdatePromise);
         expect(state).eq(VerificationState.RESULT_SUBMITTED);
 
         verificationUpdatePromise = turnBasedGame.receiveVerificationUpdate();
-        state = await Promise.resolve(verificationUpdatePromise);
+        [state] = await Promise.resolve(verificationUpdatePromise);
         expect(state).eq(VerificationState.RESULT_CONFIRMED);
 
         verificationUpdatePromise = turnBasedGame.receiveVerificationUpdate();
-        state = await Promise.resolve(verificationUpdatePromise);
+        [state] = await Promise.resolve(verificationUpdatePromise);
         expect(state).eq(VerificationState.ENDED);
 
         // check game end: result should give all funds to alice

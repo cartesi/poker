@@ -38,7 +38,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
     descartesListeners: object = {};
     onGameChallengeReceived: (msg: string) => any;
-    onVerificationUpdate: (state: VerificationState, msg: string) => any;
+    onVerificationUpdate: (update: [VerificationState, string]) => any;
 
     constructor(gameIndex: number) {
         this.gameIndex = gameIndex;
@@ -244,7 +244,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             this.onGameChallengeReceived(gameIndex);
         }
         if (this.onVerificationUpdate) {
-            this.onVerificationUpdate(VerificationState.STARTED, message);
+            this.onVerificationUpdate([VerificationState.STARTED, message]);
         }
 
         // turns off previous listeners for Descartes events, if there were any
@@ -287,28 +287,28 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         listeners["DescartesCreated"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
                 console.log(`Received 'DescartesCreated' event for Descartes computation ${descartesIndex}`);
-                self.onVerificationUpdate(VerificationState.STARTED, message);
+                self.onVerificationUpdate([VerificationState.STARTED, message]);
             }
         };
 
         listeners["ClaimSubmitted"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
                 console.log(`Received 'ClaimSubmitted' event for Descartes computation ${descartesIndex}`);
-                self.onVerificationUpdate(VerificationState.RESULT_SUBMITTED, message);
+                self.onVerificationUpdate([VerificationState.RESULT_SUBMITTED, message]);
             }
         };
 
         listeners["Confirmed"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
                 console.log(`Received 'Confirmed' event for Descartes computation ${descartesIndex}`);
-                self.onVerificationUpdate(VerificationState.RESULT_CONFIRMED, message);
+                self.onVerificationUpdate([VerificationState.RESULT_CONFIRMED, message]);
             }
         };
 
         listeners["ChallengeStarted"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
                 console.log(`Received 'ChallengeStarted' event for Descartes computation ${descartesIndex}`);
-                self.onVerificationUpdate(VerificationState.RESULT_CHALLENGED, message);
+                self.onVerificationUpdate([VerificationState.RESULT_CHALLENGED, message]);
             }
         };
 
@@ -331,7 +331,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                     }
                 }
                 if (self.onVerificationUpdate) {
-                    self.onVerificationUpdate(verificationState, message);
+                    self.onVerificationUpdate([verificationState, message]);
                 }
             }
         };
