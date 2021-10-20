@@ -216,7 +216,8 @@ export class RoomManager {
         } else {
             this.updateOpponentStateTimeout = setTimeout(async () => {
                 RoomScene.currentInstance.startOpponentTurn();
-                RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, false);
+                // opponent's timer is given an added safety margin to account for the time between a turn submission and it being perceived
+                RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS + GameConstants.TIMEOUT_SAFETY_MARGIN_SECONDS, false);
             }, 2000);
         }
     }
@@ -283,7 +284,7 @@ export class RoomManager {
         RoomManager.updateBoard();
         RoomManager.updateOpponentState();
         RoomManager.showBetButtons();
-        RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS - GameConstants.TIMEOUT_SAFETY_MARGIN_SECONDS, true);
+        RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, true);
     }
 
     private static initTimer(value: number, isPlayer: boolean): void {

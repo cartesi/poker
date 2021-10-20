@@ -51,6 +51,6 @@ export class GameConstants {
 
     // Game constants
     public static readonly BIG_BLIND = BigNumber.from(10);
-    public static readonly TIMEOUT_SECONDS = 300;
+    public static readonly TIMEOUT_SECONDS = 240;
     public static readonly TIMEOUT_SAFETY_MARGIN_SECONDS = 60;
 }
