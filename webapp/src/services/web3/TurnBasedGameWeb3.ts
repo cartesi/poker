@@ -314,7 +314,11 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                 console.log(`Received 'DescartesFinished' event for Descartes computation ${descartesIndex}`);
                 const stateStr = ethers.utils.toUtf8String(state);
                 let verificationState: VerificationState;
-                if (stateStr.startsWith("ConsensusResult")) {
+                if (
+                    stateStr.startsWith("ConsensusResult") ||
+                    stateStr.startsWith("ClaimerWon") ||
+                    stateStr.startsWith("ChallengerWon")
+                ) {
                     // result successfully computed: apply it if this user has the most funds at stake (i.e., if this is the party most interested in applying the result)
                     verificationState = VerificationState.ENDED;
                     let shouldApplyResult = true;
