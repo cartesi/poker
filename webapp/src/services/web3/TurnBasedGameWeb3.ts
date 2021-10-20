@@ -240,9 +240,6 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         if (this.onGameChallengeReceived) {
             this.onGameChallengeReceived(gameIndex);
         }
-        if (this.onVerificationUpdate) {
-            this.onVerificationUpdate([VerificationState.STARTED, message]);
-        }
 
         // turns off previous listeners for Descartes events, if there were any
         for (let eventName in this.descartesListeners) {
@@ -255,6 +252,17 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         // sets up listeners on Descartes contract
         for (let eventName in this.descartesListeners) {
             this.descartesContract.on(eventName, this.descartesListeners[eventName]);
+        }
+
+        // if Descartes started before listeners were in place, emits STARTED notification
+        if (this.onVerificationUpdate) {
+            try {
+                this.descartesContract.getCurrentState(descartesIndex);
+                // no exception means that the Descartes computation was instantiated: notify that verification has already started
+                this.onVerificationUpdate([VerificationState.STARTED, message]);
+            } catch (error) {
+                // exception means that Descartes instance is not available yet: that's ok, the Descartes listeners will take care of it
+            }
         }
     }
     receiveGameChallenged(): Promise<any> {
