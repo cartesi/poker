@@ -235,6 +235,13 @@ export class GameFactory {
                 return;
             }
             let choices = [0, 1, 2, 3];
+            if ((await game.getPlayerBets()).eq(await game.getOpponentBets())) {
+                // remove 'call' and 'fold' options if bets are equal
+                choices = choices.filter((choice) => choice != 0 && choice != 2);
+            } else {
+                // remove 'check' option if bets are equal
+                choices = choices.filter((choice) => choice != 1);
+            }
             while (true) {
                 if (choices.length == 0) {
                     break;
@@ -254,7 +261,8 @@ export class GameFactory {
                     }
                     break;
                 } catch (e) {
-                    // bet choice not allowed, remove that possibility and try again
+                    // bet choice failed for some reason; remove that possibility and try again
+                    console.error(`Error making automatic bet - will try another option: ${e}`);
                     choices.splice(i, 1);
                 }
             }

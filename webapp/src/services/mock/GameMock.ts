@@ -151,9 +151,6 @@ export class GameMock implements Game {
     }
 
     async fold() {
-        if (this.opponentBets.eq(this.playerBets) && this.state != GameState.SHOWDOWN) {
-            throw "Fold not allowed because player and opponent bets are equal: use check instead";
-        }
         await this._submitTurn("FOLD");
         this._computeResultPlayerFold();
     }
