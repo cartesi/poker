@@ -342,7 +342,9 @@ describe("TurnBasedGame", async () => {
 
     describe("submitTurn", async () => {
         it("Should only be allowed for active games", async () => {
-            await expect(gameContract.submitTurn(0, 0, turnData)).to.be.revertedWith("Index not instantiated");
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)).to.be.revertedWith(
+                "Index not instantiated"
+            );
             await initCallerFunds(players[0], playerFunds);
             await gameContract.startGame(
                 gameTemplateHash,
@@ -353,7 +355,7 @@ describe("TurnBasedGame", async () => {
                 playerFunds,
                 playerInfos
             );
-            await expect(gameContract.submitTurn(0, 0, turnData)).not.to.be.reverted;
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)).not.to.be.reverted;
         });
 
         it("Should only be allowed from participating players", async () => {
@@ -367,10 +369,10 @@ describe("TurnBasedGame", async () => {
                 playerFunds,
                 playerInfos
             );
-            await expect(gameContractNonPlayer.submitTurn(0, 0, turnData)).to.be.revertedWith(
-                "Player is not participating in the game"
-            );
-            await expect(gameContract.submitTurn(0, 0, turnData)).not.to.be.reverted;
+            await expect(
+                gameContractNonPlayer.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)
+            ).to.be.revertedWith("Player is not participating in the game");
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)).not.to.be.reverted;
         });
 
         it("Should not be allowed when game result has been claimed", async () => {
@@ -385,7 +387,9 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             await gameContract.claimResult(0, playerFunds);
-            await expect(gameContract.submitTurn(0, 0, turnData)).to.be.revertedWith("Game end has been claimed");
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)).to.be.revertedWith(
+                "Game end has been claimed"
+            );
 
             // new games should be ok
             await initCallerFunds(players[0], playerFunds);
@@ -398,7 +402,7 @@ describe("TurnBasedGame", async () => {
                 playerFunds,
                 playerInfos
             );
-            await expect(gameContract.submitTurn(1, 0, turnData)).not.to.be.reverted;
+            await expect(gameContract.submitTurn(1, 0, ethers.constants.AddressZero, 0, turnData)).not.to.be.reverted;
         });
 
         it("Should not be allowed when game verification is in progress", async () => {
@@ -417,7 +421,9 @@ describe("TurnBasedGame", async () => {
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
 
-            await expect(gameContract.submitTurn(0, 0, turnData)).to.be.revertedWith("Game verification in progress");
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)).to.be.revertedWith(
+                "Game verification in progress"
+            );
 
             // new games should be ok
             await initCallerFunds(players[0], playerFunds);
@@ -430,7 +436,7 @@ describe("TurnBasedGame", async () => {
                 playerFunds,
                 playerInfos
             );
-            await expect(gameContract.submitTurn(1, 0, turnData)).not.to.be.reverted;
+            await expect(gameContract.submitTurn(1, 0, ethers.constants.AddressZero, 0, turnData)).not.to.be.reverted;
         });
 
         it("Should only be allowed with correct turnIndex sequence", async () => {
@@ -446,25 +452,69 @@ describe("TurnBasedGame", async () => {
             );
 
             // 1st submission must have turnIndex 0
-            await expect(gameContract.submitTurn(0, 1, turnData)).to.be.revertedWith(
+            await expect(gameContract.submitTurn(0, 1, ethers.constants.AddressZero, 0, turnData)).to.be.revertedWith(
                 "Invalid turn submission sequence"
             );
-            await expect(gameContract.submitTurn(0, 5, turnData)).to.be.revertedWith(
+            await expect(gameContract.submitTurn(0, 5, ethers.constants.AddressZero, 0, turnData)).to.be.revertedWith(
                 "Invalid turn submission sequence"
             );
-            await expect(gameContract.submitTurn(0, 0, turnData)).not.to.be.reverted;
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)).not.to.be.reverted;
 
             // 2nd submission must have turnIndex 1
-            await expect(gameContract.submitTurn(0, 0, turnData)).to.be.revertedWith(
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)).to.be.revertedWith(
                 "Invalid turn submission sequence"
             );
-            await expect(gameContract.submitTurn(0, 2, turnData)).to.be.revertedWith(
+            await expect(gameContract.submitTurn(0, 2, ethers.constants.AddressZero, 0, turnData)).to.be.revertedWith(
                 "Invalid turn submission sequence"
             );
-            await expect(gameContract.submitTurn(0, 5, turnData)).to.be.revertedWith(
+            await expect(gameContract.submitTurn(0, 5, ethers.constants.AddressZero, 0, turnData)).to.be.revertedWith(
                 "Invalid turn submission sequence"
             );
-            await expect(gameContract.submitTurn(0, 1, turnData)).not.to.be.reverted;
+            await expect(gameContract.submitTurn(0, 1, ethers.constants.AddressZero, 0, turnData)).not.to.be.reverted;
+        });
+
+        it("Should only be allowed with valid next players", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+            await expect(
+                gameContract.submitTurn(0, 0, await gameContractNonPlayer.signer.getAddress(), 0, turnData)
+            ).to.be.revertedWith("Player specified as responsible for next turn is not participating in the game");
+            await expect(gameContract.submitTurn(0, 0, gameContract.address, 0, turnData)).to.be.revertedWith(
+                "Player specified as responsible for next turn is not participating in the game"
+            );
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)).not.to.be.reverted;
+            await expect(gameContract.submitTurn(0, 1, players[0], 0, turnData)).not.to.be.reverted;
+            await expect(gameContract.submitTurn(0, 2, players[1], 0, turnData)).not.to.be.reverted;
+        });
+
+        it("Should only be allowed with valid player stakes", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 120, turnData)).to.be.revertedWith(
+                "Staked funds cannot exceed total player funds locked in the game"
+            );
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 101, turnData)).to.be.revertedWith(
+                "Staked funds cannot exceed total player funds locked in the game"
+            );
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 100, turnData)).not.to.be.reverted;
+            await expect(gameContract.submitTurn(0, 1, ethers.constants.AddressZero, 10, turnData)).not.to.be.reverted;
+            await expect(gameContract.submitTurn(0, 2, ethers.constants.AddressZero, 0, turnData)).not.to.be.reverted;
         });
 
         it("Should emit TurnOver event", async () => {
@@ -484,7 +534,7 @@ describe("TurnBasedGame", async () => {
             await network.provider.send("evm_setNextBlockTimestamp", [timestampSeconds]);
 
             // turn from player 0
-            let tx = await gameContract.submitTurn(0, 0, turnData);
+            let tx = await gameContract.submitTurn(0, 0, players[1], 10, turnData);
             let turnOverEventRaw = (await tx.wait()).events[0];
             expect(turnOverEventRaw).not.equal(undefined, "No event emitted");
             let turnOverEvent = contextLibrary.interface.parseLog(turnOverEventRaw);
@@ -496,11 +546,16 @@ describe("TurnBasedGame", async () => {
             expect(index).to.eql(ethers.BigNumber.from(0), "1st turn should have game index 0");
             expect(turnIndex).to.eql(ethers.BigNumber.from(0), "1st turn should refer to turnIndex 0");
             expect(turn[0]).to.eql(players[0], "1st turn should be emitted by player0");
-            expect(turn[1]).to.eql(
+            expect(turn[1]).to.eql(players[1], "1st turn should be emitted with the correct nextPlayer");
+            expect(turn[2]).to.eql(
+                ethers.BigNumber.from(10),
+                "1st turn should be emitted with the correct playerStake"
+            );
+            expect(turn[3]).to.eql(
                 ethers.BigNumber.from(timestampSeconds),
                 "1st turn should be emitted with the correct timestamp"
             );
-            expect(turn[2]).to.eql(
+            expect(turn[4]).to.eql(
                 [ethers.BigNumber.from(EMPTY_DATA_LOG_INDEX)],
                 "1st turn should refer to the appropriate log index"
             );
@@ -510,7 +565,7 @@ describe("TurnBasedGame", async () => {
             const player1LogIndex = 3;
             await mockLogger.mock.calculateMerkleRootFromData.returns(player1LogHash);
             await mockLogger.mock.getLogIndex.returns(player1LogIndex);
-            tx = await gameContractPlayer1.submitTurn(0, 1, turnData);
+            tx = await gameContractPlayer1.submitTurn(0, 1, players[0], 20, turnData);
             turnOverEventRaw = (await tx.wait()).events[0];
             expect(turnOverEventRaw).not.equal(undefined, "No event emitted");
             turnOverEvent = contextLibrary.interface.parseLog(turnOverEventRaw);
@@ -522,11 +577,16 @@ describe("TurnBasedGame", async () => {
             expect(index).to.eql(ethers.BigNumber.from(0), "2nd turn should have game index 0");
             expect(turnIndex).to.eql(ethers.BigNumber.from(1), "2nd turn should refer to turnIndex 1");
             expect(turn[0]).to.eql(players[1], "2nd turn should be emitted by player1");
-            expect(turn[1]).to.be.above(
+            expect(turn[1]).to.eql(players[0], "1st turn should be emitted with the correct nextPlayer");
+            expect(turn[2]).to.eql(
+                ethers.BigNumber.from(20),
+                "1st turn should be emitted with the correct playerStake"
+            );
+            expect(turn[3]).to.be.above(
                 ethers.BigNumber.from(timestampSeconds),
                 "2nd turn should be emitted with the correct timestamp"
             );
-            expect(turn[2]).to.eql(
+            expect(turn[4]).to.eql(
                 [ethers.BigNumber.from(player1LogIndex)],
                 "2nd turn should refer to the appropriate log index"
             );
@@ -549,9 +609,9 @@ describe("TurnBasedGame", async () => {
             const logIndex0 = 25;
             const logIndex1 = 28;
             await mockLogger.mock.getLogIndex.returns(logIndex0);
-            await gameContract.submitTurn(0, 0, turnData0);
+            await gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData0);
             await mockLogger.mock.getLogIndex.returns(logIndex1);
-            await gameContractPlayer1.submitTurn(0, 1, turnData1);
+            await gameContractPlayer1.submitTurn(0, 1, ethers.constants.AddressZero, 0, turnData1);
             let context = await gameContract.getContext(0);
             let turns = context[7];
             expect(turns.length).to.eql(2);
@@ -581,7 +641,7 @@ describe("TurnBasedGame", async () => {
             for (let i = 0; i < 10; i++) {
                 turnData = turnData.concat(bytes8);
             }
-            await gameContract.submitTurn(0, 0, turnData);
+            await gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData);
             let context = await gameContract.getContext(0);
             let turns = context[7];
             expect(turns.length).to.eql(1, "Should contain one turn");
@@ -592,7 +652,7 @@ describe("TurnBasedGame", async () => {
             for (let i = 0; i < 128; i++) {
                 turnData = turnData.concat(bytes8);
             }
-            await gameContract.submitTurn(0, 1, turnData);
+            await gameContract.submitTurn(0, 1, ethers.constants.AddressZero, 0, turnData);
             context = await gameContract.getContext(0);
             turns = context[7];
             expect(turns.length).to.eql(2, "Should contain two turns");
@@ -603,7 +663,7 @@ describe("TurnBasedGame", async () => {
             for (let i = 0; i < 513; i++) {
                 turnData = turnData.concat(bytes8);
             }
-            await gameContract.submitTurn(0, 2, turnData);
+            await gameContract.submitTurn(0, 2, ethers.constants.AddressZero, 0, turnData);
             context = await gameContract.getContext(0);
             turns = context[7];
             expect(turns.length).to.eql(3, "Should contain three turns");
@@ -614,7 +674,7 @@ describe("TurnBasedGame", async () => {
             for (let i = 0; i < 1750; i++) {
                 turnData = turnData.concat(bytes8);
             }
-            await gameContract.submitTurn(0, 3, turnData);
+            await gameContract.submitTurn(0, 3, ethers.constants.AddressZero, 0, turnData);
             context = await gameContract.getContext(0);
             turns = context[7];
             expect(turns.length).to.eql(4, "Should contain four turns");

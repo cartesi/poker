@@ -23,6 +23,10 @@ import "./TurnBasedGameUtil.sol";
 struct Turn {
     // player that submitted the turn
     address player;
+    // player responsible for next turn (can be empty, in which case no player will be held accountable for a timeout)
+    address nextPlayer;
+    // player funds at stake after the turn
+    uint256 playerStake;
     // timestamp when turn was submitted
     uint256 timestamp;
     // indices that identify the turn's data stored in the Logger
@@ -55,7 +59,7 @@ struct GameContext {
     address claimer;
     // claim data: claimed result represented by a distribution of player funds
     uint256[] claimedFundsShare;
-    // FIXME: either enforce max of 255 players or use a variable-sized Bitmask
+    // FIXME: either enforce max of 256 players or use a variable-sized Bitmask
     // claim data: mask indicating players that agree with the claim
     uint256 claimAgreementMask;
 }
@@ -75,6 +79,8 @@ library TurnBasedGameContext {
     /// @param _context game context
     /// @param _index index identifying the game
     /// @param _turnIndex a sequential number for the turn, which must be equal to the last submitted turn's index + 1
+    /// @param _nextPlayer address of a player responsible for next turn (can be empty, in which case no player will be held accountable for a timeout)
+    /// @param _playerStake amount of tokens at stake after the turn
     /// @param _data game-specific turn data (array of 64-bit words)
     /// @param _logger Logger instance used for storing data in the event history
     /// @param _turnChunkLog2Size turn data log2size considering 64-bit words (i.e., how many 64-bit words are there in a chunk of turn data)
@@ -82,6 +88,8 @@ library TurnBasedGameContext {
         GameContext storage _context,
         uint256 _index,
         uint256 _turnIndex,
+        address _nextPlayer,
+        uint256 _playerStake,
         bytes calldata _data,
         Logger _logger,
         uint8 _turnChunkLog2Size
@@ -92,8 +100,15 @@ library TurnBasedGameContext {
         // - game has not been challenged
         require(!_context.isDescartesInstantiated, "Game verification in progress");
 
-        // ensures tuen submission sequence is correct
+        // ensures turn submission sequence is correct
         require(_turnIndex == _context.turns.length, "Invalid turn submission sequence");
+
+        // ensures next player is valid
+        require(_nextPlayer == address(0) || isConcerned(_context, _nextPlayer), "Player specified as responsible for next turn is not participating in the game");
+
+        // ensures player stake is valid
+        uint256 playerIndex = getPlayerIndex(_context, msg.sender);
+        require(_playerStake <= _context.playerFunds[playerIndex], "Staked funds cannot exceed total player funds locked in the game");
 
         // defines number of required chunks
         uint256 chunkSize = 2**_turnChunkLog2Size;
@@ -126,7 +141,13 @@ library TurnBasedGameContext {
         }
 
         // instantiates new turn
-        Turn memory turn = Turn({player: msg.sender, timestamp: block.timestamp, dataLogIndices: logIndices});
+        Turn memory turn = Turn({
+            player: msg.sender,
+            nextPlayer: _nextPlayer,
+            playerStake: _playerStake,
+            timestamp: block.timestamp,
+            dataLogIndices: logIndices}
+        );
 
         // records new turn in the game context
         _context.turns.push(turn);
@@ -291,7 +312,22 @@ library TurnBasedGameContext {
         _descartes.destruct(_context.descartesIndex);
     }
 
-    /// @notice Indicates whether a given player is concerned about a game
+    /// @notice Given a player's address, returns his index within a game context
+    /// @param _context game context
+    /// @param _player a player's address
+    /// @return index of the player in the game, reverting if the player is not participating in it
+    function getPlayerIndex(GameContext storage _context, address _player) internal view returns (uint256) {
+        for (uint256 i = 0; i < _context.players.length; i++) {
+            if (_player == _context.players[i]) {
+                return i;
+            }
+        }
+
+        // given address is not involved in the game
+        revert("Player is not participating in the game");
+    }
+
+    /// @notice Returns the index of a player within a game given his address
     /// @param _context game context
     /// @param _player a player's address
     /// @return true if the player is concerned about the game, false otherwise

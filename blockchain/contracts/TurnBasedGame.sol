@@ -128,14 +128,18 @@ contract TurnBasedGame is InstantiatorImpl {
     /// @notice Submits a new turn for a given game
     /// @param _index index identifying the game
     /// @param _turnIndex a sequential number for the turn, which must be equal to the last submitted turn's index + 1
+    /// @param _nextPlayer address of a player responsible for next turn (can be empty, in which case no player will be held accountable for a timeout)
+    /// @param _playerStake amount of tokens at stake after the turn
     /// @param _data game-specific turn data (array of 64-bit words)
     function submitTurn(
         uint256 _index,
         uint256 _turnIndex,
+        address _nextPlayer,
+        uint256 _playerStake,
         bytes calldata _data
     ) public onlyActive(_index) {
         GameContext storage context = instances[_index];
-        context.submitTurn(_index, _turnIndex, _data, logger, turnChunkLog2Size);
+        context.submitTurn(_index, _turnIndex, _nextPlayer, _playerStake, _data, logger, turnChunkLog2Size);
     }
 
     /// @notice Challenges game state, triggering a verification by a Descartes computation
