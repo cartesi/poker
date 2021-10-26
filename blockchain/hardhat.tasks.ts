@@ -226,6 +226,8 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
                 const turn = turns[iTurn];
                 console.log(`- turn ${iTurn}`);
                 console.log(`  - player: ${turn.player}`);
+                console.log(`  - nextPlayer: ${turn.nextPlayer}`);
+                console.log(`  - playerStake: ${turn.playerStake}`);
                 console.log(`  - timestamp: ${new Date(turn.timestamp * 1000).toISOString()}`);
                 for (let iChunk = 0; iChunk < turn.dataLogIndices.length; iChunk++) {
                     let index = turn.dataLogIndices[iChunk];
@@ -260,6 +262,18 @@ task("submit-turn", "Submits a game turn for a given player")
         types.string
     )
     .addOptionalParam(
+        "nextplayer",
+        "Name of the account responsible for submitting the next turn, such as 'alice' or 'bob'",
+        undefined,
+        types.string
+    )
+    .addOptionalParam(
+        "playerstake",
+        "Player funds at stake after the turn",
+        0,
+        types.int
+    )
+    .addOptionalParam(
         "data",
         "Turn data to submit, which must be an array of 64-bit words",
         "0x00000000000000010000000000000002",
@@ -277,10 +291,13 @@ task("submit-turn", "Submits a game turn for a given player")
         undefined,
         types.string
     )
-    .setAction(async ({ index, player, data, datastr, datafile }, hre) => {
+    .setAction(async ({ index, player, nextplayer, playerstake, data, datastr, datafile }, hre) => {
         const { ethers } = hre;
-        // retrieves account from configured named accounts, according to player's name
+
+        // retrieves accounts from configured named accounts, according to players' names
         const playerAccount = (await hre.getNamedAccounts())[player];
+        const nextPlayerAccount = (nextplayer ? (await hre.getNamedAccounts())[nextplayer] : ethers.constants.AddressZero);
+
         // retrieves game contracts with signer configured for the specified account
         // - this means that any transaction submitted will be on behalf of that specified account
         const game = await ethers.getContract("TurnBasedGame", playerAccount);
@@ -307,9 +324,10 @@ task("submit-turn", "Submits a game turn for a given player")
                 )}'\n`
             );
         }
+        console.log(`Player stake: ${playerstake}; next player: '${nextplayer}' (${nextPlayerAccount})\n`);
 
         // submits turn for the specified player
-        await game.submitTurn(index, turns.length, data);
+        await game.submitTurn(index, turns.length, nextPlayerAccount, playerstake, data);
 
         context = await game.getContext(index);
         console.log(`Context: ${JSON.stringify(context)}\n`);
