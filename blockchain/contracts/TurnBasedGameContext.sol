@@ -458,15 +458,27 @@ library TurnBasedGameContext {
         uint8 _turnChunkLog2Size,
         uint64 _drivePosition
     ) internal view returns (DescartesInterface.Drive memory _drive) {
-        address[] memory players = new address[](_context.turns.length);
-        uint256[] memory timestamps = new uint256[](_context.turns.length);
-        uint256[] memory sizes = new uint256[](_context.turns.length);
+        // encoding:
+        // - turn count (4 bytes)
+        // - player addresses for each turn (20 bytes each)
+        // - nextPlayer addresses for each turn (20 bytes each)
+        // - playerStakes for each turn (32 bytes each)
+        // - timestamps for each turn (4 bytes each)
+        // - sizes for each turn (4 bytes each)
+        // obs: total drive size in bytes will be: 4 + (80 * nTurns)
+        bytes memory players;
+        bytes memory nextPlayers;
+        bytes memory playerStakes;
+        bytes memory timestamps;
+        bytes memory sizes;
         for (uint256 i = 0; i < _context.turns.length; i++) {
-            players[i] = _context.turns[i].player;
-            timestamps[i] = _context.turns[i].timestamp;
-            sizes[i] = _context.turns[i].dataLogIndices.length * (2**_turnChunkLog2Size);
+            players = abi.encodePacked(players, abi.encodePacked(_context.turns[i].player));
+            nextPlayers = abi.encodePacked(nextPlayers, abi.encodePacked(_context.turns[i].nextPlayer));
+            playerStakes = abi.encodePacked(playerStakes, abi.encodePacked(_context.turns[i].playerStake));
+            timestamps = abi.encodePacked(timestamps, abi.encodePacked(uint32(_context.turns[i].timestamp)));
+            sizes = abi.encodePacked(sizes, abi.encodePacked(uint32(_context.turns[i].dataLogIndices.length * (2**_turnChunkLog2Size))));
         }
-        bytes memory turnsMetadata = abi.encodePacked(uint32(_context.turns.length), players, timestamps, sizes);
+        bytes memory turnsMetadata = abi.encodePacked(uint32(_context.turns.length), players, nextPlayers, playerStakes, timestamps, sizes);
         return buildDirectDrive(turnsMetadata, _drivePosition);
     }
 
