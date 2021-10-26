@@ -35,6 +35,7 @@ export class PreloadScene extends Phaser.Scene {
     public loadAssets(): void {
 
         this.load.html("raiseform", "assets/raiseform.html");
+        this.load.image("bg", "assets/bg.png");
 
         this.load.atlas("texture_atlas_1", "assets/texture_atlas_1.png", "assets/texture_atlas_1.json");
         this.load.atlas("texture_atlas_2", "assets/texture_atlas_2.png", "assets/texture_atlas_2.json");
@@ -60,7 +61,7 @@ export class PreloadScene extends Phaser.Scene {
         this.progressBar.fillStyle(0xFFFFFF);
         this.progressBar.fillRect(0, GameConstants.GAME_HEIGHT - 10, GameConstants.GAME_WIDTH, 10);
         this.progressBar.scaleX = 0;
-    }   
+    }
 
     private loadHowl(): void {
 
@@ -69,11 +70,11 @@ export class PreloadScene extends Phaser.Scene {
 
         AudioManager.sound = new Howl(json);
 
-        AudioManager.sound.on("load", function(): void {
+        AudioManager.sound.on("load", function (): void {
 
             GameManager.onGameAssetsLoaded();
             PreloadScene.currentInstance.scene.setVisible(false);
-            
+
         });
     }
 }

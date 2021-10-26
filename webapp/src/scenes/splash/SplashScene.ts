@@ -23,8 +23,8 @@ export class SplashScene extends Phaser.Scene {
 
         GameManager.setCurrentScene(this);
 
-        this.background = new Phaser.GameObjects.Image(this, GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT / 2, "texture_atlas_1", "bg_gradient");
-        this.background.setScale(2);
+        this.background = new Phaser.GameObjects.Image(this, GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT / 2, "bg");
+        this.background.setScale(1);
         this.add.existing(this.background);
 
         this.topContainer = new Phaser.GameObjects.Container(this);
@@ -35,7 +35,7 @@ export class SplashScene extends Phaser.Scene {
         title.setOrigin(.5, 0);
         this.topContainer.add(title);
 
-        let powered = new Phaser.GameObjects.Text(this, 0, 310, " powered by Cartesi ", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF"});
+        let powered = new Phaser.GameObjects.Text(this, 0, 310, " powered by Cartesi ", { fontFamily: "Oswald-Medium", fontSize: "25px", color: "#FFFFFF" });
         powered.setOrigin(.5, 0);
         powered.setShadow(1, 1, "#000000", 5);
         this.topContainer.add(powered);
@@ -56,7 +56,7 @@ export class SplashScene extends Phaser.Scene {
                 this.chooseAvatarLayer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
             } else {
                 this.topContainer.setScale(GameVars.scaleX, 1);
-                this.chooseAvatarLayer.setScale(GameVars.scaleX, 1); 
+                this.chooseAvatarLayer.setScale(GameVars.scaleX, 1);
             }
             this.chooseAvatarLayer.setLandscapeMode();
         } else {

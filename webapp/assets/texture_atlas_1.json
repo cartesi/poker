@@ -640,6 +640,48 @@
 					}
 				},
 				{
+					"filename": "timer",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 89,
+						"h": 34
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 89,
+						"h": 34
+					},
+					"frame": {
+						"x": 1871,
+						"y": 666,
+						"w": 89,
+						"h": 34
+					}
+				},
+				{
+					"filename": "timer_capsule",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 297,
+						"h": 152
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 297,
+						"h": 152
+					},
+					"frame": {
+						"x": 1735,
+						"y": 766,
+						"w": 297,
+						"h": 152
+					}
+				},
+				{
 					"filename": "hand_rank",
 					"rotated": false,
 					"trimmed": false,
@@ -844,7 +886,7 @@
 					},
 					"frame": {
 						"x": 1735,
-						"y": 766,
+						"y": 920,
 						"w": 182,
 						"h": 182
 					}
@@ -865,7 +907,7 @@
 					},
 					"frame": {
 						"x": 1919,
-						"y": 766,
+						"y": 920,
 						"w": 125,
 						"h": 125
 					}
@@ -886,72 +928,9 @@
 					},
 					"frame": {
 						"x": 1919,
-						"y": 893,
+						"y": 1047,
 						"w": 115,
 						"h": 170
-					}
-				},
-				{
-					"filename": "avatar_03",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 182,
-						"h": 182
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 182,
-						"h": 182
-					},
-					"frame": {
-						"x": 1735,
-						"y": 950,
-						"w": 182,
-						"h": 182
-					}
-				},
-				{
-					"filename": "txtbox_raise",
-					"rotated": false,
-					"trimmed": true,
-					"sourceSize": {
-						"w": 109,
-						"h": 60
-					},
-					"spriteSourceSize": {
-						"x": 2,
-						"y": 4,
-						"w": 105,
-						"h": 56
-					},
-					"frame": {
-						"x": 1919,
-						"y": 1065,
-						"w": 105,
-						"h": 56
-					}
-				},
-				{
-					"filename": "mark_card",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 104,
-						"h": 156
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 104,
-						"h": 156
-					},
-					"frame": {
-						"x": 1919,
-						"y": 1123,
-						"w": 104,
-						"h": 156
 					}
 				},
 				{
@@ -976,7 +955,7 @@
 					}
 				},
 				{
-					"filename": "avatar_04",
+					"filename": "avatar_03",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
@@ -991,7 +970,28 @@
 					},
 					"frame": {
 						"x": 1680,
-						"y": 1134,
+						"y": 1104,
+						"w": 182,
+						"h": 182
+					}
+				},
+				{
+					"filename": "avatar_04",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 182,
+						"h": 182
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 182,
+						"h": 182
+					},
+					"frame": {
+						"x": 1864,
+						"y": 1219,
 						"w": 182,
 						"h": 182
 					}
@@ -1011,8 +1011,8 @@
 						"h": 182
 					},
 					"frame": {
-						"x": 1680,
-						"y": 1134,
+						"x": 1864,
+						"y": 1219,
 						"w": 182,
 						"h": 182
 					}
@@ -1032,31 +1032,10 @@
 						"h": 182
 					},
 					"frame": {
-						"x": 1680,
-						"y": 1134,
+						"x": 1864,
+						"y": 1219,
 						"w": 182,
 						"h": 182
-					}
-				},
-				{
-					"filename": "bg_vs",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 180,
-						"h": 180
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 180,
-						"h": 180
-					},
-					"frame": {
-						"x": 1864,
-						"y": 1281,
-						"w": 180,
-						"h": 180
 					}
 				},
 				{
@@ -1102,6 +1081,27 @@
 					}
 				},
 				{
+					"filename": "bg_vs",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 180,
+						"h": 180
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 180,
+						"h": 180
+					},
+					"frame": {
+						"x": 1664,
+						"y": 1288,
+						"w": 180,
+						"h": 180
+					}
+				},
+				{
 					"filename": "frame_matching",
 					"rotated": false,
 					"trimmed": true,
@@ -1116,10 +1116,31 @@
 						"h": 171
 					},
 					"frame": {
-						"x": 774,
-						"y": 1147,
+						"x": 1846,
+						"y": 1403,
 						"w": 169,
 						"h": 171
+					}
+				},
+				{
+					"filename": "mark_card",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 104,
+						"h": 156
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 104,
+						"h": 156
+					},
+					"frame": {
+						"x": 464,
+						"y": 1576,
+						"w": 104,
+						"h": 156
 					}
 				},
 				{
@@ -1137,8 +1158,8 @@
 						"h": 78
 					},
 					"frame": {
-						"x": 945,
-						"y": 1147,
+						"x": 464,
+						"y": 1470,
 						"w": 88,
 						"h": 78
 					}
@@ -1158,8 +1179,8 @@
 						"h": 70
 					},
 					"frame": {
-						"x": 1035,
-						"y": 1147,
+						"x": 554,
+						"y": 1470,
 						"w": 70,
 						"h": 70
 					}
@@ -1179,8 +1200,8 @@
 						"h": 70
 					},
 					"frame": {
-						"x": 1035,
-						"y": 1219,
+						"x": 464,
+						"y": 1292,
 						"w": 70,
 						"h": 70
 					}
@@ -1200,10 +1221,31 @@
 						"h": 70
 					},
 					"frame": {
-						"x": 945,
-						"y": 1227,
+						"x": 464,
+						"y": 1364,
 						"w": 70,
 						"h": 70
+					}
+				},
+				{
+					"filename": "txtbox_raise",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 109,
+						"h": 60
+					},
+					"spriteSourceSize": {
+						"x": 2,
+						"y": 4,
+						"w": 105,
+						"h": 56
+					},
+					"frame": {
+						"x": 464,
+						"y": 1147,
+						"w": 105,
+						"h": 56
 					}
 				},
 				{
@@ -1222,7 +1264,7 @@
 					},
 					"frame": {
 						"x": 464,
-						"y": 1147,
+						"y": 1205,
 						"w": 60,
 						"h": 55
 					}
@@ -1243,7 +1285,7 @@
 					},
 					"frame": {
 						"x": 526,
-						"y": 1147,
+						"y": 1205,
 						"w": 56,
 						"h": 50
 					}
@@ -1264,7 +1306,7 @@
 					},
 					"frame": {
 						"x": 526,
-						"y": 1147,
+						"y": 1205,
 						"w": 56,
 						"h": 50
 					}
@@ -1275,6 +1317,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:a06550903388d170c6d3297534a84613:567d85703f23c3f7e4b36640b52d274e:1bd3fbbbdaf54e41cf80e3e904578de4$"
+		"smartupdate": "$TexturePacker:SmartUpdate:f28e805198b127c9c1d445092839754b:d3ebb8ee049d7d7a2afe722a6559372d:1bd3fbbbdaf54e41cf80e3e904578de4$"
 	}
 }

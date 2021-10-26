@@ -25,8 +25,8 @@ export class LobbyScene extends Phaser.Scene {
 
         GameManager.setCurrentScene(this);
 
-        this.background = new Phaser.GameObjects.Image(this, GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT / 2, "texture_atlas_1", "bg_gradient");
-        this.background.setScale(2);
+        this.background = new Phaser.GameObjects.Image(this, GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT / 2, "bg");
+        this.background.setScale(1);
         this.add.existing(this.background);
 
         this.backContainer = new Phaser.GameObjects.Container(this);
@@ -55,19 +55,19 @@ export class LobbyScene extends Phaser.Scene {
         title.setScale(.75);
         this.topContainer.add(title);
 
-        let powered = new Phaser.GameObjects.Text(this, 0, 230, " powered by Cartesi ", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        let powered = new Phaser.GameObjects.Text(this, 0, 230, " powered by Cartesi ", { fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF" });
         powered.setOrigin(.5, 0);
         powered.setShadow(1, 1, "#000000", 5);
         this.topContainer.add(powered);
 
-        let errorText = new Phaser.GameObjects.Text(this, 200, 230, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
+        let errorText = new Phaser.GameObjects.Text(this, 200, 230, "", { fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF" });
         errorText.setOrigin(.5, 0);
         errorText.setShadow(1, 1, "#000000", 5);
         this.topContainer.add(errorText);
         ErrorHandler.setOnError((index: number, title: string, error: any) => {
             if (errorText.active) {
                 errorText.setText(`Error executing ${title}`);
-                setTimeout(() => { if (errorText.active) { errorText.setText("") }}, ErrorHandler.getAttemptInterval());
+                setTimeout(() => { if (errorText.active) { errorText.setText("") } }, ErrorHandler.getAttemptInterval());
             }
         });
 

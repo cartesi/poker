@@ -7,6 +7,7 @@ export class TableContainer extends Phaser.GameObjects.Container {
 
     private gradient: Phaser.GameObjects.Image;
     private table: Phaser.GameObjects.Image;
+    private tableShadow: Phaser.GameObjects.Image;
 
     private player: Player;
     private opponent: Player;
@@ -20,12 +21,17 @@ export class TableContainer extends Phaser.GameObjects.Container {
         this.x = GameConstants.GAME_WIDTH / 2;
         this.y = GameConstants.GAME_HEIGHT / 2;
 
-        this.gradient = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "bg_gradient");
-        this.gradient.setScale(2);
+        this.gradient = new Phaser.GameObjects.Image(this.scene, 0, 0, "bg");
+        this.gradient.setScale(1);
         this.add(this.gradient);
 
         this.table = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "table");
         this.add(this.table);
+
+        this.tableShadow = new Phaser.GameObjects.Image(this.scene, 0, 10, "texture_atlas_1", "table_shadow");
+        this.add(this.tableShadow);
+
+        this.bringToTop(this.table);
 
         this.communityCards = new CommunityCards(this.scene);
         this.add(this.communityCards);
@@ -62,6 +68,9 @@ export class TableContainer extends Phaser.GameObjects.Container {
             this.table.setScale(GameVars.scaleY, 1);
             this.table.setAngle(90);
         }
+
+        this.tableShadow.setScale(this.table.scaleX + 0.1, this.table.scaleY + 0.1);
+
 
         this.communityCards.setScalesAndPostions();
         this.player.setScalesAndPostions();
