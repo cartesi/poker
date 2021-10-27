@@ -41,6 +41,8 @@ struct GameContext {
     bytes gameMetadata;
     // validator nodes to be used for descartes computations
     address[] gameValidators;
+    // global timeout for game activity in seconds, after which the game may be terminated
+    uint256 gameTimeout;
     // address for the ERC20 compatible token provider
     address gameERC20Address;
     // players involved
@@ -49,6 +51,8 @@ struct GameContext {
     uint256[] playerFunds;
     // game-specific information per player
     bytes[] playerInfos;
+    // timestamp at which the game was instantiated
+    uint256 startTimestamp;
     // game-specific turns submitted by each user (including initial state)
     Turn[] turns;
     // indicates whether a descartes computation has been instantiated
@@ -210,6 +214,61 @@ library TurnBasedGameContext {
         return _context.descartesIndex;
     }
 
+    /// @notice Claims game has ended due to a timeout.
+    /// @param _context game context
+    /// @param _index index identifying the game
+    /// @return _isTimeout true if a timeout was indeed verified, false otherwise
+    function claimTimeout(
+        GameContext storage _context,
+        uint256 _index
+    ) public
+        returns (bool _isTimeout) 
+    {
+        // reverts if game verification has been triggered
+        require(!_context.isDescartesInstantiated, "Game has been challenged and a verification has been requested");
+
+        // checks for a timeout for submitting the first turn
+        // - if a timeout occurred, game is ended with players keeping their original funds
+        if (_context.turns.length == 0) {
+            // no turn was ever submitted: check timeout between game start and current timestamp
+            if (block.timestamp - _context.startTimestamp > _context.gameTimeout) {
+                applyResult(_context, _index, _context.playerFunds);
+                return true;
+            }
+        } else if (_context.turns[0].timestamp - _context.startTimestamp > _context.gameTimeout) {
+            // timeout occurred between game start and first turn submission
+            applyResult(_context, _index, _context.playerFunds);
+            return true;
+        } else {
+            // checks for a timeout between each submitted turn
+            for (uint256 i = 1; i < _context.turns.length; i++) {
+                if (_context.turns[i].timestamp - _context.turns[i-1].timestamp > _context.gameTimeout) {
+                    // timeout occurred: last valid turn was at index i-1
+                    applyTurnTimeout(_context, _index, i-1);
+                    return true;
+                }
+            }
+            if (_context.claimer == address(0)) {
+                // if there is no claimed result yet, checks timeout between last turn and current timestamp
+                if (block.timestamp - _context.turns[_context.turns.length - 1].timestamp > _context.gameTimeout) {
+                    // timeout occurred since last turn
+                    applyTurnTimeout(_context, _index, _context.turns.length - 1);
+                    return true;
+                }
+            } else if (!_context.isDescartesInstantiated) {
+                // there is a claim and game has not been challenged, may end it by timeout
+                // TODO: add GameContext.claimTimestamp
+                // if (block.timestamp - _context.claimTimestamp > _context.gameTimeout) {
+                //     // no one confirmed nor contested the claim: game ends with claimed result
+                //     applyResult(_context, _index, _context.claimedFundsShare);
+                //     return true;
+                // }
+            }
+        }
+        return false;
+    }
+
+
     /// @notice Claims game has ended with the provided result (share of locked funds)
     /// @param _context game context
     /// @param _index index identifying the game
@@ -341,6 +400,51 @@ library TurnBasedGameContext {
 
         // given address is not involved in the game
         return false;
+    }
+
+    /// @notice Applies the results of a game, transferring locked funds according to the provided distribution
+    /// @param _context game context
+    /// @param _index index identifying the game
+    /// @param _lastValidTurnIndex index of the last valid turn, before a timeout was detected
+    function applyTurnTimeout(
+        GameContext storage _context,
+        uint256 _index,
+        uint256 _lastValidTurnIndex
+    ) internal {
+
+        address blamedPlayer = _context.turns[_lastValidTurnIndex].nextPlayer;
+        if (blamedPlayer == address(0)) {
+            // no one to blame: game ends with players keeping their original funds
+            applyResult(_context, _index, _context.playerFunds);
+        } else {
+            // there is a player to blame: his active stake at the moment of the last valid turn shall be split among the others
+            uint256 blamedPlayerStake = 0;
+            for (uint256 i = _lastValidTurnIndex; i >= 0; i--) {
+                if (_context.turns[i].player == blamedPlayer) {
+                    // found the blamed player's active stake when the timeout was detected
+                    blamedPlayerStake = _context.turns[i].playerStake;
+                    break;
+                }
+            }
+            if (blamedPlayerStake == 0) {
+                // no stake to redistribute: game ends with players keeping their original funds
+                applyResult(_context, _index, _context.playerFunds);
+            } else {
+                // computes how much each of the other players will receive (equal split of the stake to distribute)
+                uint256 blamedPlayerIndex = getPlayerIndex(_context, blamedPlayer);
+                uint256 awardedStakePerPlayer = blamedPlayerStake / (_context.players.length - 1);
+
+                // computes the fundsShare by distributing the blamed player's stake (who loses his stake)
+                uint256[] memory fundsShare = new uint256[](_context.players.length);
+                for (uint256 i = 0; i < _context.players.length; i++) {
+                    fundsShare[i] = _context.playerFunds[i] + awardedStakePerPlayer;
+                }
+                fundsShare[blamedPlayerIndex] = _context.playerFunds[blamedPlayerIndex] - blamedPlayerStake;
+
+                // applies computed result
+                applyResult(_context, _index, fundsShare);
+            }
+        }
     }
 
     /// @notice Applies the results of a game, transferring locked funds according to the provided distribution

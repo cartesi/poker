@@ -304,22 +304,22 @@ task("submit-turn", "Submits a game turn for a given player")
 
         // queries game contract to retrieve context for the specified game index
         let context = await game.getContext(index);
-        const turns = context[7];
+        const turnIndex = context.turns.length;
 
         console.log("");
         if (datafile) {
             console.log(
-                `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data from file '${datafile}'\n`
+                `Submitting turn '${turnIndex}' for index '${index}' and player '${player}' (${playerAccount}), with data from file '${datafile}'\n`
             );
             data = fs.readFileSync(datafile).toString();
         } else if (datastr) {
             console.log(
-                `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data converted from string '${datastr}'\n`
+                `Submitting turn '${turnIndex}' for index '${index}' and player '${player}' (${playerAccount}), with data converted from string '${datastr}'\n`
             );
             data = ethers.utils.toUtf8Bytes(datastr);
         } else {
             console.log(
-                `Submitting turn for index '${index}' and player '${player}' (${playerAccount}), with data '${JSON.stringify(
+                `Submitting turn '${turnIndex}' for index '${index}' and player '${player}' (${playerAccount}), with data '${JSON.stringify(
                     data
                 )}'\n`
             );
@@ -327,7 +327,7 @@ task("submit-turn", "Submits a game turn for a given player")
         console.log(`Player stake: ${playerstake}; next player: '${nextplayer}' (${nextPlayerAccount})\n`);
 
         // submits turn for the specified player
-        await game.submitTurn(index, turns.length, nextPlayerAccount, playerstake, data);
+        await game.submitTurn(index, turnIndex, nextPlayerAccount, playerstake, data);
 
         context = await game.getContext(index);
         console.log(`Context: ${JSON.stringify(context)}\n`);
@@ -436,7 +436,7 @@ task("wait-verification", "Waits for a game to be verified by Descartes")
         const game = await ethers.getContract("TurnBasedGame");
 
         const context = await game.getContext(index);
-        const descartesIndex = context[9];
+        const descartesIndex = context.descartesIndex;
 
         console.log("");
         console.log(`Waiting for verification result for game with index '${index}' to be computed by Descartes under computation index '${descartesIndex}'...\n`);

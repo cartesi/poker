@@ -90,10 +90,12 @@ contract TurnBasedGame is InstantiatorImpl {
         context.gameTemplateHash = _gameTemplateHash;
         context.gameMetadata = _gameMetadata;
         context.gameValidators = _gameValidators;
+        context.gameTimeout = 10;
         context.gameERC20Address = _gameERC20Address;
         context.players = _players;
         context.playerFunds = _playerFunds;
         context.playerInfos = _playerInfos;
+        context.startTimestamp = block.timestamp;
 
         // emits event for new game
         emit TurnBasedGameContext.GameReady(currentIndex, context);
@@ -148,6 +150,16 @@ contract TurnBasedGame is InstantiatorImpl {
     function challengeGame(uint256 _index) public onlyActive(_index) returns (uint256) {
         GameContext storage context = instances[_index];
         return context.challengeGame(_index, descartes, logger, turnChunkLog2Size, emptyDataLogIndex);
+    }
+
+    /// @notice Claims game has ended due to a timeout.
+    /// @param _index index identifying the game
+    function claimTimeout(uint256 _index) public onlyActive(_index) {
+        GameContext storage context = instances[_index];
+        bool isTimeout = context.claimTimeout(_index);
+        if (isTimeout == true) {
+            deactivate(_index);
+        }
     }
 
     /// @notice Claims game has ended with the provided result (share of locked funds)

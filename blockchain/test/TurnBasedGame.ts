@@ -60,6 +60,7 @@ describe("TurnBasedGame", async () => {
 
     const gameTemplateHash = "0x88040f919276854d14efb58967e5c0cb2fa637ae58539a1c71c7b98b4f959baa";
     const gameMetadata = "0x";
+    const gameTimeout = ethers.BigNumber.from(10);
     const playerFunds = [ethers.BigNumber.from(100), ethers.BigNumber.from(100)];
     const playerInfos = [
         ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Alice")),
@@ -74,6 +75,8 @@ describe("TurnBasedGame", async () => {
     let signer;
     let player1;
     let nonPlayer;
+
+    let latestBlockTimestamp;
 
     beforeEach(async () => {
         [signer, player1, nonPlayer] = await ethers.getSigners();
@@ -116,6 +119,8 @@ describe("TurnBasedGame", async () => {
 
         contextLibrary = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
         contextLibrary = contextLibrary.attach(gameContract.address);
+
+        latestBlockTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
     });
 
     // prepares mock responses so that TurnBasedGame.challengeGame() can be called
@@ -186,22 +191,48 @@ describe("TurnBasedGame", async () => {
             let index = gameReadyEvent.args._index;
             let context = gameReadyEvent.args._context;
             expect(index).to.eql(ethers.BigNumber.from(0), "1st game should emit event with index 0");
-            expect(context[0]).to.eql(gameTemplateHash, "1st game should emit event with appropriate context");
-            expect(context[1]).to.eql(gameMetadata, "1st game should emit event with appropriate context");
-            expect(context[2]).to.eql(validators, "1st game should emit event with appropriate context");
-            expect(context[4]).to.eql(players, "1st game should emit event with appropriate context");
-            // context[3] is the ERC20 compatible token provider
-            expect(context[5]).to.eql(playerFunds, "1st game should emit event with appropriate context");
-            expect(context[6]).to.eql(playerInfos, "1st game should emit event with appropriate context");
-            expect(context[7]).to.eql([], "1st game should emit event with appropriate context"); // turns
-            expect(context[8]).to.eql(false, "1st game should emit event with appropriate context"); // null isDescartesInstantiated
-            expect(context[9]).to.eql(ethers.constants.Zero, "1st game should emit event with appropriate context"); // null descartesIndex
-            expect(context[10]).to.eql(
+            expect(context.gameTemplateHash).to.eql(
+                gameTemplateHash,
+                "1st game should emit event with appropriate gameTemplateHash"
+            );
+            expect(context.gameMetadata).to.eql(
+                gameMetadata,
+                "1st game should emit event with appropriate gameMetadata"
+            );
+            expect(context.gameValidators).to.eql(
+                validators,
+                "1st game should emit event with appropriate gameValidators"
+            );
+            expect(context.gameTimeout).to.eql(gameTimeout, "1st game should emit event with appropriate gameTimeout");
+            // context.gameERC20Address is the ERC20 compatible token provider
+            expect(context.players).to.eql(players, "1st game should emit event with appropriate players");
+            expect(context.playerFunds).to.eql(playerFunds, "1st game should emit event with appropriate playerFunds");
+            expect(context.playerInfos).to.eql(playerInfos, "1st game should emit event with appropriate playerInfos");
+            expect(
+                context.startTimestamp.gte(latestBlockTimestamp),
+                `1st game should emit event with appropriate startTimestamp (should be larger than ${latestBlockTimestamp} but found ${context.startTimestamp})`
+            ).to.be.true;
+            expect(context.turns).to.eql([], "1st game should emit event with appropriate turns"); // turns
+            expect(context.isDescartesInstantiated).to.eql(
+                false,
+                "1st game should emit event with appropriate isDescartesInstantiated"
+            ); // null isDescartesInstantiated
+            expect(context.descartesIndex).to.eql(
+                ethers.constants.Zero,
+                "1st game should emit event with appropriate descartesIndex"
+            ); // null descartesIndex
+            expect(context.claimer).to.eql(
                 ethers.constants.AddressZero,
-                "1st game should emit event with appropriate context"
+                "1st game should emit event with appropriate claimer"
             ); // null claimer
-            expect(context[11]).to.eql([], "1st game should emit event with appropriate context"); // null claimedFundsShare
-            expect(context[12]).to.eql(ethers.constants.Zero, "1st game should emit event with appropriate context"); // null claimAgreementMask
+            expect(context.claimedFundsShare).to.eql(
+                [],
+                "1st game should emit event with appropriate claimedFundsShare"
+            ); // null claimedFundsShare
+            expect(context.claimAgreementMask).to.eql(
+                ethers.constants.Zero,
+                "1st game should emit event with appropriate claimAgreementMask"
+            ); // null claimAgreementMask
 
             // 2nd game: same params
             await initCallerFunds(players[0], playerFunds);
@@ -221,22 +252,48 @@ describe("TurnBasedGame", async () => {
             context = gameReadyEvent.args._context;
 
             expect(index).to.eql(ethers.BigNumber.from(1), "2nd game should emit event with index 1");
-            expect(context[0]).to.eql(gameTemplateHash, "2nd game should emit event with appropriate context");
-            expect(context[1]).to.eql(gameMetadata, "2nd game should emit event with appropriate context");
-            expect(context[2]).to.eql(validators, "2nd game should emit event with appropriate context");
-            // context[3] is the ERC20 compatible token provider
-            expect(context[4]).to.eql(players, "2nd game should emit event with appropriate context");
-            expect(context[5]).to.eql(playerFunds, "2nd game should emit event with appropriate context");
-            expect(context[6]).to.eql(playerInfos, "2nd game should emit event with appropriate context");
-            expect(context[7]).to.eql([], "2nd game should emit event with appropriate context"); // turns
-            expect(context[8]).to.eql(false, "2nd game should emit event with appropriate context"); // null isDescartesInstantiated
-            expect(context[9]).to.eql(ethers.constants.Zero, "2nd game should emit event with appropriate context"); // null descartesIndex
-            expect(context[10]).to.eql(
+            expect(context.gameTemplateHash).to.eql(
+                gameTemplateHash,
+                "2nd game should emit event with appropriate gameTemplateHash"
+            );
+            expect(context.gameMetadata).to.eql(
+                gameMetadata,
+                "2nd game should emit event with appropriate gameMetadata"
+            );
+            expect(context.gameValidators).to.eql(
+                validators,
+                "2nd game should emit event with appropriate gameValidators"
+            );
+            expect(context.gameTimeout).to.eql(gameTimeout, "2nd game should emit event with appropriate gameTimeout");
+            // context.gameERC20Address is the ERC20 compatible token provider
+            expect(context.players).to.eql(players, "2nd game should emit event with appropriate players");
+            expect(context.playerFunds).to.eql(playerFunds, "2nd game should emit event with appropriate playerFunds");
+            expect(context.playerInfos).to.eql(playerInfos, "2nd game should emit event with appropriate playerInfos");
+            expect(
+                context.startTimestamp.gte(latestBlockTimestamp),
+                `2nd game should emit event with appropriate startTimestamp (should be larger than ${latestBlockTimestamp} but found ${context.startTimestamp})`
+            ).to.be.true;
+            expect(context.turns).to.eql([], "2nd game should emit event with appropriate turns"); // turns
+            expect(context.isDescartesInstantiated).to.eql(
+                false,
+                "2nd game should emit event with appropriate isDescartesInstantiated"
+            ); // null isDescartesInstantiated
+            expect(context.descartesIndex).to.eql(
+                ethers.constants.Zero,
+                "2nd game should emit event with appropriate descartesIndex"
+            ); // null descartesIndex
+            expect(context.claimer).to.eql(
                 ethers.constants.AddressZero,
-                "2nd game should emit event with appropriate context"
+                "2nd game should emit event with appropriate claimer"
             ); // null claimer
-            expect(context[11]).to.eql([], "2nd game should emit event with appropriate context"); // null claimedFundsShare
-            expect(context[12]).to.eql(ethers.constants.Zero, "2nd game should emit event with appropriate context"); // null claimAgreementMask
+            expect(context.claimedFundsShare).to.eql(
+                [],
+                "2nd game should emit event with appropriate claimedFundsShare"
+            ); // null claimedFundsShare
+            expect(context.claimAgreementMask).to.eql(
+                ethers.constants.Zero,
+                "2nd game should emit event with appropriate claimAgreementMask"
+            ); // null claimAgreementMask
 
             // 3rd game: different metadata
             const gameMetadata2 = "0x123456";
@@ -257,22 +314,48 @@ describe("TurnBasedGame", async () => {
             context = gameReadyEvent.args._context;
 
             expect(index).to.eql(ethers.BigNumber.from(2), "3rd game should emit event with index 2");
-            expect(context[0]).to.eql(gameTemplateHash, "3rd game should emit event with appropriate context");
-            expect(context[1]).to.eql(gameMetadata2, "3rd game should emit event with appropriate context");
-            expect(context[2]).to.eql(validators, "3rd game should emit event with appropriate context");
-            // context[3] is the ERC20 compatible token provider
-            expect(context[4]).to.eql(players, "3rd game should emit event with appropriate context");
-            expect(context[5]).to.eql(playerFunds, "3rd game should emit event with appropriate context");
-            expect(context[6]).to.eql(playerInfos, "3rd game should emit event with appropriate context");
-            expect(context[7]).to.eql([], "3rd game should emit event with appropriate context"); // turns
-            expect(context[8]).to.eql(false, "3rd game should emit event with appropriate context"); // null isDescartesInstantiated
-            expect(context[9]).to.eql(ethers.constants.Zero, "3rd game should emit event with appropriate context"); // null descartesIndex
-            expect(context[10]).to.eql(
+            expect(context.gameTemplateHash).to.eql(
+                gameTemplateHash,
+                "3rd game should emit event with appropriate gameTemplateHash"
+            );
+            expect(context.gameMetadata).to.eql(
+                gameMetadata2,
+                "3rd game should emit event with appropriate gameMetadata"
+            );
+            expect(context.gameValidators).to.eql(
+                validators,
+                "3rd game should emit event with appropriate gameValidators"
+            );
+            expect(context.gameTimeout).to.eql(gameTimeout, "3rd game should emit event with appropriate gameTimeout");
+            // context.gameERC20Address is the ERC20 compatible token provider
+            expect(context.players).to.eql(players, "3rd game should emit event with appropriate players");
+            expect(context.playerFunds).to.eql(playerFunds, "3rd game should emit event with appropriate playerFunds");
+            expect(context.playerInfos).to.eql(playerInfos, "3rd game should emit event with appropriate playerInfos");
+            expect(
+                context.startTimestamp.gte(latestBlockTimestamp),
+                `3rd game should emit event with appropriate startTimestamp (should be larger than ${latestBlockTimestamp} but found ${context.startTimestamp})`
+            ).to.be.true;
+            expect(context.turns).to.eql([], "3rd game should emit event with appropriate turns"); // turns
+            expect(context.isDescartesInstantiated).to.eql(
+                false,
+                "3rd game should emit event with appropriate isDescartesInstantiated"
+            ); // null isDescartesInstantiated
+            expect(context.descartesIndex).to.eql(
+                ethers.constants.Zero,
+                "3rd game should emit event with appropriate descartesIndex"
+            ); // null descartesIndex
+            expect(context.claimer).to.eql(
                 ethers.constants.AddressZero,
-                "3rd game should emit event with appropriate context"
+                "3rd game should emit event with appropriate claimer"
             ); // null claimer
-            expect(context[11]).to.eql([], "3rd game should emit event with appropriate context"); // null claimedFundsShare
-            expect(context[12]).to.eql(ethers.constants.Zero, "3rd game should emit event with appropriate context"); // null claimAgreementMask
+            expect(context.claimedFundsShare).to.eql(
+                [],
+                "3rd game should emit event with appropriate claimedFundsShare"
+            ); // null claimedFundsShare
+            expect(context.claimAgreementMask).to.eql(
+                ethers.constants.Zero,
+                "3rd game should emit event with appropriate claimAgreementMask"
+            ); // null claimAgreementMask
         });
     });
 
@@ -307,21 +390,27 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             let context = await gameContract.getContext(0);
-            expect(context[0]).to.eql(gameTemplateHash);
-            expect(context[1]).to.eql(gameMetadata);
-            expect(context[2]).to.eql(validators);
-            // context[3] is the ERC20 compatible token provider
-            expect(context[4]).to.eql(players);
-            expect(context[5]).to.eql(playerFunds);
-            expect(context[6]).to.eql(playerInfos);
-            expect(context[7]).to.eql([]); // turns
-            expect(context[8]).to.eql(false); // null isDescartesInstantiated
-            expect(context[9]).to.eql(ethers.constants.Zero); // null descartesIndex
-            expect(context[10]).to.eql(ethers.constants.AddressZero); // null claimer
-            expect(context[11]).to.eql([]); // null claimedFundsShare
-            expect(context[12]).to.eql(ethers.constants.Zero); // null claimAgreementMask
+            expect(context.gameTemplateHash).to.eql(gameTemplateHash);
+            expect(context.gameMetadata).to.eql(gameMetadata);
+            expect(context.gameValidators).to.eql(validators);
+            expect(context.gameTimeout).to.eql(gameTimeout);
+            // context.gameERC20Address is the ERC20 compatible token provider
+            expect(context.players).to.eql(players);
+            expect(context.playerFunds).to.eql(playerFunds);
+            expect(context.playerInfos).to.eql(playerInfos);
+            expect(
+                context.startTimestamp.gte(latestBlockTimestamp),
+                `startTimestamp should be larger than ${latestBlockTimestamp} but found ${context.startTimestamp}`
+            ).to.be.true;
+            expect(context.startTimestamp.gte(latestBlockTimestamp)).to.be.true;
+            expect(context.turns).to.eql([]);
+            expect(context.isDescartesInstantiated).to.eql(false);
+            expect(context.descartesIndex).to.eql(ethers.constants.Zero);
+            expect(context.claimer).to.eql(ethers.constants.AddressZero);
+            expect(context.claimedFundsShare).to.eql([]);
+            expect(context.claimAgreementMask).to.eql(ethers.constants.Zero);
 
-            // 2nd game: different metadata should reflect in the context
+            // 2nd game: diff.claimedFundsSharet metadata should reflect in the context
             const gameMetadata2 = "0x123456";
             await initCallerFunds(players[0], playerFunds);
             await gameContract.startGame(
@@ -334,7 +423,7 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             context = await gameContract.getContext(1);
-            expect(context[1]).to.eql(gameMetadata2);
+            expect(context.gameMetadata).to.eql(gameMetadata2);
         });
     });
 
@@ -613,7 +702,7 @@ describe("TurnBasedGame", async () => {
             await mockLogger.mock.getLogIndex.returns(logIndex1);
             await gameContractPlayer1.submitTurn(0, 1, ethers.constants.AddressZero, 0, turnData1);
             let context = await gameContract.getContext(0);
-            let turns = context[7];
+            let turns = context.turns;
             expect(turns.length).to.eql(2);
             expect(turns[0].player).to.eql(players[0]);
             expect(turns[0].dataLogIndices[0]).to.eql(ethers.BigNumber.from(logIndex0));
@@ -643,7 +732,7 @@ describe("TurnBasedGame", async () => {
             }
             await gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData);
             let context = await gameContract.getContext(0);
-            let turns = context[7];
+            let turns = context.turns;
             expect(turns.length).to.eql(1, "Should contain one turn");
             expect(turns[0].dataLogIndices.length).to.eql(1, "10 8-byte entries should fit into one chunk");
 
@@ -654,7 +743,7 @@ describe("TurnBasedGame", async () => {
             }
             await gameContract.submitTurn(0, 1, ethers.constants.AddressZero, 0, turnData);
             context = await gameContract.getContext(0);
-            turns = context[7];
+            turns = context.turns;
             expect(turns.length).to.eql(2, "Should contain two turns");
             expect(turns[1].dataLogIndices.length).to.eql(1, "512 8-byte entries should fit into one chunk");
 
@@ -665,7 +754,7 @@ describe("TurnBasedGame", async () => {
             }
             await gameContract.submitTurn(0, 2, ethers.constants.AddressZero, 0, turnData);
             context = await gameContract.getContext(0);
-            turns = context[7];
+            turns = context.turns;
             expect(turns.length).to.eql(3, "Should contain three turns");
             expect(turns[2].dataLogIndices.length).to.eql(2, "513 8-byte entries should require two chunks");
 
@@ -676,7 +765,7 @@ describe("TurnBasedGame", async () => {
             }
             await gameContract.submitTurn(0, 3, ethers.constants.AddressZero, 0, turnData);
             context = await gameContract.getContext(0);
-            turns = context[7];
+            turns = context.turns;
             expect(turns.length).to.eql(4, "Should contain four turns");
             expect(turns[3].dataLogIndices.length).to.eql(4, "1750 8-byte entries should require four chunks");
         });
@@ -818,8 +907,174 @@ describe("TurnBasedGame", async () => {
             await prepareChallengeGame();
             await gameContract.challengeGame(0);
             let context = await gameContract.getContext(0);
-            expect(context[8]).to.eql(true); // isDescartesInstantiated
-            expect(context[9]).to.eql(descartesIndex); // descartesIndex
+            expect(context.isDescartesInstantiated).to.eql(true); // isDescartesInstantiated
+            expect(context.descartesIndex).to.eql(descartesIndex); // descartesIndex
+        });
+    });
+
+    // CLAIM TIMEOUT
+
+    describe("claimTimeout", async () => {
+        it("Should only be allowed for active games", async () => {
+            await expect(gameContract.claimTimeout(0)).to.be.revertedWith("Index not instantiated");
+
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+            await expect(gameContract.claimTimeout(0)).not.to.be.reverted;
+        });
+
+        it("Should not be allowed when Descartes verification is in progress", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+
+            await prepareChallengeGame();
+            await gameContract.challengeGame(0);
+
+            await expect(gameContract.claimTimeout(0)).to.be.revertedWith(
+                "Game has been challenged and a verification has been requested"
+            );
+        });
+
+        it("Should not end game or emit GameOver event when a timeout does not occur", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+            expect(await gameContract.isActive(0), "Game should be active before timeout is claimed").to.equal(true);
+            await expect(gameContract.claimTimeout(0)).to.not.emit(contextLibrary, "GameOver");
+            expect(await gameContract.isActive(0), "Game should still be active if timeout is not verified").to.equal(
+                true
+            );
+        });
+
+        it("Should end game and emit GameOver event when a timeout occurs: no turns", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+            expect(await gameContract.isActive(0), "Game should be active before timeout is claimed").to.equal(true);
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (gameTimeout.toNumber() + 1)));
+            await expect(gameContract.claimTimeout(0)).to.emit(contextLibrary, "GameOver").withArgs(0, playerFunds);
+            expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
+                false
+            );
+        });
+
+        it("Should end game and emit GameOver event when a timeout occurs: one turn", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+
+            // turn submitted by player0: defines 10 as stake and himself as responsible for the next action
+            await gameContract.submitTurn(0, 0, players[0], 10, turnData);
+            await expect(gameContract.claimTimeout(0)).to.not.emit(contextLibrary, "GameOver");
+            expect(await gameContract.isActive(0), "Game should still be active if timeout is not verified").to.equal(
+                true
+            );
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (gameTimeout.toNumber() + 1)));
+            // after timeout, player0 loses his stake of 10 to player1
+            const expectedFundsShare = [playerFunds[0].sub(10), playerFunds[1].add(10)];
+            await expect(gameContract.claimTimeout(0))
+                .to.emit(contextLibrary, "GameOver")
+                .withArgs(0, expectedFundsShare);
+            expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
+                false
+            );
+        });
+
+        it("Should end game and emit GameOver event when a timeout occurs: multiple turns changing stakes", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+
+            // turn submitted by players: defines 10-15-20 as stakes and the opponent as responsible for the next action
+            await gameContract.submitTurn(0, 0, players[1], 10, turnData);
+            await gameContractPlayer1.submitTurn(0, 1, players[0], 15, turnData);
+            await gameContract.submitTurn(0, 2, players[1], 20, turnData);
+            await expect(gameContract.claimTimeout(0)).to.not.emit(contextLibrary, "GameOver");
+            expect(await gameContract.isActive(0), "Game should still be active if timeout is not verified").to.equal(
+                true
+            );
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (gameTimeout.toNumber() + 1)));
+            // after timeout, player1 loses his stake of 15 to player0
+            const expectedFundsShare = [playerFunds[0].add(15), playerFunds[1].sub(15)];
+            await expect(gameContract.claimTimeout(0))
+                .to.emit(contextLibrary, "GameOver")
+                .withArgs(0, expectedFundsShare);
+            expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
+                false
+            );
+        });
+
+        it("Should end game and emit GameOver event when a timeout occurs: multiple turns changing stakes but no one to blame", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+
+            // turn submitted by players: defines 10-15-20 as stakes and the opponent as responsible for the next action
+            // - in the last turn, no one is considered responsible, so no one is to be held accountable for the timeout
+            await gameContract.submitTurn(0, 0, players[1], 10, turnData);
+            await gameContractPlayer1.submitTurn(0, 1, players[0], 15, turnData);
+            await gameContract.submitTurn(0, 2, ethers.constants.AddressZero, 20, turnData);
+            await expect(gameContract.claimTimeout(0)).to.not.emit(contextLibrary, "GameOver");
+            expect(await gameContract.isActive(0), "Game should still be active if timeout is not verified").to.equal(
+                true
+            );
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (gameTimeout.toNumber() + 1)));
+            // after timeout, players should get their original funds back
+            await expect(gameContract.claimTimeout(0)).to.emit(contextLibrary, "GameOver").withArgs(0, playerFunds);
+            expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
+                false
+            );
         });
     });
 
@@ -1003,9 +1258,9 @@ describe("TurnBasedGame", async () => {
             );
             await gameContract.claimResult(0, [120, 80]);
             let context = await gameContract.getContext(0);
-            expect(context[10]).to.eql(players[0]); // claimer
-            expect(context[11]).to.eql([ethers.BigNumber.from(120), ethers.BigNumber.from(80)]); // claimedFundsShare
-            expect(context[12]).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with only last bit turned on (only player0 agrees)
+            expect(context.claimer).to.eql(players[0]); // claimer
+            expect(context.claimedFundsShare).to.eql([ethers.BigNumber.from(120), ethers.BigNumber.from(80)]); // claimedFundsShare
+            expect(context.claimAgreementMask).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with only last bit turned on (only player0 agrees)
 
             // another game with result claimed by player 1
             await initCallerFunds(players[0], playerFunds);
@@ -1020,9 +1275,9 @@ describe("TurnBasedGame", async () => {
             );
             await gameContractPlayer1.claimResult(1, [70, 120]);
             context = await gameContract.getContext(1);
-            expect(context[10]).to.eql(players[1]); // claimer
-            expect(context[11]).to.eql([ethers.BigNumber.from(70), ethers.BigNumber.from(120)]); // claimedFundsShare
-            expect(context[12]).to.eql(ethers.BigNumber.from(2)); // claimAgreementMask with only before last bit turned on (only player1 agrees)
+            expect(context.claimer).to.eql(players[1]); // claimer
+            expect(context.claimedFundsShare).to.eql([ethers.BigNumber.from(70), ethers.BigNumber.from(120)]); // claimedFundsShare
+            expect(context.claimAgreementMask).to.eql(ethers.BigNumber.from(2)); // claimAgreementMask with only before last bit turned on (only player1 agrees)
         });
     });
 
@@ -1162,11 +1417,11 @@ describe("TurnBasedGame", async () => {
             );
             await gameContract.claimResult(0, [120, 80]);
             let context = await gameContract.getContext(0);
-            expect(context[12]).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with last bit turned on (only player0 agrees)
+            expect(context.claimAgreementMask).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with last bit turned on (only player0 agrees)
 
             await gameContractPlayer1.confirmResult(0);
             context = await gameContract.getContext(0);
-            expect(context[12]).to.eql(ethers.BigNumber.from(3)); // claimAgreementMask with last two bits turned on (player0 and player1 agree)
+            expect(context.claimAgreementMask).to.eql(ethers.BigNumber.from(3)); // claimAgreementMask with last two bits turned on (player0 and player1 agree)
         });
     });
 

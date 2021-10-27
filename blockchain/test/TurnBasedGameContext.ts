@@ -34,6 +34,7 @@ describe("TurnBasedGameContext", async () => {
     let context;
     let player0;
     let player1;
+    let latestBlockTimestamp;
 
     beforeEach(async () => {
         [player0, player1] = await ethers.getSigners();
@@ -52,14 +53,17 @@ describe("TurnBasedGameContext", async () => {
 
         contract = TestTurnBasedGameContext__factory.connect(TestTurnBasedGameContext.address, signer);
 
+        latestBlockTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
         context = {
             gameTemplateHash: ethers.constants.HashZero,
             gameMetadata: "0x",
             gameValidators: [player0.address, player1.address],
+            gameTimeout: ethers.BigNumber.from(10),
             gameERC20Address: ethers.constants.AddressZero,
             players: [player0.address, player1.address],
             playerFunds: [ethers.BigNumber.from(100), ethers.BigNumber.from(100)],
             playerInfos: ["0x", "0x"],
+            startTimestamp: latestBlockTimestamp,
             turns: [],
             isDescartesInstantiated: false,
             descartesIndex: ethers.BigNumber.from(0),
