@@ -1,17 +1,15 @@
-import { Card } from "../Card";
-import { Engine, EngineBetType, EnginePlayer, EngineResult, EngineState, EngineStep, StatusCode } from "../Engine";
-import { BetType, EventType, Game, GameResult, GameState, VerificationState } from "../Game";
-import { PokerSolver } from "../PokerSolver";
-import { TurnBasedGame } from "../TurnBasedGame";
-import { PokerEngine } from "./PokerEngine";
+import { Card } from "./Card";
+import { Engine, EngineBetType, EnginePlayer, EngineResult, EngineState, EngineStep, StatusCode } from "./engine/Engine";
+import { BetType, EventType, Game, GameResult, GameState, VerificationState } from "./Game";
+import { PokerSolver } from "./PokerSolver";
+import { TurnBasedGame } from "./TurnBasedGame";
 import { BigNumber } from "ethers";
-import { ServiceConfig } from "../ServiceConfig";
+import { ServiceConfig } from "./ServiceConfig";
 
-export class GameWasm implements Game {
+export class GameImpl implements Game {
     // FIXME: if using a mock TurnBasedGame, stores a reference to the opponent's Game instance (with automatic responses)
     gameOpponent: Game;
-    private engine: Engine;
-
+    
     constructor(
         private playerId: number,
         private playerFunds: BigNumber,
@@ -19,14 +17,13 @@ export class GameWasm implements Game {
         private opponentFunds: BigNumber,
         private bigBlind: BigNumber,
         private turnBasedGame: TurnBasedGame,
+        private engine: Engine,
         private onBetRequested: () => any = () => {},
         private onBetsReceived: (betType: string, amount: BigNumber) => any = () => {},
         private onEnd: () => any = () => {},
         private onEvent: (msg: string, type: EventType) => any = () => {},
         private onVerification: (state: string, msg: string) => any = () => {}
     ) {
-        this.engine = new PokerEngine(playerId);
-
         this.turnBasedGame.receiveResultClaimed().then(this._onResultClaimed.bind(this));
         this.turnBasedGame.receiveGameOver().then((fundsShare) => {
             console.log(`### [Player ${this.playerId}] Received Game Over ###`);

@@ -1,4 +1,5 @@
 dist
 src/abis
-src/engine
+src/services/engine
 src/types
+assets/engine

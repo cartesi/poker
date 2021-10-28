@@ -3,9 +3,11 @@ import { TurnBasedGame, TurnBasedGameFactory } from "./TurnBasedGame";
 import { GameMock } from "./mock/GameMock";
 import { TurnBasedGameMock } from "./mock/TurnBasedGameMock";
 import { Card } from "./Card";
-import { GameWasm } from "./wasm/GameWasm";
+import { GameImpl } from "./GameImpl";
 import { GameConstants } from "../GameConstants";
 import { BigNumber } from "ethers";
+import { WasmEngine } from "./engine/WasmEngine";
+import { NativeEngine } from "./engine/NativeEngine";
 
 // game states
 export enum GameState {
@@ -207,24 +209,22 @@ export class GameFactory {
                 onEvent,
                 onVerification
             );
-        } else if (impl === ServiceImpl.Wasm) {
-            // real game engine in WebAssembly
-            return new GameWasm(
+        } else {
+            const engine = impl === ServiceImpl.Native ? new NativeEngine(player) : new WasmEngine(player);
+            return new GameImpl(
                 player,
                 playerFunds,
                 opponent,
                 opponentFunds,
                 GameConstants.BIG_BLIND,
                 turnBasedGame,
+                engine,
                 onBetRequested,
                 onBetsReceived,
                 onEnd,
                 onEvent,
                 onVerification
             );
-        } else {
-            // unknown implementation configured
-            throw `Unknown game engine configuration '${impl}'!`;
         }
     }
 
