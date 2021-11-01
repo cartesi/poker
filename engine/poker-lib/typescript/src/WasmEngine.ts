@@ -1,8 +1,7 @@
 import { BigNumber } from "ethers";
 import { Engine, EngineBetType, EngineResult, EngineState, StatusCode } from "./Engine";
 
-//TODO: reject promises when something fails
-export class PokerEngine implements Engine {
+export class WasmEngine implements Engine {
     _player: number; //Player* address in C++ memory
     player_id: number;
     counter: number;
@@ -11,7 +10,7 @@ export class PokerEngine implements Engine {
 
     constructor(player_id: number, wasm_path: string = null) {
         if (wasm_path == null)
-          wasm_path = `${__dirname}/poker-lib-wasm.js`;
+          wasm_path = "../../assets/wasm/poker-lib-wasm.js";
         
         this.player_id = player_id;
         this.counter = new Date().getTime();
@@ -88,24 +87,19 @@ export class PokerEngine implements Engine {
     async game_state(): Promise<EngineState> {
         return this._callWorker("player_game_state", makeMessage(this._player), (results) => {
             let state = JSON.parse(parseString(results[0]), (key, value) => {
-                return key == "total_funds" || key == "bets" ? BigNumber.from(value) : value;
+                switch (key) {
+                    case "total_funds":
+                    case "bets":
+                        return BigNumber.from(value);
+                    case "funds_share":
+                        const fundsShare = Array(2);
+                        fundsShare[0] = BigNumber.from(value[0]);
+                        fundsShare[1] = BigNumber.from(value[1]);
+                        return fundsShare;
+                    default:
+                        return value;
+                }
             });
-
-            const fundsShare = Array(2);
-            const alice = state.players[0];
-            const bob = state.players[1];
-            if (state.winner == 2) {
-                fundsShare[0] = alice.total_funds;
-                fundsShare[1] = bob.total_funds;
-            } else if (state.winner == 0) {
-                fundsShare[0] = alice.total_funds.add(bob.bets);
-                fundsShare[1] = bob.total_funds.sub(bob.bets);
-            } else if (state.winner == 1) {
-                fundsShare[0] = alice.total_funds.sub(alice.bets);
-                fundsShare[1] = bob.total_funds.add(alice.bets);
-            }
-            state.funds_share = fundsShare;
-
             return state;
         });
     }
@@ -114,7 +108,7 @@ export class PokerEngine implements Engine {
         return new Promise((resolve, reject) => {
             const callbackId = this._registerCallback((results) => {
                 const finalResult = resultHandler(results);
-                console.log(`[Player ${this.player_id}] ---> finalResult:`, funcName, finalResult);
+                console.debug(`[Player ${this.player_id}] ---> finalResult:`, funcName, finalResult);
                 resolve(finalResult);
             });
             this.worker.postMessage({ funcName, callbackId, data });
@@ -128,7 +122,7 @@ export class PokerEngine implements Engine {
     }
 
     _runCallback(event) {
-        const callback = this.callbacks[String(event.callbackId)];
+        const callback = this.callbacks[event.callbackId];
         callback.results.push(event.data);
         if (event.finalResponse) {
             delete this.callbacks[event.callbackId];

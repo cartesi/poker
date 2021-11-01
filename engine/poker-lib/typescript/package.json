@@ -7,9 +7,9 @@
     "build": "./node_modules/typescript/bin/tsc && yarn run copy && yarn run build-enums",
     "build-enums": "node ./build-enums.js",
     "start": "yarn run build && node build/index.js",
-    "copy": "cp ../poker-lib-wasm.* ./build/lib && cp ../poker-lib-wasm.* ./src/lib && cp ./src/lib/*.ts /poker/build/poker-lib",
-    "test": "yarn run copy && mocha --timeout 150000 -r ts-node/register src/**/*.test.ts"
-  }, 
+    "copy": "mkdir ./build/lib && find .. -iregex \".*poker-lib-wasm\\.[js|wasm]+\" -exec cp {} build/lib \\; && cp build/lib/poker-lib-wasm.* /poker/build/lib && cp src/WasmEngine.ts /poker/build/poker-lib",
+    "test": "mocha --timeout 150000 -r ts-node/register tests/*.test.ts"
+  },
   "author": "",
   "dependencies": {
     "ethers": "^5.1.0"

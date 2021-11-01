@@ -15,7 +15,7 @@ function replace_enum(name, from, to) {
 
 const h_path = `${__dirname}/../common.h`;
 const common_h = fs.readFileSync(h_path).toString();
-const ts_path = `${__dirname}/src/lib/Engine.ts`;
+const ts_path = `${__dirname}/src/Engine.ts`;
 let engine_ts = fs.readFileSync(ts_path).toString();
 const enums = ['game_error', 'bet_type', 'game_step'];
 

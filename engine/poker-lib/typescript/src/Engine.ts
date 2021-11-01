@@ -21,6 +21,26 @@ interface EngineResult {
     message_out?: Uint8Array;
 }
 
+interface game_state {
+    step: number;
+    current_player: number;
+    last_aggressor: number;
+    muck: boolean;
+    error: game_error;
+    winner: number;
+    public_cards: number[];
+    players: player_state[];
+    funds_share: BigNumber[];
+}
+
+interface player_state {
+    id: number;
+    total_funds: BigNumber;
+    bets: BigNumber;
+    cards: number[];
+}
+
+// Auto-generated enums
 const enum game_error {
     SUCCESS = 0,
     CONTINUED = 1,
@@ -89,6 +109,7 @@ const enum game_error {
     GRR_BET_BELOW_MINIMUM,
     GRR_BET_ABOVE_MAXIMUM,
     GRR_INVALID_BET,
+    GRR_GAME_NOT_OVER,
 
     // CODEC
     COD_ERROR = 500,
@@ -108,17 +129,22 @@ const enum game_error {
     TMC_PROVE_CARD,
 
     // Verifier
-    VRF_UNKNOWN_MSG_TYPE = 700,
-    VRF_DECODE_ERROR,
+    PLB_UNKNOWN_MSG_TYPE = 700,
+    PLB_DECODE_ERROR,
     VRR_READ_VTMF,
     VRR_READ_ALICE_KEY,
     VRF_MESSAGE_NOT_FOUND,
     VRF_CURRENT_PLAYER_MISMATCH,
     VRF_OPEN_ALICE_PRIVATE_CARDS,
     VRF_OPEN_BOB_PRIVATE_CARDS,
+    VRF_EOF,
 
     // Big number
     BIG_UNPARSEABLE = 800,
+    BIG_READ_ERROR,
+    VRF_INVALID_PLAYER_COUNT,
+    BIG_WRITE_ERROR,
+    VRF_PLAYER_ADDRESS_NOT_FOUND,
 
     // Compression
     CPR_COMPRESS_INIT = 900,
@@ -130,6 +156,12 @@ const enum game_error {
     CPR_PAYLOAD_TOO_SMALL,
     CPR_UNPARSEABLE_LEN,
     CPR_EOF,
+
+    // playback
+    PLB_MESSAGE_NOT_FOUND = 1000,
+    PLB_CURRENT_PLAYER_MISMATCH,
+    PLB_OPEN_ALICE_PRIVATE_CARDS,
+    PLB_OPEN_BOB_PRIVATE_CARDS,
 }
 
 const enum bet_type {
@@ -138,23 +170,6 @@ const enum bet_type {
     BET_CALL,
     BET_RAISE,
     BET_CHECK,
-}
-
-interface game_state {
-    step: number;
-    current_player: number;
-    error: game_error;
-    winner: number;
-    public_cards: number[];
-    players: player_state[];
-    funds_share: BigNumber[];
-}
-
-interface player_state {
-    id: number;
-    total_funds: BigNumber;
-    bets: BigNumber;
-    cards: number[];
 }
 
 const enum game_step {

@@ -1,18 +1,16 @@
 {
-  "compilerOptions": {
-    "target": "ES5",
-    "lib": ["es6","es2017", "dom"],
-    "module": "commonjs",
-    "rootDir": "./src",
-    "allowJs": true,
-    "outDir": "build",
-    "noImplicitAny": false,
-    "strict": false,
-    "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true
-
-  },
-  "include": ["src/**/*"],
-   "exclude": ["node_modules", "later"]
+    "compilerOptions": {
+        "target": "ES5",
+        "lib": ["es6", "es2017", "dom"],
+        "module": "commonjs",
+        "allowJs": true,
+        "outDir": "build",
+        "noImplicitAny": false,
+        "strict": false,
+        "resolveJsonModule": true,
+        "moduleResolution": "node",
+        "esModuleInterop": true
+    },
+    "include": ["src/**/*", "tests/**/*", "index.ts"],
+    "exclude": ["node_modules", "later"]
 }
