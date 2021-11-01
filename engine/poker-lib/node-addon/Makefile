@@ -3,12 +3,8 @@ ADDON = build/Release/pokerlib.node
 
 all: $(ADDON)
 
-$(ADDON): node_modules poker-lib-addon.cpp
-	npm run build && \
-  cp $(ADDON) $(BUILD_DEST)
-
-node_modules:
-	npm install
+$(ADDON):
+	yarn && yarn build
   
 test: $(ADDON)
-	npm test
+	yarn test

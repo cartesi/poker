@@ -101,8 +101,8 @@ libpoker.so: $(POKER_LIB_OBJS)
 poker-lib-wasm.js: poker-lib.a poker-lib-wasm.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-node-addon:
-	make -C node-addon BUILD_DEST=$(BUILD_BASE)/lib
+node-addon: libpoker.so
+	make -C node-addon BUILD_DEST=$(BUILD_BASE)/lib INSTALL_DIR=$(INSTALL_DIR)
 
 test-%: test-%.cpp poker-lib.a
 	$(CXX) $(CXXFLAGS)  -o $@ $^

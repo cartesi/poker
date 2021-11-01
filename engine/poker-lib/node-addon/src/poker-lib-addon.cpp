@@ -1,7 +1,7 @@
 #include <cstring>
 #include <iostream>
 #include <node_api.h>
-#include "../poker-lib-c-api.h"
+#include "../../poker-lib-c-api.h"
 
 // init(encryption, logging)
 napi_value init(napi_env env, napi_callback_info info) {
