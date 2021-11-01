@@ -111,5 +111,8 @@ describe("A complete game", () => {
 
         expect(gAlice.step).to.equal(EngineStep.GAME_OVER);
         expect(gBob.step).to.equal(EngineStep.GAME_OVER);
+
+        alice.on_game_over();
+        bob.on_game_over();
     });
 });

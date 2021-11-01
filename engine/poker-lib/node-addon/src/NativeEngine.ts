@@ -110,4 +110,8 @@ export class NativeEngine implements Engine {
             }
         });
     }
+
+    on_game_over(): void {
+        this.lib.deletePlayer(this.player);
+    }
 }

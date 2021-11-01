@@ -104,6 +104,10 @@ export class WasmEngine implements Engine {
         });
     }
 
+    on_game_over(): void {
+       this._callWorker("poker_delete_player", makeMessage(this._player), {});
+    }
+
     async _callWorker(funcName, data, resultHandler): Promise<any> {
         return new Promise((resolve, reject) => {
             const callbackId = this._registerCallback((results) => {

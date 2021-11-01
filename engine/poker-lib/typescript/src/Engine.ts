@@ -12,6 +12,7 @@ export interface Engine {
     create_bet(type: bet_type, amount: BigNumber): Promise<EngineResult>;
     process_bet(message_in: Uint8Array): Promise<EngineResult>;
     game_state(): Promise<game_state>;
+    on_game_over(): void;
 }
 
 interface EngineResult {
