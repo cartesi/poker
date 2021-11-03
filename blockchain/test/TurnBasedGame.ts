@@ -48,6 +48,15 @@ async function initCallerFunds(address, playerFunds) {
     await tokenContract.approve(gameContract.address, ethers.BigNumber.from(totalFunds));
 }
 
+// Sets next block's timestamp to a time in the future, considering the latest block's timestamp
+// Returns the timestamp that was set
+async function setNextBlockTimestamp(secondsToAdd: number): Promise<number> {
+    let latestBlockTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
+    let timestampSeconds = latestBlockTimestamp + secondsToAdd;
+    await network.provider.send("evm_setNextBlockTimestamp", [timestampSeconds]);
+    return timestampSeconds;
+}
+
 describe("TurnBasedGame", async () => {
     let gameContractPlayer1: TurnBasedGame;
     let gameContractNonPlayer: TurnBasedGame;
@@ -524,7 +533,7 @@ describe("TurnBasedGame", async () => {
             await gameContract.challengeGame(0);
 
             await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)).to.be.revertedWith(
-                "Game verification in progress"
+                "Game has been challenged and a verification has been requested"
             );
 
             // new games should be ok
@@ -619,6 +628,31 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.submitTurn(0, 2, ethers.constants.AddressZero, 0, turnData)).not.to.be.reverted;
         });
 
+        it("Should not be accepted and game should end if a timeout has occurred", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+
+            // forcing next block's timestamp to a value that will exceed the allowed timeout limit
+            await setNextBlockTimestamp(gameTimeout.toNumber() + 5);
+
+            // game should end when submitting turn (original funds should be returned)
+            await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData))
+                .to.emit(contextLibrary, "GameOver")
+                .withArgs(0, playerFunds);
+
+            // turn should not have been accepted
+            let context = await gameContract.getContext(0);
+            expect(context.turns.length).to.equal(0);
+        });
+
         it("Should emit TurnOver event", async () => {
             await initCallerFunds(players[0], playerFunds);
             await gameContract.startGame(
@@ -632,8 +666,7 @@ describe("TurnBasedGame", async () => {
             );
 
             // forcing next block's timestamp, which is only allowed if it's in the future (must be larger than previous block's timestamp)
-            let timestampSeconds = Math.ceil(Date.now() / 1000) + 1000;
-            await network.provider.send("evm_setNextBlockTimestamp", [timestampSeconds]);
+            let timestampSeconds = await setNextBlockTimestamp(5);
 
             // turn from player 0
             let tx = await gameContract.submitTurn(0, 0, players[1], 10, turnData);
@@ -647,17 +680,17 @@ describe("TurnBasedGame", async () => {
             let turn = turnOverEvent.args._turn;
             expect(index).to.eql(ethers.BigNumber.from(0), "1st turn should have game index 0");
             expect(turnIndex).to.eql(ethers.BigNumber.from(0), "1st turn should refer to turnIndex 0");
-            expect(turn[0]).to.eql(players[0], "1st turn should be emitted by player0");
-            expect(turn[1]).to.eql(players[1], "1st turn should be emitted with the correct nextPlayer");
-            expect(turn[2]).to.eql(
+            expect(turn.player).to.eql(players[0], "1st turn should be emitted by player0");
+            expect(turn.nextPlayer).to.eql(players[1], "1st turn should be emitted with the correct nextPlayer");
+            expect(turn.playerStake).to.eql(
                 ethers.BigNumber.from(10),
                 "1st turn should be emitted with the correct playerStake"
             );
-            expect(turn[3]).to.eql(
+            expect(turn.timestamp).to.eql(
                 ethers.BigNumber.from(timestampSeconds),
                 "1st turn should be emitted with the correct timestamp"
             );
-            expect(turn[4]).to.eql(
+            expect(turn.dataLogIndices).to.eql(
                 [ethers.BigNumber.from(EMPTY_DATA_LOG_INDEX)],
                 "1st turn should refer to the appropriate log index"
             );
@@ -678,17 +711,17 @@ describe("TurnBasedGame", async () => {
             turn = turnOverEvent.args._turn;
             expect(index).to.eql(ethers.BigNumber.from(0), "2nd turn should have game index 0");
             expect(turnIndex).to.eql(ethers.BigNumber.from(1), "2nd turn should refer to turnIndex 1");
-            expect(turn[0]).to.eql(players[1], "2nd turn should be emitted by player1");
-            expect(turn[1]).to.eql(players[0], "1st turn should be emitted with the correct nextPlayer");
-            expect(turn[2]).to.eql(
+            expect(turn.player).to.eql(players[1], "2nd turn should be emitted by player1");
+            expect(turn.nextPlayer).to.eql(players[0], "1st turn should be emitted with the correct nextPlayer");
+            expect(turn.playerStake).to.eql(
                 ethers.BigNumber.from(20),
                 "1st turn should be emitted with the correct playerStake"
             );
-            expect(turn[3]).to.be.above(
+            expect(turn.timestamp).to.be.above(
                 ethers.BigNumber.from(timestampSeconds),
                 "2nd turn should be emitted with the correct timestamp"
             );
-            expect(turn[4]).to.eql(
+            expect(turn.dataLogIndices).to.eql(
                 [ethers.BigNumber.from(player1LogIndex)],
                 "2nd turn should refer to the appropriate log index"
             );
@@ -994,7 +1027,7 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             expect(await gameContract.isActive(0), "Game should be active before timeout is claimed").to.equal(true);
-            await new Promise((resolve) => setTimeout(resolve, 1000 * (gameTimeout.toNumber() + 1)));
+            await setNextBlockTimestamp(gameTimeout.toNumber() + 5);
             await expect(gameContract.claimTimeout(0)).to.emit(contextLibrary, "GameOver").withArgs(0, playerFunds);
             expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
                 false
@@ -1019,7 +1052,7 @@ describe("TurnBasedGame", async () => {
             expect(await gameContract.isActive(0), "Game should still be active if timeout is not verified").to.equal(
                 true
             );
-            await new Promise((resolve) => setTimeout(resolve, 1000 * (gameTimeout.toNumber() + 1)));
+            await setNextBlockTimestamp(gameTimeout.toNumber() + 5);
             // after timeout, player0 loses his stake of 10 to player1
             const expectedFundsShare = [playerFunds[0].sub(10), playerFunds[1].add(10)];
             await expect(gameContract.claimTimeout(0))
@@ -1050,7 +1083,7 @@ describe("TurnBasedGame", async () => {
             expect(await gameContract.isActive(0), "Game should still be active if timeout is not verified").to.equal(
                 true
             );
-            await new Promise((resolve) => setTimeout(resolve, 1000 * (gameTimeout.toNumber() + 1)));
+            await setNextBlockTimestamp(gameTimeout.toNumber() + 5);
             // after timeout, player1 loses his stake of 15 to player0
             const expectedFundsShare = [playerFunds[0].add(15), playerFunds[1].sub(15)];
             await expect(gameContract.claimTimeout(0))
@@ -1082,7 +1115,7 @@ describe("TurnBasedGame", async () => {
             expect(await gameContract.isActive(0), "Game should still be active if timeout is not verified").to.equal(
                 true
             );
-            await new Promise((resolve) => setTimeout(resolve, 1000 * (gameTimeout.toNumber() + 1)));
+            await setNextBlockTimestamp(gameTimeout.toNumber() + 5);
             // after timeout, players should get their original funds back
             await expect(gameContract.claimTimeout(0)).to.emit(contextLibrary, "GameOver").withArgs(0, playerFunds);
             expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
@@ -1222,6 +1255,31 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             await expect(gameContract.claimResult(3, [200, 0])).not.to.be.reverted;
+        });
+
+        it("Should not be accepted and game should end if a timeout has occurred", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+
+            // forcing next block's timestamp to a value that will exceed the allowed timeout limit
+            await setNextBlockTimestamp(gameTimeout.toNumber() + 5);
+
+            // game should end when claiming result (original funds should be returned)
+            await expect(gameContract.claimResult(0, [120, 80]))
+                .to.emit(contextLibrary, "GameOver")
+                .withArgs(0, playerFunds);
+
+            // claim should not have been accepted
+            let context = await gameContract.getContext(0);
+            expect(context.claimer).to.eq(ethers.constants.AddressZero);
         });
 
         it("Should emit GameResultClaimed event", async () => {
@@ -1375,6 +1433,30 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.confirmResult(0)).to.be.revertedWith(
                 "Game has been challenged and a verification has been requested"
             );
+        });
+
+        it("Should not be accepted but still end game if a timeout has occurred", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+            await gameContract.claimResult(0, [120, 80]);
+
+            // forcing next block's timestamp to a value that will exceed the allowed timeout limit
+            await setNextBlockTimestamp(gameTimeout.toNumber() + 5);
+
+            // game should end using claimed result
+            await expect(gameContract.confirmResult(0)).to.emit(contextLibrary, "GameOver").withArgs(0, [120, 80]);
+
+            // confirmation should not have been accepted: agreement mask should indicate only the claimer's (player0's) agreement
+            let context = await gameContract.getContext(0);
+            expect(context.claimAgreementMask).to.eq(ethers.BigNumber.from(1));
         });
 
         it("Should end game and emit GameOver event when called by all players", async () => {

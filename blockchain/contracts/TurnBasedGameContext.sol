@@ -104,7 +104,7 @@ library TurnBasedGameContext {
         // - result has not been claimed yet
         require(_context.claimer == address(0), "Game end has been claimed");
         // - game has not been challenged
-        require(!_context.isDescartesInstantiated, "Game verification in progress");
+        require(!_context.isDescartesInstantiated, "Game has been challenged and a verification has been requested");
 
         // ensures turn submission sequence is correct
         require(_turnIndex == _context.turns.length, "Invalid turn submission sequence");
@@ -229,44 +229,29 @@ library TurnBasedGameContext {
         // reverts if game verification has been triggered
         require(!_context.isDescartesInstantiated, "Game has been challenged and a verification has been requested");
 
-        // checks for a timeout for submitting the first turn
-        // - if a timeout occurred, game is ended with players keeping their original funds
-        if (_context.turns.length == 0) {
-            // no turn was ever submitted: check timeout between game start and current timestamp
+        if (_context.claimer != address(0)) {
+            // result has been claimed: check timeout between claim and current timestamp
+            if (block.timestamp - _context.claimTimestamp > _context.gameTimeout) {
+                // no one confirmed nor contested the claim: game ends with claimed result
+                applyResult(_context, _index, _context.claimedFundsShare);
+                return true;
+            }
+        } else if (_context.turns.length > 0) {
+            // there is no claimed result yet but turns have been submitted: check timeout between last turn and current timestamp
+            if (block.timestamp - _context.turns[_context.turns.length - 1].timestamp > _context.gameTimeout) {
+                // timeout occurred since last turn: apply it according to turn metadata
+                applyTurnTimeout(_context, _index, _context.turns.length - 1);
+                return true;
+            }
+        } else {
+            // nothing ever happened: check timeout between game start and current timestamp
             if (block.timestamp - _context.startTimestamp > _context.gameTimeout) {
+                // timeout occurred: game is ended with players keeping their original funds
                 applyResult(_context, _index, _context.playerFunds);
                 return true;
             }
-        } else if (_context.turns[0].timestamp - _context.startTimestamp > _context.gameTimeout) {
-            // timeout occurred between game start and first turn submission
-            applyResult(_context, _index, _context.playerFunds);
-            return true;
-        } else {
-            // checks for a timeout between each submitted turn
-            for (uint256 i = 1; i < _context.turns.length; i++) {
-                if (_context.turns[i].timestamp - _context.turns[i-1].timestamp > _context.gameTimeout) {
-                    // timeout occurred: last valid turn was at index i-1
-                    applyTurnTimeout(_context, _index, i-1);
-                    return true;
-                }
-            }
-            if (_context.claimer == address(0)) {
-                // if there is no claimed result yet, checks timeout between last turn and current timestamp
-                if (block.timestamp - _context.turns[_context.turns.length - 1].timestamp > _context.gameTimeout) {
-                    // timeout occurred since last turn
-                    applyTurnTimeout(_context, _index, _context.turns.length - 1);
-                    return true;
-                }
-            } else if (!_context.isDescartesInstantiated) {
-                // there is a claim and game has not been challenged, may end it by timeout
-                // TODO: add GameContext.claimTimestamp
-                // if (block.timestamp - _context.claimTimestamp > _context.gameTimeout) {
-                //     // no one confirmed nor contested the claim: game ends with claimed result
-                //     applyResult(_context, _index, _context.claimedFundsShare);
-                //     return true;
-                // }
-            }
         }
+        // no timeout occurred
         return false;
     }
 

@@ -141,7 +141,14 @@ contract TurnBasedGame is InstantiatorImpl {
         bytes calldata _data
     ) public onlyActive(_index) {
         GameContext storage context = instances[_index];
-        context.submitTurn(_index, _turnIndex, _nextPlayer, _playerStake, _data, logger, turnChunkLog2Size);
+        // before accepting submitted turn, checks for a timeout
+        if (context.claimTimeout(_index)) {
+            // game ended by timeout
+            deactivate(_index);
+        } else {
+            // submits turn
+            context.submitTurn(_index, _turnIndex, _nextPlayer, _playerStake, _data, logger, turnChunkLog2Size);
+        }
     }
 
     /// @notice Challenges game state, triggering a verification by a Descartes computation
@@ -156,8 +163,8 @@ contract TurnBasedGame is InstantiatorImpl {
     /// @param _index index identifying the game
     function claimTimeout(uint256 _index) public onlyActive(_index) {
         GameContext storage context = instances[_index];
-        bool isTimeout = context.claimTimeout(_index);
-        if (isTimeout == true) {
+        if (context.claimTimeout(_index)) {
+            // game ended by timeout
             deactivate(_index);
         }
     }
@@ -167,18 +174,32 @@ contract TurnBasedGame is InstantiatorImpl {
     /// @param _fundsShare result of the game given as a distribution of the funds previously locked
     function claimResult(uint256 _index, uint256[] memory _fundsShare) public onlyActive(_index) {
         GameContext storage context = instances[_index];
-        context.claimResult(_index, _fundsShare);
+        // before accepting claim, checks for a timeout
+        if (context.claimTimeout(_index)) {
+            // game ended by timeout
+            deactivate(_index);
+        } else {
+            // claims result
+            context.claimResult(_index, _fundsShare);
+        }
     }
 
     /// @notice Confirms game results previously claimed
     /// @param _index index identifying the game
     function confirmResult(uint256 _index) public onlyActive(_index) {
         GameContext storage context = instances[_index];
-        bool isConsensus = context.confirmResult();
-        if (isConsensus == true) {
-            // if all players agree, applies claimed result and ends game
-            context.applyResult(_index, context.claimedFundsShare);
+        // before accepting confirmation, checks for a timeout
+        if (context.claimTimeout(_index)) {
+            // game ended by timeout
             deactivate(_index);
+        } else {
+            // confirms claimed result
+            bool isConsensus = context.confirmResult();
+            if (isConsensus) {
+                // all players agree: apply claimed result and end game
+                context.applyResult(_index, context.claimedFundsShare);
+                deactivate(_index);
+            }
         }
     }
 
