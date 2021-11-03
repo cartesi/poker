@@ -647,6 +647,9 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData))
                 .to.emit(contextLibrary, "GameOver")
                 .withArgs(0, playerFunds);
+            expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
+                false
+            );
 
             // turn should not have been accepted
             let context = await gameContract.getContext(0);
@@ -1122,6 +1125,35 @@ describe("TurnBasedGame", async () => {
                 false
             );
         });
+
+        it("Should end game and emit GameOver event when a timeout occurs: result claimed", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+
+            // turn submitted by player0: defines 10 as stake and himself as responsible for the next action
+            await gameContract.submitTurn(0, 0, players[0], 10, turnData);
+            await expect(gameContract.claimTimeout(0)).to.not.emit(contextLibrary, "GameOver");
+            expect(await gameContract.isActive(0), "Game should still be active if timeout is not verified").to.equal(
+                true
+            );
+            // claim submitted by player1
+            await gameContractPlayer1.claimResult(0, [120, 80]);
+
+            await setNextBlockTimestamp(gameTimeout.toNumber() + 5);
+            // after timeout, result should equal the claim (regardless of player0's stake in the last turn)
+            await expect(gameContract.claimTimeout(0)).to.emit(contextLibrary, "GameOver").withArgs(0, [120, 80]);
+            expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
+                false
+            );
+        });
     });
 
     // CLAIM RESULT
@@ -1276,6 +1308,9 @@ describe("TurnBasedGame", async () => {
             await expect(gameContract.claimResult(0, [120, 80]))
                 .to.emit(contextLibrary, "GameOver")
                 .withArgs(0, playerFunds);
+            expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
+                false
+            );
 
             // claim should not have been accepted
             let context = await gameContract.getContext(0);
@@ -1453,6 +1488,9 @@ describe("TurnBasedGame", async () => {
 
             // game should end using claimed result
             await expect(gameContract.confirmResult(0)).to.emit(contextLibrary, "GameOver").withArgs(0, [120, 80]);
+            expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
+                false
+            );
 
             // confirmation should not have been accepted: agreement mask should indicate only the claimer's (player0's) agreement
             let context = await gameContract.getContext(0);
