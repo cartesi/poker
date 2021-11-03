@@ -4,7 +4,7 @@ import { GameVars } from "./../../GameVars";
 import { GameConstants } from "./../../GameConstants";
 
 export class SettingsLayer extends Phaser.GameObjects.Container {
-    
+
     private midContainer: Phaser.GameObjects.Container;
 
     private title: Phaser.GameObjects.Text;
@@ -39,7 +39,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
         this.midBackground.strokeRoundedRect(-200, -300, 400, 600, 15);
         this.midContainer.add(this.midBackground);
 
-        this.title = new Phaser.GameObjects.Text(this.scene, 0, -250, "SETTINGS", {fontFamily: "Oswald-Medium", fontSize: "40px", color: "#ffffff"});
+        this.title = new Phaser.GameObjects.Text(this.scene, 0, -250, "SETTINGS", { fontFamily: "Oswald-Medium", fontSize: "40px", color: "#ffffff" });
         this.title.setOrigin(.5);
         this.midContainer.add(this.title);
 
@@ -89,7 +89,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
             soundBtn.setScale(1);
         }, this);
         soundBtn.on("pointerup", () => {
-            AudioManager.toggleAudioState(); 
+            AudioManager.toggleAudioState();
             soundBtn.setFrame(GameVars.gameData.muted ? "btn_sound_off" : "btn_sound_on");
         }, this);
         soundBtn.on("pointerover", () => {
@@ -102,7 +102,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
         // HOW TO PLAY
 
-        let howText = new Phaser.GameObjects.Text(this.scene, 0, 20, "HOW TO PLAY", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#183D62"});
+        let howText = new Phaser.GameObjects.Text(this.scene, 0, 20, "HOW TO PLAY", { fontFamily: "Oswald-Medium", fontSize: "30px", color: "#ffffff" });
         howText.setOrigin(.5);
 
         let howBtn = new Phaser.GameObjects.Image(this.scene, 0, 20, "texture_atlas_1", "btn_long");
@@ -126,7 +126,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
         // RANKING 
 
-        let rankingText = new Phaser.GameObjects.Text(this.scene, 0, 120, "POKER HAND RANKING", {fontFamily: "Oswald-Medium", fontSize: "25px", color: "#183D62"});
+        let rankingText = new Phaser.GameObjects.Text(this.scene, 0, 120, "POKER HAND RANKING", { fontFamily: "Oswald-Medium", fontSize: "25px", color: "#ffffff" });
         rankingText.setOrigin(.5);
 
         let rankingBtn = new Phaser.GameObjects.Image(this.scene, 0, 120, "texture_atlas_1", "btn_long");
@@ -150,7 +150,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
         // EXIT 
 
-        let exitText = new Phaser.GameObjects.Text(this.scene, 0, 220, "EXIT", {fontFamily: "Oswald-Medium", fontSize: "30px", color: "#183D62"});
+        let exitText = new Phaser.GameObjects.Text(this.scene, 0, 220, "EXIT", { fontFamily: "Oswald-Medium", fontSize: "30px", color: "#ffffff" });
         exitText.setOrigin(.5);
 
         let exitBtn = new Phaser.GameObjects.Image(this.scene, 0, 220, "texture_atlas_1", "btn_long");
@@ -181,7 +181,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
     }
 
     public setScalesAndPositions(): void {
-        
+
         if (GameVars.landscape) {
             this.midContainer.setScale(GameVars.scaleX, 1);
         } else {
@@ -226,14 +226,14 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
             alpha: 0,
             ease: Phaser.Math.Easing.Cubic.Out,
             duration: 500
-        }); 
+        });
 
         this.scene.tweens.add({
             targets: this.title,
             y: -345,
             ease: Phaser.Math.Easing.Cubic.Out,
             duration: 500
-        }); 
+        });
 
         this.title.setText("HANDS RANKING");
 
@@ -251,17 +251,17 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
             scaleY: 1.3,
             ease: Phaser.Math.Easing.Cubic.Out,
             duration: 500
-        }); 
+        });
 
-        this.handRankings.visible = true; 
+        this.handRankings.visible = true;
         this.handRankings.alpha = 0;
         this.scene.tweens.add({
             targets: this.handRankings,
-            alpha: 1, 
+            alpha: 1,
             ease: Phaser.Math.Easing.Cubic.Out,
             duration: 500,
             delay: 150
-        }); 
+        });
 
         AudioManager.playSound("btn_click");
     }
@@ -279,14 +279,14 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
             ease: Phaser.Math.Easing.Cubic.Out,
             duration: 500,
             delay: 150
-        }); 
+        });
 
         this.scene.tweens.add({
             targets: this.title,
             y: -250,
             ease: Phaser.Math.Easing.Cubic.Out,
             duration: 500
-        }); 
+        });
 
         this.title.setText("SETTINGS");
 
@@ -304,17 +304,17 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
             scaleY: 1,
             ease: Phaser.Math.Easing.Cubic.Out,
             duration: 500
-        }); 
+        });
 
         this.scene.tweens.add({
             targets: this.handRankings,
-            alpha: 0, 
+            alpha: 0,
             ease: Phaser.Math.Easing.Cubic.Out,
             duration: 500,
             onComplete: () => {
-                this.handRankings.visible = false; 
+                this.handRankings.visible = false;
             },
             onCompleteScope: this
-        }); 
+        });
     }
 }

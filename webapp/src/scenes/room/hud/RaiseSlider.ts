@@ -56,8 +56,8 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
         }, this);
         this.add(this.btnPlus);
 
-        bar.x = this.btnMinus.x;
-        bar.scaleX = (this.btnPlus.x - this.btnMinus.x) / bar.width;
+        bar.x = this.btnMinus.x + this.btnMinus.width / 2;
+        bar.scaleX = (this.btnPlus.x - this.btnMinus.x - this.btnPlus.width / 2 - this.btnMinus.width / 2) / bar.width;
 
         this.btnMarker = new Phaser.GameObjects.Image(this.scene, this.btnMinus.x + (this.btnPlus.x - this.btnMinus.x) / 2, -44, "texture_atlas_1", "btn_slide_marker");
         this.btnMarker.setInteractive();
@@ -111,7 +111,7 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
             let raiseValue = min.add(Math.round(max.sub(min).toNumber() * x));
 
             this.raiseButton.updateRaiseValue(raiseValue);
-        } 
+        }
 
         if (!this.scene.input.activePointer.isDown) {
             this.isDown = false;
