@@ -225,6 +225,10 @@ describe("TurnBasedGame", async () => {
                 ethers.constants.AddressZero,
                 "1st game should emit event with appropriate claimer"
             ); // null claimer
+            expect(context.claimTimestamp).to.eql(
+                ethers.BigNumber.from(0),
+                "1st game should emit event with appropriate claimTimestamp"
+            ); // null timestamp
             expect(context.claimedFundsShare).to.eql(
                 [],
                 "1st game should emit event with appropriate claimedFundsShare"
@@ -286,6 +290,10 @@ describe("TurnBasedGame", async () => {
                 ethers.constants.AddressZero,
                 "2nd game should emit event with appropriate claimer"
             ); // null claimer
+            expect(context.claimTimestamp).to.eql(
+                ethers.BigNumber.from(0),
+                "2nd game should emit event with appropriate claimTimestamp"
+            ); // null timestamp
             expect(context.claimedFundsShare).to.eql(
                 [],
                 "2nd game should emit event with appropriate claimedFundsShare"
@@ -348,6 +356,10 @@ describe("TurnBasedGame", async () => {
                 ethers.constants.AddressZero,
                 "3rd game should emit event with appropriate claimer"
             ); // null claimer
+            expect(context.claimTimestamp).to.eql(
+                ethers.BigNumber.from(0),
+                "3rd game should emit event with appropriate claimTimestamp"
+            ); // null timestamp
             expect(context.claimedFundsShare).to.eql(
                 [],
                 "3rd game should emit event with appropriate claimedFundsShare"
@@ -407,6 +419,7 @@ describe("TurnBasedGame", async () => {
             expect(context.isDescartesInstantiated).to.eql(false);
             expect(context.descartesIndex).to.eql(ethers.constants.Zero);
             expect(context.claimer).to.eql(ethers.constants.AddressZero);
+            expect(context.claimTimestamp).to.eql(ethers.BigNumber.from(0));
             expect(context.claimedFundsShare).to.eql([]);
             expect(context.claimAgreementMask).to.eql(ethers.constants.Zero);
 
@@ -1257,8 +1270,10 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             await gameContract.claimResult(0, [120, 80]);
+            let claimTimestamp = ethers.BigNumber.from((await ethers.provider.getBlock("latest")).timestamp);
             let context = await gameContract.getContext(0);
             expect(context.claimer).to.eql(players[0]); // claimer
+            expect(context.claimTimestamp).to.eql(claimTimestamp); // claimTimestamp
             expect(context.claimedFundsShare).to.eql([ethers.BigNumber.from(120), ethers.BigNumber.from(80)]); // claimedFundsShare
             expect(context.claimAgreementMask).to.eql(ethers.BigNumber.from(1)); // claimAgreementMask with only last bit turned on (only player0 agrees)
 
@@ -1274,8 +1289,10 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             await gameContractPlayer1.claimResult(1, [70, 120]);
+            claimTimestamp = ethers.BigNumber.from((await ethers.provider.getBlock("latest")).timestamp);
             context = await gameContract.getContext(1);
             expect(context.claimer).to.eql(players[1]); // claimer
+            expect(context.claimTimestamp).to.eql(claimTimestamp); // claimTimestamp
             expect(context.claimedFundsShare).to.eql([ethers.BigNumber.from(70), ethers.BigNumber.from(120)]); // claimedFundsShare
             expect(context.claimAgreementMask).to.eql(ethers.BigNumber.from(2)); // claimAgreementMask with only before last bit turned on (only player1 agrees)
         });

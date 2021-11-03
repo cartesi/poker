@@ -61,6 +61,8 @@ struct GameContext {
     uint256 descartesIndex;
     // claim data: player who placed claim
     address claimer;
+    // claim data: claim timestamp
+    uint256 claimTimestamp;
     // claim data: claimed result represented by a distribution of player funds
     uint256[] claimedFundsShare;
     // FIXME: either enforce max of 256 players or use a variable-sized Bitmask
@@ -289,8 +291,9 @@ library TurnBasedGameContext {
         // ensures claimed result is valid
         TurnBasedGameUtil.checkResult(_context.playerFunds, _fundsShare);
 
-        // stores claimer and claimed result in game context
+        // stores claimer, claim timestamp and claimed result in game context
         _context.claimer = msg.sender;
+        _context.claimTimestamp = block.timestamp;
         _context.claimedFundsShare = _fundsShare;
 
         // adds claimer to mask indicating players that agree with the claim
@@ -518,9 +521,9 @@ library TurnBasedGameContext {
         // 4th input drive: turns data stored in the Logger
         drives[3] = buildTurnsDataDrive(_context, _logger, _turnChunkLog2Size, _emptyDataLogIndex, 0xd000000000000000);
 
-        // 5th input drive: verification info, specifying the challenger player and, if present, the claimer along with the claimed result
+        // 5th input drive: verification info, specifying the challenger player and, if present, the claimer along with the claim timestamp and result
         // - this is important so that the Descartes computation can punish a false claimer or challenger accordingly in the resulting funds distribution
-        bytes memory verificationInfo = abi.encodePacked(msg.sender, _context.claimer, _context.claimedFundsShare);
+        bytes memory verificationInfo = abi.encodePacked(msg.sender, _context.claimer, _context.claimTimestamp, _context.claimedFundsShare);
         drives[4] = buildDirectDrive(verificationInfo, 0xe000000000000000);
 
         return drives;

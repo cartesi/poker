@@ -206,21 +206,26 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
         // queries game contract to retrieve context for the specified game index
         const ret = await game.getContext(index);
 
-        console.log(`gameTemplateHash: ${ret[0]}`);
-        console.log(`gameMetadata: ${ret[1]}`);
-        console.log(`validators: ${ret[2]}`);
-        console.log(`erc20Address: ${ret[3]}`);
-        console.log(`players: ${ret[4]}`);
-        console.log(`playerfunds: ${ret[5]}`);
-        console.log(`playerinfos: ${ret[6]}`);
-        console.log(`isDescartesInstantiated: ${ret[8]}`);
-        console.log(`descartesIndex: ${ret[9]}`);
-        console.log(`claimer: ${ret[10]}`);
-        console.log(`claimedFundsShare: ${ret[11]}`);
-        console.log(`claimAgreementMask: ${ret[12]}`);
+        console.log(`gameTemplateHash: ${ret.gameTemplateHash}`);
+        console.log(`gameMetadata: ${ret.gameMetadata}`);
+        console.log(`gameValidators: ${ret.gameValidators}`);
+        console.log(`gameTimeout: ${ret.gameTimeout}`);
+        console.log(`gameERC20Address: ${ret.gameERC20Address}`);
+        console.log(`players: ${ret.players}`);
+        console.log(`playerFunds: ${ret.playerFunds}`);
+        console.log(`playerInfos: ${ret.playerInfos}`);
+        const startTimestampStr = new Date(ret.startTimestamp.toNumber()*1000).toISOString();
+        console.log(`startTimestamp: ${ret.startTimestamp} (${startTimestampStr})`);
+        console.log(`isDescartesInstantiated: ${ret.isDescartesInstantiated}`);
+        console.log(`descartesIndex: ${ret.descartesIndex}`);
+        console.log(`claimer: ${ret.claimer}`);
+        const claimTimestampStr = ret.claimTimestamp.toNumber() ? new Date(ret.claimTimestamp.toNumber()*1000).toISOString() : "N/A";
+        console.log(`claimTimestamp: ${ret.claimTimestamp} (${claimTimestampStr})`);
+        console.log(`claimedFundsShare: ${ret.claimedFundsShare}`);
+        console.log(`claimAgreementMask: ${ret.claimAgreementMask}`);
 
         // displays turn info: data is retrieved from the corresponding logger events ("MerkleRootCalculatedFromData")
-        const turns = ret[7];
+        const turns = ret.turns;
         if (turns && turns.length) {
             for (let iTurn = 0; iTurn < turns.length; iTurn++) {
                 const turn = turns[iTurn];

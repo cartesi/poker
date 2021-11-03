@@ -18,8 +18,6 @@ import { solidity, MockContract, deployMockContract } from "ethereum-waffle";
 import { TestTurnBasedGameContext } from "../src/types/TestTurnBasedGameContext";
 import { TestTurnBasedGameContext__factory } from "../src/types/factories/TestTurnBasedGameContext__factory";
 import { getEvent } from "./EventUtil";
-import { BigNumberish } from "@ethersproject/bignumber";
-import { TurnBasedGameContext } from "../src/types";
 
 use(solidity);
 
@@ -68,6 +66,7 @@ describe("TurnBasedGameContext", async () => {
             isDescartesInstantiated: false,
             descartesIndex: ethers.BigNumber.from(0),
             claimer: ethers.constants.AddressZero,
+            claimTimestamp: ethers.BigNumber.from(0),
             claimedFundsShare: [],
             claimAgreementMask: ethers.constants.HashZero,
         };
