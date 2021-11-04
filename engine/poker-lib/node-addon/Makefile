@@ -1,4 +1,3 @@
-BUILD_DEST ?= /poker/build/lib
 ADDON = build/Release/pokerlib.node
 
 all: $(ADDON)

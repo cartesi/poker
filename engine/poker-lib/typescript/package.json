@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "./node_modules/typescript/bin/tsc && yarn run copy && yarn run build-enums",
-    "build-enums": "node ./build-enums.js",
+    "build": "yarn run copy:engine && ./node_modules/typescript/bin/tsc && yarn run copy",
     "start": "yarn run build && node build/index.js",
     "copy": "mkdir ./build/lib && find .. -iregex \".*poker-lib-wasm\\.[js|wasm]+\" -exec cp {} build/lib \\; && cp build/lib/poker-lib-wasm.* /poker/build/lib && cp src/WasmEngine.ts /poker/build/poker-lib",
-    "test": "mocha --timeout 150000 -r ts-node/register tests/*.test.ts"
+    "test": "mocha --timeout 150000 -r ts-node/register tests/*.test.ts",
+    "copy:engine": "cp ../node-addon/src/Engine.ts ./src/"
   },
   "author": "",
   "dependencies": {
