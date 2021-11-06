@@ -65,6 +65,7 @@ contract TurnBasedGame is InstantiatorImpl {
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
     /// @param _gameMetadata game-specific initial metadata/parameters
     /// @param _gameValidators addresses of the validator nodes that will run a Descartes verification should it be needed
+    /// @param _gameTimeout global timeout for game activity in seconds, after which the game may be terminated (zero means there is no timeout limit)
     /// @param _gameERC20Address address for a ERC20 compatible token provider
     /// @param _players addresses of the players involved
     /// @param _playerFunds funds/balances that each player is bringing into the game
@@ -74,6 +75,7 @@ contract TurnBasedGame is InstantiatorImpl {
         bytes32 _gameTemplateHash,
         bytes memory _gameMetadata,
         address[] memory _gameValidators,
+        uint256 _gameTimeout,
         address _gameERC20Address,
         address[] memory _players,
         uint256[] memory _playerFunds,
@@ -90,7 +92,7 @@ contract TurnBasedGame is InstantiatorImpl {
         context.gameTemplateHash = _gameTemplateHash;
         context.gameMetadata = _gameMetadata;
         context.gameValidators = _gameValidators;
-        context.gameTimeout = 10;
+        context.gameTimeout = _gameTimeout;
         context.gameERC20Address = _gameERC20Address;
         context.players = _players;
         context.playerFunds = _playerFunds;

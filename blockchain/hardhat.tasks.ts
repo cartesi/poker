@@ -86,6 +86,7 @@ task("start-game", "Starts a TurnBasedGame instance")
         const gameMetadata = "0x";
         const players = [alice, bob];
         const validators = players;
+        const gameTimeout = 300;
         const playerfunds = [100, 100];
         const playerinfos = [
             ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Alice")),
@@ -94,7 +95,7 @@ task("start-game", "Starts a TurnBasedGame instance")
 
         await pokerToken.mint(alice, 200);
         await pokerToken.approve(game.address, 200);
-        const tx = await game.startGame(gameTemplateHash, gameMetadata, validators, pokerToken.address, players, playerfunds, playerinfos);
+        const tx = await game.startGame(gameTemplateHash, gameMetadata, validators, gameTimeout, pokerToken.address, players, playerfunds, playerinfos);
 
         const events = (await tx.wait()).events;
         const gameReadyEvent = getEvent("GameReady", contextLibrary, events);
@@ -111,12 +112,13 @@ task("join-game", "Registers player in the lobby in order to join a game")
     .addOptionalParam("hash", "Game template hash to use", defaultGameTemplateHash, types.string)
     .addOptionalParam("metadata", "Metadata of the game", "0x", types.string)
     .addOptionalParam("validators", "Accounts names for game validator nodes", ["alice", "bob"], types.json)
+    .addOptionalParam("timeout", "Timeout in seconds for ending the game due to inactivity", 300, types.int)
     .addOptionalParam("numplayers", "Number of players in the game", 2, types.int)
     .addOptionalParam("minfunds", "Minimum amount that needs to be staked in order to join the game", 10, types.int)
     .addOptionalParam("player", "Name of the account joining the game", "alice")
     .addOptionalParam("playerfunds", "The amount being staked by the player joining the game", 100, types.int)
     .addOptionalParam("playerinfo", "Additional information for the player joining the game", "0x", types.string)
-    .setAction(async ({ hash, metadata, validators, numplayers, minfunds, player, playerfunds, playerinfo }, hre) => {
+    .setAction(async ({ hash, metadata, validators, timeout, numplayers, minfunds, player, playerfunds, playerinfo }, hre) => {
         const { ethers } = hre;
 
         const accounts = await hre.getNamedAccounts();
@@ -152,6 +154,7 @@ task("join-game", "Registers player in the lobby in order to join a game")
             hash,
             metadata,
             validatorAddresses,
+            timeout,
             numplayers,
             minfunds,
             pokerToken.address,
@@ -175,7 +178,7 @@ task("join-game", "Registers player in the lobby in order to join a game")
         }
 
         // print queue situation if game is not ready yet
-        const queue = await lobby.getQueue(hash, metadata, validatorAddresses, numplayers, minfunds, pokerToken.address);
+        const queue = await lobby.getQueue(hash, metadata, validatorAddresses, timeout, numplayers, minfunds, pokerToken.address);
         console.log(`\nPlayer '${player}' enqueued. Current queue is:`);
         if (queue && queue.length) {
             for (let i = 0; i < queue.length; i++) {

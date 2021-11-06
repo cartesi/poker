@@ -41,7 +41,7 @@ struct GameContext {
     bytes gameMetadata;
     // validator nodes to be used for descartes computations
     address[] gameValidators;
-    // global timeout for game activity in seconds, after which the game may be terminated
+    // global timeout for game activity in seconds, after which the game may be terminated (zero means there is no timeout limit)
     uint256 gameTimeout;
     // address for the ERC20 compatible token provider
     address gameERC20Address;
@@ -228,6 +228,11 @@ library TurnBasedGameContext {
     {
         // reverts if game verification has been triggered
         require(!_context.isDescartesInstantiated, "Game has been challenged and a verification has been requested");
+
+        if (_context.gameTimeout == 0) {
+            // timeout limit is undefined/infinite: no timeout possible
+            return false;
+        }
 
         if (_context.claimer != address(0)) {
             // result has been claimed: check timeout between claim and current timestamp

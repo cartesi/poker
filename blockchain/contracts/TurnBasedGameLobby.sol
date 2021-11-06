@@ -53,6 +53,7 @@ contract TurnBasedGameLobby {
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
     /// @param _gameMetadata game-specific initial metadata/parameters
     /// @param _gameValidators addresses of the validator nodes that will run a Descartes verification should it be needed
+    /// @param _gameTimeout global timeout for game activity in seconds, after which the game may be terminated (zero means there is no timeout limit)
     /// @param _gameNumPlayers number of players in the game
     /// @param _gameMinFunds minimum funds required to be staked in order to join the game
     /// @param _gameERC20Address address for a ERC20 compatible token provider
@@ -61,6 +62,7 @@ contract TurnBasedGameLobby {
         bytes32 _gameTemplateHash,
         bytes memory _gameMetadata,
         address[] memory _gameValidators,
+        uint256 _gameTimeout,
         uint8 _gameNumPlayers,
         uint256 _gameMinFunds,
         address _gameERC20Address
@@ -72,6 +74,7 @@ contract TurnBasedGameLobby {
                     _gameTemplateHash,
                     _gameMetadata,
                     _gameValidators,
+                    _gameTimeout,
                     _gameNumPlayers,
                     _gameMinFunds,
                     _gameERC20Address
@@ -85,6 +88,7 @@ contract TurnBasedGameLobby {
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
     /// @param _gameMetadata game-specific initial metadata/parameters
     /// @param _gameValidators addresses of the validator nodes that will run a Descartes verification should it be needed
+    /// @param _gameTimeout global timeout for game activity in seconds, after which the game may be terminated (zero means there is no timeout limit)
     /// @param _gameNumPlayers number of players in the game
     /// @param _gameMinFunds minimum funds required to be staked in order to join the game
     /// @param _gameERC20Address address for a ERC20 compatible token provider
@@ -94,6 +98,7 @@ contract TurnBasedGameLobby {
         bytes32 _gameTemplateHash,
         bytes memory _gameMetadata,
         address[] memory _gameValidators,
+        uint256 _gameTimeout,
         uint8 _gameNumPlayers,
         uint256 _gameMinFunds,
         address _gameERC20Address,
@@ -112,6 +117,7 @@ contract TurnBasedGameLobby {
                     _gameTemplateHash,
                     _gameMetadata,
                     _gameValidators,
+                    _gameTimeout,
                     _gameNumPlayers,
                     _gameMinFunds,
                     _gameERC20Address
@@ -158,6 +164,7 @@ contract TurnBasedGameLobby {
                 _gameTemplateHash,
                 _gameMetadata,
                 _gameValidators,
+                _gameTimeout,
                 _gameERC20Address,
                 players,
                 playerFunds,
