@@ -1,4 +1,4 @@
-FROM gcc:latest
+FROM gcc:10.2.0
 
 ENV LD_LIBRARY_PATH=/poker/build/lib
 ENV POKER_LOGGING=0
@@ -17,6 +17,3 @@ RUN cd ~ && \
     nvm install 14.17.6 && \
     nvm use 14.17.6 && \
     node --version
-
-
-
