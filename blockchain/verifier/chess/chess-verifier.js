@@ -2,6 +2,9 @@ const BigNumber = require("bignumber.js");
 const ChessModule = require("chess.js");
 const Chess = ChessModule.Chess ? ChessModule.Chess : ChessModule;
 
+// funds at stake for a normal game
+const GAME_STAKE = new BigNumber(10);
+
 // verify chess game given provided turn-based-game input
 function run(inputs) {
     // initializes chess game
@@ -15,15 +18,26 @@ function run(inputs) {
     // - aborts if an illegal move was requested and punishes the move's author
     console.log(`\nExecuting chess moves: ${JSON.stringify(moves)}`);
     for (let i = 0; i < moves.length; i++) {
-        const author = inputs.turnAuthors[i];
-        const expectedAuthor = inputs.players[i%2];
-        if (author !== expectedAuthor) {
-            console.log(`Player '${author}' submitted move '${moves[i]}' when it wasn't his turn.`);
-            return computeResultPunish(inputs, author);
+        const player = inputs.turnPlayers[i];
+        const expectedPlayer = inputs.players[i%2];
+        if (player !== expectedPlayer) {
+            console.log(`Player '${player}' submitted move ${i} ('${moves[i]}') when it wasn't his turn.`);
+            return computeResultPunish(inputs, player);
+        }
+        const nextPlayer = inputs.turnNextPlayers[i];
+        const expectedNextPlayer = inputs.players[(i+1)%2];
+        if (nextPlayer !== expectedNextPlayer) {
+            console.log(`Player '${player}' submitted move ${i} ('${moves[i]}') with invalid nextPlayer '${nextPlayer}' (should be '${expectedNextPlayer}').`);
+            return computeResultPunish(inputs, player);
+        }
+        const stake = inputs.turnPlayerStakes[i];
+        if (!stake.eq(GAME_STAKE)) {
+            console.log(`Player '${player}' submitted move ${i} ('${moves[i]}') with invalid stake '${stake}' (should be '${GAME_STAKE}').`);
+            return computeResultPunish(inputs, player);
         }
         if (!chess.move(moves[i])) {
-            console.log(`Invalid move '${moves[i]}' from player '${author}'`);
-            return computeResultPunish(inputs, author);
+            console.log(`Invalid move ${i} ('${moves[i]}') from player '${player}'`);
+            return computeResultPunish(inputs, player);
         }
     }
 
@@ -46,14 +60,10 @@ function run(inputs) {
     }
 
     // game is over and there is a claim: compute result and compare with claim
-    let result = new Array(2)
     if (chess.in_checkmate()) {
         // side to move has been checkmated
         const [loser, winner] = chess.turn() == 'w' ? [0,1] : [1,0];
-        // correct result is that loser should give 10% of his funds to the winner
-        const amountLost = inputs.playerFunds[loser].idiv(10);
-        result[loser] = inputs.playerFunds[loser].minus(amountLost);
-        result[winner] = inputs.playerFunds[winner].plus(amountLost);
+        result = computeResultWinner(inputs, winner, loser);
         console.log(`Game over in checkmate. Winner is '${inputs.players[winner]}'.`);
     } else {
         console.log(`Game over in draw. Players should retain their funds.`)
@@ -68,6 +78,15 @@ function run(inputs) {
         console.log(`Claimed result is incorrect: will punish claimer '${inputs.claimer}'.`);
         return computeResultPunish(inputs, inputs.claimer);
     }
+}
+
+// computes result when there is a winner and a loser
+function computeResultWinner(inputs, winner, loser) {
+    // correct result is that loser should give 10% of his funds to the winner
+    const result = new Array(2)
+    result[loser] = inputs.playerFunds[loser].minus(GAME_STAKE);
+    result[winner] = inputs.playerFunds[winner].plus(GAME_STAKE);
+    return result;
 }
 
 // computes result by punishing a given player

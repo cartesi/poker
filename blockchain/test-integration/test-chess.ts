@@ -6,16 +6,18 @@ async function main() {
 
     const players = ["alice", "bob"];
 
-    let index = await hre.run("start-game", { hash: "0x8d1eb708bc02d459eb10d35705a54aee412a88c9a7ebdd3c24036db1ea779060"});
+    let index = await hre.run("start-game", { hash: "0x9859f7f6db77170efd4d1572dc4cf54048606c8aaa1f67165fe6cffa8e895212"});
     index = index.toNumber();
 
     for (let i = 0; i < moves.length; i++) {
         const player = players[i%2];
+        const nextplayer = players[(i+1)%2];
+        const playerstake = 10;
         const datastr = moves[i];
-        await hre.run("submit-turn", { index, player, datastr });
+        await hre.run("submit-turn", { index, player, nextplayer, playerstake, datastr });
     }
     
-    // bob is in checkmate but will try to claim victory (10% of alice's stake)
+    // bob is in checkmate but will try to claim victory (worth 10 tokens)
     await hre.run("claim-result", { index, player: "bob", result: [90,110] });
 
     // alice challenges, and a verification is triggered using Descartes

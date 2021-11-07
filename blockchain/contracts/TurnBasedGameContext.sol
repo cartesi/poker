@@ -501,8 +501,7 @@ library TurnBasedGameContext {
         drives[0] = buildDirectDrive(_context.gameMetadata, 0xa000000000000000);
 
         // 2nd input drive: players data
-        bytes memory players =
-            abi.encodePacked(uint32(_context.players.length), _context.players, _context.playerFunds);
+        bytes memory players = abi.encodePacked(uint32(_context.players.length), _context.players, _context.playerFunds);
         drives[1] = buildDirectDrive(players, 0xb000000000000000);
 
         // 3rd input drive: turns metadata
@@ -513,7 +512,7 @@ library TurnBasedGameContext {
 
         // 5th input drive: verification info, specifying the challenge author and timestamp and, if present, the claimer along with the claim timestamp and result
         // - this is important so that the Descartes computation can punish a false claimer or challenger accordingly in the resulting funds distribution
-        bytes memory verificationInfo = abi.encodePacked(msg.sender, block.timestamp, _context.claimer, _context.claimTimestamp, _context.claimedFundsShare);
+        bytes memory verificationInfo = abi.encodePacked(msg.sender, uint32(block.timestamp), _context.claimer, uint32(_context.claimTimestamp), _context.claimedFundsShare);
         drives[4] = buildDirectDrive(verificationInfo, 0xe000000000000000);
 
         return drives;

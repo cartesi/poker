@@ -140,29 +140,47 @@ function readTurnsMetadata(inputs, filename) {
     data = readData(file, buffer, 0, 4, "Could not read number of turns");
     inputs.nTurns = new BigNumber(buf2hex(data)).toNumber();
 
-    // turn authors (addresses of the players who submitted each turn): 32 bytes each, of which 20 bytes is the address itself and the rest is padding
-    inputs.turnAuthors = [];
+    // turn players (addresses of the players who submitted each turn): 20 bytes each
+    inputs.turnPlayers = [];
     let start = 4;
     for (let i = 0; i < inputs.nTurns; i++) {
-        const end = start + 32;
-        data = readData(file, buffer, start+12, end, `Could not read author for turn ${i}`);
-        inputs.turnAuthors[i] = buf2hex(data);
+        const end = start + 20;
+        data = readData(file, buffer, start, end, `Could not read author for turn ${i}`);
+        inputs.turnPlayers[i] = buf2hex(data);
         start = end;
     }
 
-    // turn timestamps: 32 bytes each
-    inputs.turnTimestamps = [];
+    // turn next players (addresses of the players expected to submit the subsequent turn): 20 bytes each
+    inputs.turnNextPlayers = [];
+    for (let i = 0; i < inputs.nTurns; i++) {
+        const end = start + 20;
+        data = readData(file, buffer, start, end, `Could not read author for turn ${i}`);
+        inputs.turnNextPlayers[i] = buf2hex(data);
+        start = end;
+    }
+
+    // turn player stakes (amount of player funds staked at the end of each turn): 32 bytes each
+    inputs.turnPlayerStakes = [];
     for (let i = 0; i < inputs.nTurns; i++) {
         const end = start + 32;
+        data = readData(file, buffer, start, end, `Could not read author for turn ${i}`);
+        inputs.turnPlayerStakes[i] = new BigNumber(buf2hex(data));
+        start = end;
+    }
+
+    // turn timestamps: 4 bytes each
+    inputs.turnTimestamps = [];
+    for (let i = 0; i < inputs.nTurns; i++) {
+        const end = start + 4;
         data = readData(file, buffer, start, end, `Could not read timestamp for turn ${i}`);
         inputs.turnTimestamps[i] = new BigNumber(buf2hex(data));
         start = end;
     }
 
-    // turn sizes: 32 bytes each
+    // turn sizes: 4 bytes each
     inputs.turnSizes = [];
     for (let i = 0; i < inputs.nTurns; i++) {
-        const end = start + 32;
+        const end = start + 4;
         data = readData(file, buffer, start, end, `Could not read size for turn ${i}`);
         inputs.turnSizes[i] = new BigNumber(buf2hex(data)).toNumber();
         start = end;
@@ -207,15 +225,22 @@ function readVerificationInfo(inputs, filename) {
     data = readData(file, buffer, 0, 20, "Could not read challenger address");
     inputs.challenger = buf2hex(data);
 
+    // challenge timestamp: 4 bytes
+    data = readData(file, buffer, 20, 24, "Could not read challenge timestamp");
+    inputs.challengeTime = new BigNumber(buf2hex(data));
+
     // claimer address: 20 bytes
-    data = readData(file, buffer, 20, 40, "Could not read claimer address");
+    data = readData(file, buffer, 24, 44, "Could not read claimer address");
     const claimer = buf2hex(data);
     if (claimer !== "0x0000000000000000000000000000000000000000") {
         // there is a claim
+        // - claim timestamp: 4 bytes
+        data = readData(file, buffer, 44, 48, "Could not read claim timestamp");
+        inputs.claimTime = new BigNumber(buf2hex(data));
         // - claim corresponds to an array of funds to be given back to each player: 32 bytes each
         inputs.claimer = claimer;
         inputs.claimedFundsShare = [];
-        let start = 40;
+        let start = 48;
         for (let i = 0; i < inputs.nPlayers; i++) {
             const end = start + 32;
             data = readData(file, buffer, start, end, `Could not read claimed funds share for player ${i}`);
