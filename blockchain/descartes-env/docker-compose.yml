@@ -22,7 +22,7 @@ services:
     environment:
       MNEMONIC: "test test test test test test test test test test test junk"
       ACCOUNT_INDEX: 0
-      RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=trace
+      RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=info
       WEB3_PROVIDER_URI: http://hardhatnet:8545
       DEPLOYMENT_SEMAPHORE: http://hardhatnet:8545
       ETHEREUM_HOST: hardhatnet
@@ -50,7 +50,7 @@ services:
       - "3001:3001"
 
   alice_logger:
-    image: cartesi/logger-server:0.7.1
+    image: cartesi/logger-server:0.7.3
     command: [ "-c", "/opt/cartesi/share/blockchain/deployments/localhost/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
     # command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/goerli/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
     volumes:
@@ -97,7 +97,7 @@ services:
     environment:
       MNEMONIC: "test test test test test test test test test test test junk"
       ACCOUNT_INDEX: 1
-      RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=trace
+      RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=info
       WEB3_PROVIDER_URI: http://hardhatnet:8545
       DEPLOYMENT_SEMAPHORE: http://hardhatnet:8545
       ETHEREUM_HOST: hardhatnet
@@ -125,7 +125,7 @@ services:
       - "3002:3001"
 
   bob_logger:
-    image: cartesi/logger-server:0.7.1
+    image: cartesi/logger-server:0.7.3
     command: [ "-c", "/opt/cartesi/share/blockchain/deployments/localhost/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
     # command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/goerli/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
     volumes:
