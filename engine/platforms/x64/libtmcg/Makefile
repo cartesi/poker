@@ -5,7 +5,6 @@ all: libtmcg
 
 libtmcg: $(LIBNAME)
 	cd $(LIBNAME)  && \
-    git apply /poker/patches/$(LIBNAME).patch && \
     aclocal  -I /poker/build/share/aclocal && \
     libtoolize   --force && \
     autoheader  && \
@@ -20,7 +19,8 @@ $(LIBNAME):
     unzip release-libTMCG-$(VER).zip && \
     mv libtmcg-release-libTMCG-$(VER) $(LIBNAME) && \
     rm release-libTMCG-$(VER).zip && \
-    cd $(LIBNAME)
+    cd $(LIBNAME) && \
+    git apply /poker/patches/$(LIBNAME).patch
 
 clean:
 	rm -r $(LIBNAME)
