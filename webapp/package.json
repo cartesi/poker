@@ -9,6 +9,7 @@
     },
     "homepage": "https://github.com/cartesi-corp/poker-webapp",
     "devDependencies": {
+        "copyfiles": "^2.4.1",
         "expose-loader": "1.0.0",
         "ncp": "^2.0.0",
         "npm-run-all": "^4.1.5",
@@ -38,11 +39,11 @@
         "contracts:build": "cd ../blockchain && yarn build",
         "contracts:deploy": "cd ../blockchain && yarn deploy",
         "contracts:deploy:matic_testnet": "cd ../blockchain && yarn deploy:matic_testnet",
-        "contracts:copy": "mkdir -p src/abis && cp ../blockchain/deployments/localhost/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/localhost/Poker*.json ./src/abis/ && cp ../blockchain/descartes-env/deployments/localhost/Descartes.json ./src/abis/ && cp ../blockchain/descartes-env/deployments/localhost/Logger.json ./src/abis/ && ncp ../blockchain/src/types/ ./src/types/",
-        "contracts:copy:matic_testnet": "mkdir -p src/abis && cp ../blockchain/deployments/matic_testnet/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/matic_testnet/Poker*.json ./src/abis/ && cp ../node_modules/@cartesi/descartes-sdk/deployments/matic_testnet/Descartes.json ./src/abis/ && cp ../node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json ./src/abis/ && ncp ../blockchain/src/types/ ./src/types/",
-        "engine:copy": "mkdir -p assets/engine && mkdir -p src/services/engine && run-s engine:copy:wasm engine:copy:native",
-        "engine:copy:wasm": "cp ../engine/platforms/wasm/build/poker-lib/*.ts src/services/engine && cp ../engine/platforms/wasm/build/lib/poker-lib-wasm.* assets/engine",
-        "engine:copy:native": "cp ../engine/platforms/x64/build/poker-lib/*.ts src/services/engine && cp ../engine/platforms/x64/build/lib/pokerlib.node assets/engine"
+        "contracts:copy": "copyfiles -f \"../blockchain/deployments/localhost/TurnBasedGame*.json\" ./src/abis/ && copyfiles -f \"../blockchain/deployments/localhost/Poker*.json\" ./src/abis/ && copyfiles -f ../blockchain/descartes-env/deployments/localhost/Descartes.json ./src/abis/ && copyfiles -f ../blockchain/descartes-env/deployments/localhost/Logger.json ./src/abis/ && ncp ../blockchain/src/types/ ./src/types/",
+        "contracts:copy:matic_testnet": "copyfiles -f \"../blockchain/deployments/matic_testnet/TurnBasedGame*.json\" ./src/abis/ && copyfiles -f \"../blockchain/deployments/matic_testnet/Poker*.json\" ./src/abis/ && copyfiles -f ../node_modules/@cartesi/descartes-sdk/deployments/matic_testnet/Descartes.json ./src/abis/ && copyfiles -f ../node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json ./src/abis/ && ncp ../blockchain/src/types/ ./src/types/",
+        "engine:copy": "run-s engine:copy:wasm engine:copy:native",
+        "engine:copy:wasm": "copyfiles -f \"../engine/platforms/wasm/build/poker-lib/*.ts\" src/services/engine && copyfiles -f \"../engine/platforms/wasm/build/lib/poker-lib-wasm.*\" assets/engine",
+        "engine:copy:native": "copyfiles -f \"../engine/platforms/x64/build/poker-lib/*.ts\" src/services/engine && copyfiles -f \"../engine/platforms/x64/build/lib/pokerlib.node\" assets/engine"
     },
     "browserslist": [
         ">0.2%",
