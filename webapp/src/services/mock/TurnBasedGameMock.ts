@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { VerificationState, VerificationStates } from "../Game";
-import { TurnBasedGame } from "../TurnBasedGame";
+import { TurnBasedGame, TurnInfo } from "../TurnBasedGame";
 import { LobbyMock } from "./LobbyMock";
 
 /**
@@ -10,9 +10,11 @@ import { LobbyMock } from "./LobbyMock";
  */
 export class TurnBasedGameMock implements TurnBasedGame {
     other: TurnBasedGameMock;
-    turnDataQueue: Array<any>;
+    turnInfoQueue: Array<TurnInfo>;
     onTurnOverReceivedResolvers: Array<(any) => any>;
 
+    playerStake = ethers.BigNumber.from(0);
+    confirmedResult: any;
     claimedResult: any;
     onResultClaimReceived: (any) => any;
     onGameOverReceived: (any) => any;
@@ -23,7 +25,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
     verificationState: VerificationState;
 
     constructor(private gameIndex, private playerIndex: number) {
-        this.turnDataQueue = [];
+        this.turnInfoQueue = [];
         this.onTurnOverReceivedResolvers = [];
     }
 
@@ -33,8 +35,13 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
 
     // turn submission
-    submitTurn(data: Uint8Array): Promise<Uint8Array> {
+    submitTurn(info: TurnInfo): Promise<TurnInfo> {
         return new Promise((resolve, reject) => {
+            if (this.confirmedResult !== undefined) {
+                // game has ended: no longer accepts submissions
+                reject("Game result has been confirmed and game has ended: turn submissions no longer accepted");
+                return;
+            }
             if (this.claimedResult !== undefined) {
                 // claim has been made: no longer accepts submissions
                 reject("Game result has been claimed: turn submissions no longer accepted");
@@ -46,8 +53,9 @@ export class TurnBasedGameMock implements TurnBasedGame {
                 return;
             }
             try {
-                this.other.turnDataQueue.push(data);
-                resolve(data);
+                this.other.turnInfoQueue.push(info);
+                this.playerStake = info.playerStake;
+                resolve(info);
                 this.other._dispatchTurn();
             } catch (error) {
                 reject(error);
@@ -56,22 +64,22 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
 
     receiveTurnOver() {
-        return new Promise<Uint8Array>((resolve) => {
+        return new Promise<TurnInfo>((resolve) => {
             this.onTurnOverReceivedResolvers.push(resolve);
             this._dispatchTurn();
         });
     }
 
     private _dispatchTurn() {
-        const data = this.turnDataQueue.shift();
-        if (!data) return;
+        const info = this.turnInfoQueue.shift();
+        if (!info) return;
         const resolve = this.onTurnOverReceivedResolvers.shift();
         if (!resolve) {
-            this.turnDataQueue.unshift(data);
+            this.turnInfoQueue.unshift(info);
             return;
         }
         setTimeout(() => {
-            resolve(data);
+            resolve(info);
             this._dispatchTurn();
         }, 10);
     }
@@ -106,6 +114,7 @@ export class TurnBasedGameMock implements TurnBasedGame {
     // CONFIRM RESULT AND GAME END HANDLING
     //
     private _onGameEnd(confirmedResult) {
+        this.confirmedResult = confirmedResult;
         if (this.onGameOverReceived) {
             this.onGameOverReceived(confirmedResult);
         }
@@ -153,6 +162,16 @@ export class TurnBasedGameMock implements TurnBasedGame {
         return VerificationStates[newState];
     }
 
+    private _computeResultTimeout() {
+        // whoever claims the timeout is calling this method and is assumed to be the winner
+        // - winner gets the other player's stake
+        // - players funds are extracted from LobbyMock (since necessarily we have config `transport=mock`)
+        const fundsShare = Array(2);
+        fundsShare[this.playerIndex] = LobbyMock.PLAYER_FUNDS.add(this.other.playerStake);
+        fundsShare[this.other.playerIndex] = LobbyMock.PLAYER_FUNDS.sub(this.other.playerStake);
+        return fundsShare;
+    }
+
     private _computeResultVerification() {
         // challenger is assumed to be the honest part and will win everything
         // - players funds are extracted from LobbyMock (since necessarily we have config `transport=mock`)
@@ -170,6 +189,15 @@ export class TurnBasedGameMock implements TurnBasedGame {
             this.onGameChallengeReceived(msg);
         }
         setTimeout(() => this._setVerificationState(gameIndex, VerificationState.STARTED, msg), 3000);
+    }
+
+    claimTimeout(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            resolve();
+            const result = this._computeResultTimeout();
+            this._onGameEnd(result);
+            this.other._onGameEnd(result);
+        });
     }
 
     challengeGame(msg: string): Promise<void> {

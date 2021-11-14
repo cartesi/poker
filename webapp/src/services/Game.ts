@@ -81,6 +81,7 @@ export interface Game {
     fold(): Promise<void>;
     raise(amount: BigNumber): Promise<void>;
 
+    claimTimeout(): Promise<void>;
     challengeGame(msg: string): Promise<void>;
 
     cheat: {

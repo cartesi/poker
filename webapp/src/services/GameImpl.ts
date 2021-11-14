@@ -2,13 +2,14 @@ import { Card } from "./Card";
 import { Engine, EngineBetType, EnginePlayer, EngineResult, EngineState, EngineStep, StatusCode } from "./engine/Engine";
 import { BetType, EventType, Game, GameResult, GameState, VerificationState } from "./Game";
 import { PokerSolver } from "./PokerSolver";
-import { TurnBasedGame } from "./TurnBasedGame";
+import { TurnBasedGame, TurnInfo } from "./TurnBasedGame";
 import { BigNumber } from "ethers";
 import { ServiceConfig } from "./ServiceConfig";
 
 export class GameImpl implements Game {
     // FIXME: if using a mock TurnBasedGame, stores a reference to the opponent's Game instance (with automatic responses)
     gameOpponent: Game;
+    private gameOverResult: GameResult;
     
     constructor(
         private playerId: number,
@@ -27,6 +28,17 @@ export class GameImpl implements Game {
         this.turnBasedGame.receiveResultClaimed().then(this._onResultClaimed.bind(this));
         this.turnBasedGame.receiveGameOver().then((fundsShare) => {
             console.log(`### [Player ${this.playerId}] Received Game Over ###`);
+            // compute result based on fundsShare received from GameOver event
+            this.gameOverResult = {
+                fundsShare,
+                isWinner: Array(2),
+                hands: Array(2),
+            };
+            // - define winners: anyone who has not lost money is considered a winner
+            this.gameOverResult.isWinner[this.playerId] = fundsShare[this.playerId].gte(this.playerFunds);
+            this.gameOverResult.isWinner[this.opponentId] = fundsShare[this.opponentId].gte(this.opponentFunds);
+            // - set hands as unknown (if there was game-specific data included in the GameOver event we could do better)
+            this.gameOverResult.hands = Array(2);
             this.onEnd();
         });
     }
@@ -108,6 +120,10 @@ export class GameImpl implements Game {
                 reject(err);
             }
         });
+    }
+
+    async claimTimeout() {
+        await this.turnBasedGame.claimTimeout();
     }
 
     async challengeGame(msg: string) {
@@ -246,6 +262,8 @@ export class GameImpl implements Game {
                 if (state.step == EngineStep.GAME_OVER) {
                     let result = this._computeResult(state);
                     resolve(result);
+                } else if (this.gameOverResult) {
+                    resolve(this.gameOverResult);
                 } else {
                     reject(new Error("Game is not over yet"));
                 }
@@ -279,24 +297,33 @@ export class GameImpl implements Game {
         };
     }
 
-    private async _createHandshake(): Promise<Uint8Array> {
+    private async _submitTurn(data: Uint8Array): Promise<TurnInfo> {
+        return this.turnBasedGame.submitTurn({
+            data,
+            nextPlayer: await this.getCurrentPlayerId(),
+            playerStake: await this.getPlayerBets(),
+        });
+    }
+
+    private async _createHandshake(): Promise<TurnInfo> {
         console.log(`### [Player ${this.playerId}] Create Handshake ###`);
         let result = await this.engine.create_handshake();
         console.log(`### [Player ${this.playerId}] Submit turn ###`);
-        return this.turnBasedGame.submitTurn(result.message_out);
+        return this._submitTurn(result.message_out);
     }
 
     private async _processHandshake(): Promise<void> {
         console.log(`### [Player ${this.playerId}] Process Handshake ###`);
         let p2: EngineResult;
         do {
-            let message_in = await this.turnBasedGame.receiveTurnOver();
+            const turnInfo = await this.turnBasedGame.receiveTurnOver();
+            const message_in = turnInfo.data;
             console.log(`### [Player ${this.playerId}] On turn received ###`);
             p2 = await this.engine.process_handshake(message_in);
 
             if (p2.message_out.length > 0) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
-                await this.turnBasedGame.submitTurn(p2.message_out);
+                await this._submitTurn(p2.message_out);
             }
         } while (p2.status == StatusCode.CONTINUED);
 
@@ -307,8 +334,8 @@ export class GameImpl implements Game {
         console.log(`### [Player ${this.playerId}] Created bet ###`);
         let bet = await this.engine.create_bet(type, amount);
         console.log(`### [Player ${this.playerId}] Submit turn ###`);
-        await this.turnBasedGame.submitTurn(bet.message_out);
-        
+        await this._submitTurn(bet.message_out);
+
         console.log(`### [Player ${this.playerId}] Bet Resolved ###`);
         return bet;
     }
@@ -318,7 +345,8 @@ export class GameImpl implements Game {
         let receivedResult: EngineResult;
         let receivedBetType: BetType;
         do {
-            let message_in = await this.turnBasedGame.receiveTurnOver();
+            const turnInfo = await this.turnBasedGame.receiveTurnOver();
+            const message_in = turnInfo.data;
             console.log(`### [Player ${this.playerId}] On turn received ###`);
 
             receivedResult = await this.engine.process_bet(message_in);
@@ -336,7 +364,7 @@ export class GameImpl implements Game {
 
             if (receivedResult.message_out.length > 0) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
-                await this.turnBasedGame.submitTurn(receivedResult.message_out);
+                await this._submitTurn(receivedResult.message_out);
             }
         } while (receivedResult.status == StatusCode.CONTINUED);
 
@@ -372,7 +400,7 @@ export class GameImpl implements Game {
         if (result.status == StatusCode.CONTINUED) {
             // interaction is not over: keep exchanging data until it's over and check if opponent has folded
             const bet = await this._processBet();
-            isFold = (bet.type == BetType.FOLD);
+            isFold = bet.type == BetType.FOLD;
         }
         // bet processing is complete: define what to do next
         this._checkNextAction(isFold);
@@ -383,7 +411,7 @@ export class GameImpl implements Game {
         const bet = await this._processBet();
 
         // bet processing is complete: check if opponent has folded and define what to do next
-        const isFold = (bet.type == BetType.FOLD);
+        const isFold = bet.type == BetType.FOLD;
         this._checkNextAction(isFold);
     }
 

@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { BigNumber } from "ethers";
-import { TurnBasedGame } from "../TurnBasedGame";
+import { TurnBasedGame, TurnInfo } from "../TurnBasedGame";
 import TurnBasedGameJson from "../../abis/TurnBasedGame.json";
 import TurnBasedGameContextJson from "../../abis/TurnBasedGameContext.json";
 import { TurnBasedGame as TurnBasedGameContract } from "../../types";
@@ -27,7 +27,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     gameContract: TurnBasedGameContract;
     gameContextContract: any;
 
-    turnDataQueue: Array<any>;
+    turnInfoQueue: Array<any>;
     onTurnOverReceivedResolvers: Array<(any) => any>;
 
     claimedResult: any;
@@ -39,7 +39,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     onVerificationUpdate: (update: [VerificationState, string]) => any;
 
     constructor(private gameIndex: number) {
-        this.turnDataQueue = [];
+        this.turnInfoQueue = [];
         this.onTurnOverReceivedResolvers = [];
     }
 
@@ -106,18 +106,25 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     }
 
     // TURN SUBMISSION
-    async submitTurn(data: Uint8Array): Promise<Uint8Array> {
+    async submitTurn(info: TurnInfo): Promise<TurnInfo> {
         await this.initWeb3();
 
         await ErrorHandler.execute("submitTurn", async () => {
             const context = await this.gameContract.getContext(this.gameIndex);
             const turnIndex = context.turns.length;
-            const tx = await this.gameContract.submitTurn(this.gameIndex, turnIndex, data);
+            const nextPlayerAddress = context.players[info.nextPlayer];
+            const tx = await this.gameContract.submitTurn(
+                this.gameIndex,
+                turnIndex,
+                nextPlayerAddress,
+                info.playerStake,
+                info.data
+            );
             console.log(
                 `Submitted turn '${turnIndex}' for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
             );
         });
-        return data;
+        return info;
     }
     async onTurnOver(gameIndex, turnIndex, turn) {
         await this.initWeb3();
@@ -134,26 +141,27 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         // retrieves turn data from Logger
         const data = await this.getLoggerData(turn.dataLogIndices);
 
-        // stores turn data in queue and checks for listeners
-        this.turnDataQueue.push(data);
+        // stores turn info in queue and checks for listeners
+        const turnInfo = { data, nextPlayer: turn.nextPlayer, playerStake: turn.playerStake };
+        this.turnInfoQueue.push(turnInfo);
         this.dispatchTurn();
     }
     async receiveTurnOver() {
-        return new Promise<Uint8Array>(async (resolve) => {
+        return new Promise<TurnInfo>(async (resolve) => {
             await this.initWeb3();
             this.onTurnOverReceivedResolvers.push(resolve);
             this.dispatchTurn();
         });
     }
     dispatchTurn() {
-        const data = this.turnDataQueue.shift();
-        if (!data) return;
+        const turnInfo = this.turnInfoQueue.shift();
+        if (!turnInfo) return;
         const resolve = this.onTurnOverReceivedResolvers.shift();
         if (!resolve) {
-            this.turnDataQueue.unshift(data);
+            this.turnInfoQueue.unshift(turnInfo);
             return;
         }
-        resolve(data);
+        resolve(turnInfo);
         this.dispatchTurn();
     }
     async getLoggerData(logIndices: Array<number>) {
@@ -229,6 +237,16 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     //
     // CHALLENGE AND VERIFICATION
     //
+    async claimTimeout(): Promise<void> {
+        await this.initWeb3();
+        // TODO: before submitting the timeout claim (and spending tx fees), we could check the game context to ensure there is indeed a timeout
+        await ErrorHandler.execute("claimTimeout", async () => {
+            const tx = await this.gameContract.claimTimeout(this.gameIndex);
+            console.log(
+                `Claimed opponent timeout for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
+            );
+        });
+    }
     async challengeGame(msg: string): Promise<void> {
         await this.initWeb3();
         await ErrorHandler.execute("challengeGame", async () => {

@@ -81,6 +81,7 @@ export class LobbyWeb3 {
                 GameConstants.GAME_TEMPLATE_HASH,
                 GameConstants.GAME_METADATA,
                 validators,
+                GameConstants.TIMEOUT_SECONDS,
                 GameConstants.NUM_PLAYERS,
                 GameConstants.MIN_FUNDS,
                 PokerToken.address,

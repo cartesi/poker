@@ -53,7 +53,7 @@ export class RoomManager {
                 RoomManager.updateOpponentState();
             }, 1000);
         }).catch(error => {
-            console.error(JSON.stringify(error));
+            console.error(`${error} - ${JSON.stringify(error)}`);
             RoomScene.currentInstance.hideWaitingFirstCards();
         });
 
@@ -274,8 +274,8 @@ export class RoomManager {
             // TODO: should we attempt to check if possible?
             await RoomManager.playerFold();
         } else {
-            console.log("OPPONENT TIMEOUT! Challenging game...");
-            RoomManager.game.challengeGame("Timeout");
+            console.log("OPPONENT TIMEOUT! Claiming timeout...");
+            RoomManager.game.claimTimeout();
         }
     }
 

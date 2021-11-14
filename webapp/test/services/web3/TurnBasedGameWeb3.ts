@@ -10,6 +10,7 @@ import { TurnBasedGameWeb3 } from "../../../src/services/web3/TurnBasedGameWeb3"
 import { ethers } from "ethers";
 import { ProviderType } from "../../../src/services/web3/provider/Provider";
 import { VerificationState } from "../../../src/services/Game";
+import { TurnInfo } from "../../../src/services/TurnBasedGame";
 
 describe("TurnBasedGameWeb3", function () {
     // creates a service config instance
@@ -130,6 +131,7 @@ describe("TurnBasedGameWeb3", function () {
 
         // data alice will submit
         let aliceData: Uint8Array = new Uint8Array([10, 20, 0, 0, 0, 0, 0, 0]);
+        let aliceTurnInfo: TurnInfo = { data: aliceData, nextPlayer: 1, playerStake: ethers.BigNumber.from(10) };
 
         // create turnbasedgame instance for Bob
         ServiceConfig.currentInstance.setSigner(bobAddress);
@@ -141,10 +143,10 @@ describe("TurnBasedGameWeb3", function () {
 
         // alice submit a turn
         ServiceConfig.currentInstance.setSigner(aliceAddress);
-        await turnBasedGameAlice.submitTurn(aliceData);
+        await turnBasedGameAlice.submitTurn(aliceTurnInfo);
 
-        await turnOverPromise.then((data) => {
-            expect(data).to.be.eql(aliceData);
+        await turnOverPromise.then((turnInfo) => {
+            expect(turnInfo).to.be.eql(aliceData);
         });
 
         // set up callback for Bob receive Alice's claim for the result

@@ -4,10 +4,16 @@ import { TurnBasedGameWeb3 } from "./web3/TurnBasedGameWeb3";
 import { BigNumber } from "ethers";
 import { VerificationState } from "./Game";
 
+export class TurnInfo {
+    nextPlayer: number;
+    playerStake: BigNumber;
+    data: Uint8Array;
+}
+
 export interface TurnBasedGame {
     // turn submission
-    submitTurn(data: Uint8Array): Promise<Uint8Array>;
-    receiveTurnOver(): Promise<Uint8Array>;
+    submitTurn(info: TurnInfo): Promise<TurnInfo>;
+    receiveTurnOver(): Promise<TurnInfo>;
 
     // result claim and confirmation
     claimResult(data: Array<BigNumber>): Promise<void>;
@@ -16,6 +22,7 @@ export interface TurnBasedGame {
     receiveGameOver(): Promise<Array<BigNumber>>;
 
     // challenge and verification
+    claimTimeout(): Promise<void>;
     challengeGame(msg: string): Promise<void>;
     receiveGameChallenged(): Promise<string>;
     receiveVerificationUpdate(): Promise<[VerificationState, string]>;
