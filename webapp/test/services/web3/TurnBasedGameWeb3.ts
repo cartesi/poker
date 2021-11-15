@@ -12,6 +12,15 @@ import { ProviderType } from "../../../src/services/web3/provider/Provider";
 import { VerificationState } from "../../../src/services/Game";
 import { TurnInfo } from "../../../src/services/TurnBasedGame";
 
+/**
+ * Adds a given number of seconds to the next block's timestamp
+ * @param secondsToAdd
+ */
+async function increaseTime(secondsToAdd: number): Promise<void> {
+    const provider = new ethers.providers.JsonRpcProvider();
+    provider.send("evm_increaseTime", [secondsToAdd]);
+}
+
 describe("TurnBasedGameWeb3", function () {
     // creates a service config instance
     const serviceConfig: ServiceConfig = new ServiceConfig(ProviderType.JsonRpc);
@@ -173,8 +182,83 @@ describe("TurnBasedGameWeb3", function () {
         turnBasedGameBob.removeListeners();
     });
 
+    it("should allow a player to claim timeout and end game when enough time has elapsed", async () => {
+        // collects alice and bob balances in POKER tokens
+        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, ServiceConfig.getSigner());
+        const aliceBalance = await pokerTokenContract.balanceOf(aliceAddress);
+        const bobBalance = await pokerTokenContract.balanceOf(bobAddress);
+
+        // Players join the game
+        let gameReadyPromiseResolver: (number) => void;
+        const gameReadyPromise = new Promise<number>((resolve) => {
+            gameReadyPromiseResolver = resolve;
+        });
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        await LobbyWeb3.joinGame(aliceInfo, () => {});
+        ServiceConfig.currentInstance.setSigner(bobAddress);
+        await LobbyWeb3.joinGame(bobInfo, (index, context) => {
+            gameReadyPromiseResolver(index);
+        });
+
+        // retrieves gameIndex from GameReady event
+        let gameIndex: number = await Promise.resolve(gameReadyPromise);
+
+        // creates TurnBasedGame instance for alice
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        turnBasedGameAlice = new TurnBasedGameWeb3(gameIndex);
+        await turnBasedGameAlice.initWeb3();
+
+        // create turnbasedgame instance for Bob
+        ServiceConfig.currentInstance.setSigner(bobAddress);
+        turnBasedGameBob = new TurnBasedGameWeb3(gameIndex);
+        await turnBasedGameBob.initWeb3();
+
+        // sets up game end callback
+        let gameOverPromise: Promise<any> = turnBasedGameAlice.receiveGameOver();
+
+        // alice submits a turn
+        let aliceData = new Uint8Array([10, 20, 0, 0, 0, 0, 0, 0]);
+        let alicePlayerStake = ethers.BigNumber.from(1);
+        let aliceTurnInfo = { data: aliceData, nextPlayer: 1, playerStake: alicePlayerStake };
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        await turnBasedGameAlice.submitTurn(aliceTurnInfo);
+
+        // bob submits a turn
+        let bobData = new Uint8Array([10, 20, 30, 0, 0, 0, 0, 0]);
+        let bobPlayerStake = ethers.BigNumber.from(2);
+        let bobTurnInfo = { data: bobData, nextPlayer: 0, playerStake: bobPlayerStake };
+        ServiceConfig.currentInstance.setSigner(bobAddress);
+        await turnBasedGameBob.submitTurn(bobTurnInfo);
+
+        // fast-forwards network time so that a timeout can be claimed (alice's fault)
+        await increaseTime(GameConstants.TIMEOUT_SECONDS + 10);
+
+        // bob claims timeout
+        await turnBasedGameBob.claimTimeout();
+
+        // check game end: result should give alice's staked funds to bob
+        const result = await Promise.resolve(gameOverPromise);
+        expect(result.length).to.equal(2);
+        console.log(`Result: [${result[0].toString()}, ${result[1].toString()}]`);
+        expect(result[0]).to.eql(aliceBalance.sub(alicePlayerStake));
+        expect(result[1]).to.eql(bobBalance.add(alicePlayerStake));
+
+        // check if player balances reflect the result
+        expect(await pokerTokenContract.balanceOf(aliceAddress)).to.eql(result[0]);
+        expect(await pokerTokenContract.balanceOf(bobAddress)).to.eql(result[1]);
+
+        // Remove listeners
+        turnBasedGameAlice.removeListeners();
+        turnBasedGameBob.removeListeners();
+    });
+
     // NOTE: this test requires the machine specified by GameConstants.GAME_TEMPLATE_HASH to be present in the local Descartes Environment
     it("should allow a player to challenge a game and apply verification result", async () => {
+        // collects alice and bob balances in POKER tokens
+        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, ServiceConfig.getSigner());
+        const aliceBalance = await pokerTokenContract.balanceOf(aliceAddress);
+        const bobBalance = await pokerTokenContract.balanceOf(bobAddress);
+
         // Players join the game
         let gameReadyPromiseResolver: (number) => void;
         const gameReadyPromise = new Promise<number>((resolve) => {
@@ -221,16 +305,15 @@ describe("TurnBasedGameWeb3", function () {
         [state] = await Promise.resolve(verificationUpdatePromise);
         expect(state).eq(VerificationState.ENDED);
 
-        // check game end: result should give all funds to alice
+        // check game end: result should give all of bob's funds to alice
         // obs: alice's TurnBasedGameWeb3 instance will only submits a tx to apply the result if alice is the interested party (has the most funds in the result)
         const result = await Promise.resolve(gameOverPromise);
         expect(result.length).to.equal(2);
         console.log(`Result: [${result[0].toString()}, ${result[1].toString()}]`);
-        expect(result[0]).to.eql(ethers.BigNumber.from(GameConstants.MIN_FUNDS.mul(2)));
+        expect(result[0]).to.eql(aliceBalance.add(bobBalance));
         expect(result[1]).to.eql(ethers.BigNumber.from(0));
 
         // check if player balances reflect the result
-        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, ServiceConfig.getSigner());
         expect(await pokerTokenContract.balanceOf(aliceAddress)).to.eql(result[0]);
         expect(await pokerTokenContract.balanceOf(bobAddress)).to.eql(result[1]);
 
