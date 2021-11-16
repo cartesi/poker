@@ -66,7 +66,7 @@ describe("TurnBasedGameWeb3", function () {
         await pokerTokenContractBob.approve(TurnBasedGameLobby.address, bobFunds);
     });
 
-    it("should retrieve correct player index", async () => {
+    it("should retrieve correct player and opponent indices", async () => {
         // Players join the game
         let gameReadyPromiseResolver: (number) => void;
         const gameReadyPromise = new Promise<number>((resolve) => {
@@ -93,8 +93,12 @@ describe("TurnBasedGameWeb3", function () {
         await turnBasedGameBob.initWeb3();
 
         // tests getPlayerIndex
-        expect(await turnBasedGameAlice.getPlayerIndex()).to.equal(0);
-        expect(await turnBasedGameBob.getPlayerIndex()).to.equal(1);
+        expect(await turnBasedGameAlice.getPlayerIndex(await turnBasedGameAlice.getGameContext())).to.equal(0);
+        expect(await turnBasedGameBob.getPlayerIndex(await turnBasedGameBob.getGameContext())).to.equal(1);
+
+        // tests getOpponentIndex
+        expect(await turnBasedGameAlice.getOpponentIndex(await turnBasedGameAlice.getGameContext())).to.equal(1);
+        expect(await turnBasedGameBob.getOpponentIndex(await turnBasedGameBob.getGameContext())).to.equal(0);
 
         turnBasedGameAlice.removeListeners();
         turnBasedGameBob.removeListeners();
@@ -156,6 +160,69 @@ describe("TurnBasedGameWeb3", function () {
         // data that alice will submit
         let aliceData: Uint8Array = new Uint8Array([10, 20, 0, 0, 0, 0, 0, 0]);
         let aliceTurnInfo: TurnInfo = { data: aliceData, nextPlayer: 1, playerStake: ethers.BigNumber.from(10) };
+
+        // alice submit a turn
+        await turnBasedGameAlice.submitTurn(aliceTurnInfo);
+        await turnOverPromise.then((turnInfo) => {
+            expect(turnInfo).to.be.eql(aliceTurnInfo);
+        });
+
+        // set up callback for Bob receive Alice's claim for the result
+        ServiceConfig.currentInstance.setSigner(bobAddress);
+        let claimResultPromise: Promise<any> = turnBasedGameBob.receiveResultClaimed();
+
+        // set up callback for Alice receive game end event
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        let gameEndPromise: Promise<void> = turnBasedGameAlice.receiveGameOver();
+
+        // alice claim result
+        let claimedResult: Array<number> = [10, 5];
+        await turnBasedGameAlice.claimResult(claimedResult);
+
+        // bob must receive the claim from alice
+        await claimResultPromise.then((claimedResult) => {
+            expect(claimedResult[0].eq(ethers.BigNumber.from(10)));
+            expect(claimedResult[1].eq(ethers.BigNumber.from(5)));
+        });
+
+        // Remove listeners
+        turnBasedGameAlice.removeListeners();
+        turnBasedGameBob.removeListeners();
+    });
+
+    it("should allow a player to submit a turn, claim for a result and confirm the result: turn with no specified nextPlayer", async () => {
+        // Players join the game
+        let gameReadyPromiseResolver: (number) => void;
+        const gameReadyPromise = new Promise<number>((resolve) => {
+            gameReadyPromiseResolver = resolve;
+        });
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        await LobbyWeb3.joinGame(aliceInfo, () => {});
+        ServiceConfig.currentInstance.setSigner(bobAddress);
+        await LobbyWeb3.joinGame(bobInfo, (index, context) => {
+            gameReadyPromiseResolver(index);
+        });
+
+        // retrieves gameIndex from GameReady event
+        let gameIndex: number = await Promise.resolve(gameReadyPromise);
+
+        // creates TurnBasedGame instance for Alice (listeners turned off)
+        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        turnBasedGameAlice = new TurnBasedGameWeb3(gameIndex);
+        await turnBasedGameAlice.initWeb3();
+        turnBasedGameAlice.removeListeners();
+
+        // create turnbasedgame instance for Bob
+        ServiceConfig.currentInstance.setSigner(bobAddress);
+        turnBasedGameBob = new TurnBasedGameWeb3(gameIndex);
+        await turnBasedGameBob.initWeb3();
+
+        // set up callback for Bob receive Alice's turn
+        let turnOverPromise: Promise<any> = turnBasedGameBob.receiveTurnOver();
+
+        // data that alice will submit
+        let aliceData: Uint8Array = new Uint8Array([10, 20, 0, 0, 0, 0, 0, 0]);
+        let aliceTurnInfo: TurnInfo = { data: aliceData, nextPlayer: -1, playerStake: ethers.BigNumber.from(10) };
 
         // alice submit a turn
         await turnBasedGameAlice.submitTurn(aliceTurnInfo);

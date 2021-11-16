@@ -97,14 +97,6 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         }
     }
 
-    /**
-     * Returns application player's address, which may be compared with contract information
-     * @returns a 20-byte hex string representing the player's address
-     */
-    async getPlayerAddress(): Promise<string> {
-        return await this.gameContract.signer.getAddress();
-    }
-
     // TURN SUBMISSION
     async submitTurn(info: TurnInfo): Promise<TurnInfo> {
         await this.initWeb3();
@@ -112,7 +104,14 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         await ErrorHandler.execute("submitTurn", async () => {
             const context = await this.gameContract.getContext(this.gameIndex);
             const turnIndex = context.turns.length;
-            const nextPlayerAddress = context.players[info.nextPlayer];
+            // defines nextPlayer address
+            // - if nextPlayer index is valid, uses corresponding player's address
+            // - otherwise, uses address zero (no nextPlayer specified)
+            let nextPlayerAddress = ethers.constants.AddressZero;
+            if (info.nextPlayer >= 0 && info.nextPlayer < context.players.length) {
+                nextPlayerAddress = context.players[info.nextPlayer];
+            }
+            // submits turn
             const tx = await this.gameContract.submitTurn(
                 this.gameIndex,
                 turnIndex,
@@ -142,7 +141,19 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         const data = await this.getLoggerData(turn.dataLogIndices);
 
         // retrieves index of turn's declared nextPlayer
-        const nextPlayerIndex = turn.nextPlayer == player ? await this.getPlayerIndex() : await this.getOpponentIndex();
+        const context = await this.getGameContext();
+        let nextPlayerIndex = -1;
+        if (turn.nextPlayer == player) {
+            // next turn should be submitted by the player himself
+            nextPlayerIndex = await this.getPlayerIndex(context);
+        } else if (turn.nextPlayer != ethers.constants.AddressZero) {
+            // next turn is defined and is not the player: check if it's really the opponent
+            const opponentIndex = await this.getOpponentIndex(context);
+            const opponentAddress = await this.getGamePlayerAddress(context, opponentIndex);
+            if (turn.nextPlayer == opponentAddress) {
+                nextPlayerIndex = opponentIndex;
+            }
+        }
 
         // stores turn info in queue and checks for listeners
         const turnInfo = { data, nextPlayer: nextPlayerIndex, playerStake: turn.playerStake };
@@ -367,7 +378,8 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                         console.log(
                             `Retrieved result from Descartes computation '${descartesIndex}': fundsShare = [${fundsPlayer0.toString()}, ${fundsPlayer1.toString()}]`
                         );
-                        const playerIndex = await self.getPlayerIndex();
+                        const context = await self.getGameContext();
+                        const playerIndex = await self.getPlayerIndex(context);
                         const isLowerStake =
                             (playerIndex === 0 && fundsPlayer0 < fundsPlayer1) ||
                             (playerIndex === 1 && fundsPlayer1 < fundsPlayer0);
@@ -409,17 +421,62 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         return listeners;
     }
 
-    async getPlayerIndex(): Promise<number> {
-        return (await this.isSignerPlayer0()) ? 0 : 1;
+    /**
+     * Returns application player's index considering a game context
+     * @param context a game context
+     * @returns an index value of 0 or 1
+     */
+    async getPlayerIndex(context: any): Promise<number> {
+        return (await this.isSignerPlayer0(context)) ? 0 : 1;
     }
 
-    async getOpponentIndex(): Promise<number> {
-        return (await this.isSignerPlayer0()) ? 1 : 0;
+    /**
+     * Returns application player's opponent index considering this instance's game context
+     * @param context a game context
+     * @returns an index value of 0 or 1
+     */
+    async getOpponentIndex(context: any): Promise<number> {
+        return (await this.isSignerPlayer0(context)) ? 1 : 0;
     }
 
-    private async isSignerPlayer0(): Promise<boolean> {
+    /**
+     * Returns application player's address, which may be compared with contract information
+     * @returns a 20-byte hex string representing the player's address
+     */
+    private async getPlayerAddress(): Promise<string> {
         await this.initWeb3();
-        const context = await this.gameContract.getContext(this.gameIndex);
+        return await this.gameContract.signer.getAddress();
+    }
+
+    /**
+     * Retrieves the updated game context for this instance's game from the blockchain.
+     * @returns an object as retrieved by `gameContract.getContext`
+     */
+    async getGameContext(): Promise<any> {
+        await this.initWeb3();
+        return await this.gameContract.getContext(this.gameIndex);
+    }
+
+    /**
+     * Returns the account address corresponding to a given game player's index.
+     * @param context a game context
+     * @returns a 20-byte hex string representing the player's opponent address
+     */
+    private getGamePlayerAddress(context: any, index: number): string {
+        if (context.players && index >= 0 && index < context.players.length) {
+            return context.players[index];
+        } else {
+            return ethers.constants.AddressZero;
+        }
+    }
+
+    /**
+     * Returns whether the application user/signer corresponds to the given context's player index 0
+     * @param context a game context
+     * @returns true if the signer corresponds to player0, false otherwise
+     */
+    private async isSignerPlayer0(context: any): Promise<boolean> {
+        await this.initWeb3();
         let signerAddress = await this.gameContract.signer.getAddress();
         let player0Address = context.players[0];
         // obs: uses hexlify to avoid issues with uppercase vs lowercase hex representations

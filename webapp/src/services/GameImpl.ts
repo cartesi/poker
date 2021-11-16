@@ -321,6 +321,9 @@ export class GameImpl implements Game {
             console.log(`### [Player ${this.playerId}] On turn received ###`);
             p2 = await this.engine.process_handshake(message_in);
 
+            // after processing opponent's turnInfo message, checks if it is consistent
+            await this._checkOpponentTurnInfo(turnInfo);
+
             if (p2.message_out.length > 0) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
                 await this._submitTurn(p2.message_out);
@@ -350,9 +353,12 @@ export class GameImpl implements Game {
             console.log(`### [Player ${this.playerId}] On turn received ###`);
 
             receivedResult = await this.engine.process_bet(message_in);
-            const betType = this._convertBetType(receivedResult.betType);
+
+            // after processing opponent's turnInfo message, checks if it is consistent
+            await this._checkOpponentTurnInfo(turnInfo);
 
             // reaction to received result
+            const betType = this._convertBetType(receivedResult.betType);
             if (betType && betType != BetType.NONE && betType != receivedBetType) {
                 // it's a new bet: notify that it has just been received
                 receivedBetType = betType;
@@ -372,6 +378,31 @@ export class GameImpl implements Game {
             type: receivedBetType,
             amount: receivedResult.amount,
         };
+    }
+
+    private async _checkOpponentTurnInfo(turnInfo: TurnInfo): Promise<void> {
+        // checks if opponent turnInfo's declared nextPlayer is correct
+        const expectedNextPlayer = await this.getCurrentPlayerId();
+        if (turnInfo.nextPlayer != expectedNextPlayer) {
+            // FIXME: not enforcing nextPlayer check for now, since "getCurrentPlayerId" refers to "the next player to bet", which is not
+            // necessarily the same as "the next player that needs to submit information" (such as revealing cards).
+            // To fix this we need the engine to expose this "next expected message author" information.
+            console.error(
+                `Inconsistent declared nextPlayer: expected '${expectedNextPlayer}' but opponent declared '${turnInfo.nextPlayer}'`
+            );
+            // return Promise.reject(
+            //     `Inconsistent declared nextPlayer: expected '${expectedNextPlayer}' but opponent declared '${turnInfo.nextPlayer}'`
+            // );
+        }
+
+        // checks if opponent turnInfo's declared playerStake is correct
+        const expectedOpponentBets = await this.getOpponentBets();
+        if (!turnInfo.playerStake.eq(expectedOpponentBets)) {
+            return Promise.reject(
+                `Inconsistent declared playerStake: expected ${expectedOpponentBets.toString()} but opponent declared ${turnInfo.playerStake.toString()}`
+            );
+        }
+        return Promise.resolve();
     }
 
     private async _checkNextAction(isFold?: boolean): Promise<boolean> {
