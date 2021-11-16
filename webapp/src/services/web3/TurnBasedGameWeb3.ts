@@ -141,8 +141,11 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         // retrieves turn data from Logger
         const data = await this.getLoggerData(turn.dataLogIndices);
 
+        // retrieves index of turn's declared nextPlayer
+        const nextPlayerIndex = turn.nextPlayer == player ? await this.getPlayerIndex() : await this.getOpponentIndex();
+
         // stores turn info in queue and checks for listeners
-        const turnInfo = { data, nextPlayer: turn.nextPlayer, playerStake: turn.playerStake };
+        const turnInfo = { data, nextPlayer: nextPlayerIndex, playerStake: turn.playerStake };
         this.turnInfoQueue.push(turnInfo);
         this.dispatchTurn();
     }
@@ -310,28 +313,36 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         listeners["DescartesCreated"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
                 console.log(`Received 'DescartesCreated' event for Descartes computation ${descartesIndex}`);
-                self.onVerificationUpdate([VerificationState.STARTED, message]);
+                if (self.onVerificationUpdate) {
+                    self.onVerificationUpdate([VerificationState.STARTED, message]);
+                }
             }
         };
 
         listeners["ClaimSubmitted"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
                 console.log(`Received 'ClaimSubmitted' event for Descartes computation ${descartesIndex}`);
-                self.onVerificationUpdate([VerificationState.RESULT_SUBMITTED, message]);
+                if (self.onVerificationUpdate) {
+                    self.onVerificationUpdate([VerificationState.RESULT_SUBMITTED, message]);
+                }
             }
         };
 
         listeners["Confirmed"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
                 console.log(`Received 'Confirmed' event for Descartes computation ${descartesIndex}`);
-                self.onVerificationUpdate([VerificationState.RESULT_CONFIRMED, message]);
+                if (self.onVerificationUpdate) {
+                    self.onVerificationUpdate([VerificationState.RESULT_CONFIRMED, message]);
+                }
             }
         };
 
         listeners["ChallengeStarted"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
                 console.log(`Received 'ChallengeStarted' event for Descartes computation ${descartesIndex}`);
-                self.onVerificationUpdate([VerificationState.RESULT_CHALLENGED, message]);
+                if (self.onVerificationUpdate) {
+                    self.onVerificationUpdate([VerificationState.RESULT_CHALLENGED, message]);
+                }
             }
         };
 
@@ -399,11 +410,21 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     }
 
     async getPlayerIndex(): Promise<number> {
+        return (await this.isSignerPlayer0()) ? 0 : 1;
+    }
+
+    async getOpponentIndex(): Promise<number> {
+        return (await this.isSignerPlayer0()) ? 1 : 0;
+    }
+
+    private async isSignerPlayer0(): Promise<boolean> {
         await this.initWeb3();
         const context = await this.gameContract.getContext(this.gameIndex);
+        let signerAddress = await this.gameContract.signer.getAddress();
+        let player0Address = context.players[0];
         // obs: uses hexlify to avoid issues with uppercase vs lowercase hex representations
-        const signerAddress = ethers.utils.hexlify(ServiceConfig.currentInstance.signerAddress);
-        const playerAddress0 = ethers.utils.hexlify(context.players[0]);
-        return signerAddress == playerAddress0 ? 0 : 1;
+        signerAddress = signerAddress ? ethers.utils.hexlify(signerAddress) : signerAddress;
+        player0Address = player0Address ? ethers.utils.hexlify(player0Address) : player0Address;
+        return signerAddress == player0Address;
     }
 }
