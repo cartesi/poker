@@ -6,7 +6,6 @@ Smart contracts for the [Texas HODL'em Poker](../README.md) game.
 
 The `Descartes Environment` should be set up as defined in the [general README.md](../README.md#Environment).
 
-
 ## Deploying and running
 
 The smart contracts can be deployed to the environment's local network by executing the following commands:
@@ -17,30 +16,36 @@ $ yarn deploy
 ```
 
 Alternatively, to deploy to Polygon/Matic's Testnet, execute:
+
 ```bash
 $ export MNEMONIC=<your_mnemonic>
 $ yarn deploy:matic_testnet
 ```
 
 You can then open a console to interact with the contracts by running:
+
 ```bash
-npx hardhat console --network localhost
+$ npx hardhat console --network localhost
 ```
+
 or
+
 ```bash
-npx hardhat console --network matic_testnet
+$ npx hardhat console --network matic_testnet
 ```
 
 You may also interact with the contracts from the command line by executing a number of pre-configured _Hardhat task scripts_, such as: `start-game`, `join-game`, `submit-turn`, `get-context`, `claim-result`, `confirm-result` and `challenge-game`.
 
 A full list of available Hardhat tasks can be retrieved by typing:
+
 ```bash
-npx hardhat --help
+$ npx hardhat --help
 ```
 
 Each task's available command line options can also be inspected by typing:
+
 ```bash
-npx hardhat <command> --help
+$ npx hardhat <command> --help
 ```
 
 Some task command examples:
@@ -64,6 +69,7 @@ When a game is challenged, a Descartes computation is triggered to determine the
 For the Descartes verification to work, the Cartesi Machine corresponding to the specified hash must be present inside the Descartes Environment's [machines](descartes-env/machines) directory. This machine basically encapsulates the logic of the application and is capable of defining the correct result given the input data provided by Descartes. In the case of the TurnBasedGame contract, this input data will correspond to the game's parameters along with the full log of the data exchanged between the players.
 
 You can experiment with a mock Verifier Cartesi Machine by issuing the following commands:
+
 ```bash
 $ cd verifier/mock
 $ ./build-cartesi-machine.sh ../../descartes-env/machines
@@ -80,12 +86,14 @@ When Descartes reaches its final state (e.g., "ConsensusResult"), a `DescartesFi
 A full verifier machine for a game of Chess is available within the [verifier/chess](./verifier/chess) directory. It makes use of the [chess.js](https://www.npmjs.com/package/chess.js) JavaScript library to implement the game's logic.
 
 To run it, first build it by executing:
+
 ```bash
 $ cd verifier/chess
 $ ./build-cartesi-machine.sh ../../descartes-env/machines
 ```
 
 Then, you can run a full integration test for the game, including a Descartes verification, with the following command:
+
 ```bash
 $ npx hardhat --network localhost run --no-compile ./test-integration/test-chess.ts
 ```

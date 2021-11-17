@@ -16,15 +16,18 @@ $ yarn start
 ```
 
 Or, to use Polygon/Matic's Testnet:
+
 ```bash
 $ yarn
 $ yarn start:matic_testnet
 ```
 
-The above commands will build the smart contracts from the [blockchain](../blockchain/README.md]) module, and deploy them on the appropriate network. The application will then be accessible on http://localhost:3000.
+The above commands will build the smart contracts from the [blockchain](../blockchain/README.md]) module, and deploy them on the appropriate network. The application will then be accessible on [http://localhost:3000](http://localhost:3000).
 
 Alternatively, the game can also be started in _mock_ mode, in which internal Javascript mock classes are used instead of any external service. In this case, there is no need to have a Descartes Environment running. You may start it this way by running:
+
 ```bash
 $ yarn dev
 ```
-And then accessing the application using `?mock` as a query parameter to instruct the application to use mock services. You would thus access it on http://localhost:3000?mock
+
+And then accessing the application using `?mock` as a query parameter to instruct the application to use mock services. You would thus access it on [http://localhost:3000?mock](http://localhost:3000?mock).
