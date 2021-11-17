@@ -96,7 +96,11 @@
         "webpack": "^5.0.0"
     },
     "dependencies": {
+        "@babel/core": "^7.0.0-0",
+        "@portis/web3": "^4.0.6",
         "electron-squirrel-startup": "^1.0.0",
-        "phaser": "^3.55.2"
+        "ethers": "^5.5.1",
+        "phaser": "^3.55.2",
+        "web3": "^1.6.0"
     }
 }
