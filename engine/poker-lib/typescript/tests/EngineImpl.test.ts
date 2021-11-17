@@ -3,17 +3,17 @@ const path = require("path");
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import { StatusCode, EngineBetType, EngineStep } from "../src/Engine";
-import { WasmEngine } from "../src/WasmEngine";
+import { EngineImpl } from "../src/EngineImpl";
 
 const wasm_path = `${path.resolve(__dirname, "..")}/build/lib/poker-lib-wasm.js`;
 
 describe("A complete game", () => {
     it("should run without errors - The happy path", async () => {
-        const alice = new WasmEngine(0, wasm_path);
+        const alice = new EngineImpl(0, wasm_path);
         expect(await alice.init(BigNumber.from(200), BigNumber.from(300), BigNumber.from(10), true)).to.equal(
             StatusCode.SUCCESS
         );
-        const bob = new WasmEngine(1, wasm_path);
+        const bob = new EngineImpl(1, wasm_path);
         expect(await bob.init(BigNumber.from(200), BigNumber.from(300), BigNumber.from(10), true)).to.equal(
             StatusCode.SUCCESS
         );

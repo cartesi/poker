@@ -1,18 +1,18 @@
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import { StatusCode, EngineBetType, EngineStep } from "../src/Engine";
-import { NativeEngine } from "../src/NativeEngine";
+import { EngineImpl } from "../src/EngineImpl";
 const path = require("path");
 
 const lib_path = `${path.resolve(__dirname, "..")}/build/Release/pokerlib.node`;
 
 describe("A complete game", () => {
     it("should run without errors - The happy path", async () => {
-        const alice = new NativeEngine(0, lib_path);
+        const alice = new EngineImpl(0, lib_path);
         let r = await alice.init(BigNumber.from(200), BigNumber.from(300), BigNumber.from(10), true);
         expect(r.status).to.equal(StatusCode.SUCCESS);
 
-        const bob = new NativeEngine(1, lib_path);
+        const bob = new EngineImpl(1, lib_path);
         r = await bob.init(BigNumber.from(200), BigNumber.from(300), BigNumber.from(10), true);
         expect(r.status).to.equal(StatusCode.SUCCESS);
 

@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { Engine, EngineBetType, EngineResult, EngineState, StatusCode } from "./Engine";
 
-export class NativeEngine implements Engine {
+export class EngineImpl implements Engine {
     private player: any;
     private lib: any;
 

@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { Engine, EngineBetType, EngineResult, EngineState, StatusCode } from "./Engine";
 
-export class WasmEngine implements Engine {
+export class EngineImpl implements Engine {
     _player: number; //Player* address in C++ memory
     player_id: number;
     counter: number;
