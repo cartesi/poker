@@ -22,7 +22,7 @@ export class PokerSolver {
         if (impl === ServiceImpl.Mock) {
             // mock solver
             return PokerSolverJs.solve(hands);
-        } else if (impl == ServiceImpl.Wasm) {
+        } else if (impl == ServiceImpl.Real) {
             // wasm solver
             // FIXME: use WASM version when it's ready
             return PokerSolverJs.solve(hands);

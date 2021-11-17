@@ -13,13 +13,7 @@ export enum ServiceType {
 export enum ServiceImpl {
     Mock = "mock",
     Web3 = "web3",
-    Wasm = "wasm",
-    Native = "native",
-}
-
-enum Environment {
-    Web = "web",
-    Electron = "electron",
+    Real = "real",
 }
 
 declare let window: any;
@@ -57,23 +51,6 @@ export class ServiceConfig {
         }
     }
 
-    private static getDefaults() {
-        const defaultImpl = {};
-        defaultImpl[ServiceType.Transport] = ServiceImpl.Web3;
-
-        const env = this.getEnvironment();
-        const engineImpl = env === Environment.Electron ? ServiceImpl.Native : ServiceImpl.Wasm;
-        defaultImpl[ServiceType.Engine] = engineImpl;
-
-        return defaultImpl;
-    }
-
-    private static getEnvironment(): Environment {
-        var userAgent = navigator.userAgent.toLowerCase();
-        if (userAgent.indexOf(" electron/") > -1) return Environment.Electron
-        else return Environment.Web
-    }
-
     /**
      * Retrieves the implementation configured for a specified service type
      *
@@ -81,7 +58,9 @@ export class ServiceConfig {
      * @returns the configured ServiceImpl, such as a mock, web3 or wasm implementation
      */
     public static get(type: ServiceType): ServiceImpl {
-        const defaultImpl = this.getDefaults();
+        const defaultImpl = {};
+        defaultImpl[ServiceType.Transport] = ServiceImpl.Web3;
+        defaultImpl[ServiceType.Engine] = ServiceImpl.Real;
 
         const searchParams = new URLSearchParams(window.location.search);
         if (searchParams.has(type)) {

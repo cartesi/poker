@@ -6,8 +6,7 @@ import { Card } from "./Card";
 import { GameImpl } from "./GameImpl";
 import { GameConstants } from "../GameConstants";
 import { BigNumber } from "ethers";
-import { WasmEngine } from "./engine/WasmEngine";
-import { NativeEngine } from "./engine/NativeEngine";
+import { EngineImpl } from "./engine/EngineImpl";
 
 // game states
 export enum GameState {
@@ -210,7 +209,7 @@ export class GameFactory {
                 onVerification
             );
         } else {
-            const engine = impl === ServiceImpl.Native ? new NativeEngine(player) : new WasmEngine(player);
+            const engine = new EngineImpl(player);
             return new GameImpl(
                 player,
                 playerFunds,

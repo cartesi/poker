@@ -43,7 +43,7 @@
         "contracts:copy:matic_testnet": "copyfiles -f \"../blockchain/deployments/matic_testnet/TurnBasedGame*.json\" ./src/abis/ && copyfiles -f \"../blockchain/deployments/matic_testnet/Poker*.json\" ./src/abis/ && copyfiles -f ../node_modules/@cartesi/descartes-sdk/deployments/matic_testnet/Descartes.json ./src/abis/ && copyfiles -f ../node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json ./src/abis/ && ncp ../blockchain/src/types/ ./src/types/",
         "engine:copy": "run-s engine:copy:wasm engine:copy:native",
         "engine:copy:wasm": "copyfiles -f \"../engine/platforms/wasm/build/poker-lib/*.ts\" src/services/engine && copyfiles -f \"../engine/platforms/wasm/build/lib/poker-lib-wasm.*\" assets/engine",
-        "engine:copy:native": "copyfiles -f \"../engine/platforms/x64/build/poker-lib/*.ts\" src/services/engine && copyfiles -f \"../engine/platforms/x64/build/lib/pokerlib.node\" assets/engine"
+        "engine:copy:native": "copyfiles -f \"../engine/platforms/x64/build/poker-lib/Engine.ts\" src/services/engine"
     },
     "browserslist": [
         ">0.2%",
