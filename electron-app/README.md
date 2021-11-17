@@ -14,3 +14,11 @@ Do not use a web browser to navigate the application.
 
 Deployment logs are also accessible at [http://localhost:9000](http://localhost:9000).
 
+### Mock mode
+
+The _mock_ mode works [the same way as in the webapp](../webapp/README.md#deploying-and-running).
+You may start it by running:
+
+```bash
+$ yarn dev:mock
+```

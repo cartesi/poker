@@ -17,8 +17,9 @@ const createWindow = (): void => {
         width: 800,
     });
 
-    // and load the index.html of the app.
-    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    const mock = process.argv.find((arg) => arg.startsWith("mock"));
+    const appUrl = MAIN_WINDOW_WEBPACK_ENTRY + (mock ? "?mock" : "");
+    mainWindow.loadURL(appUrl);
 };
 
 const setCSP = (): void => {

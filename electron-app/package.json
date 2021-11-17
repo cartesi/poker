@@ -7,6 +7,8 @@
     "scripts": {
         "start": "run-s clean src:copy contracts:deploy contracts:copy && NODE_ENV=development electron-forge start",
         "start:matic_testnet": "run-s clean src:copy contracts:deploy:matic_testnet contracts:copy:matic_testnet && NODE_ENV=development electron-forge start",
+        "dev": "run-s src:copy contracts:build contracts:copy:matic_testnet && NODE_ENV=development electron-forge start",
+        "dev:mock": "run-s src:copy contracts:build contracts:copy:matic_testnet && NODE_ENV=development electron-forge start -- mock",
         "clean": "rimraf src && rimraf types",
         "src:copy": "cp -vpr ../webapp/src . && cp -vpr ../webapp/types . && cp ../webapp/index.html src/",
         "contracts:deploy": "cd ../blockchain && yarn deploy",
