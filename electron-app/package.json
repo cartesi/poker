@@ -5,8 +5,8 @@
     "description": "Cartesi's Texas HODL'em",
     "main": ".webpack/main",
     "scripts": {
-        "start": "run-s clean src:copy contracts:deploy contracts:copy && electron-forge start",
-        "start:matic_testnet": "run-s clean src:copy contracts:deploy:matic_testnet contracts:copy:matic_testnet && electron-forge start",
+        "start": "run-s clean src:copy contracts:deploy contracts:copy && NODE_ENV=development electron-forge start",
+        "start:matic_testnet": "run-s clean src:copy contracts:deploy:matic_testnet contracts:copy:matic_testnet && NODE_ENV=development electron-forge start",
         "clean": "rimraf src && rimraf types",
         "src:copy": "cp -vpr ../webapp/src . && cp -vpr ../webapp/types . && cp ../webapp/index.html src/",
         "contracts:deploy": "cd ../blockchain && yarn deploy",
@@ -38,6 +38,7 @@
         "@typescript-eslint/eslint-plugin": "^4.0.1",
         "@typescript-eslint/parser": "^4.0.1",
         "@vercel/webpack-asset-relocator-loader": "1.6.0",
+        "copy-webpack-plugin": "^9.0.1",
         "css-loader": "^6.0.0",
         "electron": "14.0.0",
         "eslint": "^7.6.0",
@@ -51,7 +52,7 @@
         "style-loader": "^3.0.0",
         "ts-loader": "^9.2.2",
         "typescript": "^4.0.2",
-        "webpack": "^5.0.0"
+        "webpack": "^5.1.0"
     },
     "dependencies": {
         "@babel/core": "^7.0.0-0",
