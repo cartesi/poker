@@ -19,5 +19,8 @@
         "electron:start:matic_testnet": "cd electron-app && yarn start:matic_testnet",
         "start": "cd webapp && yarn start",
         "start:matic_testnet": "cd webapp && yarn start:matic_testnet"
+    },
+    "resolutions": {
+        "**/keccak": "^3.0.2"
     }
 }
