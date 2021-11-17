@@ -7,6 +7,7 @@ Decentralized Texas Hold'em poker game using Cartesi.
 This project is divided into four sub-modules:
 
 - [blockhain](blockchain/README.md): holds the smart contracts and blockchain deployment configurations;
+- [electron-app](electron-app/README.md): holds the [Electron](https://www.electronjs.org/)-based version of `webapp`;
 - [engine](engine/README.md): holds the poker-specific logic, which will produce both a Javascript API for use in the web application and a Cartesi Machine for validation;
 - [webapp](webapp/README.md): holds the HTML/JS web application that users will access to play the game;
 - [webfaucet](webfaucet/README.md): holds a small auxiliary HTML/JS web application for users to request tokens to play the game.

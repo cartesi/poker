@@ -1,11 +1,19 @@
 {
-    "name": "electron-app",
-    "productName": "electron-app",
-    "version": "1.0.0",
-    "description": "My Electron application description",
+    "name": "@cartesi/poker-electron",
+    "productName": "cartesi-poker",
+    "version": "0.4.0",
+    "description": "Cartesi's Texas HODL'em",
     "main": ".webpack/main",
     "scripts": {
-        "start": "electron-forge start",
+        "start": "run-s clean src:copy contracts:deploy contracts:copy && electron-forge start",
+        "start:matic_testnet": "run-s clean src:copy contracts:deploy:matic_testnet contracts:copy:matic_testnet && electron-forge start",
+        "clean": "rimraf src && rimraf types",
+        "src:copy": "cp -vpr ../webapp/src . && cp -vpr ../webapp/types . && cp ../webapp/index.html src/",
+        "contracts:deploy": "cd ../blockchain && yarn deploy",
+        "contracts:build": "cd ../blockchain && yarn build",
+        "contracts:copy": "mkdir -p src/abis && cp ../blockchain/deployments/localhost/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/localhost/Poker*.json ./src/abis/ && cp ../blockchain/descartes-env/deployments/localhost/Descartes.json ./src/abis/ && cp ../blockchain/descartes-env/deployments/localhost/Logger.json ./src/abis/ && ncp ../blockchain/src/types/ ./src/types/",
+        "contracts:deploy:matic_testnet": "cd ../blockchain && yarn deploy:matic_testnet",
+        "contracts:copy:matic_testnet": "mkdir -p src/abis && cp ../blockchain/deployments/matic_testnet/TurnBasedGame*.json ./src/abis/ && cp ../blockchain/deployments/matic_testnet/Poker*.json ./src/abis/ && cp ../node_modules/@cartesi/descartes-sdk/deployments/matic_testnet/Descartes.json ./src/abis/ && cp ../node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json ./src/abis/ && ncp ../blockchain/src/types/ ./src/types/",
         "package": "electron-forge package",
         "make": "electron-forge make",
         "publish": "electron-forge publish",
@@ -16,7 +24,7 @@
         "name": "Marcel Moura",
         "email": "marcel.moura@cartesi.io"
     },
-    "license": "MIT",
+    "license": "Apache-2.0",
     "config": {
         "forge": {
             "packagerConfig": {},
@@ -52,7 +60,7 @@
                             "entryPoints": [
                                 {
                                     "html": "./src/index.html",
-                                    "js": "./src/renderer.ts",
+                                    "js": "./src/app.ts",
                                     "name": "main_window"
                                 }
                             ]
@@ -77,12 +85,18 @@
         "eslint": "^7.6.0",
         "eslint-plugin-import": "^2.20.0",
         "fork-ts-checker-webpack-plugin": "^6.0.1",
+        "ncp": "^2.0.0",
         "node-loader": "^2.0.0",
+        "npm-run-all": "^4.1.5",
+        "prettier": "^2.3.2",
+        "rimraf": "^3.0.2",
         "style-loader": "^3.0.0",
         "ts-loader": "^9.2.2",
-        "typescript": "^4.0.2"
+        "typescript": "^4.0.2",
+        "webpack": "^5.0.0"
     },
     "dependencies": {
-        "electron-squirrel-startup": "^1.0.0"
+        "electron-squirrel-startup": "^1.0.0",
+        "phaser": "^3.55.2"
     }
 }

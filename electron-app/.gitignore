@@ -90,3 +90,7 @@ out/
 
 yarn.lock
 node_modules
+assets/
+dist/
+src/
+types/
