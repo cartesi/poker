@@ -24,6 +24,8 @@ module.exports = {
         [
             "@electron-forge/plugin-webpack",
             {
+                devContentSecurityPolicy:
+                    "default-src 'self' 'unsafe-inline' *.portis.io; img-src blob: data: http://localhost; script-src 'self' 'unsafe-eval' 'unsafe-inline'",
                 mainConfig: "./webpack.main.config.js",
                 renderer: {
                     config: "./webpack.renderer.config.js",
