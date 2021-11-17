@@ -1,10 +1,19 @@
 {
     "private": true,
-    "workspaces": [
-        "blockchain",
-        "webapp",
-        "webfaucet"
-    ],
+    "workspaces": {
+        "packages": [
+            "blockchain",
+            "electron-app",
+            "webapp",
+            "webfaucet"
+        ],
+        "nohoist": [
+            "**/electron",
+            "**/electron/**",
+            "**/electron*",
+            "**/electron*/**"
+        ]
+    },
     "scripts": {
         "start": "cd webapp && yarn start",
         "start:matic_testnet": "cd webapp && yarn start:matic_testnet"

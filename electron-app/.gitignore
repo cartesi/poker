@@ -87,3 +87,6 @@ typings/
 
 # Electron-Forge
 out/
+
+yarn.lock
+node_modules
