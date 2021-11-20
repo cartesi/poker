@@ -543,7 +543,7 @@ describe("TurnBasedGame", async () => {
 
             // challenges game
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
 
             await expect(gameContract.submitTurn(0, 0, ethers.constants.AddressZero, 0, turnData)).to.be.revertedWith(
                 "Game has been challenged and a verification has been requested"
@@ -846,7 +846,7 @@ describe("TurnBasedGame", async () => {
     describe("challengeGame", async () => {
         it("Should only be allowed for active games", async () => {
             await prepareChallengeGame();
-            await expect(gameContract.challengeGame(0)).to.be.revertedWith("Index not instantiated");
+            await expect(gameContract.challengeGame(0, "")).to.be.revertedWith("Index not instantiated");
 
             await initCallerFunds(players[0], playerFunds);
             await gameContract.startGame(
@@ -859,7 +859,7 @@ describe("TurnBasedGame", async () => {
                 playerFunds,
                 playerInfos
             );
-            await expect(gameContract.challengeGame(0)).not.to.be.reverted;
+            await expect(gameContract.challengeGame(0, "")).not.to.be.reverted;
         });
 
         it("Should only be allowed by participating players", async () => {
@@ -874,12 +874,12 @@ describe("TurnBasedGame", async () => {
                 playerFunds,
                 playerInfos
             );
-            await expect(gameContractNonPlayer.challengeGame(0)).to.be.revertedWith(
+            await expect(gameContractNonPlayer.challengeGame(0, "")).to.be.revertedWith(
                 "Player is not participating in the game"
             );
 
             await prepareChallengeGame();
-            await expect(gameContract.challengeGame(0)).not.to.be.reverted;
+            await expect(gameContract.challengeGame(0, "")).not.to.be.reverted;
         });
 
         it("Should not be allowed when Descartes verification is in progress", async () => {
@@ -896,14 +896,14 @@ describe("TurnBasedGame", async () => {
             );
 
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
 
             // mockDescartes informing that computation is still going on
             await mockDescartes.mock.getResult
                 .withArgs(descartesIndex)
                 .returns(false, true, ethers.constants.AddressZero, "0x");
 
-            await expect(gameContract.challengeGame(0)).to.be.revertedWith("Game verification already in progress");
+            await expect(gameContract.challengeGame(0, "")).to.be.revertedWith("Game verification already in progress");
         });
 
         it("Should not be allowed when Descartes verification has been fully performed", async () => {
@@ -920,14 +920,14 @@ describe("TurnBasedGame", async () => {
             );
 
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
 
             // mockDescartes informing that computation is complete and results are available
             await mockDescartes.mock.getResult
                 .withArgs(descartesIndex)
                 .returns(true, false, ethers.constants.AddressZero, "0x123456");
 
-            await expect(gameContract.challengeGame(0)).to.be.revertedWith(
+            await expect(gameContract.challengeGame(0, "")).to.be.revertedWith(
                 "Game verification has already been performed"
             );
         });
@@ -947,9 +947,9 @@ describe("TurnBasedGame", async () => {
 
             // game challenged by player 0
             await prepareChallengeGame();
-            await expect(gameContract.challengeGame(0))
+            await expect(gameContract.challengeGame(0, "test1"))
                 .to.emit(contextLibrary, "GameChallenged")
-                .withArgs(0, descartesIndex, players[0]);
+                .withArgs(0, descartesIndex, players[0], "test1");
 
             // another game challenged by player 1
             await initCallerFunds(players[0], playerFunds);
@@ -964,9 +964,9 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             await mockDescartes.mock.instantiate.returns(descartesIndex.add(1));
-            await expect(gameContractPlayer1.challengeGame(1))
+            await expect(gameContractPlayer1.challengeGame(1, "test2"))
                 .to.emit(contextLibrary, "GameChallenged")
-                .withArgs(1, descartesIndex.add(1), players[1]);
+                .withArgs(1, descartesIndex.add(1), players[1], "test2");
         });
 
         it("Should update context", async () => {
@@ -982,7 +982,7 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
             let context = await gameContract.getContext(0);
             expect(context.isDescartesInstantiated).to.eql(true); // isDescartesInstantiated
             expect(context.descartesIndex).to.eql(descartesIndex); // descartesIndex
@@ -1023,7 +1023,7 @@ describe("TurnBasedGame", async () => {
             );
 
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
 
             await expect(gameContract.claimTimeout(0)).to.be.revertedWith(
                 "Game has been challenged and a verification has been requested"
@@ -1283,7 +1283,7 @@ describe("TurnBasedGame", async () => {
             );
 
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
 
             await expect(gameContract.claimResult(0, playerFunds)).to.be.revertedWith(
                 "Game has been challenged and a verification has been requested"
@@ -1536,7 +1536,7 @@ describe("TurnBasedGame", async () => {
             await gameContract.claimResult(0, playerFunds);
 
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
 
             await expect(gameContract.confirmResult(0)).to.be.revertedWith(
                 "Game has been challenged and a verification has been requested"
@@ -1658,7 +1658,7 @@ describe("TurnBasedGame", async () => {
                 playerInfos
             );
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
             await mockDescartes.mock.getResult
                 .withArgs(descartesIndex)
                 .returns(
@@ -1691,7 +1691,7 @@ describe("TurnBasedGame", async () => {
             );
 
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
 
             // Descartes verification still in progress
             await mockDescartes.mock.getResult
@@ -1743,7 +1743,7 @@ describe("TurnBasedGame", async () => {
             );
             await gameContract.claimResult(0, playerFunds);
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
 
             await mockDescartes.mock.getResult
                 .withArgs(descartesIndex)
@@ -1771,7 +1771,7 @@ describe("TurnBasedGame", async () => {
             );
             await gameContract.claimResult(0, playerFunds);
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
 
             // mockDescartes result corresponding to a [120, 80] distribution (or [0x78, 0x50] in hex)
             await mockDescartes.mock.getResult
@@ -1835,7 +1835,7 @@ describe("TurnBasedGame", async () => {
             expect(await gameContract.getState(0, players[0])).to.equal(false);
 
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
             expect(await gameContract.getState(0, players[0])).to.equal(true);
         });
     });
@@ -1877,7 +1877,7 @@ describe("TurnBasedGame", async () => {
             expect(instances[1]).to.eql([]);
 
             await prepareChallengeGame();
-            await gameContract.challengeGame(0);
+            await gameContract.challengeGame(0, "");
             instances = await gameContract.getSubInstances(0, players[0]);
             expect(instances[0]).to.eql([mockDescartes.address]);
             expect(instances[1]).to.eql([descartesIndex]);

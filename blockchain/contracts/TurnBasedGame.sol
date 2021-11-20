@@ -155,10 +155,11 @@ contract TurnBasedGame is InstantiatorImpl {
 
     /// @notice Challenges game state, triggering a verification by a Descartes computation
     /// @param _index index identifying the game
+    /// @param _message message associated with the challenge (e.g., alleged cause)
     /// @return index of the Descartes computation
-    function challengeGame(uint256 _index) public onlyActive(_index) returns (uint256) {
+    function challengeGame(uint256 _index, string memory _message) public onlyActive(_index) returns (uint256) {
         GameContext storage context = instances[_index];
-        return context.challengeGame(_index, descartes, logger, turnChunkLog2Size, emptyDataLogIndex);
+        return context.challengeGame(_index, _message, descartes, logger, turnChunkLog2Size, emptyDataLogIndex);
     }
 
     /// @notice Claims game has ended due to a timeout.

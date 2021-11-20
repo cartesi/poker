@@ -345,7 +345,8 @@ task("submit-turn", "Submits a game turn for a given player")
 task("challenge-game", "Challenges a game given its index")
     .addOptionalParam("index", "The game index", 0, types.int)
     .addOptionalParam("player", "Name of the account challenging the game", "alice")
-    .setAction(async ({ index, player }, hre) => {
+    .addOptionalParam("message", "Message associated with the challenge (e.g., alleged cause)", "")
+    .setAction(async ({ index, player, message }, hre) => {
         const { ethers } = hre;
 
         // retrieves account from configured named accounts, according to player's name
@@ -359,7 +360,7 @@ task("challenge-game", "Challenges a game given its index")
         console.log("");
         console.log(`Challenging game with index '${index}'\n`);
 
-        const tx = await game.challengeGame(index);
+        const tx = await game.challengeGame(index, message);
 
         // looks for GameChallengedEvent (only event that can be emitted by TurnBasedGame)
         const events = (await tx.wait()).events;
@@ -370,6 +371,9 @@ task("challenge-game", "Challenges a game given its index")
                 console.log(
                     `Game '${index}' challenged by '${player}', producing Descartes computation index '${descartesIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`
                 );
+                if (message) {
+                    console.log(`Challenge message: '${message}'\n`);
+                }
                 break;
             }
         }

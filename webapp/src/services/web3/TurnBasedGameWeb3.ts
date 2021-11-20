@@ -264,7 +264,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     async challengeGame(msg: string): Promise<void> {
         await this.initWeb3();
         await ErrorHandler.execute("challengeGame", async () => {
-            const tx = await this.gameContract.challengeGame(this.gameIndex);
+            const tx = await this.gameContract.challengeGame(this.gameIndex, msg);
             console.log(`Challenged game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
         });
     }

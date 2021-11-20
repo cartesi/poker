@@ -77,7 +77,7 @@ library TurnBasedGameContext {
     event GameReady(uint256 indexed _index, GameContext _context);
     event TurnOver(uint256 indexed _index, uint256 indexed _turnIndex, Turn _turn);
     event GameResultClaimed(uint256 indexed _index, uint[] _fundsShare, address indexed _author);
-    event GameChallenged(uint256 indexed _index, uint256 indexed _descartesIndex, address indexed _author);
+    event GameChallenged(uint256 indexed _index, uint256 indexed _descartesIndex, address indexed _author, string _message);
     event GameOver(uint256 indexed _index, uint[] _fundsShare);
 
 
@@ -165,6 +165,7 @@ library TurnBasedGameContext {
     /// @notice Challenges game state, triggering a verification by a Descartes computation
     /// @param _context game context
     /// @param _index index identifying the game
+    /// @param _message message associated with the challenge (e.g., alleged cause)
     /// @param _descartes Descartes instance used for triggering verified computations
     /// @param _logger Logger instance used for storing data in the event history
     /// @param _turnChunkLog2Size turn data log2size considering 64-bit words (i.e., how many 64-bit words are there in a chunk of turn data)
@@ -172,6 +173,7 @@ library TurnBasedGameContext {
     function challengeGame(
         GameContext storage _context,
         uint256 _index,
+        string memory _message,
         DescartesInterface _descartes,
         Logger _logger,
         uint8 _turnChunkLog2Size,
@@ -192,26 +194,11 @@ library TurnBasedGameContext {
             }
         }
 
-        // builds input drives for the descartes computation
-        DescartesInterface.Drive[] memory drives =
-            buildInputDrives(_context, _logger, _turnChunkLog2Size, _emptyDataLogIndex);
-
-        // instantiates the computation
-        _context.descartesIndex = _descartes.instantiate(
-            1e13, // max cycles allowed
-            _context.gameTemplateHash, // hash identifying the computation template
-            0xf000000000000000, // output drive position: 8th drive position after the rootfs, dapp data, and 5 input drives
-            // FIXME: either enforce max of 4 players or make this variable
-            10, // output drive size: 1K (should hold awarded amounts for up to 4 players)
-            51, // round duration
-            _context.gameValidators, // parties involved in the computation (validator nodes)
-            drives
-        );
-
-        _context.isDescartesInstantiated = true;
+        // instantiates the Descarts computation
+        instantiateDescartes(_context, _descartes, _logger, _turnChunkLog2Size, _emptyDataLogIndex);
 
         // emits event announcing game end has been claimed and that Descartes verification is underway
-        emit GameChallenged(_index, _context.descartesIndex, msg.sender);
+        emit GameChallenged(_index, _context.descartesIndex, msg.sender, _message);
 
         return _context.descartesIndex;
     }
@@ -488,6 +475,44 @@ library TurnBasedGameContext {
         }
     }
 
+    /// @notice Instantiates a Descartes computation for the game
+    /// @param _context game context
+    /// @param _descartes Descartes instance to use
+    /// @param _logger Logger instance used for storing data in the event history
+    /// @param _turnChunkLog2Size turn data log2size considering 64-bit words (i.e., how many 64-bit words are there in a chunk of turn data)
+    /// @return index of the instantiated Descartes computation
+    function instantiateDescartes(
+        GameContext storage _context,
+        DescartesInterface _descartes,
+        Logger _logger,
+        uint8 _turnChunkLog2Size,
+        uint256 _emptyDataLogIndex
+    ) internal returns (uint256) {
+        // builds input drives for the descartes computation
+        DescartesInterface.Drive[] memory drives =
+            buildInputDrives(_context, _logger, _turnChunkLog2Size, _emptyDataLogIndex);
+
+        // instantiates the computation
+        _context.descartesIndex = _descartes.instantiate(
+            1e13, // max cycles allowed
+            _context.gameTemplateHash, // hash identifying the computation template
+            0xf000000000000000, // output drive position: 8th drive position after the rootfs, dapp data, and 5 input drives
+            // FIXME: either enforce max of 4 players or make this variable
+            10, // output drive size: 1K (should hold awarded amounts for up to 4 players)
+            51, // round duration
+            _context.gameValidators, // parties involved in the computation (validator nodes)
+            drives
+        );
+
+        _context.isDescartesInstantiated = true;
+        return _context.descartesIndex;
+    }
+
+    /// @notice Builds all Descartes input drives for a verification computation
+    /// @param _context game context
+    /// @param _logger Logger instance used for storing data in the event history
+    /// @param _turnChunkLog2Size turn data log2size considering 64-bit words (i.e., how many 64-bit words are there in a chunk of turn data)
+    /// @return the Descartes input drives
     function buildInputDrives(
         GameContext storage _context,
         Logger _logger,
