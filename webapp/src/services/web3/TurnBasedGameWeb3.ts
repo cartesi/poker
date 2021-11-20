@@ -15,6 +15,7 @@ import { Descartes__factory } from "@cartesi/descartes-sdk/dist/src/types";
 import { ServiceConfig } from "../ServiceConfig";
 import { ErrorHandler } from "../ErrorHandler";
 import { VerificationState } from "../Game";
+import { Web3Utils } from "./Web3Utils";
 
 /**
  * TurnBasedGame web3 implementation
@@ -269,6 +270,9 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         });
     }
     onGameChallenged(gameIndex, descartesIndex, author, message) {
+        console.log(
+            `Received 'GameChallenged' event for game '${gameIndex} from '${author}' with message '${message}', triggering Descartes computation '${descartesIndex}'`
+        );
         if (this.onGameChallengeReceived) {
             this.onGameChallengeReceived(gameIndex);
         }
@@ -323,7 +327,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
         listeners["DescartesCreated"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
-                console.log(`Received 'DescartesCreated' event for Descartes computation ${descartesIndex}`);
+                console.log(`Received 'DescartesCreated' event for Descartes computation '${descartesIndex}'`);
                 if (self.onVerificationUpdate) {
                     self.onVerificationUpdate([VerificationState.STARTED, message]);
                 }
@@ -332,7 +336,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
         listeners["ClaimSubmitted"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
-                console.log(`Received 'ClaimSubmitted' event for Descartes computation ${descartesIndex}`);
+                console.log(`Received 'ClaimSubmitted' event for Descartes computation '${descartesIndex}'`);
                 if (self.onVerificationUpdate) {
                     self.onVerificationUpdate([VerificationState.RESULT_SUBMITTED, message]);
                 }
@@ -341,7 +345,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
         listeners["Confirmed"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
-                console.log(`Received 'Confirmed' event for Descartes computation ${descartesIndex}`);
+                console.log(`Received 'Confirmed' event for Descartes computation '${descartesIndex}'`);
                 if (self.onVerificationUpdate) {
                     self.onVerificationUpdate([VerificationState.RESULT_CONFIRMED, message]);
                 }
@@ -350,7 +354,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
         listeners["ChallengeStarted"] = function (descartesIndexEvent: BigNumber) {
             if (descartesIndexEvent.eq(descartesIndex)) {
-                console.log(`Received 'ChallengeStarted' event for Descartes computation ${descartesIndex}`);
+                console.log(`Received 'ChallengeStarted' event for Descartes computation '${descartesIndex}'`);
                 if (self.onVerificationUpdate) {
                     self.onVerificationUpdate([VerificationState.RESULT_CHALLENGED, message]);
                 }
@@ -359,7 +363,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
         listeners["DescartesFinished"] = async function (descartesIndexEvent: BigNumber, state: string) {
             if (descartesIndexEvent.eq(descartesIndex)) {
-                console.log(`Received 'DescartesFinished' event for Descartes computation ${descartesIndex}`);
+                console.log(`Received 'DescartesFinished' event for Descartes computation '${descartesIndex}'`);
                 const stateStr = ethers.utils.toUtf8String(state);
                 let verificationState: VerificationState;
                 if (
@@ -383,8 +387,9 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                         const isLowerStake =
                             (playerIndex === 0 && fundsPlayer0 < fundsPlayer1) ||
                             (playerIndex === 1 && fundsPlayer1 < fundsPlayer0);
+                        const playerAddress = await this.getPlayerAddress();
                         const isEqualStakeAndNotAuthor =
-                            fundsPlayer0.eq(fundsPlayer1) && ServiceConfig.currentInstance.signerAddress !== author;
+                            fundsPlayer0.eq(fundsPlayer1) && !Web3Utils.compareAddresses(author, playerAddress);
                         if (isLowerStake || isEqualStakeAndNotAuthor) {
                             // let the opponent apply the result
                             // - either this player has a lower stake locked in the game result, or stakes are equal and player is not the challenge author
@@ -479,9 +484,6 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         await this.initWeb3();
         let signerAddress = await this.gameContract.signer.getAddress();
         let player0Address = context.players[0];
-        // obs: uses hexlify to avoid issues with uppercase vs lowercase hex representations
-        signerAddress = signerAddress ? ethers.utils.hexlify(signerAddress) : signerAddress;
-        player0Address = player0Address ? ethers.utils.hexlify(player0Address) : player0Address;
-        return signerAddress == player0Address;
+        return Web3Utils.compareAddresses(signerAddress, player0Address);
     }
 }
