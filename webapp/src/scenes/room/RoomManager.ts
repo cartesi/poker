@@ -281,10 +281,16 @@ export class RoomManager {
 
     private static onBetRequested(): void {
         
-        RoomManager.updateBoard();
-        RoomManager.updateOpponentState();
-        RoomManager.showBetButtons();
-        RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, true);
+        RoomManager.game.getState().then(state => {
+            if (state == GameState.END) {
+                console.log("Ignoring bet request because game is over");
+                return;
+            }
+            RoomManager.updateBoard();
+            RoomManager.updateOpponentState();
+            RoomManager.showBetButtons();
+            RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, true);
+        });
     }
 
     private static initTimer(value: number, isPlayer: boolean): void {
@@ -295,13 +301,20 @@ export class RoomManager {
     private static onBetsReceived(betType: BetType, amount: ethers.BigNumber): void {
         
         console.log(`Bets received: type=${betType} ; amount=${amount}`);
-        RoomManager.showBet(betType, GameVars.opponentIndex);
-        RoomManager.updateBoard();
-        RoomManager.updateOpponentState();
+        RoomManager.game.getState().then(state => {
+            if (state == GameState.END) {
+                console.log("Ignoring bets received because game is over");
+                return;
+            }
+            RoomManager.showBet(betType, GameVars.opponentIndex);
+            RoomManager.updateBoard();
+            RoomManager.updateOpponentState();
+        })
     }
 
     private static async onEnd(): Promise<void> {
 
+        RoomManager.removeBetButtons();
         RoomManager.updateOpponentState();
         let endData = await RoomManager.game.getResult();
 
