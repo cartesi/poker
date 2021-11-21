@@ -75,7 +75,7 @@ library TurnBasedGameContext {
 
     // events emitted    
     event GameReady(uint256 indexed _index, GameContext _context);
-    event TurnOver(uint256 indexed _index, uint256 indexed _turnIndex, Turn _turn);
+    event TurnOver(uint256 indexed _index, uint256 _turnIndex, address indexed _author, Turn _turn);
     event GameResultClaimed(uint256 indexed _index, uint[] _fundsShare, address indexed _author);
     event GameChallenged(uint256 indexed _index, uint256 indexed _descartesIndex, address indexed _author, string _message);
     event GameOver(uint256 indexed _index, uint[] _fundsShare);
@@ -159,7 +159,7 @@ library TurnBasedGameContext {
         _context.turns.push(turn);
 
         // emits event for new turn
-        emit TurnOver(_index, _turnIndex, turn);
+        emit TurnOver(_index, _turnIndex, msg.sender, turn);
     }
 
     /// @notice Challenges game state, triggering a verification by a Descartes computation

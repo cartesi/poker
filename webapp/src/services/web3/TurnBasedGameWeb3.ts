@@ -68,19 +68,19 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         this.gameContextContract.removeAllListeners();
 
         // sets up listener for TurnOver events for this game
-        const turnOverFilter = this.gameContextContract.filters.TurnOver(this.gameIndex, null, null);
+        const turnOverFilter = this.gameContextContract.filters.TurnOver(this.gameIndex);
         this.gameContextContract.on(turnOverFilter, this.onTurnOver.bind(this));
 
         // sets up listener for GameResultClaimed event
-        const gameResultClaimedFilter = this.gameContextContract.filters.GameResultClaimed(this.gameIndex, null, null);
+        const gameResultClaimedFilter = this.gameContextContract.filters.GameResultClaimed(this.gameIndex);
         this.gameContextContract.on(gameResultClaimedFilter, this.onClaimResult.bind(this));
 
         // sets up listener for GameChallenged event
-        const gameChallengedFilter = this.gameContextContract.filters.GameChallenged(this.gameIndex, null, null);
+        const gameChallengedFilter = this.gameContextContract.filters.GameChallenged(this.gameIndex);
         this.gameContextContract.on(gameChallengedFilter, this.onGameChallenged.bind(this));
 
         // sets up listener for GameEnd event
-        const gameEndFilter = this.gameContextContract.filters.GameOver(this.gameIndex, null);
+        const gameEndFilter = this.gameContextContract.filters.GameOver(this.gameIndex);
         this.gameContextContract.on(gameEndFilter, this.onGameEnd.bind(this));
     }
 
@@ -126,7 +126,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         });
         return info;
     }
-    async onTurnOver(gameIndex, turnIndex, turn) {
+    async onTurnOver(gameIndex, turnIndex, author, turn) {
         await this.initWeb3();
         const player = await this.getPlayerAddress();
         if (turn.player == player) {
@@ -271,7 +271,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     }
     onGameChallenged(gameIndex, descartesIndex, author, message) {
         console.log(
-            `Received 'GameChallenged' event for game '${gameIndex} from '${author}' with message '${message}', triggering Descartes computation '${descartesIndex}'`
+            `Received 'GameChallenged' event for game '${gameIndex}' from '${author}' with message '${message}', triggering Descartes computation '${descartesIndex}'`
         );
         if (this.onGameChallengeReceived) {
             this.onGameChallengeReceived(gameIndex);

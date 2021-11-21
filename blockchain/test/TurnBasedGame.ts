@@ -699,9 +699,11 @@ describe("TurnBasedGame", async () => {
             expect(turnOverEvent).not.equal(undefined, "No event emitted");
             let index = turnOverEvent.args._index;
             let turnIndex = turnOverEvent.args._turnIndex;
+            let author = turnOverEvent.args._author;
             let turn = turnOverEvent.args._turn;
             expect(index).to.eql(ethers.BigNumber.from(0), "1st turn should have game index 0");
             expect(turnIndex).to.eql(ethers.BigNumber.from(0), "1st turn should refer to turnIndex 0");
+            expect(author).to.eql(players[0], "1st turn should have author player0");
             expect(turn.player).to.eql(players[0], "1st turn should be emitted by player0");
             expect(turn.nextPlayer).to.eql(players[1], "1st turn should be emitted with the correct nextPlayer");
             expect(turn.playerStake).to.eql(
@@ -730,9 +732,11 @@ describe("TurnBasedGame", async () => {
             expect(turnOverEvent).not.equal(undefined, "No event emitted");
             index = turnOverEvent.args._index;
             turnIndex = turnOverEvent.args._turnIndex;
+            author = turnOverEvent.args._author;
             turn = turnOverEvent.args._turn;
             expect(index).to.eql(ethers.BigNumber.from(0), "2nd turn should have game index 0");
             expect(turnIndex).to.eql(ethers.BigNumber.from(1), "2nd turn should refer to turnIndex 1");
+            expect(author).to.eql(players[1], "2nd turn should have author player1");
             expect(turn.player).to.eql(players[1], "2nd turn should be emitted by player1");
             expect(turn.nextPlayer).to.eql(players[0], "1st turn should be emitted with the correct nextPlayer");
             expect(turn.playerStake).to.eql(
