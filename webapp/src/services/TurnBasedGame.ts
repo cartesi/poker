@@ -34,7 +34,7 @@ export class TurnBasedGameFactory {
      *
      * @returns the Transport instance
      */
-    public static create(gameIndex: number): TurnBasedGame {
+    public static create(gameIndex: BigNumber): TurnBasedGame {
         const impl = ServiceConfig.get(ServiceType.Transport);
         if (impl === ServiceImpl.Mock) {
             // mock TurnBasedGame (assumes playerIndex=0, meaning that it is ALICE's instance)

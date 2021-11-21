@@ -25,7 +25,7 @@ describe("TurnBasedGameWeb3", function () {
     // creates a service config instance
     const serviceConfig: ServiceConfig = new ServiceConfig(ProviderType.JsonRpc);
 
-    let gameIndex: number;
+    let gameIndex: ethers.BigNumber;
 
     let turnBasedGameAlice: TurnBasedGameWeb3;
     let turnBasedGameBob: TurnBasedGameWeb3;
@@ -69,7 +69,7 @@ describe("TurnBasedGameWeb3", function () {
     it("should retrieve correct player and opponent indices", async () => {
         // Players join the game
         let gameReadyPromiseResolver: (number) => void;
-        const gameReadyPromise = new Promise<number>((resolve) => {
+        const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
         ServiceConfig.currentInstance.setSigner(aliceAddress);
@@ -80,7 +80,7 @@ describe("TurnBasedGameWeb3", function () {
         });
 
         // retrieves gameIndex from GameReady event
-        let gameIndex: number = await Promise.resolve(gameReadyPromise);
+        let gameIndex: ethers.BigNumber = await Promise.resolve(gameReadyPromise);
 
         // creates turnbasedgame instance for Alice
         ServiceConfig.currentInstance.setSigner(aliceAddress);
@@ -193,7 +193,7 @@ describe("TurnBasedGameWeb3", function () {
     it("should allow a player to submit a turn, claim for a result and confirm the result: turn with no specified nextPlayer", async () => {
         // Players join the game
         let gameReadyPromiseResolver: (number) => void;
-        const gameReadyPromise = new Promise<number>((resolve) => {
+        const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
         ServiceConfig.currentInstance.setSigner(aliceAddress);
@@ -204,7 +204,7 @@ describe("TurnBasedGameWeb3", function () {
         });
 
         // retrieves gameIndex from GameReady event
-        let gameIndex: number = await Promise.resolve(gameReadyPromise);
+        let gameIndex: ethers.BigNumber = await Promise.resolve(gameReadyPromise);
 
         // creates TurnBasedGame instance for Alice (listeners turned off)
         ServiceConfig.currentInstance.setSigner(aliceAddress);
@@ -261,7 +261,7 @@ describe("TurnBasedGameWeb3", function () {
 
         // Players join the game
         let gameReadyPromiseResolver: (number) => void;
-        const gameReadyPromise = new Promise<number>((resolve) => {
+        const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
         ServiceConfig.currentInstance.setSigner(aliceAddress);
@@ -272,7 +272,7 @@ describe("TurnBasedGameWeb3", function () {
         });
 
         // retrieves gameIndex from GameReady event
-        let gameIndex: number = await Promise.resolve(gameReadyPromise);
+        let gameIndex: ethers.BigNumber = await Promise.resolve(gameReadyPromise);
 
         // creates TurnBasedGame instance for Alice (listeners turned off)
         ServiceConfig.currentInstance.setSigner(aliceAddress);
@@ -331,7 +331,7 @@ describe("TurnBasedGameWeb3", function () {
 
         // Players join the game
         let gameReadyPromiseResolver: (number) => void;
-        const gameReadyPromise = new Promise<number>((resolve) => {
+        const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
         ServiceConfig.currentInstance.setSigner(aliceAddress);
@@ -342,7 +342,7 @@ describe("TurnBasedGameWeb3", function () {
         });
 
         // retrieves gameIndex from GameReady event
-        let gameIndex: number = await Promise.resolve(gameReadyPromise);
+        let gameIndex: ethers.BigNumber = await Promise.resolve(gameReadyPromise);
 
         // creates TurnBasedGame instance for Alice
         ServiceConfig.currentInstance.setSigner(aliceAddress);

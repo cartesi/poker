@@ -10,7 +10,7 @@ export class GameVars {
     public static aspectRatio: number;
     public static currentScene: Phaser.Scene;
 
-    public static gameIndex: number;
+    public static gameIndex: BigNumber;
     public static playerIndex: number;
     public static playerFunds: BigNumber;
 

@@ -39,7 +39,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     onGameChallengeReceived: (msg: string) => any;
     onVerificationUpdate: (update: [VerificationState, string]) => any;
 
-    constructor(private gameIndex: number) {
+    constructor(private gameIndex: BigNumber) {
         this.turnInfoQueue = [];
         this.onTurnOverReceivedResolvers = [];
     }

@@ -98,11 +98,20 @@ export class OnboardingMetamask extends AbstractOnboarding {
                 return;
             }
 
+            // checks if player has an unfinished ongoing game
+            if (await super.checkUnfinishedGame(onChange, chainName, this.update.bind(this))) {
+                return;
+            }
+
             // checks player's balance to see if he has enough tokens to play
-            super.checkBalance(onChange, false, chainName);
+            if (!(await super.checkBalance(onChange, chainName))) {
+                return;
+            }
 
             // checks player's allowance to see if the Lobby contract can manage the player's tokens
-            super.checkAllowance(onChange, false);
+            if (!(await super.checkAllowance(onChange, false))) {
+                return;
+            }
         } catch (error) {
             console.error(error);
             onChange({

@@ -120,7 +120,7 @@ export class GameFactory {
      * @returns
      */
     public static create(
-        gameIndex: number,
+        gameIndex: BigNumber,
         playerIndex: number,
         opponentIndex: number,
         playerFunds: BigNumber,
