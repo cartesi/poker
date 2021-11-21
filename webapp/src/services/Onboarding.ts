@@ -22,7 +22,7 @@ export class Onboarding {
         }
     }
 
-    public static startWeb3Onboarding(onChange) {
+    private static startWeb3Onboarding(onChange) {
         let providerType: ProviderType = ServiceConfig.currentInstance.providerType;
         if (providerType == ProviderType.Portis) {
             OnboardingPortis.start(onChange);

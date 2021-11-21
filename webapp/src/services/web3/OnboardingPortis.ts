@@ -22,11 +22,10 @@ export class OnboardingPortis extends AbstractOnboarding {
         this.portis = ServiceConfig.currentInstance.provider.getRawProvider();
         super.setProvider(this.portis.provider);
 
-        this.portis.isLoggedIn()
-            .then(({ error, result }) => {
-                this.isLogged = result;
-                this.update(onChange);
-            });
+        this.portis.isLoggedIn().then(({ error, result }) => {
+            this.isLogged = result;
+            this.update(onChange);
+        });
 
         this.portis.onLogin(async (walletAddress, email, reputation) => {
             this.isLogged = true;
@@ -34,7 +33,7 @@ export class OnboardingPortis extends AbstractOnboarding {
             this.update(onChange);
         });
 
-        this.portis.onActiveWalletChanged(walletAddress => {
+        this.portis.onActiveWalletChanged((walletAddress) => {
             console.log(walletAddress);
             ServiceConfig.currentInstance.setSigner(walletAddress);
             this.update(onChange);
@@ -51,7 +50,6 @@ export class OnboardingPortis extends AbstractOnboarding {
      * Main web3 update procedure
      */
     private static async update(onChange) {
-
         try {
             // While Portis is initializing
             if (this.isLogged == undefined) {

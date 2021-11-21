@@ -35,7 +35,6 @@ export class OnboardingMetamask extends AbstractOnboarding {
                 throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
             }
 
-
             this.metamask = ServiceConfig.currentInstance.provider.getRawProvider();
             ServiceConfig.currentInstance.setChain(this.metamask.chainId);
             super.setProvider(this.metamask);

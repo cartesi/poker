@@ -5,7 +5,6 @@ import { PokerToken__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
 
-
 export class AbstractOnboarding {
     private static provider;
 
@@ -43,7 +42,6 @@ export class AbstractOnboarding {
             });
             return;
         }
-
     }
 
     /**
