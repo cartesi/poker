@@ -34,6 +34,7 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
         this.img = new Phaser.GameObjects.Image(this.scene, -110, 0, "texture_atlas_1", "metamask");
         this.img.setScale(.4);
         this.add(this.img);
+        this.img.setAlpha(0);
 
         this.loading = new Phaser.GameObjects.Image(this.scene, -110, 0, "texture_atlas_1", "loading");
         this.loading.setScale(.28);
@@ -48,7 +49,7 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
             repeat: -1
         });
 
-        this.text = new Phaser.GameObjects.Text(this.scene, -80, 0, "", {fontFamily: "Oswald-Medium", fontSize: "22px", color: "#FFFFFF", align: "left"});
+        this.text = new Phaser.GameObjects.Text(this.scene, -80, 0, "", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#FFFFFF", align: "left" });
         this.text.setOrigin(0, .5);
         this.add(this.text);
 
@@ -70,7 +71,7 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
         this.background.setInteractive(new Phaser.Geom.Rectangle(-(this.text.width + 95) / 2, -30, this.text.width + 95, 60), Phaser.Geom.Rectangle.Contains);
         this.img.x = -(this.text.width + 95) / 2 + 40;
         this.loading.x = -(this.text.width + 95) / 2 + 40;
-        this.text.x = this.img.x + 30;
+        this.text.x = this.img.x + 15;
 
         // update button action when user clicks (or remove any action)
         if (onclick) {
