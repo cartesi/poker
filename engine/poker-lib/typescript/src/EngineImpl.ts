@@ -10,7 +10,7 @@ export class EngineImpl implements Engine {
 
     constructor(player_id: number, wasm_path: string = null) {
         if (wasm_path == null)
-          wasm_path = "../../assets/wasm/poker-lib-wasm.js";
+          wasm_path = "../../assets/engine/poker-lib-wasm.js";
         
         this.player_id = player_id;
         this.counter = new Date().getTime();
