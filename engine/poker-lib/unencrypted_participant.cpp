@@ -79,6 +79,7 @@ game_error unencrypted_participant::load_stack(blob& mixed_stack, blob& mixed_st
     logger << _pfx << "load_stack " << std::endl;
 
     char separator;
+    mixed_stack.set_auto_rewind(false);
     for (auto i = 0; i < DECK_SIZE; i++) {
         mixed_stack.in() >> separator;
         mixed_stack.in() >> _stack[i];
