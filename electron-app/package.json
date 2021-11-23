@@ -19,7 +19,7 @@
         "engine:copy": "run-s engine:copy:wasm engine:copy:native",
         "engine:copy:wasm": "copyfiles -f \"../engine/platforms/wasm/build/poker-lib/*.ts\" src/services/engine && copyfiles -f \"../engine/platforms/wasm/build/lib/poker-lib-wasm.*\" assets/engine",
         "engine:copy:native": "copyfiles -f \"../engine/platforms/x64/build/poker-lib/*.ts\" src/services/engine && copyfiles -f \"../engine/platforms/x64/build/lib/pokerlib.node\" assets/engine",
-        "package": "run-s clean src:copy contracts:copy engine:copy && rimraf out && electron-forge package",
+        "package": "run-s clean src:copy contracts:deploy:matic_testnet contracts:copy:matic_testnet engine:copy && rimraf out && electron-forge package",
         "make": "electron-forge make",
         "publish": "electron-forge publish",
         "lint": "eslint --ext .ts,.tsx ."
