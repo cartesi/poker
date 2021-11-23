@@ -2,6 +2,7 @@ declare interface GameData {
     muted: boolean;
     name: string;
     avatar: number;
+    gameIndex: any;
 }
 
 declare interface AppState {

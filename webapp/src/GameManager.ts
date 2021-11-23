@@ -41,11 +41,15 @@ export class GameManager {
 
                 if (gameData) {
                     GameVars.gameData = JSON.parse(gameData);
+                    if (GameVars.gameData.gameIndex) {
+                        GameVars.gameData.gameIndex = ethers.BigNumber.from(GameVars.gameData.gameIndex);
+                    }
                 } else {
                     GameVars.gameData = {
                         muted: false,
                         name: null,
-                        avatar: 1
+                        avatar: 1,
+                        gameIndex: null
                     };
                 }
 
@@ -80,7 +84,7 @@ export class GameManager {
             const opponentPlayerInfo = context.playerInfos[context.opponentIndex];
             const playerFunds = context.playerFunds[context.playerIndex];
             const opponentFunds = context.playerFunds[context.opponentIndex];
-            GameVars.gameIndex = index;
+            GameVars.gameData.gameIndex = index;
             GameVars.playerIndex = context.playerIndex;
             GameVars.playerFunds = playerFunds;
             GameVars.opponentIndex = context.opponentIndex;
@@ -88,6 +92,7 @@ export class GameManager {
             GameVars.opponentName = opponentPlayerInfo.name;
             GameVars.opponentAvatar = opponentPlayerInfo.avatar;
 
+            GameManager.writeGameData();
             LobbyScene.currentInstance.onOpponentJoined();
         });
     }

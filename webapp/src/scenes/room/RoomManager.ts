@@ -28,7 +28,7 @@ export class RoomManager {
 
         const metadata = "";  
         RoomManager.game = GameFactory.create(
-            GameVars.gameIndex,
+            GameVars.gameData.gameIndex,
             GameVars.playerIndex,
             GameVars.opponentIndex,
             GameVars.playerFunds,

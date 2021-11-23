@@ -9,6 +9,7 @@ import { TurnBasedGameContext__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
 import { TurnBasedGameFactory } from "../TurnBasedGame";
+import { GameVars } from "../../GameVars";
 
 export class AbstractOnboarding {
     private static provider;
@@ -33,14 +34,82 @@ export class AbstractOnboarding {
     private static claimTimeoutInterval;
     /**
      * Checks if the player has an ongoing unfinished game, and if true attempts to end it by timeout
-     * @param onChange 
-     * @param chainName 
+     * @param onChange
+     * @param chainName
      * @param updateCallback
-     * @returns 
+     * @returns
      */
     protected static async checkUnfinishedGame(onChange, chainName, updateCallback): Promise<boolean> {
-        if (AbstractOnboarding.claimTimeoutInterval) {
-            // we are already attempting to end an unfinished game by timeout
+        // retrieves web3 connection info
+        const web3Provider = new ethers.providers.Web3Provider(this.provider);
+        const signer = web3Provider.getSigner();
+        const playerAddress = await signer.getAddress();
+
+        // retrieves game context contract
+        const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
+        const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
+        const gameContextContract = contextContract.attach(gameContract.address);
+
+        // checks locally stored game index
+        if (GameVars.gameData.gameIndex) {
+            // double-checks if corresponding game concerns the player
+            const context = await gameContract.getContext(GameVars.gameData.gameIndex);
+            if (context.players.includes(playerAddress)) {
+                // there is a registered last game for the player, let's check it out
+                const isRegisteredGameUnfinished = await this.checkUnfinishedGameByIndex(
+                    onChange,
+                    chainName,
+                    updateCallback,
+                    GameVars.gameData.gameIndex
+                );
+                if (isRegisteredGameUnfinished) {
+                    // registered game is unfinished: stop here
+                    return true;
+                }
+            }
+        }
+
+        // looks for a last game by fetching the latest turn submitted by the player (emits TurnOver event)
+        const turnOverFilter = gameContextContract.filters.TurnOver(null, null, playerAddress, null);
+        const turnOverEvents = await gameContextContract.queryFilter(turnOverFilter);
+        if (turnOverEvents.length > 0) {
+            const lastGameIndex = turnOverEvents[turnOverEvents.length - 1].args._index;
+            if (await this.checkUnfinishedGameByIndex(onChange, chainName, updateCallback, lastGameIndex)) {
+                // found an unfinished game, stop here
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if a specific game is unfinished, and if true attempts to end it by timeout
+     * @param onChange
+     * @param chainName
+     * @param updateCallback
+     * @param gameIndex
+     * @returns
+     */
+    protected static async checkUnfinishedGameByIndex(
+        onChange,
+        chainName,
+        updateCallback,
+        gameIndex
+    ): Promise<boolean> {
+        // retrieves web3 connection info
+        const web3Provider = new ethers.providers.Web3Provider(this.provider);
+        const signer = web3Provider.getSigner();
+
+        // retrieves game context contract
+        const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
+        const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
+        const gameContextContract = contextContract.attach(gameContract.address);
+
+        // checks if game is really over
+        const gameOverFilter = gameContextContract.filters.GameOver(gameIndex, null);
+        const gameOverEvents = await gameContextContract.queryFilter(gameOverFilter);
+        if (gameOverEvents.length == 0) {
+            // game is not over
             onChange({
                 label: `You have an ongoing game on ${chainName}: attempting to end it by timeout`,
                 onclick: undefined,
@@ -48,40 +117,16 @@ export class AbstractOnboarding {
                 error: false,
                 ready: false,
             });
-            return true;
-        }
-        const web3Provider = new ethers.providers.Web3Provider(this.provider);
-        const signer = web3Provider.getSigner();
-        const playerAddress = await signer.getAddress();
 
-        const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
-        const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
-        const gameContextContract = contextContract.attach(gameContract.address);
-
-        // fetch latest turn submitted by the player (emits TurnOver event)
-        const turnOverFilter = gameContextContract.filters.TurnOver(null, null, playerAddress, null);
-        const turnOverEvents = await gameContextContract.queryFilter(turnOverFilter);
-        if (turnOverEvents.length > 0) {
-            const lastGameIndex = turnOverEvents[turnOverEvents.length - 1].args._index;
-            const gameOverFilter = gameContextContract.filters.GameOver(lastGameIndex, null);
-            const gameOverEvents = await gameContextContract.queryFilter(gameOverFilter);
-            if (gameOverEvents.length == 0) {
-                // game is not over
-                onChange({
-                    label: `You have an ongoing game on ${chainName}: attempting to end it by timeout`,
-                    onclick: undefined,
-                    loading: true,
-                    error: false,
-                    ready: false,
-                });
-
+            if (!AbstractOnboarding.claimTimeoutInterval) {
+                // we are not already attempting to end an unfinished game by timeout: let's do it
                 try {
                     // continuously attempts to end game by timeout
-                    const turnBasedGame = TurnBasedGameFactory.create(lastGameIndex);
-                    await turnBasedGame.claimTimeout();
+                    const turnBasedGame = TurnBasedGameFactory.create(gameIndex);
                     AbstractOnboarding.claimTimeoutInterval = setInterval(async () => {
                         await turnBasedGame.claimTimeout();
                     }, GameConstants.TIMEOUT_SECONDS * 1000);
+                    await turnBasedGame.claimTimeout();
 
                     gameContract.on(gameOverFilter, () => {
                         // game is finally over: clear interval and update status
@@ -89,11 +134,11 @@ export class AbstractOnboarding {
                         AbstractOnboarding.claimTimeoutInterval = undefined;
                         updateCallback(onChange);
                     });
-                    return true;
                 } catch (error) {
                     console.error(error);
                 }
             }
+            return true;
         }
         return false;
     }

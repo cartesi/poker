@@ -16,7 +16,7 @@ export class GameConstants {
     public static readonly GAME_WIDTH = 1280;
     public static readonly GAME_HEIGHT = 853;
 
-    public static readonly SAVED_GAME_DATA_KEY = "poker-data";
+    public static readonly SAVED_GAME_DATA_KEY = "cartesi-texas-hodlem";
 
     public static readonly DEFAULT_CHAIN = ChainId.MATIC_TESTNET;
 
