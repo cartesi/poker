@@ -15,6 +15,8 @@ class unencrypted_participant : public i_participant {
     std::vector<int> _stack;
     std::vector<int> _cards;
 
+    void split_cards(std::string const& str, const char delim, std::vector<std::string>& out);
+
    public:
     void init(int id, int num_participants, bool predictable) override;
     int id() override;

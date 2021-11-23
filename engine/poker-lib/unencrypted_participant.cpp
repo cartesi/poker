@@ -1,10 +1,12 @@
 #include "unencrypted_participant.h"
 
 #include <algorithm>
-#include <random>
 #include <chrono>
+#include <random>
 
 namespace poker {
+
+const char delimiter = '^';
 
 void unencrypted_participant::init(int id, int num_participants, bool predictable) {
     _id = id;
@@ -70,7 +72,7 @@ game_error unencrypted_participant::shuffle_stack(blob& mixed_stack, blob& stack
         std::shuffle(_stack.begin(), _stack.end(), std::default_random_engine(seed));
 
         for (auto i = 0; i < _stack.size(); i++)
-            mixed_stack.out() << "^" << _stack[i];
+            mixed_stack.out() << _stack[i] << delimiter;
     }
     return SUCCESS;
 }
@@ -78,13 +80,24 @@ game_error unencrypted_participant::shuffle_stack(blob& mixed_stack, blob& stack
 game_error unencrypted_participant::load_stack(blob& mixed_stack, blob& mixed_stack_proof) {
     logger << _pfx << "load_stack " << std::endl;
 
-    char separator;
-    mixed_stack.set_auto_rewind(false);
-    for (auto i = 0; i < DECK_SIZE; i++) {
-        mixed_stack.in() >> separator;
-        mixed_stack.in() >> _stack[i];
+    std::vector<std::string> cards;
+    split_cards(mixed_stack.str(), delimiter, cards);
+    int idx = 0;
+    for (auto& card : cards) {
+        _stack[idx++] = std::stoi(card);
     }
+
     return SUCCESS;
+}
+
+void unencrypted_participant::split_cards(std::string const& str, const char delim, std::vector<std::string>& out) {
+    size_t start;
+    size_t end = 0;
+
+    while ((start = str.find_first_not_of(delim, end)) != std::string::npos) {
+        end = str.find(delim, start);
+        out.push_back(str.substr(start, end - start));
+    }
 }
 
 game_error unencrypted_participant::take_cards_from_stack(int count) {
