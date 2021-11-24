@@ -49,7 +49,8 @@ export class GameManager {
                         muted: false,
                         name: null,
                         avatar: 1,
-                        gameIndex: null
+                        gameIndex: null,
+                        walletEncryptedJson: null
                     };
                 }
 

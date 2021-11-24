@@ -23,7 +23,7 @@ async function increaseTime(secondsToAdd: number): Promise<void> {
 
 describe("TurnBasedGameWeb3", function () {
     // creates a service config instance
-    const serviceConfig: ServiceConfig = new ServiceConfig(ProviderType.JsonRpc);
+    new ServiceConfig(ProviderType.JsonRpc);
 
     let gameIndex: ethers.BigNumber;
 
@@ -42,7 +42,7 @@ describe("TurnBasedGameWeb3", function () {
     this.timeout(600000);
 
     beforeEach(async () => {
-        serviceConfig.setChain(ChainId.LOCALHOST_HARDHAT);
+        ServiceConfig.currentInstance.setChain(ChainId.LOCALHOST_HARDHAT);
 
         ServiceConfig.currentInstance.setSigner(aliceAddress);
         const aliceSigner = ServiceConfig.getSigner();

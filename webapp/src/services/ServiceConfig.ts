@@ -101,7 +101,7 @@ export class ServiceConfig {
             }
         } else {
             // Automated test usage
-            provider = new ethers.providers.JsonRpcProvider();
+            provider = new ethers.providers.JsonRpcProvider(ServiceConfig.currentInstance.provider.getRawProvider());
         }
         return provider;
     }

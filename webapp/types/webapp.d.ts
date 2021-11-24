@@ -3,6 +3,7 @@ declare interface GameData {
     name: string;
     avatar: number;
     gameIndex: any;
+    walletEncryptedJson: string;
 }
 
 declare interface AppState {

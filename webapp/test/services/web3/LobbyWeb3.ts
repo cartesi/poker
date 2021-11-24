@@ -10,7 +10,7 @@ import { ProviderType } from "../../../src/services/web3/provider/Provider";
 
 describe('LobbyWeb3', function () {
     // creates a service config instance
-    const serviceConfig: ServiceConfig = new ServiceConfig(ProviderType.JsonRpc);
+    new ServiceConfig(ProviderType.JsonRpc);
 
     const aliceAddress: string = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
     const bobAddress: string = '0x70997970c51812dc3a010c7d01b50e0d17dc79c8';
@@ -18,7 +18,7 @@ describe('LobbyWeb3', function () {
     this.timeout(60000);
 
     beforeEach(async () => {
-        serviceConfig.setChain(ChainId.LOCALHOST_HARDHAT);
+        ServiceConfig.currentInstance.setChain(ChainId.LOCALHOST_HARDHAT);
 
         ServiceConfig.currentInstance.setSigner(aliceAddress);
         const aliceSigner = ServiceConfig.getSigner();

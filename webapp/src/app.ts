@@ -46,7 +46,7 @@ window.onload = () => {
     };
 
     game = new Game(gameConfig);
-    serviceConfig = new ServiceConfig(ProviderType.Portis);
+    serviceConfig = new ServiceConfig(ProviderType.JsonRpc);
 
     window.addEventListener("resize", onResize, false);
     window.addEventListener("orientationchange", onOrientationChange, false);

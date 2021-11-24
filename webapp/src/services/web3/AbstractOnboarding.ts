@@ -23,9 +23,10 @@ export class AbstractOnboarding {
      * @param onChange
      */
     protected static async approve(onChange) {
-        const provider = new ethers.providers.Web3Provider(this.provider);
-        const signer = provider.getSigner();
+        // retrieves user address and contract
+        const signer = ServiceConfig.getSigner();
         const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
+
         // for simplicity, at the moment we're requesting infinite approval
         await pokerTokenContract.approve(TurnBasedGameLobby.address, ethers.constants.MaxUint256);
         this.checkAllowance(onChange, true);
@@ -40,12 +41,9 @@ export class AbstractOnboarding {
      * @returns
      */
     protected static async checkUnfinishedGame(onChange, chainName, updateCallback): Promise<boolean> {
-        // retrieves web3 connection info
-        const web3Provider = new ethers.providers.Web3Provider(this.provider);
-        const signer = web3Provider.getSigner();
+        // retrieves user address and contracts
+        const signer = ServiceConfig.getSigner();
         const playerAddress = await signer.getAddress();
-
-        // retrieves game context contract
         const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
         const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
         const gameContextContract = contextContract.attach(gameContract.address);
@@ -96,11 +94,8 @@ export class AbstractOnboarding {
         updateCallback,
         gameIndex
     ): Promise<boolean> {
-        // retrieves web3 connection info
-        const web3Provider = new ethers.providers.Web3Provider(this.provider);
-        const signer = web3Provider.getSigner();
-
-        // retrieves game context contract
+        // retrieves user address and contracts
+        const signer = ServiceConfig.getSigner();
         const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
         const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
         const gameContextContract = contextContract.attach(gameContract.address);
@@ -144,11 +139,11 @@ export class AbstractOnboarding {
     }
 
     protected static async checkBalance(onChange, chainName): Promise<boolean> {
-        const web3Provider = new ethers.providers.Web3Provider(this.provider);
-        const signer = web3Provider.getSigner();
+        // retrieves user address and contract
+        const signer = ServiceConfig.getSigner();
         const playerAddress = await signer.getAddress();
-
         const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
+
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
         if (playerFunds.lt(ethers.BigNumber.from(GameConstants.MIN_FUNDS))) {
             onChange({
@@ -171,10 +166,11 @@ export class AbstractOnboarding {
      * @param loading boolean indicating whether allowance approval has already been requested
      */
     protected static async checkAllowance(onChange, loading): Promise<boolean> {
-        const provider = new ethers.providers.Web3Provider(this.provider);
-        const signer = provider.getSigner();
+        // retrieves user address and contract
+        const signer = ServiceConfig.getSigner();
         const playerAddress = await signer.getAddress();
         const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
+
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
         const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
         const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];

@@ -3,6 +3,7 @@ import { OnboardingMock } from "./mock/OnboardingMock";
 import { OnboardingPortis } from "./web3/OnboardingPortis";
 import { OnboardingMetamask } from "./web3/OnboardingMetamask";
 import { ProviderType } from "./web3/provider/Provider";
+import { OnboardingInternalWallet } from "./web3/OnboardingInternalWallet";
 
 export class Onboarding {
     /**
@@ -28,6 +29,8 @@ export class Onboarding {
             OnboardingPortis.start(onChange);
         } else if (providerType == ProviderType.Metamask) {
             OnboardingMetamask.start(onChange);
+        } else if (providerType == ProviderType.JsonRpc) {
+            OnboardingInternalWallet.start(onChange);
         } else {
             throw new Error("Unsupported web3 provider.");
         }
