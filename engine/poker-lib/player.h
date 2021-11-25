@@ -2,8 +2,9 @@
 #define PLAYER_H
 
 #include <map>
-#include "referee.h"
+
 #include "messages.h"
+#include "referee.h"
 
 namespace poker {
 
@@ -11,7 +12,7 @@ namespace poker {
 * A player of the game
 */
 class player {
-protected:
+   protected:
     int _id;
     int _opponent_id;
     i_participant* _p;
@@ -26,7 +27,7 @@ protected:
     blob _proof_of_their_cards;
     std::map<game_step, blob> _public_proofs;
 
-public:
+   public:
     player(int id);
     virtual ~player();
 
@@ -43,8 +44,8 @@ public:
 
     /// Processes a handshake message (msg_in) from the opponent player.
     /// Returns:
-    ///  SUCCESS     - Handshake is complete
-    ///  CONTINIUED  - Another message from the opponent is needed
+    ///  SUCCESS    - Handshake is complete
+    ///  CONTINUED  - Another message from the opponent is needed
     ///                and this method must be called again
     ///  Any other non-zero value is considered an error
     ///
@@ -54,9 +55,9 @@ public:
 
     /// Creates a bet request message (msg_out)
     /// Returns:
-    ///   SUCCESS     - Bet is complete
-    ///   CONTINIUED  - Bet is partially complete: msg_out needs to be sent to
-    ///                to the opponent and their response processed by process_bet()
+    ///   SUCCESS    - Bet is complete
+    ///   CONTINUED  - Bet is partially complete: msg_out needs to be sent to
+    ///                the opponent and their response processed by process_bet()
     ///   Other non-zero codes indicate an error condition
     ///
     /// Upon successful result,current_player() indicates the next player to place a bet
@@ -70,19 +71,19 @@ public:
     /// Upon successful return, check msg_out.empty() to determine
     /// if it must be sent to the opponent.
     /// The bet type and amount will be copied to out_type and out_amt, if they are not null
-    game_error process_bet(std::string& msg_in, std::string& msg_out, bet_type* out_type=NULL, money_t* out_amt=NULL);
+    game_error process_bet(std::string& msg_in, std::string& msg_out, bet_type* out_type = NULL, money_t* out_amt = NULL);
 
     /// Property accessors
-    game_step  step() { return _r.step(); }
-    bool       game_over() { return _r.game().error || _r.step() == GAME_OVER; }
+    game_step step() { return _r.step(); }
+    bool game_over() { return _r.game().error || _r.step() == GAME_OVER; }
     game_error error() { return _r.game().error; }
-    card_t     private_card(int index) { return _r.game().players[_id].cards[index]; }
-    card_t     public_card(int index)  { return _r.game().public_cards[index]; }
-    card_t     opponent_card(int index) { return _r.game().players[_opponent_id].cards[index]; }
-    int        winner() { return _r.game().winner; }
-    int        current_player() { return _r.game().current_player; }
+    card_t private_card(int index) { return _r.game().players[_id].cards[index]; }
+    card_t public_card(int index) { return _r.game().public_cards[index]; }
+    card_t opponent_card(int index) { return _r.game().players[_opponent_id].cards[index]; }
+    int winner() { return _r.game().winner; }
+    int current_player() { return _r.game().current_player; }
 
-private:
+   private:
     /// message handlers
     game_error handle_vtmf(msg_vtmf* msgin, message** out);
     game_error handle_vtmf_response(msg_vtmf_response* msgin, message** out);
@@ -94,16 +95,15 @@ private:
 
     game_error write_cards_proof(game_step step, blob& proof);
     game_error generate_key(blob& key);
-    game_error load_opponent_key(blob &key);
+    game_error load_opponent_key(blob& key);
     game_error make_card_proof(blob& proof, int start_card_ix, int count);
     game_error showdown(blob& their_proof, bool muck = false);
     game_error deal_cards();
     game_error prove_opponent_cards(blob& proofs);
     game_error open_public_cards(game_step step, blob& my_proof, blob& their_proof);
     game_error open_private_cards(blob& their_proof);
-
 };
 
-} // namespace poker
+}  // namespace poker
 
-#endif // PLAYER_H
+#endif  // PLAYER_H
