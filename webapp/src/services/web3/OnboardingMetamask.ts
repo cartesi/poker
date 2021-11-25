@@ -1,12 +1,8 @@
-import { ethers } from "ethers";
 import MetaMaskOnboarding from "@metamask/onboarding";
-import PokerToken from "../../abis/PokerToken.json";
-import TurnBasedGameLobby from "../../abis/TurnBasedGameLobby.json";
-import { PokerToken__factory } from "../../types";
+import { ethers } from "ethers";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
 import { AbstractOnboarding } from "./AbstractOnboarding";
-import { ProviderType } from "./provider/Provider";
 
 declare let window: any;
 
@@ -19,14 +15,6 @@ export class OnboardingMetamask extends AbstractOnboarding {
      * Starts user onboarding using Web3
      */
     public static async start(onChange) {
-        if (ServiceConfig.currentInstance.providerType != ProviderType.Metamask) {
-            throw new Error("A Metamask web3 provider was not found!");
-        }
-
-        if (!ServiceConfig.currentInstance.provider) {
-            throw new Error("No web3 provider was found!");
-        }
-
         if (!this.metamaskOnboarding) {
             this.metamaskOnboarding = new MetaMaskOnboarding();
         }
@@ -35,9 +23,7 @@ export class OnboardingMetamask extends AbstractOnboarding {
                 throw "Cannot connect to window.ethereum. Is Metamask or a similar plugin installed?";
             }
 
-            this.metamask = ServiceConfig.currentInstance.provider.getRawProvider();
-            ServiceConfig.currentInstance.setChain(this.metamask.chainId);
-            super.setProvider(this.metamask);
+            this.metamask = window.ethereum;
 
             // attempts to retrieve connected account
             if (this.metamask.selectedAddress) {
@@ -97,6 +83,9 @@ export class OnboardingMetamask extends AbstractOnboarding {
                 });
                 return;
             }
+
+            // we have a supported connected wallet: set application signer
+            await this.setSigner();
 
             // checks if player has an unfinished ongoing game
             if (await super.checkUnfinishedGame(onChange, chainName, this.update.bind(this))) {
@@ -158,5 +147,15 @@ export class OnboardingMetamask extends AbstractOnboarding {
             this.accounts = await this.metamask.request({ method: "eth_requestAccounts" });
             this.update(onChange);
         }
+    }
+
+    /**
+     * Sets signer for the application
+     */
+    private static async setSigner() {
+        const web3Provider = new ethers.providers.Web3Provider(this.metamask);
+        const signer = web3Provider.getSigner();
+        ServiceConfig.currentInstance.setSigner(signer);
+        console.log(`Connected to account '${await signer.getAddress()}' via Metamask`);
     }
 }

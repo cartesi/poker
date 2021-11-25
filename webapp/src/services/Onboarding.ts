@@ -1,8 +1,7 @@
-import { ServiceConfig, ServiceType, ServiceImpl } from "./ServiceConfig";
+import { ServiceConfig, ServiceType, ServiceImpl, ProviderType } from "./ServiceConfig";
 import { OnboardingMock } from "./mock/OnboardingMock";
 import { OnboardingPortis } from "./web3/OnboardingPortis";
 import { OnboardingMetamask } from "./web3/OnboardingMetamask";
-import { ProviderType } from "./web3/provider/Provider";
 import { OnboardingInternalWallet } from "./web3/OnboardingInternalWallet";
 
 export class Onboarding {

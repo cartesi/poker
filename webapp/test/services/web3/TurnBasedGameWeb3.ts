@@ -1,25 +1,16 @@
 import { describe } from "mocha";
 import { expect } from "chai";
 import { GameConstants, ChainId } from "../../../src/GameConstants";
-import { ServiceConfig } from "../../../src/services/ServiceConfig";
+import { ProviderType, ServiceConfig } from "../../../src/services/ServiceConfig";
 import { PokerToken__factory } from "../../../src/types";
 import PokerToken from "../../../src/abis/PokerToken.json";
 import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
 import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
 import { TurnBasedGameWeb3 } from "../../../src/services/web3/TurnBasedGameWeb3";
 import { ethers } from "ethers";
-import { ProviderType } from "../../../src/services/web3/provider/Provider";
 import { VerificationState } from "../../../src/services/Game";
 import { TurnInfo } from "../../../src/services/TurnBasedGame";
-
-/**
- * Adds a given number of seconds to the next block's timestamp
- * @param secondsToAdd
- */
-async function increaseTime(secondsToAdd: number): Promise<void> {
-    const provider = new ethers.providers.JsonRpcProvider();
-    provider.send("evm_increaseTime", [secondsToAdd]);
-}
+import { TestWeb3Utils } from "./TestWeb3Utils";
 
 describe("TurnBasedGameWeb3", function () {
     // creates a service config instance
@@ -44,10 +35,10 @@ describe("TurnBasedGameWeb3", function () {
     beforeEach(async () => {
         ServiceConfig.currentInstance.setChain(ChainId.LOCALHOST_HARDHAT);
 
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         const aliceSigner = ServiceConfig.getSigner();
 
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         const bobSigner = ServiceConfig.getSigner();
 
         const pokerTokenContractAlice = PokerToken__factory.connect(PokerToken.address, aliceSigner);
@@ -72,9 +63,9 @@ describe("TurnBasedGameWeb3", function () {
         const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         await LobbyWeb3.joinGame(aliceInfo, () => {});
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         await LobbyWeb3.joinGame(bobInfo, (index, context) => {
             gameReadyPromiseResolver(index);
         });
@@ -83,12 +74,12 @@ describe("TurnBasedGameWeb3", function () {
         let gameIndex: ethers.BigNumber = await Promise.resolve(gameReadyPromise);
 
         // creates turnbasedgame instance for Alice
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         turnBasedGameAlice = new TurnBasedGameWeb3(gameIndex);
         await turnBasedGameAlice.initWeb3();
 
         // creates turnbasedgame instance for Bob
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         turnBasedGameBob = new TurnBasedGameWeb3(gameIndex);
         await turnBasedGameBob.initWeb3();
 
@@ -118,7 +109,7 @@ describe("TurnBasedGameWeb3", function () {
         });
 
         // Player 1 joins the game
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         let aliceGameReadyCallback = function (index, context) {
             gameIndex = index;
             gameReadyResolverPlayer1(true);
@@ -127,7 +118,7 @@ describe("TurnBasedGameWeb3", function () {
         await LobbyWeb3.joinGame(aliceInfo, aliceGameReadyCallback);
 
         // Player 2 joins the game
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         let bobGameReadyCallback = function (index, context) {
             gameReadyResolverPlayer2(true);
             console.log("gameReadyCallbackPlayer2 was called with index=" + index);
@@ -144,13 +135,13 @@ describe("TurnBasedGameWeb3", function () {
         });
 
         // create turnbasedgame instance for Alice (listeners turned off)
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         turnBasedGameAlice = new TurnBasedGameWeb3(gameIndex);
         await turnBasedGameAlice.initWeb3();
         turnBasedGameAlice.removeListeners();
 
         // create turnbasedgame instance for Bob
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         turnBasedGameBob = new TurnBasedGameWeb3(gameIndex);
         await turnBasedGameBob.initWeb3();
 
@@ -168,11 +159,11 @@ describe("TurnBasedGameWeb3", function () {
         });
 
         // set up callback for Bob receive Alice's claim for the result
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         let claimResultPromise: Promise<any> = turnBasedGameBob.receiveResultClaimed();
 
         // set up callback for Alice receive game end event
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         let gameEndPromise: Promise<void> = turnBasedGameAlice.receiveGameOver();
 
         // alice claim result
@@ -196,9 +187,9 @@ describe("TurnBasedGameWeb3", function () {
         const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         await LobbyWeb3.joinGame(aliceInfo, () => {});
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         await LobbyWeb3.joinGame(bobInfo, (index, context) => {
             gameReadyPromiseResolver(index);
         });
@@ -207,13 +198,13 @@ describe("TurnBasedGameWeb3", function () {
         let gameIndex: ethers.BigNumber = await Promise.resolve(gameReadyPromise);
 
         // creates TurnBasedGame instance for Alice (listeners turned off)
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         turnBasedGameAlice = new TurnBasedGameWeb3(gameIndex);
         await turnBasedGameAlice.initWeb3();
         turnBasedGameAlice.removeListeners();
 
         // create turnbasedgame instance for Bob
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         turnBasedGameBob = new TurnBasedGameWeb3(gameIndex);
         await turnBasedGameBob.initWeb3();
 
@@ -231,11 +222,11 @@ describe("TurnBasedGameWeb3", function () {
         });
 
         // set up callback for Bob receive Alice's claim for the result
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         let claimResultPromise: Promise<any> = turnBasedGameBob.receiveResultClaimed();
 
         // set up callback for Alice receive game end event
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         let gameEndPromise: Promise<void> = turnBasedGameAlice.receiveGameOver();
 
         // alice claim result
@@ -264,9 +255,9 @@ describe("TurnBasedGameWeb3", function () {
         const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         await LobbyWeb3.joinGame(aliceInfo, () => {});
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         await LobbyWeb3.joinGame(bobInfo, (index, context) => {
             gameReadyPromiseResolver(index);
         });
@@ -275,13 +266,13 @@ describe("TurnBasedGameWeb3", function () {
         let gameIndex: ethers.BigNumber = await Promise.resolve(gameReadyPromise);
 
         // creates TurnBasedGame instance for Alice (listeners turned off)
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         turnBasedGameAlice = new TurnBasedGameWeb3(gameIndex);
         await turnBasedGameAlice.initWeb3();
         turnBasedGameAlice.removeListeners();
 
         // create turnbasedgame instance for Bob
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         turnBasedGameBob = new TurnBasedGameWeb3(gameIndex);
         await turnBasedGameBob.initWeb3();
 
@@ -301,7 +292,7 @@ describe("TurnBasedGameWeb3", function () {
         await turnBasedGameBob.submitTurn(bobTurnInfo);
 
         // fast-forwards network time so that a timeout can be claimed (alice's fault)
-        await increaseTime(GameConstants.TIMEOUT_SECONDS + 10);
+        await TestWeb3Utils.increaseTime(GameConstants.TIMEOUT_SECONDS + 10);
 
         // bob claims timeout
         await turnBasedGameBob.claimTimeout();
@@ -334,9 +325,9 @@ describe("TurnBasedGameWeb3", function () {
         const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         await LobbyWeb3.joinGame(aliceInfo, () => {});
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         await LobbyWeb3.joinGame(bobInfo, (index, context) => {
             gameReadyPromiseResolver(index);
         });
@@ -345,12 +336,12 @@ describe("TurnBasedGameWeb3", function () {
         let gameIndex: ethers.BigNumber = await Promise.resolve(gameReadyPromise);
 
         // creates TurnBasedGame instance for Alice
-        ServiceConfig.currentInstance.setSigner(aliceAddress);
+        TestWeb3Utils.setSigner(aliceAddress);
         turnBasedGameAlice = new TurnBasedGameWeb3(gameIndex);
         await turnBasedGameAlice.initWeb3();
 
         // create turnbasedgame instance for Bob (listeners turned off)
-        ServiceConfig.currentInstance.setSigner(bobAddress);
+        TestWeb3Utils.setSigner(bobAddress);
         turnBasedGameBob = new TurnBasedGameWeb3(gameIndex);
         await turnBasedGameBob.initWeb3();
         turnBasedGameBob.removeListeners();

@@ -1,6 +1,5 @@
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
-import { ProviderType } from "./provider/Provider";
 import { AbstractOnboarding } from "./AbstractOnboarding";
 import { ethers } from "ethers";
 import { GameVars } from "../../GameVars";
@@ -14,15 +13,6 @@ export class OnboardingInternalWallet extends AbstractOnboarding {
      * Starts user onboarding using Web3
      */
     public static async start(onChange) {
-        if (ServiceConfig.currentInstance.providerType != ProviderType.JsonRpc) {
-            throw new Error("A JSON-RPC web3 provider was not found!");
-        }
-        if (!ServiceConfig.currentInstance.provider) {
-            throw new Error("No web3 provider was found!");
-        }
-
-        ServiceConfig.currentInstance.setChain(GameConstants.DEFAULT_CHAIN);
-
         this.update(onChange);
     }
 
@@ -33,7 +23,7 @@ export class OnboardingInternalWallet extends AbstractOnboarding {
         try {
             if (this.wallet == undefined) {
                 // wallet not initialized
-                OnboardingInternalWallet.connectWallet(onChange);
+                this.connectWallet(onChange);
                 onChange({
                     label: "Connecting to wallet...",
                     onclick: undefined,
@@ -77,27 +67,31 @@ export class OnboardingInternalWallet extends AbstractOnboarding {
      */
     private static async connectWallet(onChange) {
         // TODO: ask user for password
-        const password = OnboardingInternalWallet.password;
+        const password = this.password;
 
         if (!GameVars.gameData.walletEncryptedJson) {
             // no wallet stored locally: creates a new wallet and saves corresponding encrypted JSON to local storage
             console.log(`Creating new internal wallet..`);
-            OnboardingInternalWallet.wallet = ethers.Wallet.createRandom();
-            GameVars.gameData.walletEncryptedJson = await OnboardingInternalWallet.wallet.encrypt(password);
+            this.wallet = ethers.Wallet.createRandom();
+            GameVars.gameData.walletEncryptedJson = await this.wallet.encrypt(password);
             GameManager.writeGameData();
         } else {
             // decrypts previously stored encrypted wallet JSON
-            OnboardingInternalWallet.wallet = await ethers.Wallet.fromEncryptedJson(
+            this.wallet = await ethers.Wallet.fromEncryptedJson(
                 GameVars.gameData.walletEncryptedJson,
                 password
             );
         }
 
-        // sets wallet address as signer
-        const walletAddress = await OnboardingInternalWallet.wallet.getAddress();
-        ServiceConfig.currentInstance.setSigner(walletAddress);
+        // connects wallet to configured chain's JSON-RPC endpoint
+        const endpoint = GameConstants.CHAIN_ENDPOINTS[ServiceConfig.getChainId()];
+        const provider = new ethers.providers.JsonRpcProvider(endpoint);
+        this.wallet = this.wallet.connect(provider);
 
-        console.log(`Connected to internal wallet ${walletAddress}`);
+        // sets configured wallet as signer
+        const walletAddress = await this.wallet.getAddress();
+        ServiceConfig.currentInstance.setSigner(this.wallet);
+        console.log(`Connected to internal wallet '${walletAddress}'`);
 
         this.update(onChange);
     }

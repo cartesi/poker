@@ -413,7 +413,8 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                 } else {
                     // error computing result: try again if this is the author
                     verificationState = VerificationState.ERROR;
-                    if (ServiceConfig.currentInstance.signerAddress == author) {
+                    const signer = await ServiceConfig.getSigner().getAddress();
+                    if (Web3Utils.compareAddresses(signer, author)) {
                         self.challengeGame(`Verification failed with state ${stateStr}`);
                     }
                 }

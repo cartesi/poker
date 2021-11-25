@@ -56,6 +56,9 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
     }
 
     private onOnboardingChange({label, onclick, loading, error, ready}) {
+        if (!this.background.active) {
+            return;
+        }
 
         // update button label
         this.text.setText(label);

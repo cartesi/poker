@@ -12,12 +12,6 @@ import { TurnBasedGameFactory } from "../TurnBasedGame";
 import { GameVars } from "../../GameVars";
 
 export class AbstractOnboarding {
-    private static provider;
-
-    protected static setProvider(provider: any) {
-        this.provider = provider;
-    }
-
     /**
      * Submits transaction to approve allowance for spending the user's tokens
      * @param onChange

@@ -1,8 +1,8 @@
 import Portis from "@portis/web3";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
-import { ProviderType } from "./provider/Provider";
 import { AbstractOnboarding } from "./AbstractOnboarding";
+import { ethers } from "ethers";
 
 export class OnboardingPortis extends AbstractOnboarding {
     private static portis: Portis;
@@ -12,30 +12,21 @@ export class OnboardingPortis extends AbstractOnboarding {
      * Starts user onboarding using Web3
      */
     public static async start(onChange) {
-        if (ServiceConfig.currentInstance.providerType != ProviderType.Portis) {
-            throw new Error("A Portis web3 provider was not found!");
+        if (!this.portis) {
+            this.portis = new Portis(GameConstants.PROVIDER_PORTIS_APPID, {
+                nodeUrl: GameConstants.CHAIN_ENDPOINTS[ServiceConfig.getChainId()],
+                chainId: ServiceConfig.getChainId(),
+            });
         }
-        if (!ServiceConfig.currentInstance.provider) {
-            throw new Error("No web3 provider was found!");
-        }
-
-        this.portis = ServiceConfig.currentInstance.provider.getRawProvider();
-        super.setProvider(this.portis.provider);
-
-        this.portis.isLoggedIn().then(({ error, result }) => {
-            this.isLogged = result;
-            this.update(onChange);
-        });
 
         this.portis.onLogin(async (walletAddress, email, reputation) => {
+            this.setSigner(walletAddress);
             this.isLogged = true;
-            ServiceConfig.currentInstance.setSigner(walletAddress);
             this.update(onChange);
         });
 
         this.portis.onActiveWalletChanged((walletAddress) => {
-            console.log(walletAddress);
-            ServiceConfig.currentInstance.setSigner(walletAddress);
+            this.setSigner(walletAddress);
             this.update(onChange);
         });
 
@@ -122,5 +113,15 @@ export class OnboardingPortis extends AbstractOnboarding {
         this.portis.showPortis().then(() => {
             this.update(onChange);
         });
+    }
+
+    /**
+     * Sets signer for the application
+     */
+    private static setSigner(address: string) {
+        const web3Provider = new ethers.providers.Web3Provider(this.portis.provider);
+        const signer = web3Provider.getSigner(address);
+        ServiceConfig.currentInstance.setSigner(signer);
+        console.log(`Connected to account '${address}' via Portis`);
     }
 }

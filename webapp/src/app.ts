@@ -9,11 +9,9 @@ import { RoomScene } from "./scenes/room/RoomScene";
 import { GameVars } from "./GameVars";
 import { LobbyScene } from "./scenes/lobby/LobbyScene";
 import { SplashScene } from "./scenes/splash/SplashScene";
-import { ServiceConfig } from "./services/ServiceConfig";
-import { ProviderType } from "./services/web3/provider/Provider";
+import { ProviderType, ServiceConfig } from "./services/ServiceConfig";
 
 let game: Game;
-let serviceConfig: ServiceConfig;
 
 window.onload = () => {
 
@@ -46,7 +44,7 @@ window.onload = () => {
     };
 
     game = new Game(gameConfig);
-    serviceConfig = new ServiceConfig(ProviderType.JsonRpc);
+    new ServiceConfig(ProviderType.JsonRpc);
 
     window.addEventListener("resize", onResize, false);
     window.addEventListener("orientationchange", onOrientationChange, false);
