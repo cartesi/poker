@@ -10,6 +10,7 @@ player::player(int id)
       _p(service_locator::instance().new_participant())
 {
     _p->init(id, 3, false);
+    _r.game().next_msg_author = id == ALICE ? _id : _opponent_id;
 }
 
 player::~player() {
@@ -28,7 +29,6 @@ game_error player::init(money_t alice_money, money_t bob_money, money_t big_blin
     logger << "init " << alice_money.to_string() << ","
          << bob_money.to_string() << ","
          << big_blind.to_string() << std::endl;
-
 
     return SUCCESS;
 }
@@ -52,6 +52,8 @@ game_error player::create_handshake(std::string&msg_out) {
     if ((res=_p->generate_key(_my_key)))
         return res;
     msgout.alice_key = _my_key;
+    
+    _r.game().next_msg_author = _opponent_id;
 
     std::ostringstream os;
     msgout.write(os);
@@ -64,7 +66,7 @@ game_error player::process_handshake(std::string& msg_in, std::string& msg_out) 
     std::string decompressed;
     if ((res=unwrap_and_decompress(msg_in, decompressed)))
         return res;
-
+    
     auto is = std::istringstream(decompressed);
     message* msgin = NULL;
     if ((res=message::decode(is, &msgin)))
@@ -76,16 +78,20 @@ game_error player::process_handshake(std::string& msg_in, std::string& msg_out) 
     message* msgout = NULL;
     switch(msgin->type()) {
         case MSG_VTMF:
+            _r.game().next_msg_author = _id;
             res = handle_vtmf((msg_vtmf*)msgin, &msgout);
             logger << "******* > " << msgout << std::endl;
             break;
         case MSG_VTMF_RESPONSE:
+            _r.game().next_msg_author = _id;
             res = handle_vtmf_response((msg_vtmf_response*)msgin, &msgout);
             break;
         case MSG_VSSHE:
+            _r.game().next_msg_author = _id;
             res = handle_vsshe((msg_vsshe*)msgin, &msgout);
             break;
         case MSG_VSSHE_RESPONSE:
+            _r.game().next_msg_author = _id;
             res = handle_vsshe_response((msg_vsshe_response*)msgin, &msgout);
             break;
         case MSG_BOB_PRIVATE_CARDS:
@@ -97,8 +103,12 @@ game_error player::process_handshake(std::string& msg_in, std::string& msg_out) 
 
     logger << "res = " << res << std::endl;
     std::ostringstream os;
-    if ((res==SUCCESS || res==CONTINUED) && msgout)
-        msgout->write(os);
+     if (res == SUCCESS || res == CONTINUED) {
+        _r.game().next_msg_author = res == SUCCESS ? _r.game().current_player : _opponent_id;
+
+        if (msgout)
+            msgout->write(os);
+    }
 
     delete msgin;
     delete msgout;
@@ -314,6 +324,8 @@ game_error player::create_bet(bet_type type, money_t amt, std::string& msg_out) 
     if ((res=compress_and_wrap(os.str(), msg_out)))
         return res;
 
+    _r.game().next_msg_author = step_changed ? _opponent_id : _r.game().current_player;
+
     return step_changed ? CONTINUED : SUCCESS;
 }
 
@@ -354,9 +366,13 @@ game_error player::process_bet(std::string& msg_in, std::string& out, bet_type* 
     }
     
     std::ostringstream os;
-    if ((res==SUCCESS || res==CONTINUED) && msgout)
-        msgout->write(os);
-    
+    if (res == SUCCESS || res == CONTINUED) {
+        _r.game().next_msg_author = res == SUCCESS ? _r.game().current_player : _opponent_id;
+
+        if (msgout)
+            msgout->write(os);
+    }
+
     delete msgin;
     delete msgout;
 

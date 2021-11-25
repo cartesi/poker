@@ -25,6 +25,7 @@ interface EngineResult {
 interface game_state {
     step: number;
     current_player: number;
+    next_msg_author: number;
     last_aggressor: number;
     muck: boolean;
     error: game_error;

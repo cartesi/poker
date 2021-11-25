@@ -27,6 +27,7 @@ std::string game_state::to_json(char* extra_fields) {
     auto& p1 = players[1];
     snprintf(json, sizeof(json), "{"
         "\"current_player\": %d, "
+        "\"next_msg_author\": %d, "
         "\"error\": %d, "
         "\"winner\": %d, "
         "\"public_cards\": [%d, %d, %d, %d, %d], "
@@ -39,7 +40,7 @@ std::string game_state::to_json(char* extra_fields) {
         "\"muck\": %d "
         "%s %s" // extra fields
         "}",
-        current_player, (int)error, winner,
+        current_player, next_msg_author, (int)error, winner,
         public_cards[0], public_cards[1], public_cards[2],
         public_cards[3], public_cards[4],
         p0.id, p0.total_funds.to_string().c_str(), p0.bets.to_string().c_str(), p0.cards[0], p0.cards[1],

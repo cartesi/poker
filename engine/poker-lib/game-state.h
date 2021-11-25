@@ -33,7 +33,7 @@ class game_state {
 public:
     game_state()
         : error(SUCCESS),winner(-1), current_player(ALICE),
-          last_aggressor(BOB), phase(PHS_PREFLOP), muck(false),
+          last_aggressor(BOB), next_msg_author(NONE), phase(PHS_PREFLOP), muck(false),
           players{player_state(ALICE), player_state(BOB)},
           public_cards{cards::uk, cards::uk, cards::uk, cards::uk, cards::uk}
         { }
@@ -43,6 +43,7 @@ public:
     bet_phase phase;
     int winner;
     int last_aggressor;
+    int next_msg_author;
     player_state players[NUM_PLAYERS];
     card_t public_cards[NUM_PUBLIC_CARDS];
     money_t big_blind;
