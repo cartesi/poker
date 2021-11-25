@@ -12,10 +12,10 @@ export enum ServiceImpl {
     Real = "real",
 }
 
-export enum ProviderType {
-    Portis = "Portis",
+export enum OnboardingType {
+    Internal = "Internal",
     Metamask = "Metamask",
-    JsonRpc = "JsonRpc",
+    Portis = "Portis",
 }
 
 declare let window: any;
@@ -24,19 +24,14 @@ export class ServiceConfig {
     // Unique instance for the service's configurator
     public static currentInstance: ServiceConfig;
 
-    // Type of connection
-    public providerType: ProviderType;
+    // Onboarding type with default value
+    private static onboardingType = OnboardingType.Internal;
 
     // Network with default value
-    public chainId: ChainId = ChainId.MATIC_TESTNET;
+    private static chainId = ChainId.MATIC_TESTNET;
 
     // Signer to be used when submitting transactions
-    public signer: ethers.Signer;
-
-    constructor(providerType: ProviderType) {
-        ServiceConfig.currentInstance = this;
-        ServiceConfig.currentInstance.providerType = providerType;
-    }
+    private static signer: ethers.Signer;
 
     /**
      * Retrieves the implementation configured for a specified service type
@@ -62,27 +57,38 @@ export class ServiceConfig {
         }
     }
 
-    public setChain(chainId: ChainId) {
+    public static setOnboardingType(onboardingType: OnboardingType) {
+        this.onboardingType = onboardingType;
+    }
+
+    public static getOnboardingType(): OnboardingType {
+        if (!this.onboardingType) {
+            throw new Error("OnboardingType was not set.");
+        }
+        return this.onboardingType;
+    }
+
+    public static setChain(chainId: ChainId) {
         this.chainId = chainId;
     }
 
     public static getChainId(): ChainId {
-        if (!ServiceConfig.currentInstance.chainId) {
+        if (!this.chainId) {
             throw new Error("ChainId was not set.");
         }
-        return ServiceConfig.currentInstance.chainId;
+        return this.chainId;
     }
 
     public static getSigner() {
-        return ServiceConfig.currentInstance.signer;
+        return this.signer;
     }
 
     /**
      * Sets the signer to be used when submitting transactions
      * @param signer
      */
-    public setSigner(signer: ethers.Signer) {
-        ServiceConfig.currentInstance.signer = signer;
+    public static setSigner(signer: ethers.Signer) {
+        this.signer = signer;
     }
 
     public static isEncryptionEnabled(): boolean {

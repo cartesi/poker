@@ -9,7 +9,7 @@ export class TestWeb3Utils {
     public static setSigner(address: string) {
         const provider = new ethers.providers.JsonRpcProvider();
         const signer = provider.getSigner(address);
-        ServiceConfig.currentInstance.setSigner(signer);
+        ServiceConfig.setSigner(signer);
     }
 
     /**

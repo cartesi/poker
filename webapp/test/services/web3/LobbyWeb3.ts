@@ -1,7 +1,7 @@
 import { describe } from "mocha";
 import { expect } from "chai";
 import { GameConstants, ChainId } from "../../../src/GameConstants";
-import { ProviderType, ServiceConfig } from "../../../src/services/ServiceConfig";
+import { OnboardingType, ServiceConfig } from "../../../src/services/ServiceConfig";
 import { PokerToken__factory } from "../../../src/types";
 import PokerToken from "../../../src/abis/PokerToken.json";
 import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
@@ -9,16 +9,13 @@ import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
 import { TestWeb3Utils } from "./TestWeb3Utils";
 
 describe("LobbyWeb3", function () {
-    // creates a service config instance
-    new ServiceConfig(ProviderType.JsonRpc);
-
     const aliceAddress: string = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
     const bobAddress: string = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 
     this.timeout(60000);
 
     beforeEach(async () => {
-        ServiceConfig.currentInstance.setChain(ChainId.LOCALHOST_HARDHAT);
+        ServiceConfig.setChain(ChainId.LOCALHOST_HARDHAT);
 
         TestWeb3Utils.setSigner(aliceAddress);
         const aliceSigner = ServiceConfig.getSigner();

@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 import { GameVars } from "../../GameVars";
 import { GameManager } from "../../GameManager";
 
-export class OnboardingInternalWallet extends AbstractOnboarding {
+export class OnboardingInternal extends AbstractOnboarding {
     private static wallet: ethers.Wallet;
     private static password = "53H#YwnPc!#2";
 
@@ -90,7 +90,7 @@ export class OnboardingInternalWallet extends AbstractOnboarding {
 
         // sets configured wallet as signer
         const walletAddress = await this.wallet.getAddress();
-        ServiceConfig.currentInstance.setSigner(this.wallet);
+        ServiceConfig.setSigner(this.wallet);
         console.log(`Connected to internal wallet '${walletAddress}'`);
 
         this.update(onChange);

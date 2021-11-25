@@ -155,7 +155,7 @@ export class OnboardingMetamask extends AbstractOnboarding {
     private static async setSigner() {
         const web3Provider = new ethers.providers.Web3Provider(this.metamask);
         const signer = web3Provider.getSigner();
-        ServiceConfig.currentInstance.setSigner(signer);
+        ServiceConfig.setSigner(signer);
         console.log(`Connected to account '${await signer.getAddress()}' via Metamask`);
     }
 }

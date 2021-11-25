@@ -121,7 +121,7 @@ export class OnboardingPortis extends AbstractOnboarding {
     private static setSigner(address: string) {
         const web3Provider = new ethers.providers.Web3Provider(this.portis.provider);
         const signer = web3Provider.getSigner(address);
-        ServiceConfig.currentInstance.setSigner(signer);
+        ServiceConfig.setSigner(signer);
         console.log(`Connected to account '${address}' via Portis`);
     }
 }

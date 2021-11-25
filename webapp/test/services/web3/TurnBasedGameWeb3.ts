@@ -1,7 +1,7 @@
 import { describe } from "mocha";
 import { expect } from "chai";
 import { GameConstants, ChainId } from "../../../src/GameConstants";
-import { ProviderType, ServiceConfig } from "../../../src/services/ServiceConfig";
+import { OnboardingType, ServiceConfig } from "../../../src/services/ServiceConfig";
 import { PokerToken__factory } from "../../../src/types";
 import PokerToken from "../../../src/abis/PokerToken.json";
 import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
@@ -13,9 +13,6 @@ import { TurnInfo } from "../../../src/services/TurnBasedGame";
 import { TestWeb3Utils } from "./TestWeb3Utils";
 
 describe("TurnBasedGameWeb3", function () {
-    // creates a service config instance
-    new ServiceConfig(ProviderType.JsonRpc);
-
     let gameIndex: ethers.BigNumber;
 
     let turnBasedGameAlice: TurnBasedGameWeb3;
@@ -33,7 +30,7 @@ describe("TurnBasedGameWeb3", function () {
     this.timeout(600000);
 
     beforeEach(async () => {
-        ServiceConfig.currentInstance.setChain(ChainId.LOCALHOST_HARDHAT);
+        ServiceConfig.setChain(ChainId.LOCALHOST_HARDHAT);
 
         TestWeb3Utils.setSigner(aliceAddress);
         const aliceSigner = ServiceConfig.getSigner();

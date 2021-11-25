@@ -18,8 +18,6 @@ export class GameConstants {
 
     public static readonly SAVED_GAME_DATA_KEY = "cartesi-texas-hodlem";
 
-    public static readonly DEFAULT_CHAIN = ChainId.MATIC_TESTNET;
-
     public static readonly CHAIN_NAMES = {
         [ChainId.MATIC_TESTNET]: "Matic Testnet",
         [ChainId.LOCALHOST_HARDHAT]: "Local Network Hardhat",
