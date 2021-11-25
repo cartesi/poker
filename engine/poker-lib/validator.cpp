@@ -119,7 +119,7 @@ game_error share_funds(game_state& g) {
     } else if (g.winner == BOB) {
         g.funds_share[BOB] = g.players[BOB].total_funds + g.players[ALICE].bets;
         g.funds_share[ALICE] = g.players[ALICE].total_funds - g.players[ALICE].bets;
-    } else { // its a tie
+    } else {  // tie
         g.funds_share[BOB] = g.players[BOB].total_funds;
         g.funds_share[ALICE] = g.players[ALICE].total_funds;
     }
@@ -155,6 +155,9 @@ static void end_phase(game_state& g) {
     if (g.phase != PHS_GAME_OVER) {
         int aux = g.phase;
         g.phase = (bet_phase)++aux;
+
+        if (g.phase == PHS_SHOWDOWN)
+            g.current_player = NONE;
     }
 }
 
