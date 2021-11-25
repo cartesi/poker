@@ -61,16 +61,25 @@ export class RoomManager {
 
     public static async getPlayerFunds(): Promise<ethers.BigNumber> {
 
+        if (!RoomManager.game) {
+            return ethers.BigNumber.from(0);
+        } 
         return RoomManager.game.getPlayerFunds();
     }
 
     public static showVerificationLayer(msg: string): void {
 
-        RoomScene.currentInstance.showVerificationLayer(msg);
+        if (!RoomManager.game) {
+            return;
+        }
+    RoomScene.currentInstance.showVerificationLayer(msg);
     }
 
     public static updateVerification(state: VerificationState, msg: string): void {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomManager.removeBetButtons();
         RoomManager.updateOpponentState();
         if (state == VerificationState.STARTED) {
@@ -81,6 +90,9 @@ export class RoomManager {
 
     public static onEvent(msg: string, type: EventType): void {
 
+        if (!RoomManager.game) {
+            return;
+        }
         if (type === EventType.UPDATE_STATE) {
             // state update
             console.log(`STATE: ${msg}`);
@@ -94,33 +106,50 @@ export class RoomManager {
 
     public static async getOpponentFunds(): Promise<ethers.BigNumber> {
 
+        if (!RoomManager.game) {
+            return ethers.BigNumber.from(0);
+        }
         return RoomManager.game.getOpponentFunds();
     }
 
     public static async getPlayerCards(): Promise<Array<Card>> {
 
+        if (!RoomManager.game) {
+            return [];
+        }
         return RoomManager.game.getPlayerCards();
     }
 
     public static switchPlayerCards(card1: Card, card2: Card): void {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomManager.game.cheat.switchCards(card1, card2);
-
         RoomScene.currentInstance.updateBoard();
     }
 
     public static toogleCardCooperation(): void {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomManager.game.cheat.toggleCardCooperation();
     }
 
     public static async getOpponentCards(): Promise<Array<Card>> {
 
+        if (!RoomManager.game) {
+            return [];
+        }
         return RoomManager.game.getOpponentCards();
     }
 
     public static async getCommunityCards(): Promise<Array<Card>> {
 
+        if (!RoomManager.game) {
+            return [];
+        }
         return RoomManager.game.getCommunityCards();
     }
 
@@ -133,21 +162,33 @@ export class RoomManager {
 
     public static async getState(): Promise<string> {
 
+        if (!RoomManager.game) {
+            return GameState.END;
+        }
         return RoomManager.game.getState();
     }
 
     public static async getPlayerBets(): Promise<ethers.BigNumber> {
 
+        if (!RoomManager.game) {
+            return ethers.BigNumber.from(0);
+        }
         return  RoomManager.game.getPlayerBets();
     }
 
     public static async getOpponentBets(): Promise<ethers.BigNumber> {
 
+        if (!RoomManager.game) {
+            return ethers.BigNumber.from(0);
+        }
         return  RoomManager.game.getOpponentBets();
     }
 
     public static async playerCall(): Promise<void> {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomManager.removeBetButtons();
         try {
             await RoomManager.game.call();
@@ -162,6 +203,9 @@ export class RoomManager {
 
     public static async playerCheck(): Promise<void> {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomManager.removeBetButtons();
         try {
             await RoomManager.game.check();
@@ -176,6 +220,9 @@ export class RoomManager {
 
     public static async playerFold(): Promise<void> {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomManager.removeBetButtons();
         try {
             await RoomManager.game.fold();
@@ -190,6 +237,9 @@ export class RoomManager {
 
     public static async playerRaise(value: ethers.BigNumber): Promise<void> {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomManager.removeBetButtons();
         try {
             await RoomManager.game.raise(value);
@@ -204,6 +254,9 @@ export class RoomManager {
 
     private static updateOpponentStateTimeout;
     public static async updateOpponentState(): Promise<void> {
+        if (!RoomManager.game) {
+            return;
+        }
         if (this.updateOpponentStateTimeout) {
             clearTimeout(this.updateOpponentStateTimeout);
         }
@@ -224,6 +277,9 @@ export class RoomManager {
 
     public static updateBoard(): void {
 
+        if (!RoomManager.game) {
+            return;
+        }
         setTimeout(() => {
             RoomScene.currentInstance.updateBoard();
         }, 1000);
@@ -231,23 +287,31 @@ export class RoomManager {
 
     public static removeBetButtons(): void {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomScene.currentInstance.removeBetButtons();
     }
 
     public static showBetButtons(): void {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomScene.currentInstance.showBetButtons();
     }
 
     public static showBet(value: string, player: number): void {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomScene.currentInstance.showBet(value, player);
     }
 
     public static showSettingsMenu(): void {
 
         RoomScene.currentInstance.showSettingsMenu();
-
         AudioManager.playSound("btn_click");
     } 
 
@@ -269,6 +333,9 @@ export class RoomManager {
 
     public static async onTimeOut(isPlayer: boolean): Promise<void> {
 
+        if (!RoomManager.game) {
+            return;
+        }
         if (isPlayer) {
             console.log("PLAYER TIMEOUT! Folding on his behalf...");
             // TODO: should we attempt to check if possible?
@@ -280,43 +347,45 @@ export class RoomManager {
     }
 
     private static onBetRequested(): void {
-        
-        RoomManager.game.getState().then(state => {
-            if (state == GameState.END) {
-                console.log("Ignoring bet request because game is over");
-                return;
-            }
-            RoomManager.updateBoard();
-            RoomManager.updateOpponentState();
-            RoomManager.showBetButtons();
-            RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, true);
-        });
+
+        if (!RoomManager.game) {
+            return;
+        }
+        RoomManager.updateBoard();
+        RoomManager.updateOpponentState();
+        RoomManager.showBetButtons();
+        RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, true);
     }
 
     private static initTimer(value: number, isPlayer: boolean): void {
 
+        if (!RoomManager.game) {
+            return;
+        }
         RoomScene.currentInstance.initTimer(value, isPlayer);
     }
 
     private static onBetsReceived(betType: BetType, amount: ethers.BigNumber): void {
-        
+
+        if (!RoomManager.game) {
+            return;
+        }
         console.log(`Bets received: type=${betType} ; amount=${amount}`);
-        RoomManager.game.getState().then(state => {
-            if (state == GameState.END) {
-                console.log("Ignoring bets received because game is over");
-                return;
-            }
-            RoomManager.showBet(betType, GameVars.opponentIndex);
-            RoomManager.updateBoard();
-            RoomManager.updateOpponentState();
-        })
+        RoomManager.showBet(betType, GameVars.opponentIndex);
+        RoomManager.updateBoard();
+        RoomManager.updateOpponentState();
     }
 
     private static async onEnd(): Promise<void> {
 
+        if (!RoomManager.game) {
+            return;
+        }
+        RoomScene.currentInstance.hideWaitingFirstCards();
         RoomManager.removeBetButtons();
         RoomManager.updateOpponentState();
         let endData = await RoomManager.game.getResult();
+        RoomManager.game = undefined;        
 
         setTimeout(() => {
             RoomScene.currentInstance.onEnd(endData);
