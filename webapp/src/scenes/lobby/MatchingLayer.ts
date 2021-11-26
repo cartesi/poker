@@ -197,6 +197,9 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
 
         this.adversarySelected = true;
 
+        if (!this.scene) {
+            return;
+        }
         this.scene.tweens.add({
             targets: this.waitingText,
             alpha: 0,
