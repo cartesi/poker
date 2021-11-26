@@ -1,24 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
     <title>Cartesi Poker Web Application</title>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1, IE=9">    
-    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, minimal-ui" />
-    <link rel="icon" type="image/png" href="/assets/favicon.png"/>
-    <link rel="shortcut icon" href= "/assets/favicon.png" />
-    
-    <style>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1, IE=9">
+    <meta name="viewport"
+        content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, minimal-ui" />
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link rel="shortcut icon" href="/assets/favicon.png" />
 
-        * { -webkit-tap-highlight-color:rgba(0,0,0,0); }
+    <style>
+        * {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        }
 
         body {
             -moz-user-select: none;
             -webkit-user-select: none;
             -ms-user-select: none;
             -khtml-user-select: none;
-            margin: 0px 0px 1px 0px; /* the extra 1px allows the iOS inner/outer check to work */
+            margin: 0px 0px 1px 0px;
+            /* the extra 1px allows the iOS inner/outer check to work */
             background: rgb(0, 0, 0);
         }
 
@@ -50,15 +54,40 @@
             src: url("assets/fonts/Oswald-Medium.ttf");
         }
 
+        @font-face {
+            font-family: 'Priori Sans OT';
+            src: url('assets/fonts/PrioriSansOT-Regular.woff2') format('woff2'),
+                url('assets/fonts/PrioriSansOT-Regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+
+
+
+        #font1 {
+            width: 0;
+            font-family: "Oswald-Medium";
+        }
+
+        #font2 {
+            font-family: "Priori Sans OT";
+            width: 0;
+        }
     </style>
-    
-<script src="dist/bundle.js"></script>
+
+    <script src="dist/bundle.js"></script>
 
 </head>
+
 <body>
-    
+
     <div id="content"></div>
     <div id="orientation"></div>
-    
+    <div id="font1"></div>
+    <div id="font2">This is a test
+    </div>
 </body>
+
 </html>

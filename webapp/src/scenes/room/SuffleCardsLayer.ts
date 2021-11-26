@@ -3,11 +3,15 @@ import { GameConstants } from "../../GameConstants";
 import { GameVars } from "../../GameVars";
 
 export class SuffleCardsLayer extends Phaser.GameObjects.Container {
-    
+
     private midContainer: Phaser.GameObjects.Container;
 
     private cards: Phaser.GameObjects.Image[];
     private timer: NodeJS.Timeout;
+
+    private bar: Phaser.GameObjects.Image;
+    private barBg: Phaser.GameObjects.Image;
+
 
     constructor(scene: Phaser.Scene) {
 
@@ -21,13 +25,25 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
         this.midContainer.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT / 2);
         this.add(this.midContainer);
 
+        let box = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "box");
+        this.midContainer.add(box);
+
+
         let bck = new Phaser.GameObjects.Image(this.scene, 0, 30, "texture_atlas_1", "phase_shadow");
         bck.setScale(1, 1);
         this.midContainer.add(bck);
 
-        let text = new Phaser.GameObjects.Text(this.scene, -70, 30, "SHUFFLING", {fontFamily: "Oswald-Medium", fontSize: "80px", color: "#FFFFFF"});
+        let text = new Phaser.GameObjects.Text(this.scene, -70, 30, "SHUFFLING", { fontFamily: "Oswald-Medium", fontSize: "80px", color: "#FFFFFF" });
         text.setOrigin(.5);
         this.midContainer.add(text);
+
+
+        this.barBg = new Phaser.GameObjects.Image(this.scene, 0, 150, "texture_atlas_1", "border");
+        this.midContainer.add(this.barBg);
+
+        this.bar = new Phaser.GameObjects.Image(this.scene, this.barBg.x + 4 - this.barBg.displayWidth / 2, this.barBg.y + 1, "texture_atlas_1", "bar");
+        this.midContainer.add(this.bar);
+        this.bar.x += this.bar.displayWidth / 2;
 
         this.setScalesAndPositions();
     }
@@ -36,7 +52,7 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
 
         this.alpha = 0;
         this.visible = true;
-        
+
         this.scene.tweens.add({
             targets: this,
             alpha: 1,
@@ -48,21 +64,34 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
             onCompleteScope: this
         });
 
+        this.scene.add.tween({
+            targets: this.bar,
+            x: {
+                from: this.barBg.x - this.barBg.displayWidth / 2 + 4 + this.bar.displayWidth / 2,
+                to: this.barBg.x + this.barBg.displayWidth / 2 - 4 - this.bar.displayWidth / 2
+            },
+            repeat: -1,
+            yoyo: true,
+            duration: 500
+        })
+
         this.startShuffle();
     }
 
     public hide(): void {
-        
+
         this.scene.tweens.add({
             targets: this,
             alpha: 0,
             ease: Phaser.Math.Easing.Linear,
             duration: 250,
             onComplete: () => {
-                this.visible = false; 
+                this.visible = false;
             },
             onCompleteScope: this
         });
+
+        this.scene.tweens.killTweensOf(this.bar);
 
         clearInterval(this.timer);
     }
@@ -115,18 +144,18 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
 
         for (let i = 0; i < this.cards.length; i++) {
             const card = {
-              i: this.cards[i],
-              xStart: this.cards[i].x,
-              yStart: this.cards[i].y,
-              xTarget: 50 + 10 * Math.random(),
-              yTarget: -i * 1 / 4
+                i: this.cards[i],
+                xStart: this.cards[i].x,
+                yStart: this.cards[i].y,
+                xTarget: 50 + 10 * Math.random(),
+                yTarget: -i * 1 / 4
             };
 
             if (Math.random() < 0.5) {
-              left.push(card);
-              card.xTarget *= -1;
+                left.push(card);
+                card.xTarget *= -1;
             } else {
-              right.push(card);
+                right.push(card);
             }
 
             const { xStart, xTarget, yStart, yTarget } = card;
@@ -151,7 +180,7 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
                                 setTimeout(() => {
                                     this.startAnimation();
                                 }, 100);
-                            } 
+                            }
                         },
                         onCompleteScope: this
                     });
