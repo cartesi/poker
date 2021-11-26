@@ -174,6 +174,10 @@ export class GameImpl implements Game {
         });
     }
 
+    async getNextMessageAuthor(): Promise<number> {
+        return (await this.engine.game_state()).next_msg_author;    
+    }
+
     getPlayerFunds(): Promise<BigNumber> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -298,9 +302,18 @@ export class GameImpl implements Game {
     }
 
     private async _submitTurn(data: Uint8Array): Promise<TurnInfo> {
+        // defines nextPlayer to act, who will be held accountable in case of a timeout
+        let nextPlayer;
+        if (await this.getState() == GameState.END) {
+            // if this turn submission ends the game, the opponent should be the next one to act to claim the result
+            nextPlayer = this.opponentId;
+        } else {
+            // otherwise, use the engine's indicated next message author (next player to act)
+            nextPlayer = await this.getNextMessageAuthor();
+        }
         return this.turnBasedGame.submitTurn({
             data,
-            nextPlayer: await this.getCurrentPlayerId(),
+            nextPlayer: nextPlayer,
             playerStake: await this.getPlayerBets(),
         });
     }
@@ -322,7 +335,7 @@ export class GameImpl implements Game {
             p2 = await this.engine.process_handshake(message_in);
 
             // after processing opponent's turnInfo message, checks if it is consistent
-            await this._checkOpponentTurnInfo(turnInfo);
+            await this._checkOpponentTurnInfo(turnInfo, p2);
 
             if (p2.message_out.length > 0) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
@@ -355,7 +368,7 @@ export class GameImpl implements Game {
             receivedResult = await this.engine.process_bet(message_in);
 
             // after processing opponent's turnInfo message, checks if it is consistent
-            await this._checkOpponentTurnInfo(turnInfo);
+            await this._checkOpponentTurnInfo(turnInfo, receivedResult);
 
             // reaction to received result
             const betType = this._convertBetType(receivedResult.betType);
@@ -380,19 +393,25 @@ export class GameImpl implements Game {
         };
     }
 
-    private async _checkOpponentTurnInfo(turnInfo: TurnInfo): Promise<void> {
+    private async _checkOpponentTurnInfo(turnInfo: TurnInfo, engineResult: EngineResult): Promise<void> {
         // checks if opponent turnInfo's declared nextPlayer is correct
-        const expectedNextPlayer = await this.getCurrentPlayerId();
+        // - this should correspond to the next player that needs to submit information for the game to proceed
+        // - the declared nextPlayer is the one held accountable in case of timeout (is considered to have given up)
+        let expectedNextPlayer;
+        if (await this.getState() == GameState.END) {
+            // if game has ended, this player should claim the result and should have been declared as the nextPlayer 
+            expectedNextPlayer = this.playerId;
+        } else if (engineResult.message_out.length > 0) {
+            // if engine result includes a message_out response, this player needs to submit a turn and should have been declared as the nextPlayer
+            expectedNextPlayer = this.playerId;
+        } else {
+            // otherwise, nextPlayer should be the next one to bet in the game (engine's "current player")
+            expectedNextPlayer = await this.getCurrentPlayerId();
+        }
         if (turnInfo.nextPlayer != expectedNextPlayer) {
-            // FIXME: not enforcing nextPlayer check for now, since "getCurrentPlayerId" refers to "the next player to bet", which is not
-            // necessarily the same as "the next player that needs to submit information" (such as revealing cards).
-            // To fix this we need the engine to expose this "next expected message author" information.
-            console.error(
+            return Promise.reject(
                 `Inconsistent declared nextPlayer: expected '${expectedNextPlayer}' but opponent declared '${turnInfo.nextPlayer}'`
             );
-            // return Promise.reject(
-            //     `Inconsistent declared nextPlayer: expected '${expectedNextPlayer}' but opponent declared '${turnInfo.nextPlayer}'`
-            // );
         }
 
         // checks if opponent turnInfo's declared playerStake is correct
