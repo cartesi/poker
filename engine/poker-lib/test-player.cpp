@@ -223,10 +223,100 @@ void test_fold() {
     assert_eql(BOB, bob.winner());
 }
 
+void test_next_msg_author() {
+    player alice(ALICE);
+    assert_eql(SUCCESS, alice.init(100, 300, 10));
+    player bob(BOB);
+    assert_eql(SUCCESS, bob.init(100, 300, 10));
+
+    std::map<int, std::string> msg; // messages exchanged during game
+     
+    // Start handshake
+    assert_eql(ALICE, alice.game().next_msg_author);
+    assert_eql(ALICE, bob.game().next_msg_author);
+    assert_eql(SUCCESS, alice.create_handshake(msg[0]));
+    assert_eql(BOB, alice.game().next_msg_author);
+    assert_eql(CONTINUED, bob.process_handshake(msg[0], msg[1]));
+    assert_eql(ALICE, bob.game().next_msg_author);
+    assert_eql(CONTINUED, alice.process_handshake(msg[1], msg[2]));
+    assert_eql(BOB, alice.game().next_msg_author);
+    assert_eql(CONTINUED, bob.process_handshake(msg[2], msg[3]));
+    assert_eql(ALICE, bob.game().next_msg_author);
+    assert_eql(SUCCESS, alice.process_handshake(msg[3], msg[4]));
+    assert_eql(ALICE, alice.game().next_msg_author);
+    assert_eql(SUCCESS, bob.process_handshake(msg[4], msg[5]));
+    assert_eql(ALICE, bob.game().next_msg_author);
+
+    // Preflop: Alice calls
+    assert_eql(SUCCESS, alice.create_bet(BET_CALL, 0, msg[5]));
+    assert_eql(BOB, alice.game().next_msg_author);
+    assert_eql(SUCCESS, bob.process_bet(msg[5], msg[6]));
+    assert_eql(BOB, bob.game().next_msg_author);
+
+    // Preflop: Bob checks
+    assert_eql(CONTINUED, bob.create_bet(BET_CHECK, 0, msg[6]));
+    assert_eql(ALICE, bob.game().next_msg_author);
+    assert_eql(SUCCESS, alice.process_bet(msg[6], msg[7]));
+    assert_eql(BOB, alice.game().next_msg_author);
+    assert_eql(SUCCESS, bob.process_bet(msg[7], msg[8]));
+    assert_eql(BOB, bob.game().next_msg_author);
+
+    // Flop: Bob raises
+    assert_eql(SUCCESS, bob.create_bet(BET_RAISE, 10, msg[9]));
+    assert_eql(ALICE, bob.game().next_msg_author);
+    assert_eql(SUCCESS, alice.process_bet(msg[9], msg[10]));
+    assert_eql(ALICE, alice.game().next_msg_author);
+    
+    // Flop: Alice calls
+    assert_eql(CONTINUED, alice.create_bet(BET_CALL, 0, msg[12]));
+    assert_eql(BOB, alice.game().next_msg_author);
+    assert_eql(SUCCESS, bob.process_bet(msg[12], msg[13]));
+    assert_eql(BOB, bob.game().next_msg_author);
+    assert_eql(SUCCESS, alice.process_bet(msg[13], msg[14]));
+    assert_eql(BOB, alice.game().next_msg_author);
+
+    // Turn: Bob checks
+    assert_eql(SUCCESS, bob.create_bet(BET_CHECK, 0, msg[15]));
+    assert_eql(ALICE, bob.game().next_msg_author);
+    assert_eql(SUCCESS, alice.process_bet(msg[15], msg[16]));
+    assert_eql(ALICE, alice.game().next_msg_author);
+
+    // Turn: Alice checks
+    assert_eql(CONTINUED, alice.create_bet(BET_CHECK, 0, msg[17]));
+    assert_eql(BOB, alice.game().next_msg_author);
+    assert_eql(SUCCESS, bob.process_bet(msg[17], msg[18]));
+    assert_eql(BOB, bob.game().next_msg_author);
+    assert_eql(SUCCESS, alice.process_bet(msg[18], msg[19]));
+    assert_eql(BOB, alice.game().next_msg_author);
+
+    // River: Bob checks
+    assert_eql(SUCCESS, bob.create_bet(BET_CHECK, 0, msg[20]));
+    assert_eql(ALICE, bob.game().next_msg_author);
+    assert_eql(SUCCESS, alice.process_bet(msg[20], msg[21]));
+    assert_eql(ALICE, alice.game().next_msg_author);
+
+    // River: Alice raises
+    assert_eql(SUCCESS, alice.create_bet(BET_RAISE, 10, msg[22]));
+    assert_eql(BOB, alice.game().next_msg_author);
+    assert_eql(SUCCESS, bob.process_bet(msg[22], msg[23]));
+    assert_eql(BOB, bob.game().next_msg_author);
+
+    // River: Bob calls
+    assert_eql(CONTINUED, bob.create_bet(BET_CALL, 0, msg[24]));
+    assert_eql(ALICE, bob.game().next_msg_author);
+    assert_eql(CONTINUED, alice.process_bet(msg[24], msg[25]));
+    assert_eql(BOB, alice.game().next_msg_author);
+    assert_eql(SUCCESS, bob.process_bet(msg[25], msg[26]));
+    assert_eql(NONE, bob.game().next_msg_author);
+    assert_eql(SUCCESS, alice.process_bet(msg[26], msg[27]));
+    assert_eql(NONE, alice.game().next_msg_author);
+}
+
 int main(int argc, char** argv) {
     init_poker_lib();
     test_the_happy_path();
     test_fold();
+    test_next_msg_author();
     std::cout << "---- SUCCESS - " TEST_SUITE_NAME << std::endl;
     return 0;
 }
