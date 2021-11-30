@@ -335,21 +335,21 @@ export class GameImpl implements Game {
 
     private async _processHandshake(): Promise<void> {
         console.log(`### [Player ${this.playerId}] Process Handshake ###`);
-        let p2: EngineResult;
+        let result: EngineResult;
         do {
             const turnInfo = await this.turnBasedGame.receiveTurnOver();
             const message_in = turnInfo.data;
             console.log(`### [Player ${this.playerId}] On turn received ###`);
-            p2 = await this.engine.process_handshake(message_in);
+            result = await this.engine.process_handshake(message_in);
 
             // after processing opponent's turnInfo message, checks if it is consistent
-            await this._checkOpponentTurnInfo(turnInfo, p2);
+            await this._checkOpponentTurnInfo(turnInfo, result);
 
-            if (p2.message_out.length > 0) {
+            if (result.message_out.length > 0) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
-                await this._submitTurn(p2.message_out);
+                await this._submitTurn(result.message_out);
             }
-        } while (p2.status == StatusCode.CONTINUED);
+        } while (result.status == StatusCode.CONTINUED);
 
         return Promise.resolve();
     }
@@ -366,38 +366,38 @@ export class GameImpl implements Game {
 
     private async _processBet(): Promise<Bet> {
         console.log(`### [Player ${this.playerId}] Process bet ###`);
-        let receivedResult: EngineResult;
+        let result: EngineResult;
         let receivedBetType: BetType;
         do {
             const turnInfo = await this.turnBasedGame.receiveTurnOver();
             const message_in = turnInfo.data;
             console.log(`### [Player ${this.playerId}] On turn received ###`);
 
-            receivedResult = await this.engine.process_bet(message_in);
+            result = await this.engine.process_bet(message_in);
 
             // after processing opponent's turnInfo message, checks if it is consistent
-            await this._checkOpponentTurnInfo(turnInfo, receivedResult);
+            await this._checkOpponentTurnInfo(turnInfo, result);
 
             // reaction to received result
-            const betType = this._convertBetType(receivedResult.betType);
+            const betType = this._convertBetType(result.betType);
             if (betType && betType != BetType.NONE && betType != receivedBetType) {
                 // it's a new bet: notify that it has just been received
                 receivedBetType = betType;
-                this.onBetsReceived(receivedBetType, receivedResult.amount);
+                this.onBetsReceived(receivedBetType, result.amount);
             } else {
                 // not a new bet: just notify that game state may have been updated
                 this.onEvent(await this.getState(), EventType.UPDATE_STATE);
             }
 
-            if (receivedResult.message_out.length > 0) {
+            if (result.message_out.length > 0) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
-                await this._submitTurn(receivedResult.message_out);
+                await this._submitTurn(result.message_out);
             }
-        } while (receivedResult.status == StatusCode.CONTINUED);
+        } while (result.status == StatusCode.CONTINUED);
 
         return {
             type: receivedBetType,
-            amount: receivedResult.amount,
+            amount: result.amount,
         };
     }
 
