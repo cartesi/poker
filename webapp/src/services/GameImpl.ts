@@ -1,5 +1,13 @@
 import { Card } from "./Card";
-import { Engine, EngineBetType, EnginePlayer, EngineResult, EngineState, EngineStep, StatusCode } from "./engine/Engine";
+import {
+    Engine,
+    EngineBetType,
+    EnginePlayer,
+    EngineResult,
+    EngineState,
+    EngineStep,
+    StatusCode,
+} from "./engine/Engine";
 import { BetType, EventType, Game, GameResult, GameState, VerificationState } from "./Game";
 import { PokerSolver } from "./PokerSolver";
 import { TurnBasedGame, TurnInfo } from "./TurnBasedGame";
@@ -10,7 +18,7 @@ export class GameImpl implements Game {
     // FIXME: if using a mock TurnBasedGame, stores a reference to the opponent's Game instance (with automatic responses)
     gameOpponent: Game;
     private gameOverResult: GameResult;
-    
+
     constructor(
         private playerId: number,
         private playerFunds: BigNumber,
@@ -175,7 +183,7 @@ export class GameImpl implements Game {
     }
 
     async getNextMessageAuthor(): Promise<number> {
-        return (await this.engine.game_state()).next_msg_author;    
+        return (await this.engine.game_state()).next_msg_author;
     }
 
     getPlayerFunds(): Promise<BigNumber> {
@@ -304,7 +312,7 @@ export class GameImpl implements Game {
     private async _submitTurn(data: Uint8Array): Promise<TurnInfo> {
         // defines nextPlayer to act, who will be held accountable in case of a timeout
         let nextPlayer;
-        if (await this.getState() == GameState.END) {
+        if ((await this.getState()) == GameState.END) {
             // if this turn submission ends the game, the opponent should be the next one to act to claim the result
             nextPlayer = this.opponentId;
         } else {
@@ -398,8 +406,8 @@ export class GameImpl implements Game {
         // - this should correspond to the next player that needs to submit information for the game to proceed
         // - the declared nextPlayer is the one held accountable in case of timeout (is considered to have given up)
         let expectedNextPlayer;
-        if (await this.getState() == GameState.END) {
-            // if game has ended, this player should claim the result and should have been declared as the nextPlayer 
+        if ((await this.getState()) == GameState.END) {
+            // if game has ended, this player should claim the result and should have been declared as the nextPlayer
             expectedNextPlayer = this.playerId;
         } else if (engineResult.message_out.length > 0) {
             // if engine result includes a message_out response, this player needs to submit a turn and should have been declared as the nextPlayer
