@@ -98,7 +98,6 @@ export interface Game {
     getPlayerBets(): Promise<BigNumber>;
     getOpponentBets(): Promise<BigNumber>;
     getState(): Promise<GameState>;
-    getVerificationState(): Promise<VerificationState>;
     getResult(): Promise<GameResult>;
 }
 

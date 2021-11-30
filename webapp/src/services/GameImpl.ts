@@ -263,10 +263,6 @@ export class GameImpl implements Game {
         });
     }
 
-    getVerificationState(): Promise<VerificationState> {
-        throw new Error("getVerificationState is not implemented.");
-    }
-
     getResult(): Promise<GameResult> {
         return new Promise(async (resolve, reject) => {
             try {

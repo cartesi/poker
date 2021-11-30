@@ -58,8 +58,6 @@ export class GameMock implements Game {
 
         // game state
         this.state = GameState.START;
-        // verification state
-        this.verificationState = VerificationState.NONE;
 
         // sets up fixed internal TurnBasedGame callbacks
         this.turnBasedGame.receiveResultClaimed().then((claimedResult) => {
@@ -228,10 +226,6 @@ export class GameMock implements Game {
 
     async getState() {
         return this.state;
-    }
-
-    async getVerificationState() {
-        return this.verificationState;
     }
 
     async getResult() {
