@@ -29,10 +29,11 @@ contract PokerTokenFaucet {
         tokenInstance = PokerToken(_pokerTokenAddress);
     }
 
-    /// @notice Requests a fixed amount of tokens
-    function requestTokens() public {
-        require(allowedToWithdraw(msg.sender));
-        tokenInstance.transfer(msg.sender, TOKEN_AMOUNT);
+    /// @notice Requests a fixed amount of tokens for the specified address
+    /// @param _address address to transfer tokens to
+    function requestTokens(address _address) public {
+        require(allowedToWithdraw(_address));
+        tokenInstance.transfer(_address, TOKEN_AMOUNT);
     }
 
     /// @notice Verifies if a given account address is allowed to withdraw tokens

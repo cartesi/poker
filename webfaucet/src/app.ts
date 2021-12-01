@@ -6,8 +6,8 @@ import PokerTokenFaucet from "./abis/PokerTokenFaucet.json";
 declare let window: any;
 
 enum Wallet {
+    METAMASK = "METAMASK",
     PORTIS = "PORTIS",
-    METAMASK = "METAMASK"
 }
 
 const PORTIS_APP_ID = "15ce62b0-b226-4e6f-9f8d-abbdf8f2cda2";
@@ -16,7 +16,7 @@ const DEFAULT_CHAIN_URL = "https://matic-testnet-archive-rpc.bwarelabs.com";
 const DEFAULT_CHAIN_ID = "0x13881";
 
 class PokerFaucet {
-    private selectedWallet = Wallet.PORTIS;
+    private selectedWallet = Wallet.METAMASK;
     private provider;
 
     public static readonly CHAINS = {
@@ -28,6 +28,7 @@ class PokerFaucet {
     async init() {
         this.initGUI();
         this.setWalletRadioListener();
+        this.setTargetInputListener();
         this.setRequestButtonListener();
 
         this.provider = await this.getProvider();
@@ -38,7 +39,7 @@ class PokerFaucet {
         // Check default wallet
         let radios = document.getElementsByName("wallet");
         for (let i = 0; i < radios.length; i++) {
-            if (radios[i].id == Wallet.PORTIS) {
+            if (radios[i].id == Wallet.METAMASK) {
                 radios[i].setAttribute("checked", "true");
                 break;
             }
@@ -66,9 +67,20 @@ class PokerFaucet {
         const tokenContract = new ethers.Contract(PokerToken.address, PokerToken.abi, signer);
         document.getElementById("network").innerHTML = network;
         document.getElementById("address").innerHTML = address;
-        document.getElementById("balance").innerHTML = await tokenContract.balanceOf(address);
 
-        (document.getElementById("requestButton") as HTMLButtonElement).disabled = false;
+        const targetInput = (<HTMLInputElement>document.getElementById("target"));
+        const requestButton = (document.getElementById("requestButton") as HTMLButtonElement);
+        try {
+            if (targetInput.value) {
+                document.getElementById("balance").innerHTML = await tokenContract.balanceOf(targetInput.value);
+                requestButton.disabled = false;
+                return;
+            }
+        } catch (error) {
+            // normal, input is not a valid address
+        }
+        document.getElementById("balance").innerHTML = "N/A";
+        requestButton.disabled = true;
     }
 
     setWalletRadioListener() {
@@ -91,6 +103,11 @@ class PokerFaucet {
                 await this.updateGUI();
             });
         }
+    }
+
+    setTargetInputListener() {
+        const input = document.getElementById("target");
+        input.addEventListener("input", this.updateGUI.bind(this));
     }
 
     setRequestButtonListener() {
@@ -166,11 +183,11 @@ class PokerFaucet {
 
     async request() {
         const signer = this.provider.getSigner();
-        const address = await signer.getAddress();
+        const address = (<HTMLInputElement>document.getElementById("target")).value;
 
         const faucetContract = new ethers.Contract(PokerTokenFaucet.address, PokerTokenFaucet.abi, signer);
 
-        await faucetContract.requestTokens();
+        await faucetContract.requestTokens(address);
 
         const amount = await faucetContract.TOKEN_AMOUNT();
         alert(`Requested ${amount} POKER tokens for ${address}`);

@@ -52,14 +52,14 @@ describe("PokerTokenFaucet", () => {
         await pokerTokenContract.mint(pokerTokenFaucetContract.address, 10 * TOKEN_AMOUNT);
 
         // requests tokens for holder1
-        await pokerTokenFaucetContract.connect(holder1).requestTokens();
+        await pokerTokenFaucetContract.connect(holder1).requestTokens(await holder1.getAddress());
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(
             ethers.BigNumber.from(TOKEN_AMOUNT)
         );
         expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(ethers.BigNumber.from(0));
 
         // requests tokens for holder2
-        await pokerTokenFaucetContract.connect(holder2).requestTokens();
+        await pokerTokenFaucetContract.connect(holder2).requestTokens(await holder2.getAddress());
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(
             ethers.BigNumber.from(TOKEN_AMOUNT)
         );
@@ -67,8 +67,8 @@ describe("PokerTokenFaucet", () => {
             ethers.BigNumber.from(TOKEN_AMOUNT)
         );
 
-        // requests more tokens for holder2
-        await pokerTokenFaucetContract.connect(holder2).requestTokens();
+        // requests more tokens for holder2, this time using holder1 as signer
+        await pokerTokenFaucetContract.connect(holder1).requestTokens(await holder2.getAddress());
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(
             ethers.BigNumber.from(TOKEN_AMOUNT)
         );
@@ -79,14 +79,14 @@ describe("PokerTokenFaucet", () => {
 
     it("Should revert if faucet does not have enough tokens", async () => {
         // nothing in the faucet
-        await expect(pokerTokenFaucetContract.requestTokens()).to.be.revertedWith(
+        await expect(pokerTokenFaucetContract.requestTokens(await holder1.getAddress())).to.be.revertedWith(
             "ERC20: transfer amount exceeds balance"
         );
 
         // enough tokens for a single request
         await pokerTokenContract.mint(pokerTokenFaucetContract.address, TOKEN_AMOUNT);
-        await expect(pokerTokenFaucetContract.requestTokens()).not.to.be.reverted;
-        await expect(pokerTokenFaucetContract.requestTokens()).to.be.revertedWith(
+        await expect(pokerTokenFaucetContract.requestTokens(await holder1.getAddress())).not.to.be.reverted;
+        await expect(pokerTokenFaucetContract.requestTokens(await holder1.getAddress())).to.be.revertedWith(
             "ERC20: transfer amount exceeds balance"
         );
     });
