@@ -12,10 +12,10 @@ export enum ServiceImpl {
     Real = "real",
 }
 
-export enum OnboardingType {
-    Internal = "Internal",
-    Metamask = "Metamask",
-    Portis = "Portis",
+export enum WalletWeb3Provider {
+    Internal = "internal",
+    Metamask = "metamask",
+    Portis = "portis",
 }
 
 declare let window: any;
@@ -24,8 +24,8 @@ export class ServiceConfig {
     // Unique instance for the service's configurator
     public static currentInstance: ServiceConfig;
 
-    // Onboarding type with default value
-    private static onboardingType = OnboardingType.Internal;
+    // Wallet type with default value
+    private static walletWeb3Provider = WalletWeb3Provider.Internal;
 
     // Network with default value
     private static chainId = ChainId.MATIC_TESTNET;
@@ -57,15 +57,15 @@ export class ServiceConfig {
         }
     }
 
-    public static setOnboardingType(onboardingType: OnboardingType) {
-        this.onboardingType = onboardingType;
+    public static setWalletWeb3Provider(walletWeb3Provider: WalletWeb3Provider) {
+        this.walletWeb3Provider = walletWeb3Provider;
     }
 
-    public static getOnboardingType(): OnboardingType {
-        if (!this.onboardingType) {
-            throw new Error("OnboardingType was not set.");
+    public static getWalletWeb3Provider(): WalletWeb3Provider {
+        if (!this.walletWeb3Provider) {
+            throw new Error("WalletWeb3Provider was not set.");
         }
-        return this.onboardingType;
+        return this.walletWeb3Provider;
     }
 
     public static setChain(chainId: ChainId) {

@@ -9,7 +9,6 @@ import { RoomScene } from "./scenes/room/RoomScene";
 import { GameVars } from "./GameVars";
 import { LobbyScene } from "./scenes/lobby/LobbyScene";
 import { SplashScene } from "./scenes/splash/SplashScene";
-import { OnboardingType, ServiceConfig } from "./services/ServiceConfig";
 
 let game: Game;
 

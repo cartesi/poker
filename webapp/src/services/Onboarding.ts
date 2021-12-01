@@ -1,4 +1,4 @@
-import { ServiceConfig, ServiceType, ServiceImpl, OnboardingType } from "./ServiceConfig";
+import { ServiceConfig, ServiceType, ServiceImpl, WalletWeb3Provider } from "./ServiceConfig";
 import { OnboardingMock } from "./mock/OnboardingMock";
 import { OnboardingPortis } from "./web3/OnboardingPortis";
 import { OnboardingMetamask } from "./web3/OnboardingMetamask";
@@ -23,12 +23,12 @@ export class Onboarding {
     }
 
     private static startWeb3Onboarding(onChange) {
-        let onboardingType = ServiceConfig.getOnboardingType();
-        if (onboardingType == OnboardingType.Portis) {
+        let provider = ServiceConfig.getWalletWeb3Provider();
+        if (provider == WalletWeb3Provider.Portis) {
             OnboardingPortis.start(onChange);
-        } else if (onboardingType == OnboardingType.Metamask) {
+        } else if (provider == WalletWeb3Provider.Metamask) {
             OnboardingMetamask.start(onChange);
-        } else if (onboardingType == OnboardingType.Internal) {
+        } else if (provider == WalletWeb3Provider.Internal) {
             OnboardingInternal.start(onChange);
         } else {
             throw new Error("Unsupported web3 provider.");

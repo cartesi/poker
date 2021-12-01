@@ -1,7 +1,7 @@
 import { describe } from "mocha";
 import { expect } from "chai";
 import { GameConstants, ChainId } from "../../../src/GameConstants";
-import { OnboardingType, ServiceConfig } from "../../../src/services/ServiceConfig";
+import { ServiceConfig } from "../../../src/services/ServiceConfig";
 import { PokerToken__factory } from "../../../src/types";
 import PokerToken from "../../../src/abis/PokerToken.json";
 import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
