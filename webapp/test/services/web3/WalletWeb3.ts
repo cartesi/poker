@@ -14,6 +14,11 @@ describe("WalletWeb3", function () {
     const aliceAddress: string = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
     const bobAddress: string = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 
+    it("should retrieve null address if there is no signer", async () => {
+        ServiceConfig.setSigner(undefined);
+        expect(await WalletWeb3.getAddress()).to.eql(ethers.constants.AddressZero);
+    });
+
     it("should retrieve the correct address", async () => {
         TestWeb3Utils.setSigner(aliceAddress);
         expect(Web3Utils.compareAddresses(await WalletWeb3.getAddress(), aliceAddress)).to.be.true;
@@ -31,6 +36,11 @@ describe("WalletWeb3", function () {
 
         ServiceConfig.setChain(ChainId.MATIC_TESTNET);
         expect(Wallet.getNetwork()).to.equal(GameConstants.CHAIN_NAMES[ChainId.MATIC_TESTNET]);
+    });
+
+    it("should retrieve balance zero if there is no signer", async () => {
+        ServiceConfig.setSigner(undefined);
+        expect(await WalletWeb3.getBalance()).to.eql(ethers.BigNumber.from(0));
     });
 
     it("should retrieve the correct balance", async () => {
@@ -57,6 +67,11 @@ describe("WalletWeb3", function () {
         // check if balances have changed as expected
         expect(balanceAlice2, "Alice should have 1 ETH more on her balance").to.eql(balanceAlice1.add(oneEth));
         expect(balanceBob2.lt(balanceBob1.sub(oneEth)), "Bob should have 1 ETH + fees less on his balance").to.be.true;
+    });
+
+    it("should retrieve POKER tokens balance zero if there is no signer", async () => {
+        ServiceConfig.setSigner(undefined);
+        expect(await WalletWeb3.getPokerTokens()).to.eql(ethers.BigNumber.from(0));
     });
 
     it("should retrieve the correct POKER tokens balance", async () => {
