@@ -18,6 +18,7 @@ export class GameImpl implements Game {
     // FIXME: if using a mock TurnBasedGame, stores a reference to the opponent's Game instance (with automatic responses)
     gameOpponent: Game;
     private gameOverResult: GameResult;
+    private verificationState: VerificationState;
 
     constructor(
         private playerId: number,
@@ -49,6 +50,25 @@ export class GameImpl implements Game {
             this.gameOverResult.hands = Array(2);
             this.onEnd();
         });
+        this.turnBasedGame.receiveGameChallenged().then((reason: string) => {
+            console.log(`### [Player ${this.playerId}] Received Challenge: ${reason} ###`);
+            this.verificationState = VerificationState.NONE;
+
+            this.turnBasedGame.receiveVerificationUpdate().then((update) => {
+                this._verificationUpdateReceived(update[0], update[1]);
+            });
+        });
+    }
+
+    private _verificationUpdateReceived(state: VerificationState, message: string) {
+        this.verificationState = state;
+        this.onVerification(state, message);
+
+        if (state != VerificationState.ENDED) {
+            this.turnBasedGame.receiveVerificationUpdate().then((update) => {
+                this._verificationUpdateReceived(update[0], update[1]);
+            });
+        }
     }
 
     start(): Promise<void> {
@@ -135,7 +155,9 @@ export class GameImpl implements Game {
     }
 
     async challengeGame(msg: string) {
+        this.onEvent(`triggerVerification: ${msg}`, EventType.UPDATE_STATE);
         await this.turnBasedGame.challengeGame(msg);
+        this.verificationState = VerificationState.STARTED;
     }
 
     cheat: {
@@ -232,33 +254,38 @@ export class GameImpl implements Game {
 
     getState(): Promise<GameState> {
         return new Promise(async (resolve, reject) => {
-            try {
-                let state = await this.engine.game_state();
-                if (state.step >= 0 && state.step < 9) {
-                    resolve(GameState.START);
-                } else if (state.step == 9) {
-                    resolve(GameState.PREFLOP);
-                } else if (state.step == 10) {
-                    resolve(GameState.WAITING_FLOP);
-                } else if (state.step == 11) {
-                    resolve(GameState.FLOP);
-                } else if (state.step == 12) {
-                    resolve(GameState.WAITING_TURN);
-                } else if (state.step == 13) {
-                    resolve(GameState.TURN);
-                } else if (state.step == 14) {
-                    resolve(GameState.WAITING_RIVER);
-                } else if (state.step == 15) {
-                    resolve(GameState.RIVER);
-                } else if (state.step == 16) {
-                    resolve(GameState.SHOWDOWN);
-                } else if (state.step == 17) {
-                    resolve(GameState.END);
-                } else {
-                    reject(new Error("Unknown engine state"));
+            if (this.verificationState) {
+                if (this.verificationState == VerificationState.ENDED) resolve(GameState.END);
+                else resolve(GameState.VERIFICATION);
+            } else {
+                try {
+                    let state = await this.engine.game_state();
+                    if (state.step >= 0 && state.step < 9) {
+                        resolve(GameState.START);
+                    } else if (state.step == 9) {
+                        resolve(GameState.PREFLOP);
+                    } else if (state.step == 10) {
+                        resolve(GameState.WAITING_FLOP);
+                    } else if (state.step == 11) {
+                        resolve(GameState.FLOP);
+                    } else if (state.step == 12) {
+                        resolve(GameState.WAITING_TURN);
+                    } else if (state.step == 13) {
+                        resolve(GameState.TURN);
+                    } else if (state.step == 14) {
+                        resolve(GameState.WAITING_RIVER);
+                    } else if (state.step == 15) {
+                        resolve(GameState.RIVER);
+                    } else if (state.step == 16) {
+                        resolve(GameState.SHOWDOWN);
+                    } else if (state.step == 17) {
+                        resolve(GameState.END);
+                    } else {
+                        reject(new Error("Unknown engine state"));
+                    }
+                } catch (err) {
+                    reject(err);
                 }
-            } catch (err) {
-                reject(err);
             }
         });
     }
