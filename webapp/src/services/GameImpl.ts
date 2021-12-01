@@ -18,7 +18,7 @@ export class GameImpl implements Game {
     // FIXME: if using a mock TurnBasedGame, stores a reference to the opponent's Game instance (with automatic responses)
     gameOpponent: Game;
     private gameOverResult: GameResult;
-    private verificationState: VerificationState;
+    private verificationState = VerificationState.NONE;
 
     constructor(
         private playerId: number,
@@ -51,24 +51,28 @@ export class GameImpl implements Game {
             this.onEnd();
         });
         this.turnBasedGame.receiveGameChallenged().then((reason: string) => {
-            console.log(`### [Player ${this.playerId}] Received Challenge: ${reason} ###`);
-            this.verificationState = VerificationState.NONE;
-
-            this.turnBasedGame.receiveVerificationUpdate().then((update) => {
-                this._verificationUpdateReceived(update[0], update[1]);
-            });
+            this._gameChallengeReceived(reason);
+        });
+        this.turnBasedGame.receiveVerificationUpdate().then((update) => {
+            this._verificationUpdateReceived(update[0], update[1]);
         });
     }
 
+    private _gameChallengeReceived(reason: string) {
+        this.onEvent(`GameChallenged received: ${reason}`, EventType.UPDATE_STATE);
+        this.verificationState = VerificationState.STARTED;
+        this.turnBasedGame.receiveGameChallenged().then((reason: string) => this._gameChallengeReceived(reason));
+    }
+
     private _verificationUpdateReceived(state: VerificationState, message: string) {
+        this.onEvent(`verificationReceived: ${message} (${state})`, EventType.UPDATE_STATE);       
+        
+        this.turnBasedGame.receiveVerificationUpdate().then((update) => {
+            this._verificationUpdateReceived(update[0], update[1]);
+        });
+        
         this.verificationState = state;
         this.onVerification(state, message);
-
-        if (state != VerificationState.ENDED) {
-            this.turnBasedGame.receiveVerificationUpdate().then((update) => {
-                this._verificationUpdateReceived(update[0], update[1]);
-            });
-        }
     }
 
     start(): Promise<void> {
@@ -254,7 +258,7 @@ export class GameImpl implements Game {
 
     getState(): Promise<GameState> {
         return new Promise(async (resolve, reject) => {
-            if (this.verificationState) {
+            if (this.verificationState != VerificationState.NONE) {
                 if (this.verificationState == VerificationState.ENDED) resolve(GameState.END);
                 else resolve(GameState.VERIFICATION);
             } else {
@@ -361,14 +365,18 @@ export class GameImpl implements Game {
         let result: EngineResult;
         do {
             const turnInfo = await this.turnBasedGame.receiveTurnOver();
-            const message_in = turnInfo.data;
             console.log(`### [Player ${this.playerId}] On turn received ###`);
+
+            const message_in = turnInfo.data;
             result = await this.engine.process_handshake(message_in);
 
+            let hasMessageOut = result.message_out.length > 0;
             // after processing opponent's turnInfo message, checks if it is consistent
-            await this._checkOpponentTurnInfo(turnInfo, result);
+            await this._checkOpponentTurnInfo(turnInfo, hasMessageOut);
+            // after processing turn, checks if engine produced an error
+            await this._checkEngineResult(result);
 
-            if (result.message_out.length > 0) {
+            if (hasMessageOut) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
                 await this._submitTurn(result.message_out);
             }
@@ -393,13 +401,16 @@ export class GameImpl implements Game {
         let receivedBetType: BetType;
         do {
             const turnInfo = await this.turnBasedGame.receiveTurnOver();
-            const message_in = turnInfo.data;
             console.log(`### [Player ${this.playerId}] On turn received ###`);
 
+            const message_in = turnInfo.data;
             result = await this.engine.process_bet(message_in);
 
+            let hasMessageOut = result.message_out.length > 0;
             // after processing opponent's turnInfo message, checks if it is consistent
-            await this._checkOpponentTurnInfo(turnInfo, result);
+            await this._checkOpponentTurnInfo(turnInfo, hasMessageOut);
+            // after processing turn, checks if engine produced an error
+            await this._checkEngineResult(result);
 
             // reaction to received result
             const betType = this._convertBetType(result.betType);
@@ -412,7 +423,7 @@ export class GameImpl implements Game {
                 this.onEvent(await this.getState(), EventType.UPDATE_STATE);
             }
 
-            if (result.message_out.length > 0) {
+            if (hasMessageOut) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
                 await this._submitTurn(result.message_out);
             }
@@ -424,7 +435,7 @@ export class GameImpl implements Game {
         };
     }
 
-    private async _checkOpponentTurnInfo(turnInfo: TurnInfo, engineResult: EngineResult): Promise<void> {
+    private async _checkOpponentTurnInfo(turnInfo: TurnInfo, hasMessageOut: boolean): Promise<void> {
         // checks if opponent turnInfo's declared nextPlayer is correct
         // - this should correspond to the next player that needs to submit information for the game to proceed
         // - the declared nextPlayer is the one held accountable in case of timeout (is considered to have given up)
@@ -432,14 +443,16 @@ export class GameImpl implements Game {
         if ((await this.getState()) == GameState.END) {
             // if game has ended, this player should claim the result and should have been declared as the nextPlayer
             expectedNextPlayer = this.playerId;
-        } else if (engineResult.message_out.length > 0) {
+        } else if (hasMessageOut) {
             // if engine result includes a message_out response, this player needs to submit a turn and should have been declared as the nextPlayer
             expectedNextPlayer = this.playerId;
         } else {
             // otherwise, nextPlayer should be the next one to bet in the game (engine's "current player")
             expectedNextPlayer = await this.getCurrentPlayerId();
         }
+
         if (turnInfo.nextPlayer != expectedNextPlayer) {
+            await this.challengeGame(`Inconsistent declared nextPlayer`);
             return Promise.reject(
                 `Inconsistent declared nextPlayer: expected '${expectedNextPlayer}' but opponent declared '${turnInfo.nextPlayer}'`
             );
@@ -448,9 +461,21 @@ export class GameImpl implements Game {
         // checks if opponent turnInfo's declared playerStake is correct
         const expectedOpponentBets = await this.getOpponentBets();
         if (!turnInfo.playerStake.eq(expectedOpponentBets)) {
+            await this.challengeGame(`Inconsistent declared playerStake`);
             return Promise.reject(
                 `Inconsistent declared playerStake: expected ${expectedOpponentBets.toString()} but opponent declared ${turnInfo.playerStake.toString()}`
             );
+        }
+
+        return Promise.resolve();
+    }
+
+    private async _checkEngineResult(result: EngineResult): Promise<void> {
+        if (result.status != StatusCode.SUCCESS && result.status != StatusCode.CONTINUED) {
+            const reason = `Invalid data submission (code ${result.status})`;
+            await this.challengeGame(reason);
+
+            return Promise.reject(reason);
         }
         return Promise.resolve();
     }
@@ -520,9 +545,8 @@ export class GameImpl implements Game {
             !result.fundsShare[this.playerId].eq(opponentResult[this.playerId]) ||
             !result.fundsShare[this.opponentId].eq(opponentResult[this.opponentId])
         ) {
-            //TODO: trigger verification
             console.log(`### [Player ${this.playerId}] Challenge Game ###`);
-            //this.turnBasedGame.challengeGame();
+            this.challengeGame("Result mismatch");
         } else {
             console.log(`### [Player ${this.playerId}] Confirm result ###`);
             await this.turnBasedGame.confirmResult();
