@@ -34,21 +34,9 @@ export class OnboardingInternal extends AbstractOnboarding {
                 return;
             }
 
-            // checks if player has an unfinished ongoing game
+            // checks player account's status
             const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
-            if (await super.checkUnfinishedGame(onChange, chainName, this.update.bind(this))) {
-                return;
-            }
-
-            // checks player's balance to see if he has enough tokens to play
-            if (!(await super.checkBalance(onChange, chainName))) {
-                return;
-            }
-
-            // checks player's allowance to see if the Lobby contract can manage the player's tokens
-            if (!(await super.checkAllowance(onChange, false))) {
-                return;
-            }
+            super.checkAccountStatus(onChange, chainName, this.update.bind(this));
         } catch (error) {
             console.error(error);
             onChange({
@@ -77,10 +65,7 @@ export class OnboardingInternal extends AbstractOnboarding {
             GameManager.writeGameData();
         } else {
             // decrypts previously stored encrypted wallet JSON
-            this.wallet = await ethers.Wallet.fromEncryptedJson(
-                GameVars.gameData.walletEncryptedJson,
-                password
-            );
+            this.wallet = await ethers.Wallet.fromEncryptedJson(GameVars.gameData.walletEncryptedJson, password);
         }
 
         // connects wallet to configured chain's JSON-RPC endpoint

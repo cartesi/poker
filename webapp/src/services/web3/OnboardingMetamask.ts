@@ -87,20 +87,8 @@ export class OnboardingMetamask extends AbstractOnboarding {
             // we have a supported connected wallet: set application signer
             await this.setSigner();
 
-            // checks if player has an unfinished ongoing game
-            if (await super.checkUnfinishedGame(onChange, chainName, this.update.bind(this))) {
-                return;
-            }
-
-            // checks player's balance to see if he has enough tokens to play
-            if (!(await super.checkBalance(onChange, chainName))) {
-                return;
-            }
-
-            // checks player's allowance to see if the Lobby contract can manage the player's tokens
-            if (!(await super.checkAllowance(onChange, false))) {
-                return;
-            }
+            // checks player account's status
+            super.checkAccountStatus(onChange, chainName, this.update.bind(this));
         } catch (error) {
             console.error(error);
             onChange({

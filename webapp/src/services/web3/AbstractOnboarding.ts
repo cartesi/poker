@@ -26,6 +26,38 @@ export class AbstractOnboarding {
         this.checkAllowance(onChange, true);
     }
 
+    /**
+     * Once an account is connected, checks if conditions are appropriate for starting the game.
+     * @param onChange
+     * @param chainName
+     * @param updateCallback
+     * @returns
+     */
+    protected static async checkAccountStatus(onChange, chainName, updateCallback) {
+        onChange({
+            label: "Checking account status...",
+            onclick: undefined,
+            loading: true,
+            error: false,
+            ready: false,
+        });
+
+        // checks if player has an unfinished ongoing game
+        if (await this.checkUnfinishedGame(onChange, chainName, updateCallback)) {
+            return;
+        }
+
+        // checks player's balance to see if he has enough tokens to play
+        if (!(await this.checkBalance(onChange, chainName))) {
+            return;
+        }
+
+        // checks player's allowance to see if the Lobby contract can manage the player's tokens
+        if (!(await this.checkAllowance(onChange, false))) {
+            return;
+        }
+    }
+
     private static claimTimeoutInterval;
     /**
      * Checks if the player has an ongoing unfinished game, and if true attempts to end it by timeout
