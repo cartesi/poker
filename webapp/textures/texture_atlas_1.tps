@@ -216,6 +216,36 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">texture_atlas_1/avatar_07.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>37,37,74,74</rect>
+                <key>scale9Paddings</key>
+                <rect>37,37,74,74</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/bar.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>30,4,60,7</rect>
+                <key>scale9Paddings</key>
+                <rect>30,4,60,7</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">texture_atlas_1/bg_vs.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -262,6 +292,7 @@
                 <false/>
             </struct>
             <key type="filename">texture_atlas_1/btn_back.png</key>
+            <key type="filename">texture_atlas_1/btn_copy.png</key>
             <key type="filename">texture_atlas_1/btn_menu.png</key>
             <key type="filename">texture_atlas_1/btn_reset.png</key>
             <key type="filename">texture_atlas_1/btn_sound_off.png</key>
@@ -916,6 +947,21 @@
                 <rect>27,15,55,30</rect>
                 <key>scale9Paddings</key>
                 <rect>27,15,55,30</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/wallet_info_popup.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>80,40,160,80</rect>
+                <key>scale9Paddings</key>
+                <rect>80,40,160,80</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>

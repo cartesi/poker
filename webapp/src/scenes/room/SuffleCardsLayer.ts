@@ -8,10 +8,7 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
 
     private cards: Phaser.GameObjects.Image[];
     private timer: NodeJS.Timeout;
-
-    private bar: Phaser.GameObjects.Image;
-    private barBg: Phaser.GameObjects.Image;
-
+    private titleText: Phaser.GameObjects.Text;
 
     constructor(scene: Phaser.Scene) {
 
@@ -37,13 +34,9 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
         text.setOrigin(.5);
         this.midContainer.add(text);
 
-
-        this.barBg = new Phaser.GameObjects.Image(this.scene, 0, 150, "texture_atlas_1", "border");
-        this.midContainer.add(this.barBg);
-
-        this.bar = new Phaser.GameObjects.Image(this.scene, this.barBg.x + 4 - this.barBg.displayWidth / 2, this.barBg.y + 1, "texture_atlas_1", "bar");
-        this.midContainer.add(this.bar);
-        this.bar.x += this.bar.displayWidth / 2;
+        this.titleText = new Phaser.GameObjects.Text(this.scene, 0, -110, "Event 1 arrived", { fontFamily: "Oswald-Medium", fontSize: "40px", color: "#FFFFFF", align: "center" });
+        this.titleText.setOrigin(.5);
+        this.midContainer.add(this.titleText);
 
         this.setScalesAndPositions();
     }
@@ -64,20 +57,12 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
             onCompleteScope: this
         });
 
-        this.scene.add.tween({
-            targets: this.bar,
-            x: {
-                from: this.barBg.x - this.barBg.displayWidth / 2 + 4 + this.bar.displayWidth / 2,
-                to: this.barBg.x + this.barBg.displayWidth / 2 - 4 - this.bar.displayWidth / 2
-            },
-            repeat: -1,
-            yoyo: true,
-            duration: 500
-        })
-
         this.startShuffle();
     }
 
+    public updateHeading(text: string) {
+        this.titleText.setText(text);
+    }
     public hide(): void {
 
         this.scene.tweens.add({
@@ -90,8 +75,6 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
             },
             onCompleteScope: this
         });
-
-        this.scene.tweens.killTweensOf(this.bar);
 
         clearInterval(this.timer);
     }
