@@ -21,17 +21,14 @@ export enum WalletWeb3Provider {
 declare let window: any;
 
 export class ServiceConfig {
-    // Unique instance for the service's configurator
-    public static currentInstance: ServiceConfig;
-
-    // Wallet type with default value
-    private static walletWeb3Provider = WalletWeb3Provider.Internal;
-
     // Network with default value
     private static chainId = ChainId.MATIC_TESTNET;
 
     // Signer to be used when submitting transactions
     private static signer: ethers.Signer;
+
+    // Wallet type to be used when onboarding
+    private static walletWeb3Provider: WalletWeb3Provider;
 
     /**
      * Retrieves the implementation configured for a specified service type
@@ -63,7 +60,24 @@ export class ServiceConfig {
 
     public static getWalletWeb3Provider(): WalletWeb3Provider {
         if (!this.walletWeb3Provider) {
-            throw new Error("WalletWeb3Provider was not set.");
+            const searchParams = new URLSearchParams(window.location.search);
+            const walletParam = searchParams.get("wallet");
+            if (walletParam) {
+                for (let key in WalletWeb3Provider) {
+                    const provider = WalletWeb3Provider[key];
+                    if (provider == walletParam) {
+                        this.walletWeb3Provider = provider;
+                    }
+                }
+                if (!this.walletWeb3Provider) {
+                    console.error(
+                        `Unknown wallet web3 provider '${walletParam}'. Using default wallet '${WalletWeb3Provider.Internal}'`
+                    );
+                }
+            }
+            if (!this.walletWeb3Provider) {
+                this.walletWeb3Provider = WalletWeb3Provider.Internal;
+            }
         }
         return this.walletWeb3Provider;
     }
