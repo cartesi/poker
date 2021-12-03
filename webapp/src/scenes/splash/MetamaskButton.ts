@@ -35,7 +35,6 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
         this.img = new Phaser.GameObjects.Image(this.scene, -110, 0, "texture_atlas_1", "metamask");
         this.img.setScale(.4);
         this.add(this.img);
-        this.img.setAlpha(0);
 
         this.loading = new Phaser.GameObjects.Image(this.scene, -110, 0, "texture_atlas_1", "loading");
         this.loading.setScale(.28);
@@ -72,7 +71,7 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
         this.background.setInteractive(new Phaser.Geom.Rectangle(-(this.text.width + 95) / 2, -30, this.text.width + 95, 60), Phaser.Geom.Rectangle.Contains);
         this.img.x = -(this.text.width + 95) / 2 + 40;
         this.loading.x = -(this.text.width + 95) / 2 + 40;
-        this.text.x = this.img.x + 15;
+        this.text.x = this.img.x + 10;
 
         // update button action when user clicks (or remove any action)
         if (onclick) {
@@ -96,8 +95,6 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
             this.loading.visible = false;
             if (onclick) {
                 this.img.visible = true;
-            } else {
-                this.text.x -= 20;
             }
         }
 
@@ -110,6 +107,14 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
                 this.background.setInteractive(new Phaser.Geom.Rectangle(-(this.text.width + 95) / 2, -35, this.text.width + 95, 70), Phaser.Geom.Rectangle.Contains);
             }
             this.chooseAvatarLayer.hidePlay();
+        }
+
+        // forcing image (metamask icon) always hidden for now
+        this.img.visible = false;
+
+        // fixing text position if an icon is being shown
+        if (this.loading.visible || this.img.visible) {
+            this.text.x += 20;
         }
 
         SplashScene.currentInstance.updateWalletInfo();
