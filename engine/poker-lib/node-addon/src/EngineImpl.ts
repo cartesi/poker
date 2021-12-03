@@ -14,11 +14,12 @@ export class EngineImpl implements Engine {
         alice_funds: BigNumber,
         bob_funds: BigNumber,
         big_blind: BigNumber,
-        encryption: boolean
+        encryption: boolean = true,
+        winner: number = -1
     ): Promise<EngineResult> {
         return new Promise((resolve, reject) => {
             try {
-                this.lib.init(encryption, false);
+                this.lib.init(encryption, false, winner);
                 this.player = this.lib.newPlayer(this.player_id);
                 this.lib.initPlayer(this.player, alice_funds.toString(), bob_funds.toString(), big_blind.toString());
                 resolve({ status: StatusCode.SUCCESS });

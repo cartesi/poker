@@ -3,25 +3,27 @@
 #include <node_api.h>
 #include "../../poker-lib-c-api.h"
 
-// init(encryption, logging)
+// init(encryption, logging, winner)
 napi_value init(napi_env env, napi_callback_info info) {
   napi_status status;
 
-  napi_value argv[2];
-  size_t argc = 2;
+  napi_value argv[3];
+  size_t argc = 3;
   if (napi_ok != (status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL))) {
     napi_throw_type_error(env, std::to_string((int)status).c_str(), "Error parsing arguments");
     return NULL;
   }
 
-  bool encryption, logging;  
+  bool encryption, logging;
+  PAPI_INT winner;
   if (napi_ok != (status = napi_get_value_bool(env, argv[0], &encryption)) ||
-      napi_ok != (status = napi_get_value_bool(env, argv[1], &logging))) {
-    napi_throw_type_error(env, std::to_string((int)status).c_str(), "Error getting arguments");
-    return NULL;
+      napi_ok != (status = napi_get_value_bool(env, argv[1], &logging)) ||
+      napi_ok != (status = napi_get_value_int32(env, argv[2], &winner))) {
+      napi_throw_type_error(env, std::to_string((int)status).c_str(), "Error getting arguments");
+      return NULL;
   }
 
-  auto res = papi_init(encryption, logging);
+  auto res = papi_init(encryption, logging, winner);
   if (res != PAPI_SUCCESS) {
     napi_throw_type_error(env, std::to_string((int)res).c_str(), "Error initializing library");
     return NULL;

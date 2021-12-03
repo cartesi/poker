@@ -10,7 +10,7 @@ describe('Poker Node.js add-on', function() {
   describe('The happy path', function() {
     it('should play a game to the end,  without errors', function() {
       const lib = require('../build/Release/pokerlib.node');
-      lib.init(true, false);
+      lib.init(true, false, -1);
 
       const alice = lib.newPlayer(0);
       console.log(alice);

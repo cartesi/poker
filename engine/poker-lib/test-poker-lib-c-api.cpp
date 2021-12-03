@@ -11,7 +11,7 @@
 #define RIVER   FLOP(2)+2
 
 void test_the_happy_path() {
-    assert_eql(PAPI_SUCCESS, papi_init(true, true));
+    assert_eql(PAPI_SUCCESS, papi_init(true, true, -1));
     PAPI_PLAYER alice, bob;
     assert_eql(PAPI_SUCCESS, papi_new_player(0, &alice));
     assert_eql(PAPI_SUCCESS, papi_new_player(1, &bob));

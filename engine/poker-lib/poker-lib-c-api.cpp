@@ -6,10 +6,11 @@
 #include "player.h"
 
 
-extern "C" PAPI_ERR papi_init(PAPI_BOOL encryption, PAPI_BOOL logging) {
+extern "C" PAPI_ERR papi_init(PAPI_BOOL encryption, PAPI_BOOL logging, PAPI_INT winner) {
   poker::poker_lib_options options;
   options.encryption = encryption;
   options.logging = logging;
+  options.winner = winner;
   poker::init_poker_lib(&options);
   return PAPI_SUCCESS;
 }

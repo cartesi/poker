@@ -19,7 +19,7 @@ typedef char* PAPI_MONEY;
 
 extern "C" {
   
-PAPI_ERR papi_init(PAPI_BOOL encryption, PAPI_BOOL logging);
+PAPI_ERR papi_init(PAPI_BOOL encryption, PAPI_BOOL logging, PAPI_INT winner);
 PAPI_ERR papi_new_player(PAPI_INT player_id, PAPI_PLAYER* player);
 PAPI_ERR papi_delete_player(PAPI_PLAYER player);
 PAPI_ERR papi_init_player(PAPI_PLAYER player, PAPI_MONEY alice_money, PAPI_MONEY bob_money, PAPI_MONEY big_blind);
