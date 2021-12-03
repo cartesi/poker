@@ -86,6 +86,12 @@ typings/
 .webpack/
 
 # Poker
-out/
+assets/
+audiosprite/
 dist/
+index.html
+out/
+src/
+textures/
+types/
 yarn.lock

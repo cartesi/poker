@@ -1,16 +1,14 @@
 {
     "compilerOptions": {
-        "allowJs": true,
-        "module": "commonjs",
-        "noImplicitAny": true,
+        "target": "ES5",
+        "module": "CommonJS",
         "sourceMap": true,
-        "baseUrl": ".",
-        "outDir": "dist",
-        "moduleResolution": "node",
+        "noImplicitAny": false,
         "resolveJsonModule": true,
-        "paths": {
-            "*": ["node_modules/*"]
-        }
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "outDir": "dist",
+        "baseUrl": "."
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*", "types/**/*"]
 }
