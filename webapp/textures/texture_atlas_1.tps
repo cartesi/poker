@@ -345,21 +345,6 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">texture_atlas_1/btn_close_2.png</key>
-            <struct type="IndividualSpriteSettings">
-                <key>pivotPoint</key>
-                <point_f>0.5,0.5</point_f>
-                <key>spriteScale</key>
-                <double>1</double>
-                <key>scale9Enabled</key>
-                <false/>
-                <key>scale9Borders</key>
-                <rect>6,6,11,12</rect>
-                <key>scale9Paddings</key>
-                <rect>6,6,11,12</rect>
-                <key>scale9FromFile</key>
-                <false/>
-            </struct>
             <key type="filename">texture_atlas_1/btn_divider.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -387,6 +372,22 @@
                 <rect>65,18,129,35</rect>
                 <key>scale9Paddings</key>
                 <rect>65,18,129,35</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">texture_atlas_1/btn_minimise.png</key>
+            <key type="filename">texture_atlas_1/wallet_info_popup_min.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>6,0,11,1</rect>
+                <key>scale9Paddings</key>
+                <rect>6,0,11,1</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
