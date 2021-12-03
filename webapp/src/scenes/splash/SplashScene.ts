@@ -3,6 +3,8 @@ import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
+import { Wallet } from '../../services/Wallet';
+import { ethers } from 'ethers';
 
 export class SplashScene extends Phaser.Scene {
 
@@ -12,6 +14,12 @@ export class SplashScene extends Phaser.Scene {
     private topContainer: Phaser.GameObjects.Container;
     private walletInfoContainer: Phaser.GameObjects.Container;
     private chooseAvatarLayer: ChooseAvatarLayer;
+    
+    private walletAddressText: Phaser.GameObjects.Text;
+    private walletNetworkText: Phaser.GameObjects.Text;
+    private balanceText: Phaser.GameObjects.Text;
+    private pokerTokensText: Phaser.GameObjects.Text;
+    private walletAddressValue: string;
 
     constructor() {
 
@@ -50,18 +58,18 @@ export class SplashScene extends Phaser.Scene {
 
         let walletAddressLabel = new Phaser.GameObjects.Text(this, 10, 50, "Wallet Address", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
         let walletNetworkLabel = new Phaser.GameObjects.Text(this, walletAddressLabel.x, walletAddressLabel.y + 35, "Network", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        let pokerTokensLabel = new Phaser.GameObjects.Text(this, walletNetworkLabel.x, walletNetworkLabel.y + 35, "Poker Tokens", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        let balanceLabel = new Phaser.GameObjects.Text(this, pokerTokensLabel.x, pokerTokensLabel.y + 35, "Balance", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        let balanceLabel = new Phaser.GameObjects.Text(this, walletNetworkLabel.x, walletNetworkLabel.y + 35, "Balance", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        let pokerTokensLabel = new Phaser.GameObjects.Text(this, balanceLabel.x, balanceLabel.y + 35, "Poker Tokens", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
 
 
-        let walletAddressText = new Phaser.GameObjects.Text(this, walletInfoBg.x + walletInfoBg.displayWidth - 35, walletAddressLabel.y, "0abcdefghijklmnopqrstuvwxyz", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff", align: "center" });
-        let walletNetworkText = new Phaser.GameObjects.Text(this, walletInfoBg.x + walletInfoBg.displayWidth - 10, walletNetworkLabel.y, "MATIC (Mumbai)", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        let pokerTokensText = new Phaser.GameObjects.Text(this, walletInfoBg.x + walletInfoBg.displayWidth - 10, pokerTokensLabel.y, "1000", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        let balanceText = new Phaser.GameObjects.Text(this, walletInfoBg.x + walletInfoBg.displayWidth - 10, balanceLabel.y, "1", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        walletAddressText.setOrigin(1, 0);
-        walletNetworkText.setOrigin(1, 0);
-        pokerTokensText.setOrigin(1, 0);
-        balanceText.setOrigin(1, 0);
+        this.walletAddressText = new Phaser.GameObjects.Text(this, walletInfoBg.x + walletInfoBg.displayWidth - 35, walletAddressLabel.y, "Loading...", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff", align: "center" });
+        this.walletNetworkText = new Phaser.GameObjects.Text(this, walletInfoBg.x + walletInfoBg.displayWidth - 10, walletNetworkLabel.y, "Loading...", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        this.balanceText = new Phaser.GameObjects.Text(this, walletInfoBg.x + walletInfoBg.displayWidth - 10, balanceLabel.y, "Loading...", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        this.pokerTokensText = new Phaser.GameObjects.Text(this, walletInfoBg.x + walletInfoBg.displayWidth - 10, pokerTokensLabel.y, "Loading...", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        this.walletAddressText.setOrigin(1, 0);
+        this.walletNetworkText.setOrigin(1, 0);
+        this.balanceText.setOrigin(1, 0);
+        this.pokerTokensText.setOrigin(1, 0);
 
         let closeBtn = new Phaser.GameObjects.Image(this, 0, 0, "texture_atlas_1", "btn_close_2");
         closeBtn.x = walletInfoBg.displayWidth - 20;
@@ -74,16 +82,16 @@ export class SplashScene extends Phaser.Scene {
 
         let copyBtn = new Phaser.GameObjects.Image(this, 0, 0, "texture_atlas_1", "btn_copy");
         copyBtn.x = walletInfoBg.displayWidth - 20;
-        copyBtn.y = walletAddressText.y + walletAddressText.displayHeight / 2;
+        copyBtn.y = this.walletAddressText.y + this.walletAddressText.displayHeight / 2;
         copyBtn.setScale(0.4);
         copyBtn.setInteractive({ useHandCursor: true }).on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, async () => {
-            const address = walletAddressText.text;
-            navigator.clipboard.writeText(address);
-            walletAddressText.setText("COPIED");
+            const addressText = this.walletAddressText.text;
+            navigator.clipboard.writeText(this.walletAddressValue);
+            this.walletAddressText.setText("COPIED");
             await new Promise(r => {
                 setTimeout(r, 1000);
             })
-            walletAddressText.setText(address);
+            this.walletAddressText.setText(addressText);
         }, this);
 
         this.walletInfoContainer.add([
@@ -92,10 +100,10 @@ export class SplashScene extends Phaser.Scene {
             walletNetworkLabel,
             pokerTokensLabel,
             balanceLabel,
-            walletAddressText,
-            walletNetworkText,
-            pokerTokensText,
-            balanceText,
+            this.walletAddressText,
+            this.walletNetworkText,
+            this.balanceText,
+            this.pokerTokensText,
             closeBtn,
             copyBtn
         ]);
@@ -142,5 +150,23 @@ export class SplashScene extends Phaser.Scene {
             this.chooseAvatarLayer.setPortraitMode();
             this.walletInfoContainer.setScale(1.2 + extraScale / 2, GameVars.scaleY * (1.2 + extraScale / 2));
         }
+    }
+
+    public updateWalletInfo() {
+        if (!this.walletInfoContainer || !this.walletInfoContainer.active) {
+            return;
+        }
+        Wallet.getAddress().then(addr => {
+            this.walletAddressValue = addr;
+            this.walletAddressText.text = `${addr.substr(0,6)}...${addr.substr(addr.length-4)}`;
+        });
+        this.walletNetworkText.text = Wallet.getNetwork();
+        
+        Wallet.getBalance().then(balance => {
+            this.balanceText.text = ethers.utils.formatEther(balance);
+        });
+        Wallet.getPokerTokens().then(tokens => {
+            this.pokerTokensText.text = tokens.toString();
+        });
     }
 }

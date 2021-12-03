@@ -1,6 +1,7 @@
 import { ChooseAvatarLayer } from './ChooseAvatarLayer';
 import { AudioManager } from './../../AudioManager';
 import { Onboarding } from "../../services/Onboarding";
+import { SplashScene } from './SplashScene';
 
 export class MetamaskButton extends Phaser.GameObjects.Container {
 
@@ -110,5 +111,7 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
             }
             this.chooseAvatarLayer.hidePlay();
         }
+
+        SplashScene.currentInstance.updateWalletInfo();
     }
 }
