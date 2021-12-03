@@ -1,0 +1,40 @@
+{
+    "name": "@cartesi/electron-app",
+    "productName": "cartesi-texas-hodlem",
+    "version": "0.4.0",
+    "description": "Cartesi's Texas HODL'em",
+    "main": "dist/index.js",
+    "scripts": {
+        "start": "tsc && electron-forge start",
+        "package": "tsc && electron-forge package",
+        "make": "electron-forge make",
+        "publish": "electron-forge publish",
+        "lint": "eslint --ext .ts ."
+    },
+    "keywords": [],
+    "author": {
+        "name": "Marcel Moura",
+        "email": "marcel.moura@cartesi.io"
+    },
+    "license": "Apache-2.0",
+    "config": {
+        "forge": "./forge.config.js"
+    },
+    "devDependencies": {
+        "@electron-forge/cli": "^6.0.0-beta.59",
+        "@electron-forge/maker-deb": "^6.0.0-beta.59",
+        "@electron-forge/maker-rpm": "^6.0.0-beta.59",
+        "@electron-forge/maker-squirrel": "^6.0.0-beta.59",
+        "@electron-forge/maker-zip": "^6.0.0-beta.59",
+        "@typescript-eslint/eslint-plugin": "^4.17.0",
+        "@typescript-eslint/parser": "^4.17.0",
+        "electron": "16.0.3",
+        "eslint": "^7.6.0",
+        "eslint-plugin-import": "^2.20.0",
+        "prettier": "^2.5.0",
+        "typescript": "^4.0.2"
+    },
+    "dependencies": {
+        "electron-squirrel-startup": "^1.0.0"
+    }
+}
