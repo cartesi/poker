@@ -4,7 +4,7 @@
         <key>fileFormatVersion</key>
         <int>4</int>
         <key>texturePackerVersion</key>
-        <string>4.11.1</string>
+        <string>5.5.0</string>
         <key>autoSDSettings</key>
         <array>
             <struct type="AutoSDSettings">
@@ -181,62 +181,78 @@
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
-            <key type="filename">texture_atlas_2/0_1.png</key>
-            <key type="filename">texture_atlas_2/0_10.png</key>
-            <key type="filename">texture_atlas_2/0_11.png</key>
-            <key type="filename">texture_atlas_2/0_12.png</key>
-            <key type="filename">texture_atlas_2/0_13.png</key>
-            <key type="filename">texture_atlas_2/0_2.png</key>
-            <key type="filename">texture_atlas_2/0_3.png</key>
-            <key type="filename">texture_atlas_2/0_4.png</key>
-            <key type="filename">texture_atlas_2/0_5.png</key>
-            <key type="filename">texture_atlas_2/0_6.png</key>
-            <key type="filename">texture_atlas_2/0_7.png</key>
-            <key type="filename">texture_atlas_2/0_8.png</key>
-            <key type="filename">texture_atlas_2/0_9.png</key>
-            <key type="filename">texture_atlas_2/1_1.png</key>
-            <key type="filename">texture_atlas_2/1_10.png</key>
-            <key type="filename">texture_atlas_2/1_11.png</key>
-            <key type="filename">texture_atlas_2/1_12.png</key>
-            <key type="filename">texture_atlas_2/1_13.png</key>
-            <key type="filename">texture_atlas_2/1_2.png</key>
-            <key type="filename">texture_atlas_2/1_3.png</key>
-            <key type="filename">texture_atlas_2/1_4.png</key>
-            <key type="filename">texture_atlas_2/1_5.png</key>
-            <key type="filename">texture_atlas_2/1_6.png</key>
-            <key type="filename">texture_atlas_2/1_7.png</key>
-            <key type="filename">texture_atlas_2/1_8.png</key>
-            <key type="filename">texture_atlas_2/1_9.png</key>
-            <key type="filename">texture_atlas_2/2_1.png</key>
-            <key type="filename">texture_atlas_2/2_10.png</key>
-            <key type="filename">texture_atlas_2/2_11.png</key>
-            <key type="filename">texture_atlas_2/2_12.png</key>
-            <key type="filename">texture_atlas_2/2_13.png</key>
-            <key type="filename">texture_atlas_2/2_2.png</key>
-            <key type="filename">texture_atlas_2/2_3.png</key>
-            <key type="filename">texture_atlas_2/2_4.png</key>
-            <key type="filename">texture_atlas_2/2_5.png</key>
-            <key type="filename">texture_atlas_2/2_6.png</key>
-            <key type="filename">texture_atlas_2/2_7.png</key>
-            <key type="filename">texture_atlas_2/2_8.png</key>
-            <key type="filename">texture_atlas_2/2_9.png</key>
-            <key type="filename">texture_atlas_2/3_1.png</key>
-            <key type="filename">texture_atlas_2/3_10.png</key>
-            <key type="filename">texture_atlas_2/3_11.png</key>
-            <key type="filename">texture_atlas_2/3_12.png</key>
-            <key type="filename">texture_atlas_2/3_13.png</key>
-            <key type="filename">texture_atlas_2/3_2.png</key>
-            <key type="filename">texture_atlas_2/3_3.png</key>
-            <key type="filename">texture_atlas_2/3_4.png</key>
-            <key type="filename">texture_atlas_2/3_5.png</key>
-            <key type="filename">texture_atlas_2/3_6.png</key>
-            <key type="filename">texture_atlas_2/3_7.png</key>
-            <key type="filename">texture_atlas_2/3_8.png</key>
-            <key type="filename">texture_atlas_2/3_9.png</key>
+            <key type="filename">texture_atlas_2/10c.png</key>
+            <key type="filename">texture_atlas_2/10d.png</key>
+            <key type="filename">texture_atlas_2/10h.png</key>
+            <key type="filename">texture_atlas_2/10s.png</key>
+            <key type="filename">texture_atlas_2/2c.png</key>
+            <key type="filename">texture_atlas_2/2d.png</key>
+            <key type="filename">texture_atlas_2/2h.png</key>
+            <key type="filename">texture_atlas_2/2s.png</key>
+            <key type="filename">texture_atlas_2/3c.png</key>
+            <key type="filename">texture_atlas_2/3d.png</key>
+            <key type="filename">texture_atlas_2/3h.png</key>
+            <key type="filename">texture_atlas_2/3s.png</key>
+            <key type="filename">texture_atlas_2/4c.png</key>
+            <key type="filename">texture_atlas_2/4d.png</key>
+            <key type="filename">texture_atlas_2/4h.png</key>
+            <key type="filename">texture_atlas_2/4s.png</key>
+            <key type="filename">texture_atlas_2/5c.png</key>
+            <key type="filename">texture_atlas_2/5d.png</key>
+            <key type="filename">texture_atlas_2/5h.png</key>
+            <key type="filename">texture_atlas_2/5s.png</key>
+            <key type="filename">texture_atlas_2/6c.png</key>
+            <key type="filename">texture_atlas_2/6d.png</key>
+            <key type="filename">texture_atlas_2/6h.png</key>
+            <key type="filename">texture_atlas_2/6s.png</key>
+            <key type="filename">texture_atlas_2/7c.png</key>
+            <key type="filename">texture_atlas_2/7d.png</key>
+            <key type="filename">texture_atlas_2/7h.png</key>
+            <key type="filename">texture_atlas_2/7s.png</key>
+            <key type="filename">texture_atlas_2/8c.png</key>
+            <key type="filename">texture_atlas_2/8d.png</key>
+            <key type="filename">texture_atlas_2/8h.png</key>
+            <key type="filename">texture_atlas_2/8s.png</key>
+            <key type="filename">texture_atlas_2/9c.png</key>
+            <key type="filename">texture_atlas_2/9d.png</key>
+            <key type="filename">texture_atlas_2/9h.png</key>
+            <key type="filename">texture_atlas_2/9s.png</key>
+            <key type="filename">texture_atlas_2/Ac.png</key>
+            <key type="filename">texture_atlas_2/Ad.png</key>
+            <key type="filename">texture_atlas_2/Ah.png</key>
+            <key type="filename">texture_atlas_2/As.png</key>
+            <key type="filename">texture_atlas_2/Jc.png</key>
+            <key type="filename">texture_atlas_2/Jd.png</key>
+            <key type="filename">texture_atlas_2/Jh.png</key>
+            <key type="filename">texture_atlas_2/Js.png</key>
+            <key type="filename">texture_atlas_2/Kc.png</key>
+            <key type="filename">texture_atlas_2/Kd.png</key>
+            <key type="filename">texture_atlas_2/Kh.png</key>
+            <key type="filename">texture_atlas_2/Ks.png</key>
+            <key type="filename">texture_atlas_2/Qc.png</key>
+            <key type="filename">texture_atlas_2/Qd.png</key>
+            <key type="filename">texture_atlas_2/Qh.png</key>
+            <key type="filename">texture_atlas_2/Qs.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>27,40,53,79</rect>
+                <key>scale9Paddings</key>
+                <rect>27,40,53,79</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">texture_atlas_2/card-back.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>

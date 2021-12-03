@@ -14,7 +14,7 @@ export class SplashScene extends Phaser.Scene {
     private topContainer: Phaser.GameObjects.Container;
     private walletInfoContainer: Phaser.GameObjects.Container;
     private chooseAvatarLayer: ChooseAvatarLayer;
-    
+
     private walletAddressText: Phaser.GameObjects.Text;
     private walletNetworkText: Phaser.GameObjects.Text;
     private balanceText: Phaser.GameObjects.Text;
@@ -119,7 +119,6 @@ export class SplashScene extends Phaser.Scene {
             ease: Phaser.Math.Easing.Back.Out,
             duration: 400
         });
-        console.log(this.walletInfoContainer.getBounds());
 
         AudioManager.playMusic("soundtrack", 0.1);
     }
@@ -127,9 +126,6 @@ export class SplashScene extends Phaser.Scene {
     public onOrientationChange(): void {
         this.walletInfoContainer.x = GameConstants.GAME_WIDTH - this.walletInfoContainer.getBounds().width - 20;
         this.walletInfoContainer.y = 20;
-
-        console.log(this.walletInfoContainer.getBounds());
-
 
         if (GameVars.landscape) {
             if (GameVars.scaleX > 1.2) {
@@ -158,10 +154,10 @@ export class SplashScene extends Phaser.Scene {
         }
         Wallet.getAddress().then(addr => {
             this.walletAddressValue = addr;
-            this.walletAddressText.text = `${addr.substr(0,6)}...${addr.substr(addr.length-4)}`;
+            this.walletAddressText.text = `${addr.substr(0, 6)}...${addr.substr(addr.length - 4)}`;
         });
         this.walletNetworkText.text = Wallet.getNetwork();
-        
+
         Wallet.getBalance().then(balance => {
             this.balanceText.text = ethers.utils.formatEther(balance);
         });
