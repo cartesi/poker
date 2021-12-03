@@ -14,6 +14,7 @@ First of all, you should choose which engine you'd like to use along with the ap
 - `yarn prepare` to deploy the default WASM engine commited at `webapp`
 - `yarn wasm:prepare` to deploy the [most recent WASM engine build available in the workspace](../engine/platforms/wasm/)
 - `yarn linux:prepare` to deploy the [most recent x64 engine build available in the workspace](../engine/platforms/x64)
+- `yarn macos:prepare` to deploy the [MacOS engine commited in the project](./lib/darwin_x64)
 
 After preparing the application, run the application using one of the following methods:
 

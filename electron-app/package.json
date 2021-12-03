@@ -21,6 +21,8 @@
         "wasm:prepare": "run-s prepare wasm:engine:copy",
         "linux:engine:copy": "mkdirp dist && copyfiles -f \"../engine/platforms/x64/build/poker-lib/*.ts\" src/services/engine && copyfiles -f \"../engine/platforms/x64/build/lib/pokerlib.node\" dist/assets/engine",
         "linux:prepare": "run-s prepare linux:engine:copy",
+        "macos:engine:copy": "copyfiles -f \"../engine/poker-lib/node-addon/src/*.ts\" src/services/engine && copyfiles -f \"./lib/darwin_x64/*\" dist/assets/engine",
+        "macos:prepare": "run-s prepare macos:engine:copy",
         "prestart": "run-s contracts:deploy contracts:copy",
         "start": "tsc && electron-forge start",
         "prematic:start": "run-s matic:contracts:deploy matic:contracts:copy",
