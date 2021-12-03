@@ -36,19 +36,7 @@ export class GameImpl implements Game {
     ) {
         this.turnBasedGame.receiveResultClaimed().then(this._onResultClaimed.bind(this));
         this.turnBasedGame.receiveGameOver().then((fundsShare) => {
-            console.log(`### [Player ${this.playerId}] Received Game Over ###`);
-            // compute result based on fundsShare received from GameOver event
-            this.gameOverResult = {
-                fundsShare,
-                isWinner: Array(2),
-                hands: Array(2),
-            };
-            // - define winners: anyone who has not lost money is considered a winner
-            this.gameOverResult.isWinner[this.playerId] = fundsShare[this.playerId].gte(this.playerFunds);
-            this.gameOverResult.isWinner[this.opponentId] = fundsShare[this.opponentId].gte(this.opponentFunds);
-            // - set hands as unknown (if there was game-specific data included in the GameOver event we could do better)
-            this.gameOverResult.hands = Array(2);
-            this.onEnd();
+            this._gameOverReceived(fundsShare);
         });
         this.turnBasedGame.receiveGameChallenged().then((reason: string) => {
             this._gameChallengeReceived(reason);
@@ -56,23 +44,6 @@ export class GameImpl implements Game {
         this.turnBasedGame.receiveVerificationUpdate().then((update) => {
             this._verificationUpdateReceived(update[0], update[1]);
         });
-    }
-
-    private _gameChallengeReceived(reason: string) {
-        this.onEvent(`GameChallenged received: ${reason}`, EventType.UPDATE_STATE);
-        this.verificationState = VerificationState.STARTED;
-        this.turnBasedGame.receiveGameChallenged().then((reason: string) => this._gameChallengeReceived(reason));
-    }
-
-    private _verificationUpdateReceived(state: VerificationState, message: string) {
-        this.onEvent(`verificationReceived: ${message} (${state})`, EventType.UPDATE_STATE);       
-        
-        this.turnBasedGame.receiveVerificationUpdate().then((update) => {
-            this._verificationUpdateReceived(update[0], update[1]);
-        });
-        
-        this.verificationState = state;
-        this.onVerification(state, message);
     }
 
     start(): Promise<void> {
@@ -551,6 +522,39 @@ export class GameImpl implements Game {
             console.log(`### [Player ${this.playerId}] Confirm result ###`);
             await this.turnBasedGame.confirmResult();
         }
+    }
+
+    private _gameOverReceived(fundsShare: BigNumber[]) {
+        console.log(`### [Player ${this.playerId}] Received Game Over ###`);
+        // compute result based on fundsShare received from GameOver event
+        this.gameOverResult = {
+            fundsShare,
+            isWinner: Array(2),
+            hands: Array(2),
+        };
+        // - define winners: anyone who has not lost money is considered a winner
+        this.gameOverResult.isWinner[this.playerId] = fundsShare[this.playerId].gte(this.playerFunds);
+        this.gameOverResult.isWinner[this.opponentId] = fundsShare[this.opponentId].gte(this.opponentFunds);
+        // - set hands as unknown (if there was game-specific data included in the GameOver event we could do better)
+        this.gameOverResult.hands = Array(2);
+        this.onEnd();
+    }
+
+    private _gameChallengeReceived(reason: string) {
+        this.onEvent(`GameChallenged received: ${reason}`, EventType.UPDATE_STATE);
+        this.verificationState = VerificationState.STARTED;
+		this.turnBasedGame.receiveGameChallenged().then((reason: string) => this._gameChallengeReceived(reason));
+    }
+
+    private _verificationUpdateReceived(state: VerificationState, message: string) {
+        this.onEvent(`verificationReceived: ${message} (${state})`, EventType.UPDATE_STATE);
+
+        this.turnBasedGame.receiveVerificationUpdate().then((update) => {
+            this._verificationUpdateReceived(update[0], update[1]);
+        });
+
+        this.verificationState = state;
+        this.onVerification(state, message);
     }
 
     // TODO: Maybe ask Engine who is Dealer/Small Blind/Big Blind?
