@@ -148,6 +148,10 @@ export class SplashScene extends Phaser.Scene {
         AudioManager.playMusic("soundtrack", 0.1);
     }
     private toggleWalletInfo() {
+        let extraScale = (0.67 - GameVars.scaleY) * 2.5;
+        const sp = { x: 1 + extraScale / 2, y: GameVars.scaleY * (1 + extraScale / 2) };
+        const sl = { x: (1 - (GameVars.scaleX - 1)) * GameVars.scaleX, y: 1 - (GameVars.scaleX - 1) }
+
         if (this.walletInfoMinContainer.visible) {
             this.walletInfoContainer.setAlpha(0).setVisible(true);
             this.add.tween({
@@ -157,9 +161,7 @@ export class SplashScene extends Phaser.Scene {
                 onComplete: () => { this.walletInfoMinContainer.setVisible(false) },
                 onCompleteScope: this
             });
-            let extraScale = (0.67 - GameVars.scaleY) * 2.5;
-            const sp = { x: 1.2 + extraScale / 2, y: GameVars.scaleY * (1.2 + extraScale / 2) };
-            const sl = { x: (1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, y: 1 - (GameVars.scaleX - 1.2) }
+
             this.add.tween({
                 targets: this.walletInfoContainer,
                 scaleX: { from: 0, to: GameVars.landscape ? sl.x : sp.x },
@@ -176,7 +178,8 @@ export class SplashScene extends Phaser.Scene {
             });
             this.add.tween({
                 targets: this.walletInfoContainer,
-                scale: { from: 1, to: 0 },
+                scaleX: { to: 0, from: GameVars.landscape ? sl.x : sp.x },
+                scaleY: { to: 0, from: GameVars.landscape ? sl.y : sp.y },
                 alpha: { from: 1, to: 0 },
                 duration: 200,
                 onComplete: () => { this.walletInfoContainer.setVisible(false) },
@@ -197,14 +200,14 @@ export class SplashScene extends Phaser.Scene {
             if (GameVars.scaleX > 1.2) {
                 this.topContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
                 this.chooseAvatarLayer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
-                this.walletInfoContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
-                this.walletInfoMinContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+                this.walletInfoContainer.setScale((1 - (GameVars.scaleX - 1)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1));
+                this.walletInfoMinContainer.setScale((1 - (GameVars.scaleX - 1)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1));
 
             } else {
                 this.topContainer.setScale(GameVars.scaleX, 1);
                 this.chooseAvatarLayer.setScale(GameVars.scaleX, 1);
-                this.walletInfoContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
-                this.walletInfoMinContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+                this.walletInfoContainer.setScale((1 - (GameVars.scaleX - 1)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1));
+                this.walletInfoMinContainer.setScale((1 - (GameVars.scaleX - 1)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1));
 
             }
             this.chooseAvatarLayer.setLandscapeMode();
@@ -215,8 +218,8 @@ export class SplashScene extends Phaser.Scene {
             this.chooseAvatarLayer.setScale(1.2 + extraScale / 2, GameVars.scaleY * (1.2 + extraScale / 2));
             this.chooseAvatarLayer.setPortraitMode();
 
-            this.walletInfoContainer.setScale(1.2 + extraScale / 2, GameVars.scaleY * (1.2 + extraScale / 2));
-            this.walletInfoMinContainer.setScale(1.2 + extraScale / 2, GameVars.scaleY * (1.2 + extraScale / 2));
+            this.walletInfoContainer.setScale(1 + extraScale / 2, GameVars.scaleY * (1 + extraScale / 2));
+            this.walletInfoMinContainer.setScale(1 + extraScale / 2, GameVars.scaleY * (1 + extraScale / 2));
 
         }
     }
