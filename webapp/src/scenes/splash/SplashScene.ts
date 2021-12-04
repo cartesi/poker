@@ -57,6 +57,9 @@ export class SplashScene extends Phaser.Scene {
         let walletInfoBg = new Phaser.GameObjects.Image(this, 0, 0, "texture_atlas_1", "wallet_info_popup");
         walletInfoBg.setOrigin(1, 0).setScale(1);
 
+        let walletInfoTitle = new Phaser.GameObjects.Text(this, walletInfoBg.getCenter().x, 25, "WALLET", { fontFamily: "Oswald-Medium", fontSize: "25px", color: "#ffffff" });
+        walletInfoTitle.setOrigin(0.5);
+
 
         let walletAddressLabel = new Phaser.GameObjects.Text(this, walletInfoBg.getLeftCenter().x + 10, 50, "Wallet Address", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
         let walletNetworkLabel = new Phaser.GameObjects.Text(this, walletAddressLabel.x, walletAddressLabel.y + 35, "Network", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
@@ -96,6 +99,7 @@ export class SplashScene extends Phaser.Scene {
 
         this.walletInfoContainer.add([
             walletInfoBg,
+            walletInfoTitle,
             walletAddressLabel,
             walletNetworkLabel,
             pokerTokensLabel,
