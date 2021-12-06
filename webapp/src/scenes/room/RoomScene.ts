@@ -7,8 +7,8 @@ import { GUI } from "./gui/GUI";
 import { HUD } from "./hud/HUD";
 import { GameManager } from "../../GameManager";
 import { SettingsLayer } from "./SettingsLayer";
-import { SuffleCardsLayer } from "./SuffleCardsLayer";
-import { VerificationState } from '../../services/Game';
+import { ShuffleCardsLayer } from "./ShuffleCardsLayer";
+import { EventType, VerificationState } from '../../services/Game';
 
 export class RoomScene extends Phaser.Scene {
 
@@ -20,7 +20,7 @@ export class RoomScene extends Phaser.Scene {
     public settingsLayer: SettingsLayer;
     public cheatLayer: CheatLayer;
     public verificationLayer: VerificationLayer;
-    public shuffleCardsLayer: SuffleCardsLayer;
+    public shuffleCardsLayer: ShuffleCardsLayer;
 
     constructor() {
 
@@ -44,7 +44,7 @@ export class RoomScene extends Phaser.Scene {
         this.hud = new HUD(this);
         this.add.existing(this.hud);
 
-        this.shuffleCardsLayer = new SuffleCardsLayer(this);
+        this.shuffleCardsLayer = new ShuffleCardsLayer(this);
         this.add.existing(this.shuffleCardsLayer);
 
         this.settingsLayer = new SettingsLayer(this);
@@ -131,6 +131,13 @@ export class RoomScene extends Phaser.Scene {
         setTimeout(() => {
             this.hud.showBetButtons();
         }, 2000);
+    }
+
+    public onDataEvent(msg: string, type: EventType): void {
+
+        if (this.shuffleCardsLayer.visible) {
+            this.shuffleCardsLayer.updateHeading(msg);
+        }
     }
 
     public onEnd(endData: any): void {

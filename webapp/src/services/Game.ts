@@ -56,6 +56,8 @@ export const VerificationStates = [
 // event types
 export enum EventType {
     UPDATE_STATE = "UPDATE STATE",
+    DATA_SEND = "DATA SEND",
+    DATA_WAIT = "DATA WAIT",
     LOG = "LOG",
 }
 

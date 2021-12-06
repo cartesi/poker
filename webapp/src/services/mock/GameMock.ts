@@ -82,6 +82,7 @@ export class GameMock implements Game {
                         this.mykey = "ALICEKEY";
                         const initialInfo = { cryptoStuff: this.cryptoStuff, key: this.mykey };
                         this.onEvent(`Sending initial info ${JSON.stringify(initialInfo)}...`);
+                        this.onEvent("10%", EventType.DATA_SEND);
                         await this._submitTurn(initialInfo, this.opponentIndex, this.playerBets);
 
                         // TODO: try to get this into GameFactory?
@@ -91,14 +92,17 @@ export class GameMock implements Game {
                         }
 
                         // waits for Bob to submit his key
+                        this.onEvent("40%", EventType.DATA_WAIT);
                         this._keyReceived((await this.turnBasedGame.receiveTurnOver()).data);
 
                         // shuffles deck and sends it over
                         this._shuffleDeck();
                         this.onEvent(`Sending shuffled deck...`);
+                        this.onEvent("65%", EventType.DATA_SEND);
                         await this._submitTurn(this.deck, this.opponentIndex, this.playerBets);
 
                         // awaits for Bob's reshuffled deck
+                        this.onEvent("90%", EventType.DATA_SEND);
                         this._deckReceived((await this.turnBasedGame.receiveTurnOver()).data);
                     } else {
                         // BOB
@@ -106,19 +110,23 @@ export class GameMock implements Game {
                         this.opponentBets = BigNumber.from(1);
 
                         // waits for Alice's "cryptostuff" (group info) and key
+                        this.onEvent("20%", EventType.DATA_WAIT);
                         this._initialInfoReceived((await this.turnBasedGame.receiveTurnOver()).data);
 
                         // defines key and sends it
                         this.mykey = "BOBKEY";
                         this.onEvent(`Sending key ${this.mykey}`);
+                        this.onEvent("30%", EventType.DATA_SEND);
                         await this._submitTurn(this.mykey, this.opponentIndex, this.playerBets);
 
                         // waits for Alice's shuffled deck
+                        this.onEvent("50%", EventType.DATA_WAIT);
                         this._deckReceived((await this.turnBasedGame.receiveTurnOver()).data);
 
                         // reshuffles deck and sends it back
                         this._shuffleDeck();
                         this.onEvent(`Sending reshuffled deck...`);
+                        this.onEvent("80%", EventType.DATA_SEND);
                         await this._submitTurn(this.deck, this.opponentIndex, this.playerBets);
                     }
 

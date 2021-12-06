@@ -2,12 +2,11 @@ import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameVars } from "../../GameVars";
 
-export class SuffleCardsLayer extends Phaser.GameObjects.Container {
+export class ShuffleCardsLayer extends Phaser.GameObjects.Container {
 
     private midContainer: Phaser.GameObjects.Container;
 
     private cards: Phaser.GameObjects.Image[];
-    private timer: NodeJS.Timeout;
     private titleText: Phaser.GameObjects.Text;
 
     constructor(scene: Phaser.Scene) {
@@ -22,10 +21,6 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
         this.midContainer.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT / 2);
         this.add(this.midContainer);
 
-        let box = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "box");
-        this.midContainer.add(box);
-
-
         let bck = new Phaser.GameObjects.Image(this.scene, 0, 30, "texture_atlas_1", "phase_shadow");
         bck.setScale(1, 1);
         this.midContainer.add(bck);
@@ -34,7 +29,7 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
         text.setOrigin(.5);
         this.midContainer.add(text);
 
-        this.titleText = new Phaser.GameObjects.Text(this.scene, 0, -110, "Event 1 arrived", { fontFamily: "Oswald-Medium", fontSize: "40px", color: "#FFFFFF", align: "center" });
+        this.titleText = new Phaser.GameObjects.Text(this.scene, 0, 125, "Initializing...", { fontFamily: "Oswald-Medium", fontSize: "40px", color: "#FFFFFF", align: "center" });
         this.titleText.setOrigin(.5);
         this.midContainer.add(this.titleText);
 
@@ -75,8 +70,6 @@ export class SuffleCardsLayer extends Phaser.GameObjects.Container {
             },
             onCompleteScope: this
         });
-
-        clearInterval(this.timer);
     }
 
     public setScalesAndPositions(): void {

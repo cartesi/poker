@@ -328,6 +328,7 @@ export class GameImpl implements Game {
         console.log(`### [Player ${this.playerId}] Create Handshake ###`);
         let result = await this.engine.create_handshake();
         console.log(`### [Player ${this.playerId}] Submit turn ###`);
+        this._notifyHandshakeProgress(EventType.DATA_SEND);
         return this._submitTurn(result.message_out);
     }
 
@@ -335,6 +336,7 @@ export class GameImpl implements Game {
         console.log(`### [Player ${this.playerId}] Process Handshake ###`);
         let result: EngineResult;
         do {
+            this._notifyHandshakeProgress(EventType.DATA_WAIT);
             const turnInfo = await this.turnBasedGame.receiveTurnOver();
             console.log(`### [Player ${this.playerId}] On turn received ###`);
 
@@ -349,11 +351,22 @@ export class GameImpl implements Game {
 
             if (hasMessageOut) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
+                this._notifyHandshakeProgress(EventType.DATA_SEND);
                 await this._submitTurn(result.message_out);
             }
         } while (result.status == StatusCode.CONTINUED);
 
         return Promise.resolve();
+    }
+
+    private async _notifyHandshakeProgress(eventType: EventType): Promise<void> {
+        const state = (await this.engine.game_state()).step;
+        let percentage = (state/9)*100;
+        if (eventType === EventType.DATA_SEND) {
+            percentage -= 5;
+        }
+        const percentageStr = percentage.toFixed(0);
+        this.onEvent(`${percentageStr}%`, eventType);
     }
 
     private async _createBet(type: EngineBetType, amount: BigNumber = BigNumber.from(0)): Promise<EngineResult> {
