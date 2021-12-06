@@ -61,10 +61,10 @@ export class SplashScene extends Phaser.Scene {
         walletInfoTitle.setOrigin(0.5);
 
 
-        let walletAddressLabel = new Phaser.GameObjects.Text(this, walletInfoBg.getLeftCenter().x + 10, 50, "Wallet Address", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        let walletNetworkLabel = new Phaser.GameObjects.Text(this, walletAddressLabel.x, walletAddressLabel.y + 35, "Network", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        let balanceLabel = new Phaser.GameObjects.Text(this, walletNetworkLabel.x, walletNetworkLabel.y + 35, "Balance", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        let pokerTokensLabel = new Phaser.GameObjects.Text(this, balanceLabel.x, balanceLabel.y + 35, "Poker Tokens", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        let walletAddressLabel = new Phaser.GameObjects.Text(this, walletInfoBg.getLeftCenter().x + 10, 50, "Address:", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        let walletNetworkLabel = new Phaser.GameObjects.Text(this, walletAddressLabel.x, walletAddressLabel.y + 35, "Network:", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        let balanceLabel = new Phaser.GameObjects.Text(this, walletNetworkLabel.x, walletNetworkLabel.y + 35, "Balance:", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        let pokerTokensLabel = new Phaser.GameObjects.Text(this, balanceLabel.x, balanceLabel.y + 35, "Poker Tokens:", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
 
 
         this.walletAddressText = new Phaser.GameObjects.Text(this, walletInfoBg.getRightCenter().x - 35, walletAddressLabel.y, "Loading...", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff", align: "center" });
@@ -239,7 +239,7 @@ export class SplashScene extends Phaser.Scene {
         this.walletNetworkText.text = Wallet.getNetwork();
 
         Wallet.getBalance().then(balance => {
-            this.balanceText.text = parseFloat(ethers.utils.formatEther(balance)).toFixed(2);
+            this.balanceText.text = parseFloat(ethers.utils.formatEther(balance)).toFixed(4);
         });
         Wallet.getPokerTokens().then(tokens => {
             this.pokerTokensText.text = tokens.toString();
