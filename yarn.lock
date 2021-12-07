@@ -253,7 +253,7 @@
   dependencies:
     "@cartesi/util" "^2.0.1"
 
-"@cartesi/descartes-sdk@^1.2.1":
+"@cartesi/descartes-sdk@^1.2.1", "@cartesi/descartes-sdk@^1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@cartesi/descartes-sdk/-/descartes-sdk-1.2.2.tgz#a90f4e2716bdffa229a20f2949d0d9af9be8497f"
   integrity sha512-5lQASZixQbiVed/097SNo5u+YZUqlWfodyKAbOk3fviA1P5KafvH+f8F/wvHhPOTLzT54c2zyy+afH30owGDjQ==
@@ -1106,7 +1106,7 @@
   dependencies:
     cross-spawn "^7.0.1"
 
-"@metamask/onboarding@^1.0.0":
+"@metamask/onboarding@^1.0.0", "@metamask/onboarding@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/onboarding/-/onboarding-1.0.1.tgz#14a36e1e175e2f69f09598e2008ab6dc1b3297e6"
   integrity sha512-FqHhAsCI+Vacx2qa5mAFcWNSrTcVGMNjzxVgaX8ECSny/BJ9/vgXP9V7WF/8vb9DltPeQkxr+Fnfmm6GHfmdTQ==
