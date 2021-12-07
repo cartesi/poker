@@ -9,6 +9,7 @@
         "src:copy": "ncp electron_src src",
         "webapp:clean": "rimraf dist/assets && rimraf dist/audiosprite && rimraf dist/textures && rimraf dist/index.html && rimraf assets && rimraf src && rimraf types",
         "webapp:copy": "mkdirp dist && ncp ../webapp/assets dist/assets && copyfiles -u 2 ../webapp/assets/audio/audiosprite.mp3 . &&  ncp ../webapp/audiosprite dist/audiosprite && ncp ../webapp/textures dist/textures && ncp ../webapp/src src && ncp ../webapp/types types && copyfiles -u 2 \"../webapp/index.html\" dist",
+        "postwebapp:copy": "replace-in-file '<script src=\"dist/bundle.js\"></script>' '<script>require(\"./app.js\")</script>' dist/index.html",
         "contracts:deploy": "cd ../blockchain && yarn deploy",
         "contracts:build": "cd ../blockchain && yarn build",
         "contracts:copy": "copyfiles -f \"../blockchain/deployments/localhost/TurnBasedGame*.json\" ./src/abis/ && copyfiles -f \"../blockchain/deployments/localhost/Poker*.json\" ./src/abis/ && copyfiles -f ../blockchain/descartes-env/deployments/localhost/Descartes.json ./src/abis/ && copyfiles -f ../blockchain/descartes-env/deployments/localhost/Logger.json ./src/abis/ && ncp ../blockchain/src/types/ ./src/types/",
@@ -59,6 +60,7 @@
         "ncp": "^2.0.0",
         "npm-run-all": "^4.1.5",
         "prettier": "^2.5.0",
+        "replace-in-file": "^6.3.2",
         "rimraf": "^3.0.2",
         "typescript": "^4.0.2"
     },
