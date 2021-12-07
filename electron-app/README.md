@@ -20,6 +20,8 @@ After preparing the application, run the application using one of the following 
 - `yarn start`, to run _Poker_ against a [local Descartes environment](../blockchain/descartes-env/)
 - `yarn matic:start`, to run _Poker_ against the Mumbai Matic Testnet
 - `yarn dev`, to run _Poker_ in development mode
+- `yarn dev:mock`, to run _Poker_ in development but in full mock mode (query string: `?mock`)
+- `yarn dev:transportmock`, to run _Poker_ in development mode, but using a _mock_ transport with no encryption (query string: `?transport=mock&encryption=off`)
 
 As an example, in order to prepare and execute the application on localhost using a MacOS engine, do as follows:
 
@@ -53,6 +55,17 @@ For MacOS, do as follows:
 
 ```shell
 $ ./out/cartesi-texas-hodlem-darwin-x64/cartesi-texas-hodlem.app/Contents/MacOS/cartesi-texas-hodlem
+```
+
+### Mock mode
+
+The available mock modes may also be activated via the executable.
+In order to do it, simply execute the binary passing either `mock` or `transport_mock` as an argument.
+
+Examnle:
+
+```shell
+$ ./out/cartesi-texas-hodlem-darwin-x64/cartesi-texas-hodlem.app/Contents/MacOS/cartesi-texas-hodlem mock
 ```
 
 ## Making Distributables

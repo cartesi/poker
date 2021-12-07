@@ -19,7 +19,18 @@ const createWindow = (): void => {
     });
 
     // and load the index.html of the app.
-    mainWindow.loadFile(path.join(__dirname, "../src/index.html"));
+    const filePath = path.join(__dirname, "../dist/index.html");
+
+    let options;
+    if (process.argv.find((arg) => arg.startsWith("mock"))) {
+        options = { search: "mock" };
+        console.log("Running in MOCK mode.", options);
+    } else if (process.argv.find((arg) => arg.startsWith("transport_mock"))) {
+        options = { search: "transport=mock&encryption=off" };
+        console.log("Running in TRANSPORT_MOCK mode.", options);
+    }
+
+    mainWindow.loadFile(filePath, options);
 };
 
 // This method will be called when Electron has finished

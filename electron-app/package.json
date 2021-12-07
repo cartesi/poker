@@ -29,6 +29,10 @@
         "package": "rimraf out && tsc && electron-forge package",
         "predev": "run-s prepackage",
         "dev": "tsc && electron-forge start",
+        "predev:mock": "run-s predev",
+        "dev:mock": "tsc && electron-forge start -- mock",
+        "predev:transportmock": "run-s predev",
+        "dev:transportmock": "tsc && electron-forge start -- transport_mock",
         "make": "run-s package && electron-forge make --skip-package",
         "publish": "electron-forge publish",
         "lint": "eslint --ext .ts ."
