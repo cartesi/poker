@@ -2,7 +2,7 @@ import { BigNumber, ethers } from "ethers";
 import { Card } from "../Card";
 import { BetType, EventType, Game, GameState, GameStates, VerificationState, VerificationStates } from "../Game";
 import { PokerSolver } from "../PokerSolver";
-import { TurnBasedGame } from "../TurnBasedGame";
+import { TurnBasedGame, TurnInfo } from "../TurnBasedGame";
 
 // involved players
 const ALICE = 0;
@@ -82,8 +82,7 @@ export class GameMock implements Game {
                         this.mykey = "ALICEKEY";
                         const initialInfo = { cryptoStuff: this.cryptoStuff, key: this.mykey };
                         this.onEvent(`Sending initial info ${JSON.stringify(initialInfo)}...`);
-                        this.onEvent("10%", EventType.DATA_SEND);
-                        await this._submitTurn(initialInfo, this.opponentIndex, this.playerBets);
+                        await this._submitTurn(initialInfo, this.opponentIndex, this.playerBets, "10%");
 
                         // TODO: try to get this into GameFactory?
                         if (this.gameOpponent) {
@@ -92,42 +91,35 @@ export class GameMock implements Game {
                         }
 
                         // waits for Bob to submit his key
-                        this.onEvent("40%", EventType.DATA_WAIT);
-                        this._keyReceived((await this.turnBasedGame.receiveTurnOver()).data);
+                        this._keyReceived((await this._receiveTurnOver("20%")).data);
 
                         // shuffles deck and sends it over
                         this._shuffleDeck();
                         this.onEvent(`Sending shuffled deck...`);
-                        this.onEvent("65%", EventType.DATA_SEND);
-                        await this._submitTurn(this.deck, this.opponentIndex, this.playerBets);
+                        await this._submitTurn(this.deck, this.opponentIndex, this.playerBets, "50%");
 
                         // awaits for Bob's reshuffled deck
-                        this.onEvent("90%", EventType.DATA_SEND);
-                        this._deckReceived((await this.turnBasedGame.receiveTurnOver()).data);
+                        this._deckReceived((await this._receiveTurnOver("60%")).data);
                     } else {
                         // BOB
                         this.playerBets = BigNumber.from(2);
                         this.opponentBets = BigNumber.from(1);
 
                         // waits for Alice's "cryptostuff" (group info) and key
-                        this.onEvent("20%", EventType.DATA_WAIT);
-                        this._initialInfoReceived((await this.turnBasedGame.receiveTurnOver()).data);
+                        this._initialInfoReceived((await this._receiveTurnOver("5%")).data);
 
                         // defines key and sends it
                         this.mykey = "BOBKEY";
                         this.onEvent(`Sending key ${this.mykey}`);
-                        this.onEvent("30%", EventType.DATA_SEND);
-                        await this._submitTurn(this.mykey, this.opponentIndex, this.playerBets);
+                        await this._submitTurn(this.mykey, this.opponentIndex, this.playerBets, "30%");
 
                         // waits for Alice's shuffled deck
-                        this.onEvent("50%", EventType.DATA_WAIT);
-                        this._deckReceived((await this.turnBasedGame.receiveTurnOver()).data);
+                        this._deckReceived((await this._receiveTurnOver("40%")).data);
 
                         // reshuffles deck and sends it back
                         this._shuffleDeck();
                         this.onEvent(`Sending reshuffled deck...`);
-                        this.onEvent("80%", EventType.DATA_SEND);
-                        await this._submitTurn(this.deck, this.opponentIndex, this.playerBets);
+                        await this._submitTurn(this.deck, this.opponentIndex, this.playerBets, "70%");
                     }
 
                     // advances state to start game (will deal private cards)
@@ -157,7 +149,7 @@ export class GameMock implements Game {
     }
 
     async fold() {
-        await this._submitTurn("FOLD", this.opponentIndex, this.playerBets);
+        await this._submitTurn("FOLD", this.opponentIndex, this.playerBets, "Sending fold...");
         this._computeResultPlayerFold();
     }
 
@@ -294,12 +286,18 @@ export class GameMock implements Game {
         }
     }
 
-    async _submitTurn(data: any, nextPlayer: number, playerStake: BigNumber) {
+    async _submitTurn(data: any, nextPlayer: number, playerStake: BigNumber, eventMsg: string) {
+        this.onEvent(eventMsg, EventType.DATA_SEND);
         await this.turnBasedGame.submitTurn({
             data: ethers.utils.toUtf8Bytes(JSON.stringify(data)),
             nextPlayer,
             playerStake,
         });
+    }
+
+    private async _receiveTurnOver(eventMsg: string): Promise<TurnInfo> {
+        this.onEvent(eventMsg, EventType.DATA_WAIT);
+        return await this.turnBasedGame.receiveTurnOver();
     }
 
     _decodeTurnData(dataBytesPadded: Uint8Array): any {
@@ -380,7 +378,7 @@ export class GameMock implements Game {
         return card;
     }
 
-    async _sendCards(...cardIndexes) {
+    async _sendCards(msg: string, ...cardIndexes) {
         const decryptedCards = {};
 
         for (var cardIndex of cardIndexes) {
@@ -389,7 +387,7 @@ export class GameMock implements Game {
             decryptedCards[cardIndex] = this.cheat.isCardCoopCheatOn ? card : this._decryptCard(card);
         }
 
-        await this._submitTurn(decryptedCards, this.opponentIndex, this.playerBets);
+        await this._submitTurn(decryptedCards, this.opponentIndex, this.playerBets, msg);
     }
 
     async _dealPrivateCards() {
@@ -397,23 +395,23 @@ export class GameMock implements Game {
         if (this.playerIndex == ALICE) {
             // Alice first sends Bob's private cards and then waits for Bob to reveal hers
             this.onEvent(`Dealing opponent's private cards...`);
-            await this._sendPrivateCards(BOB);
-            this._decryptedCardsReceived((await this.turnBasedGame.receiveTurnOver()).data);
+            await this._sendPrivateCards("80%", BOB);
+            this._decryptedCardsReceived((await this._receiveTurnOver("90%")).data);
         } else {
             // Bob first waits for Alice to reveal his cards and then sends hers
-            this._decryptedCardsReceived((await this.turnBasedGame.receiveTurnOver()).data);
+            this._decryptedCardsReceived((await this._receiveTurnOver("80%")).data);
             this.onEvent(`Dealing opponent's private cards...`);
-            await this._sendPrivateCards(ALICE);
+            await this._sendPrivateCards("90%", ALICE);
         }
     }
 
-    async _sendPrivateCards(player) {
+    async _sendPrivateCards(msg: string, player) {
         if (player == ALICE) {
             // decrypts Alice's cards (indices 0,1) and sends them over
-            await this._sendCards(0, 1);
+            await this._sendCards(msg, 0, 1);
         } else {
             // decrypts Bob's cards (indices 2,3) and sends them over
-            await this._sendCards(2, 3);
+            await this._sendCards(msg, 2, 3);
         }
     }
 
@@ -421,15 +419,15 @@ export class GameMock implements Game {
         if (this.playerIndex == this.betLeader) {
             // decrypts Flop cards and sends them over
             this.onEvent(`Dealing FLOP cards...`);
-            await this._sendCards(4, 5, 6);
+            await this._sendCards("Sending card proofs...", 4, 5, 6);
             // waits for the opponent to send decrypted cards
-            this._decryptedCardsReceived((await this.turnBasedGame.receiveTurnOver()).data);
+            this._decryptedCardsReceived((await this._receiveTurnOver("Waiting for opponent...")).data);
         } else {
             // waits for the opponent to send decrypted cards
-            this._decryptedCardsReceived((await this.turnBasedGame.receiveTurnOver()).data);
+            this._decryptedCardsReceived((await this._receiveTurnOver("Waiting for opponent...")).data);
             // decrypts Flop cards and sends them over
             this.onEvent(`Dealing FLOP cards...`);
-            await this._sendCards(4, 5, 6);
+            await this._sendCards("Sending card proofs...", 4, 5, 6);
         }
     }
 
@@ -437,15 +435,15 @@ export class GameMock implements Game {
         if (this.playerIndex == this.betLeader) {
             // decrypts Turn card and sends it over
             this.onEvent(`Dealing TURN card...`);
-            await this._sendCards(7);
+            await this._sendCards("Sending card proofs...", 7);
             // waits for the opponent to send decrypted card
-            this._decryptedCardsReceived((await this.turnBasedGame.receiveTurnOver()).data);
+            this._decryptedCardsReceived((await this._receiveTurnOver("Waiting for opponent...")).data);
         } else {
             // waits for the opponent to send decrypted card
-            this._decryptedCardsReceived((await this.turnBasedGame.receiveTurnOver()).data);
+            this._decryptedCardsReceived((await this._receiveTurnOver("Waiting for opponent...")).data);
             // decrypts Turn card and sends it over
             this.onEvent(`Dealing TURN card...`);
-            await this._sendCards(7);
+            await this._sendCards("Sending card proofs...", 7);
         }
     }
 
@@ -453,15 +451,15 @@ export class GameMock implements Game {
         if (this.playerIndex == this.betLeader) {
             // decrypts River card and sends it over
             this.onEvent(`Dealing RIVER card...`);
-            await this._sendCards(8);
+            await this._sendCards("Sending card proofs...", 8);
             // waits for the opponent to send decrypted card
-            this._decryptedCardsReceived((await this.turnBasedGame.receiveTurnOver()).data);
+            this._decryptedCardsReceived((await this._receiveTurnOver("Waiting for opponent...")).data);
         } else {
             // waits for the opponent to send decrypted card
-            this._decryptedCardsReceived((await this.turnBasedGame.receiveTurnOver()).data);
+            this._decryptedCardsReceived((await this._receiveTurnOver("Waiting for opponent...")).data);
             // decrypts River card and sends it over
             this.onEvent(`Dealing RIVER card...`);
-            await this._sendCards(8);
+            await this._sendCards("Sending card proofs...", 8);
         }
     }
 
@@ -469,12 +467,12 @@ export class GameMock implements Game {
         if (this.playerIndex == this.betLeader) {
             // bet leader has received the call and needs to reveal his cards
             this.onEvent(`Showing cards to opponent...`);
-            await this._sendPrivateCards(this.playerIndex);
+            await this._sendPrivateCards("Sending card proofs...", this.playerIndex);
             // waits for opponent to send his cards (or fold)
-            this._decryptedCardsReceived((await this.turnBasedGame.receiveTurnOver()).data);
+            this._decryptedCardsReceived((await this._receiveTurnOver("Waiting for opponent...")).data);
         } else {
             // made the call: waits for the opponent's cards to be revealed
-            this._decryptedCardsReceived((await this.turnBasedGame.receiveTurnOver()).data);
+            this._decryptedCardsReceived((await this._receiveTurnOver("Waiting for opponent...")).data);
         }
     }
 
@@ -510,7 +508,7 @@ export class GameMock implements Game {
             if (this.result.isWinner[this.playerIndex]) {
                 // player won: reveals private cards to prove that he won
                 this.onEvent(`Showing cards to opponent...`);
-                await this._sendPrivateCards(this.playerIndex);
+                await this._sendPrivateCards("Sending card proofs...", this.playerIndex);
                 // submits computed result
                 await this.turnBasedGame.claimResult(this.result.fundsShare);
             } else {
@@ -563,7 +561,7 @@ export class GameMock implements Game {
         }
 
         // sends new bets over
-        await this._submitTurn(newPlayerBets, this.opponentIndex, newPlayerBets);
+        await this._submitTurn(newPlayerBets, this.opponentIndex, newPlayerBets, "Sending bet...");
 
         this.currentPlayer = this.opponentIndex;
         this.playerBets = newPlayerBets;
@@ -573,7 +571,7 @@ export class GameMock implements Game {
         }
         if (this.playerIndex == this.betLeader) {
             // bet leader: will react when opponent's bet is received
-            this.turnBasedGame.receiveTurnOver().then((info) => this._betsReceived(info.data));
+            this._receiveTurnOver("Waiting for opponent...").then((info) => this._betsReceived(info.data));
         } else if (this.playerBets.eq(this.opponentBets)) {
             // player is not leading the round and has matched opponent bets: betting round is complete
             this._advanceState();
@@ -647,7 +645,7 @@ export class GameMock implements Game {
                 this.onBetRequested();
             } else {
                 // the other player will react after the first bet
-                this.turnBasedGame.receiveTurnOver().then((info) => this._betsReceived(info.data));
+                this._receiveTurnOver("Waiting for opponent...").then((info) => this._betsReceived(info.data));
             }
             this.onEvent(this.state, EventType.UPDATE_STATE);
         }

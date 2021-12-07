@@ -93,13 +93,17 @@ export class RoomManager {
         if (!RoomManager.game) {
             return;
         }
-        console.log(`${type}: ${msg}`);
         if (type === EventType.UPDATE_STATE) {
             // state update
+            console.log(`${type}: ${msg}`);
             RoomManager.updateBoard();
         } else if (type === EventType.DATA_SEND || type === EventType.DATA_WAIT) {
             // data event (submit or receive)
+            console.log(`${type}: ${msg}`);
             RoomScene.currentInstance.onDataEvent(msg, type);
+        } else {
+            // general event logging
+            console.log(`${EventType.LOG}: ${msg}`);
         }
     }
 

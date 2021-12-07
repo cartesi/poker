@@ -307,7 +307,7 @@ export class GameImpl implements Game {
         };
     }
 
-    private async _submitTurn(data: Uint8Array): Promise<TurnInfo> {
+    private async _submitTurn(data: Uint8Array, eventMsg: string): Promise<TurnInfo> {
         // defines nextPlayer to act, who will be held accountable in case of a timeout
         let nextPlayer;
         if ((await this.getState()) == GameState.END) {
@@ -317,6 +317,7 @@ export class GameImpl implements Game {
             // otherwise, use the engine's indicated next message author (next player to act)
             nextPlayer = await this.getNextMessageAuthor();
         }
+        this.onEvent(eventMsg, EventType.DATA_SEND);
         return this.turnBasedGame.submitTurn({
             data,
             nextPlayer: nextPlayer,
@@ -324,20 +325,25 @@ export class GameImpl implements Game {
         });
     }
 
+    private async _receiveTurnOver(eventMsg: string): Promise<TurnInfo> {
+        this.onEvent(eventMsg, EventType.DATA_WAIT);
+        return await this.turnBasedGame.receiveTurnOver();
+    }
+
     private async _createHandshake(): Promise<TurnInfo> {
         console.log(`### [Player ${this.playerId}] Create Handshake ###`);
         let result = await this.engine.create_handshake();
         console.log(`### [Player ${this.playerId}] Submit turn ###`);
-        this._notifyHandshakeProgress(EventType.DATA_SEND);
-        return this._submitTurn(result.message_out);
+        const eventMsg = await this._computeHandshakeProgress(EventType.DATA_SEND);
+        return this._submitTurn(result.message_out, eventMsg);
     }
 
     private async _processHandshake(): Promise<void> {
         console.log(`### [Player ${this.playerId}] Process Handshake ###`);
         let result: EngineResult;
         do {
-            this._notifyHandshakeProgress(EventType.DATA_WAIT);
-            const turnInfo = await this.turnBasedGame.receiveTurnOver();
+            const eventMsg = await this._computeHandshakeProgress(EventType.DATA_WAIT);
+            const turnInfo = await this._receiveTurnOver(eventMsg);
             console.log(`### [Player ${this.playerId}] On turn received ###`);
 
             const message_in = turnInfo.data;
@@ -351,29 +357,28 @@ export class GameImpl implements Game {
 
             if (hasMessageOut) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
-                this._notifyHandshakeProgress(EventType.DATA_SEND);
-                await this._submitTurn(result.message_out);
+                const eventMsg = await this._computeHandshakeProgress(EventType.DATA_SEND);
+                await this._submitTurn(result.message_out, eventMsg);
             }
         } while (result.status == StatusCode.CONTINUED);
 
         return Promise.resolve();
     }
 
-    private async _notifyHandshakeProgress(eventType: EventType): Promise<void> {
+    private async _computeHandshakeProgress(eventType: EventType): Promise<string> {
         const state = (await this.engine.game_state()).step;
         let percentage = (state/9)*100;
         if (eventType === EventType.DATA_SEND) {
             percentage -= 5;
         }
-        const percentageStr = percentage.toFixed(0);
-        this.onEvent(`${percentageStr}%`, eventType);
+        return `${percentage.toFixed(0)}%`;
     }
 
     private async _createBet(type: EngineBetType, amount: BigNumber = BigNumber.from(0)): Promise<EngineResult> {
         console.log(`### [Player ${this.playerId}] Created bet ###`);
         let bet = await this.engine.create_bet(type, amount);
         console.log(`### [Player ${this.playerId}] Submit turn ###`);
-        await this._submitTurn(bet.message_out);
+        await this._submitTurn(bet.message_out, "Sending bet...");
 
         console.log(`### [Player ${this.playerId}] Bet Resolved ###`);
         return bet;
@@ -384,7 +389,7 @@ export class GameImpl implements Game {
         let result: EngineResult;
         let receivedBetType: BetType;
         do {
-            const turnInfo = await this.turnBasedGame.receiveTurnOver();
+            const turnInfo = await this._receiveTurnOver("Waiting for opponent...");
             console.log(`### [Player ${this.playerId}] On turn received ###`);
 
             const message_in = turnInfo.data;
@@ -409,7 +414,7 @@ export class GameImpl implements Game {
 
             if (hasMessageOut) {
                 console.log(`### [Player ${this.playerId}] Submit turn ###`);
-                await this._submitTurn(result.message_out);
+                await this._submitTurn(result.message_out, "Sending protocol response...");
             }
         } while (result.status == StatusCode.CONTINUED);
 
