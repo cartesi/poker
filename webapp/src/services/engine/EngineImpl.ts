@@ -25,10 +25,11 @@ export class EngineImpl implements Engine {
         alice_funds: BigNumber,
         bob_funds: BigNumber,
         big_blind: BigNumber,
-        encryption: boolean = true
+        encryption: boolean = true,
+        winner: number = -1
     ): Promise<EngineResult> {
         // Initialize libraries
-        await this._callWorker("poker_init", makeMessage(encryption), () => StatusCode.SUCCESS);
+        await this._callWorker("poker_init", makeMessage(encryption, false, winner), () => StatusCode.SUCCESS);
 
         // create player instance
         await this._callWorker("poker_new_player", makeMessage(this.player_id), (results) => {

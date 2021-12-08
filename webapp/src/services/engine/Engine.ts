@@ -5,7 +5,8 @@ export interface Engine {
         alice_funds: BigNumber,
         bob_funds: BigNumber,
         big_blind: BigNumber,
-        encryption: boolean
+        encryption: boolean,
+        winner: number
     ): Promise<EngineResult>;
     create_handshake(): Promise<EngineResult>;
     process_handshake(message_in: Uint8Array): Promise<EngineResult>;
