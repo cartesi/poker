@@ -1,29 +1,43 @@
+UNAME = $(shell uname -s)
 BUILD_BASE = /poker/build
+LIB_BASE = $(BUILD_BASE)/lib
+
+ifeq ($(UNAME),Darwin)
+  POKER_BUILD_ENV=Darwin
+  BUILD_BASE=$(shell cd ../..; pwd)/build
+endif
+
 INSTALL_DIR = $(BUILD_BASE)/poker-lib
 CXX = g++
+AR = ar
+SHLIBEXT=.so
+LIBREFS=
+CXXFLAGS = -std=c++11 -fPIC -I$(BUILD_BASE)/include/poker-eval -I$(BUILD_BASE)/include 
+LIBREFS = -L$(LIB_BASE) -lgpg-error -lgcrypt -lgmp -lTMCG -lpoker-eval
 
-CXXFLAGS = -I$(BUILD_BASE)/include/poker-eval -I$(BUILD_BASE)/include -L$(BUILD_BASE)/lib \
-           -lgpg-error -lgcrypt -lgmp -lTMCG -lpoker-eval -fPIC
-
+ifneq ($(filter $(POKER_BUILD_ENV),x64 Darwin risc-v),)
+    LIBREFS += -lbrotlidec -lbrotlienc -lbrotlicommon  
+endif
 ifeq ($(POKER_BUILD_ENV),wasm)
-CXX = emcc
-CXXFLAGS += -O3 -s ALLOW_TABLE_GROWTH \
-            -s ALLOW_MEMORY_GROWTH=1 \
-            -lbrotlidec-static -lbrotlienc-static -lbrotlicommon-static \
-            -s BUILD_AS_WORKER=1 \
-            -s EXPORTED_RUNTIME_METHODS=['cwrap, UTF8ToString, free'] \
-            --bind -fexceptions -std=c++11
-LOADER = node
-else
-    CXXFLAGS += -lbrotlidec -lbrotlienc -lbrotlicommon  
+  CXX = emcc
+  CXXFLAGS += -O3 -s ALLOW_TABLE_GROWTH \
+              -s ALLOW_MEMORY_GROWTH=1 \
+              -s BUILD_AS_WORKER=1 \
+              -s EXPORTED_RUNTIME_METHODS=['cwrap, UTF8ToString, free'] \
+              --bind -fexceptions -std=c++11
+   LIBREFS += -lbrotlidec-static -lbrotlienc-static -lbrotlicommon-static
 endif
-
-CXXFLAGS +=  -std=c++11
-
 ifeq ($(POKER_BUILD_ENV),risc-v)
-CXX = riscv64-cartesi-linux-gnu-g++
-CXXFLAGS += -Wl,-rpath-link=/mnt/poker
+  CXX = riscv64-cartesi-linux-gnu-g++
+  CXXFLAGS += -Wl,-rpath-link=/mnt/poker
 endif
+ifeq ($(POKER_BUILD_ENV),Darwin)
+  CXX=clang++
+  SHLIBEXT=.dylib
+  CXXFLAGS += -mmacosx-version-min=10.10
+endif
+
+CXXFLAGS += $(LIBREFS)
 
 TESTS = test-solver \
     test-poker-lib-c-api \
@@ -35,14 +49,19 @@ TESTS = test-solver \
     test-verifier \
     test-bignumber
 
+# make targets to build
 TARGETS=
 
-# programs to build
+# programs or libraries to build 
 PROGRAMS =
 
 # Files to install in /poker/build/poker-lib
 INSTALL_FILES =
 
+# rules to execute after INSTALL_FILES are copied
+POST_INSTALL =
+
+# program to use as the loader of unit tests
 TEST_LOADER =
 
 ifeq ($(POKER_BUILD_ENV),wasm)
@@ -53,23 +72,20 @@ PROGRAMS += poker-lib-wasm.js
         poker-lib.js \
         test-poker-lib.html
     TEST_LOADER = node
-else ifeq ($(POKER_BUILD_ENV),x64)
-    TARGETS += node-addon
 else
     PROGRAMS += verify
     PROGRAMS += generate
-    PROGRAMS += libpoker.so
+    PROGRAMS += libpoker$(SHLIBEXT)
     TESTS += test-game-playback
+endif
+
+ifneq ($(filter $(POKER_BUILD_ENV),x64 Darwin),)
+    TARGETS += node-addon
 endif
 
 PROGRAMS += $(TESTS)
 INSTALL_FILES += $(PROGRAMS)
 TARGETS += $(PROGRAMS)
-
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@  $^
-
-all: $(TARGETS)
 
 POKER_LIB_OBJS=common.o \
             poker-lib-c-api.o \
@@ -91,31 +107,38 @@ POKER_LIB_OBJS=common.o \
             codec.o
             
 
-poker-lib.a: $(POKER_LIB_OBJS)
-	ar rcs $@ $^
+all: $(TARGETS)
 
-libpoker.so: $(POKER_LIB_OBJS)
-	$(CXX) -shared -o $@ $(POKER_LIB_OBJS) && \
+install: $(PROGRAMS) copy_install_files $(POST_INSTALL)
+
+copy_install_files:
+	mkdir -p $(INSTALL_DIR) && \
+    for f in "$(INSTALL_FILES)"; do cp $$f $(INSTALL_DIR); done
+
+poker-lib.a: $(POKER_LIB_OBJS)
+	$(AR) rcs $@ $^
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@  $^
+
+libpoker$(SHLIBEXT): $(POKER_LIB_OBJS)
+	$(CXX) $(CXXFLAGS) -shared -o $@ $(POKER_LIB_OBJS) && \
   cp $@ $(BUILD_BASE)/lib
 
-poker-lib-wasm.js: poker-lib.a poker-lib-wasm.cpp
+poker-lib-wasm.js: poker-lib-wasm.cpp poker-lib.a
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-node-addon: libpoker.so
-	make -C node-addon BUILD_DEST=$(BUILD_BASE)/lib INSTALL_DIR=$(INSTALL_DIR)
+node-addon: libpoker$(SHLIBEXT)
+	make -C node-addon
 
 test-%: test-%.cpp poker-lib.a
 	$(CXX) $(CXXFLAGS)  -o $@ $^
 
-verify: verify.cpp poker-lib.a
+verify: verify.cpp  poker-lib.a
 	$(CXX) $(CXXFLAGS)  -o $@ $^
     
 generate: generate.cpp poker-lib.a
 	$(CXX) $(CXXFLAGS)  -o $@ $^
-    
-install: $(PROGRAMS)
-	mkdir -p $(INSTALL_DIR) && \
-    for f in "$(INSTALL_FILES)"; do cp $$f $(INSTALL_DIR); done
 
 RUNTESTS := $(addsuffix .run,$(TESTS))
 
@@ -136,3 +159,4 @@ distclean:
 	
 
 .PHONY: test
+

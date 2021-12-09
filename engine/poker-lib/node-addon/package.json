@@ -2,10 +2,10 @@
   "name": "poker-node-addon",
   "version": "1.0.0",
   "scripts": {
-    "build": "node_modules/.bin/node-gyp rebuild --target=13.1.9 --arch=x64 --dist-url=https://electronjs.org/headers && yarn run build-enums && yarn copy",
+    "build": "node_modules/.bin/node-gyp rebuild --target=13.1.9 --arch=x64 --dist-url=https://electronjs.org/headers && yarn run build-enums && yarn copy-files",
     "build-enums": "node ./build-enums.js",
     "test": "node_modules/.bin/mocha --timeout=3600000 -r ts-node/register tests/*.test.ts",
-    "copy": "mkdir -p /poker/build/poker-lib && cp ./src/*.ts /poker/build/poker-lib && cp build/Release/pokerlib.node /poker/build/lib"
+    "copy-files": "./copy-files.sh"
   },
   "devDependencies": {
     "@types/chai": "^4.2.21",

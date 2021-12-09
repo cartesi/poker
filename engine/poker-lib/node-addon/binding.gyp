@@ -6,16 +6,8 @@
         "src/*.cpp"
       ],
       "libraries": [
-        "-L/poker/build/lib",
-        "-lpoker",
-        "-lgmp",
-        "-lgpg-error",
-        "-lpoker-eval",
-        "-lTMCG",
-        "-lbrotlicommon",
-        "-lbrotlidec",
-        "-lbrotlienc",
-        "-lgcrypt"
+        "-L<!(pwd)/../../../build/lib",
+        "-lpoker"
       ]
     }
   ]
