@@ -11,7 +11,11 @@
             "**/electron",
             "**/electron/**",
             "**/electron*",
-            "**/electron*/**"
+            "**/electron*/**",
+            "**/hardhat",
+            "**/hardhat/**",
+            "**/hardhat*",
+            "**/hardhat*/**"
         ]
     },
     "scripts": {
