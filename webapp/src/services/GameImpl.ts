@@ -350,7 +350,7 @@ export class GameImpl implements Game {
             const message_in = turnInfo.data;
             result = await this.engine.process_handshake(message_in);
 
-            let hasMessageOut = result.message_out.length > 0;
+            let hasMessageOut = (result.message_out) && result.message_out.length > 0;
             // after processing opponent's turnInfo message, checks if it is consistent
             await this._checkOpponentTurnInfo(turnInfo, hasMessageOut);
             // after processing turn, checks if engine produced an error
@@ -396,7 +396,7 @@ export class GameImpl implements Game {
             const message_in = turnInfo.data;
             result = await this.engine.process_bet(message_in);
 
-            let hasMessageOut = result.message_out.length > 0;
+            let hasMessageOut = (result.message_out) && result.message_out.length > 0;
             // after processing opponent's turnInfo message, checks if it is consistent
             await this._checkOpponentTurnInfo(turnInfo, hasMessageOut);
             // after processing turn, checks if engine produced an error
