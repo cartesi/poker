@@ -75,7 +75,6 @@ PROGRAMS += poker-lib-wasm.js
 else
     PROGRAMS += verify
     PROGRAMS += generate
-    PROGRAMS += libpoker$(SHLIBEXT)
     TESTS += test-game-playback
 endif
 
