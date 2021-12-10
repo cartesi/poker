@@ -86,4 +86,9 @@ It is due to the fact that the `make` script runs `electron-forge` with `--skip-
 The resulting files should be available under directory `out/make/`.
 The actual file names will depend on the platform being used to build the application and the target format.
 
-For example, on a MacOS, a file for the default target (zip) should be available at `out/make/zip/darwin/x64/cartesi-poker-darwin-x64-1.0.0.zip`.
+The available targets are:
+
+- `zip`: creates a zip ditributable. On a MacOS, it should be available at `out/make/zip/darwin/x64/cartesi-texas-hodlem-darwin-x64-X.Y.Z.zip`*.
+- `dmg`: creates a MacOS installer. On a MacOS, it should be available at `out/make/cartesi-texas-hodlem-X.Y.Z-x64.dmg`*.
+
+_* `X.Y.Z` corresponds to the version of the application._
