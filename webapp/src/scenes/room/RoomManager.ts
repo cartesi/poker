@@ -389,13 +389,14 @@ export class RoomManager {
         RoomManager.removeBetButtons();
         RoomManager.updateOpponentState();
         let endData = await RoomManager.game.getResult();
-        RoomManager.game = undefined;        
 
         setTimeout(() => {
             RoomScene.currentInstance.onEnd(endData);
 
             GameVars.playerFunds = endData.fundsShare[GameVars.playerIndex];
             GameVars.opponentFunds = endData.fundsShare[GameVars.opponentIndex];
+
+            RoomManager.game = undefined;        
         }, 2000);
     }
 }
