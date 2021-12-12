@@ -7,9 +7,9 @@ services:
       MNEMONIC: ${MNEMONIC}
       ACCOUNT_INDEX: 0
       RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=info
-      WEB3_PROVIDER_URI: https://matic-testnet-archive-rpc.bwarelabs.com
-      DEPLOYMENT_SEMAPHORE: https://matic-testnet-archive-rpc.bwarelabs.com
-      ETHEREUM_HOST: matic-testnet-archive-rpc.bwarelabs.com
+      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
+      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
+      ETHEREUM_HOST: speedy-nodes-nyc.moralis.io
       ETHEREUM_PORT: 443
       ETHEREUM_NETWORK: matic_testnet
       QUERY_PORT: 3001
@@ -39,8 +39,8 @@ services:
     environment:
       MNEMONIC: ${MNEMONIC}
       ACCOUNT_INDEX: 0
-      WEB3_PROVIDER_URI: http://matic-testnet-archive-rpc.bwarelabs.com
-      DEPLOYMENT_SEMAPHORE: https://matic-testnet-archive-rpc.bwarelabs.com
+      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
+      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
     networks:
       ethereum: {}
       alice:
@@ -77,9 +77,9 @@ services:
       MNEMONIC: ${MNEMONIC}
       ACCOUNT_INDEX: 1
       RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=info
-      WEB3_PROVIDER_URI: https://matic-testnet-archive-rpc.bwarelabs.com
-      DEPLOYMENT_SEMAPHORE: https://matic-testnet-archive-rpc.bwarelabs.com
-      ETHEREUM_HOST: matic-testnet-archive-rpc.bwarelabs.com
+      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
+      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
+      ETHEREUM_HOST: speedy-nodes-nyc.moralis.io
       ETHEREUM_PORT: 443
       ETHEREUM_NETWORK: matic_testnet
       QUERY_PORT: 3001
@@ -109,8 +109,8 @@ services:
     environment:
       MNEMONIC: ${MNEMONIC}
       ACCOUNT_INDEX: 1
-      WEB3_PROVIDER_URI: https://matic-testnet-archive-rpc.bwarelabs.com
-      DEPLOYMENT_SEMAPHORE: https://matic-testnet-archive-rpc.bwarelabs.com
+      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
+      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
     networks:
       ethereum: {}
       bob:

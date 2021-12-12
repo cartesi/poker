@@ -6,7 +6,7 @@ import { BigNumber } from "ethers";
 export enum ChainId {
     MATIC_TESTNET = "0x13881",
     LOCALHOST_HARDHAT = "0x7a69",
-    LOCALHOST = "0x539"
+    LOCALHOST = "0x539",
 }
 
 export class GameConstants {
@@ -25,13 +25,13 @@ export class GameConstants {
     };
 
     public static readonly CHAIN_ENDPOINTS = {
-        [ChainId.MATIC_TESTNET]: "https://matic-testnet-archive-rpc.bwarelabs.com",
+        [ChainId.MATIC_TESTNET]: "https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai",
         [ChainId.LOCALHOST_HARDHAT]: "http://localhost:8545",
         [ChainId.LOCALHOST]: "http://localhost:8545",
     };
 
     // Provider constants
-    public static readonly PROVIDER_PORTIS_APPID = '15ce62b0-b226-4e6f-9f8d-abbdf8f2cda2';
+    public static readonly PROVIDER_PORTIS_APPID = "15ce62b0-b226-4e6f-9f8d-abbdf8f2cda2";
 
     // TurnBasedGame constants
     public static readonly GAME_TEMPLATE_HASH = "0x3da6a2b476b694955ee04a43181fd169ee06afbcb449c9b2dc7e542a49200862";
