@@ -375,7 +375,10 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                     verificationState = VerificationState.ENDED;
                     let shouldApplyResult = true;
                     try {
-                        const result = await self.descartesContract.getResult(descartesIndex);
+                        let result;
+                        await ErrorHandler.execute("getDescartesResult", async () => {
+                            result = await self.descartesContract.getResult(descartesIndex);
+                        });
                         const fundsShare = ethers.utils.arrayify(result[3]);
                         const fundsPlayer0 = BigNumber.from(fundsShare.slice(0, 32));
                         const fundsPlayer1 = BigNumber.from(fundsShare.slice(32, 64));
@@ -460,7 +463,11 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
      */
     async getGameContext(): Promise<any> {
         await this.initWeb3();
-        return await this.gameContract.getContext(this.gameIndex);
+        let context;
+        await ErrorHandler.execute("getGameContext", async () => {
+            context = await this.gameContract.getContext(this.gameIndex);
+        });
+        return context;
     }
 
     /**
