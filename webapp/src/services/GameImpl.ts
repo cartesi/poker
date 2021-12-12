@@ -286,9 +286,19 @@ export class GameImpl implements Game {
 
     private _computeResult(state: EngineState): GameResult {
         const winners = Array(2);
-        winners[this.playerId] = this.playerId === state.winner;
-        winners[this.opponentId] = this.opponentId === state.winner;
-
+        if (state.winner === this.playerId) {
+            // player won
+            winners[this.playerId] = true;
+            winners[this.opponentId] = false;
+        } else if (state.winner === this.opponentId) {
+            // opponent won
+            winners[this.playerId] = false;
+            winners[this.opponentId] = true;
+        } else {
+            // none of the players won (tie or error): will consider this a tie, encoded by stating both players as winners
+            winners[this.playerId] = true;
+            winners[this.opponentId] = true;
+        }
         const hands = Array(2);
         const publicCards = state.public_cards.map(Card.fromIndex);
         const playerCards = state.players[this.playerId].cards.map(Card.fromIndex).concat(publicCards);
