@@ -2,11 +2,11 @@ import MetaMaskOnboarding from "@metamask/onboarding";
 import { ethers } from "ethers";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
-import { AbstractOnboarding } from "./AbstractOnboarding";
+import { AbstractOnboardingWeb3 } from "./AbstractOnboardingWeb3";
 
 declare let window: any;
 
-export class OnboardingMetamask extends AbstractOnboarding {
+export class OnboardingMetamask extends AbstractOnboardingWeb3 {
     private static metamask: any;
     private static metamaskOnboarding;
     private static accounts;

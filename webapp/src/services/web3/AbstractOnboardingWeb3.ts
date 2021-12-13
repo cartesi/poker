@@ -11,7 +11,7 @@ import { ServiceConfig } from "../ServiceConfig";
 import { TurnBasedGameFactory } from "../TurnBasedGame";
 import { GameVars } from "../../GameVars";
 
-export class AbstractOnboarding {
+export class AbstractOnboardingWeb3 {
     /**
      * Submits transaction to approve allowance for spending the user's tokens
      * @param onChange
@@ -139,20 +139,20 @@ export class AbstractOnboarding {
                 ready: false,
             });
 
-            if (!AbstractOnboarding.claimTimeoutInterval) {
+            if (!AbstractOnboardingWeb3.claimTimeoutInterval) {
                 // we are not already attempting to end an unfinished game by timeout: let's do it
                 try {
                     // continuously attempts to end game by timeout
                     const turnBasedGame = TurnBasedGameFactory.create(gameIndex);
-                    AbstractOnboarding.claimTimeoutInterval = setInterval(async () => {
+                    AbstractOnboardingWeb3.claimTimeoutInterval = setInterval(async () => {
                         await turnBasedGame.claimTimeout();
                     }, GameConstants.TIMEOUT_SECONDS * 1000);
                     await turnBasedGame.claimTimeout();
 
                     gameContract.on(gameOverFilter, () => {
                         // game is finally over: clear interval and update status
-                        clearInterval(AbstractOnboarding.claimTimeoutInterval);
-                        AbstractOnboarding.claimTimeoutInterval = undefined;
+                        clearInterval(AbstractOnboardingWeb3.claimTimeoutInterval);
+                        AbstractOnboardingWeb3.claimTimeoutInterval = undefined;
                         updateCallback(onChange);
                     });
                 } catch (error) {

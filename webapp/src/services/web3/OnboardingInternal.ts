@@ -1,11 +1,11 @@
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
-import { AbstractOnboarding } from "./AbstractOnboarding";
+import { AbstractOnboardingWeb3 } from "./AbstractOnboardingWeb3";
 import { ethers } from "ethers";
 import { GameVars } from "../../GameVars";
 import { GameManager } from "../../GameManager";
 
-export class OnboardingInternal extends AbstractOnboarding {
+export class OnboardingInternal extends AbstractOnboardingWeb3 {
     private static wallet: ethers.Wallet;
     private static password = "53H#YwnPc!#2";
 

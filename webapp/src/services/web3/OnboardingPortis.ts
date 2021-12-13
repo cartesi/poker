@@ -1,10 +1,10 @@
 import Portis from "@portis/web3";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
-import { AbstractOnboarding } from "./AbstractOnboarding";
+import { AbstractOnboardingWeb3 } from "./AbstractOnboardingWeb3";
 import { ethers } from "ethers";
 
-export class OnboardingPortis extends AbstractOnboarding {
+export class OnboardingPortis extends AbstractOnboardingWeb3 {
     private static portis: Portis;
     private static isLogged;
 
