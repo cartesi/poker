@@ -61,16 +61,14 @@ class PokerFaucet {
         const signer = this.provider.getSigner();
         const address = await signer.getAddress();
         const chainId = await this.getChainId();
-        const network = PokerFaucet.CHAINS[chainId]
-            ? PokerFaucet.CHAINS[chainId]
-            : "Unsupported Network";
+        const network = PokerFaucet.CHAINS[chainId] ? PokerFaucet.CHAINS[chainId] : "Unsupported Network";
 
         const tokenContract = new ethers.Contract(PokerToken.address, PokerToken.abi, signer);
         document.getElementById("network").innerHTML = network;
         document.getElementById("address").innerHTML = address;
 
-        const targetInput = (<HTMLInputElement>document.getElementById("target"));
-        const requestButton = (document.getElementById("requestButton") as HTMLButtonElement);
+        const targetInput = <HTMLInputElement>document.getElementById("target");
+        const requestButton = document.getElementById("requestButton") as HTMLButtonElement;
         try {
             if (targetInput.value) {
                 document.getElementById("balance").innerHTML = await tokenContract.balanceOf(targetInput.value);
@@ -98,7 +96,7 @@ class PokerFaucet {
                         break;
                     default:
                         throw new Error("Unsupported wallet was found");
-                };
+                }
                 this.showLoadingInfo();
                 this.provider = await this.getProvider();
                 await this.updateGUI();
@@ -122,7 +120,7 @@ class PokerFaucet {
                 return window.ethereum.chainId;
             default:
                 return DEFAULT_CHAIN_ID;
-        };        
+        }
     }
 
     async getProvider(): Promise<any> {
@@ -135,9 +133,9 @@ class PokerFaucet {
                 break;
             default:
                 throw new Error("Unsupported wallet was found");
-        };
+        }
         if (this.provider) {
-            return this.provider
+            return this.provider;
         } else {
             throw new Error("Unable to instantiate the provider to connect to the network");
         }
@@ -159,11 +157,10 @@ class PokerFaucet {
         portis.showPortis();
 
         return new Promise((resolve) => {
-            portis.isLoggedIn()
-                .then(({ error, result }) => {
-                    let provider = new ethers.providers.Web3Provider(portis.provider);
-                    resolve(provider);
-                });
+            portis.isLoggedIn().then(({ error, result }) => {
+                let provider = new ethers.providers.Web3Provider(portis.provider);
+                resolve(provider);
+            });
         });
     }
 
