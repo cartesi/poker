@@ -14,7 +14,6 @@ module.exports = {
         {
             name: "@electron-forge/maker-dmg",
             config: {
-                background: "../webapp/assets/bg.png",
                 format: "ULFO",
             },
         },
