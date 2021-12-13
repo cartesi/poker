@@ -18,6 +18,8 @@ const createWindow = (): void => {
         },
     });
 
+    mainWindow.menuBarVisible = !app.isPackaged;
+
     // and load the index.html of the app.
     const filePath = path.join(__dirname, "../dist/index.html");
 
