@@ -60,8 +60,9 @@ class PokerFaucet {
     async updateGUI() {
         const signer = this.provider.getSigner();
         const address = await signer.getAddress();
-        const network = PokerFaucet.CHAINS[DEFAULT_CHAIN_ID]
-            ? PokerFaucet.CHAINS[DEFAULT_CHAIN_ID]
+        const chainId = await this.getChainId();
+        const network = PokerFaucet.CHAINS[chainId]
+            ? PokerFaucet.CHAINS[chainId]
             : "Unsupported Network";
 
         const tokenContract = new ethers.Contract(PokerToken.address, PokerToken.abi, signer);
@@ -115,6 +116,15 @@ class PokerFaucet {
         button.addEventListener("click", this.request.bind(this));
     }
 
+    async getChainId(): Promise<string> {
+        switch (this.selectedWallet) {
+            case Wallet.METAMASK:
+                return window.ethereum.chainId;
+            default:
+                return DEFAULT_CHAIN_ID;
+        };        
+    }
+
     async getProvider(): Promise<any> {
         switch (this.selectedWallet) {
             case Wallet.PORTIS:
@@ -131,7 +141,6 @@ class PokerFaucet {
         } else {
             throw new Error("Unable to instantiate the provider to connect to the network");
         }
-
     }
 
     async getProviderFromPortis(): Promise<any> {
