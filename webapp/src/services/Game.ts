@@ -240,8 +240,12 @@ export class GameFactory {
                 // remove 'call' and 'fold' options if bets are equal
                 choices = choices.filter((choice) => choice != 0 && choice != 2);
             } else {
-                // remove 'check' option if bets are equal
+                // remove 'check' option if bets are not equal
                 choices = choices.filter((choice) => choice != 1);
+            }
+            if ((await game.getPlayerBets()).eq(await game.getPlayerFunds())) {
+                // remove 'raise' option if player has no more funds to bet
+                choices = choices.filter((choice) => choice != 3);
             }
             while (true) {
                 if (choices.length == 0) {

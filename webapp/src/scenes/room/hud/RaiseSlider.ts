@@ -101,8 +101,8 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
 
             this.btnMarker.x = x;
 
-            let min = ethers.BigNumber.from(1);
             let max = await RoomManager.getMaxRaise();
+            let min = max.eq(ethers.constants.Zero) ? ethers.constants.Zero : ethers.BigNumber.from(1);
 
             let minBar = this.btnMinus.x + this.btnMinus.width;
             let maxBar = this.btnPlus.x - this.btnPlus.width;
@@ -120,8 +120,8 @@ export class RaiseSlider extends Phaser.GameObjects.Container {
 
     public async updateMarker(): Promise<void> {
 
-        let min = ethers.BigNumber.from(1);
         let max = await RoomManager.getMaxRaise();
+        let min = max.eq(ethers.constants.Zero) ? ethers.constants.Zero : ethers.BigNumber.from(1);
 
         let minBar = this.btnMinus.x + this.btnMinus.width;
         let maxBar = this.btnPlus.x - this.btnPlus.width;

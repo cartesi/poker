@@ -34,6 +34,11 @@ export class RaiseButton extends Phaser.GameObjects.Container {
         icon.setOrigin(0, .5);
         this.add(icon);
 
+        const maxRaise = await RoomManager.getMaxRaise();
+        if (maxRaise.eq(ethers.constants.Zero)) {
+            // all-in case: raiseValue should be zero
+            GameVars.raiseValue = ethers.constants.Zero;
+        }
         const raiseValueDisplay = (await RoomManager.getOpponentBets()).add(GameVars.raiseValue).sub(await RoomManager.getPlayerBets());
         this.raiseValue = new Phaser.GameObjects.Text(this.scene, icon.x + icon.width + 30, -42, " " + raiseValueDisplay.toString() + " ", {fontFamily: "Oswald-Medium", fontSize: "35px", color: "#FFFFFF"});
         this.raiseValue.setOrigin(.5);
@@ -50,7 +55,12 @@ export class RaiseButton extends Phaser.GameObjects.Container {
 
         let newRaiseValue = GameVars.raiseValue.sub(1);
 
-        if (newRaiseValue.lt(1)) {
+        const maxRaise = await RoomManager.getMaxRaise();
+        if (maxRaise.eq(ethers.constants.Zero)) {
+            // all-in case: raiseValue should be zero
+            newRaiseValue = ethers.constants.Zero;
+        } else if (newRaiseValue.lt(1)) {
+            // normal case: raiseValue cannot be less than 1
             newRaiseValue = ethers.BigNumber.from(1);
         }
 
@@ -83,7 +93,9 @@ export class RaiseButton extends Phaser.GameObjects.Container {
     private onDown(): void {
 
         AudioManager.playSound("btn_click");
-
-        RoomManager.playerRaise(GameVars.raiseValue);
+        if (!GameVars.raiseValue.eq(ethers.constants.Zero)) {
+            // execute raise (if raise value is > 1)
+            RoomManager.playerRaise(GameVars.raiseValue);
+        }
     }
 }
