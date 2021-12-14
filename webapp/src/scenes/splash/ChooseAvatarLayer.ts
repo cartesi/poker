@@ -1,4 +1,4 @@
-import { MetamaskButton } from './MetamaskButton';
+import { OnboardingButton } from './OnboardingButton';
 import { GameVars } from './../../GameVars';
 import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
@@ -9,7 +9,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
 
     private chooseAvatarFrame: Phaser.GameObjects.Image;
     private chooseAvatar: Phaser.GameObjects.Image;
-    private metamaskButton: MetamaskButton;
+    private onboardingButton: OnboardingButton;
     private playButton: Phaser.GameObjects.Image;
     private avatars: Avatar[];
     private inputBackground: Phaser.GameObjects.Image;
@@ -67,8 +67,8 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
 
         this.onAvatarDown(GameVars.gameData.avatar);
 
-        this.metamaskButton = new MetamaskButton(this.scene, this);
-        this.add(this.metamaskButton);
+        this.onboardingButton = new OnboardingButton(this.scene, this);
+        this.add(this.onboardingButton);
     }
 
     public showPlay(): void {
@@ -96,7 +96,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         this.inputElement.y = 227;
         this.inputBackground.y = 230;
         this.chooseAvatar.scaleX = 1.05;
-        this.metamaskButton.setPosition(0, 410);
+        this.onboardingButton.setPosition(0, 410);
 
         for (let i = 0; i < 6; i++) {
             this.avatars[i].setPosition( -368 + 147 * i, 97);
@@ -112,7 +112,7 @@ export class ChooseAvatarLayer extends Phaser.GameObjects.Container {
         this.inputElement.y = 317;
         this.inputBackground.y = 320;
         this.chooseAvatar.scaleX = 1;
-        this.metamaskButton.setPosition(0, 510);
+        this.onboardingButton.setPosition(0, 510);
 
         for (let i = 0; i < 3; i++) {
             this.avatars[i].setPosition( -152 + 152 * i, 20);

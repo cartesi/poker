@@ -1,9 +1,9 @@
 import { ChooseAvatarLayer } from './ChooseAvatarLayer';
-import { AudioManager } from './../../AudioManager';
+import { AudioManager } from '../../AudioManager';
 import { Onboarding } from "../../services/Onboarding";
 import { SplashScene } from './SplashScene';
 
-export class MetamaskButton extends Phaser.GameObjects.Container {
+export class OnboardingButton extends Phaser.GameObjects.Container {
 
     private background: Phaser.GameObjects.Graphics;
     private text: Phaser.GameObjects.Text;
