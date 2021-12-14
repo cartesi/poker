@@ -80,15 +80,16 @@ $ yarn make
 ```
 
 **Note:**
-Please ignore the warning `electron-forge` shows during the process.
-It is due to the fact that the `make` script runs `electron-forge` with `--skip-package` activate and runs the `package` script explicitily to make sure all dependencies are ready before making a distributable.
+Please ignore the log message `WARNING: Skipping the packaging step, this could result in an out of date build` shown during the process.
+It is due to the fact that the `make` script runs `electron-forge` with `--skip-package` activated and runs the `package` script explicitily to make sure all dependencies are ready before making any distributable.
 
 The resulting files should be available under directory `out/make/`.
 The actual file names will depend on the platform being used to build the application and the target format.
 
 The available targets are:
 
-- `zip`: creates a zip ditributable. On a MacOS, it should be available at `out/make/zip/darwin/x64/cartesi-texas-hodlem-darwin-x64-X.Y.Z.zip`*.
-- `dmg`: creates a MacOS installer. On a MacOS, it should be available at `out/make/cartesi-texas-hodlem-X.Y.Z-x64.dmg`*.
-
-_* `X.Y.Z` corresponds to the version of the application._
+- `deb` (only available on Linux): creates a Debian package and make it available under `out/make/deb/`. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/deb) for usage;
+- `dmg` (only available on MacOS): creates a MacOS installer and make it available under `out/make/`. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/dmg) for usage;
+- `rpm` (only available on Linux): creates a RedHat-based package and make it available under `out/make/rpm/`. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/rpm) for usage;
+- `squirrel.windows` (only available on Windows and MacOS MacOS): creates a Windows installer. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/squirrel.windows) for usage;
+- `zip`: creates a zip package and make it available under `out/make/zip/`.
