@@ -399,10 +399,10 @@ library TurnBasedGameContext {
         } else {
             // there is a player to blame: his active stake at the moment of the last valid turn shall be split among the others
             uint256 blamedPlayerStake = 0;
-            for (uint256 i = _lastValidTurnIndex; i >= 0; i--) {
-                if (_context.turns[i].player == blamedPlayer) {
+            for (uint256 i = _lastValidTurnIndex + 1; i > 0; i--) {
+                if (_context.turns[i-1].player == blamedPlayer) {
                     // found the blamed player's active stake when the timeout was detected
-                    blamedPlayerStake = _context.turns[i].playerStake;
+                    blamedPlayerStake = _context.turns[i-1].playerStake;
                     break;
                 }
             }

@@ -1123,6 +1123,35 @@ describe("TurnBasedGame", async () => {
             );
         });
 
+        it("Should end game and emit GameOver event when a timeout occurs: one turn with opponent accountable", async () => {
+            await initCallerFunds(players[0], playerFunds);
+            await gameContract.startGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                tokenContract.address,
+                players,
+                playerFunds,
+                playerInfos
+            );
+
+            // turn submitted by player0: defines 10 as stake and player1 as responsible for the next action
+            await gameContract.submitTurn(0, 0, players[1], 10, turnData);
+            await expect(gameContract.claimTimeout(0)).to.not.emit(contextLibrary, "GameOver");
+            expect(await gameContract.isActive(0), "Game should still be active if timeout is not verified").to.equal(
+                true
+            );
+            await setNextBlockTimestamp(gameTimeout.toNumber() + 5);
+            // after timeout, player1 has no declared stake to lose, so users keep their funds
+            await expect(gameContract.claimTimeout(0))
+                .to.emit(contextLibrary, "GameOver")
+                .withArgs(0, playerFunds);
+            expect(await gameContract.isActive(0), "Game should be inactive after timeout is confirmed").to.equal(
+                false
+            );
+        });
+
         it("Should end game and emit GameOver event when a timeout occurs: multiple turns changing stakes", async () => {
             await initCallerFunds(players[0], playerFunds);
             await gameContract.startGame(
