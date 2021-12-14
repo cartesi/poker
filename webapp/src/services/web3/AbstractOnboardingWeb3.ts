@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
-import PokerToken from "../../abis/PokerToken.json";
+import PokerTokenJson from "../../abis/PokerToken.json";
 import TurnBasedGame from "../../abis/TurnBasedGame.json";
 import TurnBasedGameContext from "../../abis/TurnBasedGameContext.json";
 import TurnBasedGameLobby from "../../abis/TurnBasedGameLobby.json";
-import { PokerToken__factory } from "../../types";
+import { PokerToken, PokerToken__factory } from "../../types";
 import { TurnBasedGame__factory } from "../../types";
 import { TurnBasedGameContext__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
@@ -12,6 +12,9 @@ import { TurnBasedGameFactory } from "../TurnBasedGame";
 import { GameVars } from "../../GameVars";
 
 export class AbstractOnboardingWeb3 {
+    private static claimTimeoutInterval;
+    private static pokerTokenContractWithListeners: PokerToken;
+
     /**
      * Submits transaction to approve allowance for spending the user's tokens
      * @param onChange
@@ -19,7 +22,7 @@ export class AbstractOnboardingWeb3 {
     protected static async approve(onChange) {
         // retrieves user address and contract
         const signer = ServiceConfig.getSigner();
-        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
+        const pokerTokenContract = PokerToken__factory.connect(PokerTokenJson.address, signer);
 
         // for simplicity, at the moment we're requesting infinite approval
         await pokerTokenContract.approve(TurnBasedGameLobby.address, ethers.constants.MaxUint256);
@@ -42,6 +45,9 @@ export class AbstractOnboardingWeb3 {
             ready: false,
         });
 
+        // sets up a listener to refresh the wallet when appropriate
+        this.setupWalletTransferListeners(onChange, updateCallback);
+
         // checks if player has an unfinished ongoing game
         if (await this.checkUnfinishedGame(onChange, chainName, updateCallback)) {
             return;
@@ -58,7 +64,34 @@ export class AbstractOnboardingWeb3 {
         }
     }
 
-    private static claimTimeoutInterval;
+    /**
+     * Sets up listeners to ensure wallet is updated if its POKER balance changes
+     * @param onChange
+     * @param updateCallback
+     */
+    protected static async setupWalletTransferListeners(onChange, updateCallback) {
+        // defines callback to execute when balance changes
+        const callback = function (event) {
+            updateCallback(onChange);
+        };
+
+        // clears up existing transfer listeners
+        if (this.pokerTokenContractWithListeners) {
+            this.pokerTokenContractWithListeners.removeAllListeners();
+        }
+
+        // retrieves user address and poker token contract
+        const signer = ServiceConfig.getSigner();
+        const signerAddress = await signer.getAddress();
+        this.pokerTokenContractWithListeners = PokerToken__factory.connect(PokerTokenJson.address, signer);
+
+        // sets up new transfer listeners
+        const transferToFilter = this.pokerTokenContractWithListeners.filters.Transfer(null, signerAddress, null);
+        const transferFromFilter = this.pokerTokenContractWithListeners.filters.Transfer(signerAddress, null, null);
+        this.pokerTokenContractWithListeners.once(transferToFilter, callback);
+        this.pokerTokenContractWithListeners.once(transferFromFilter, callback);
+    }
+
     /**
      * Checks if the player has an ongoing unfinished game, and if true attempts to end it by timeout
      * @param onChange
@@ -168,7 +201,7 @@ export class AbstractOnboardingWeb3 {
         // retrieves user address and contract
         const signer = ServiceConfig.getSigner();
         const playerAddress = await signer.getAddress();
-        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
+        const pokerTokenContract = PokerToken__factory.connect(PokerTokenJson.address, signer);
 
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
         if (playerFunds.lt(ethers.BigNumber.from(GameConstants.MIN_FUNDS))) {
@@ -195,7 +228,7 @@ export class AbstractOnboardingWeb3 {
         // retrieves user address and contract
         const signer = ServiceConfig.getSigner();
         const playerAddress = await signer.getAddress();
-        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
+        const pokerTokenContract = PokerToken__factory.connect(PokerTokenJson.address, signer);
 
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
         const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
