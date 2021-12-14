@@ -110,19 +110,24 @@ export class AbstractOnboardingWeb3 {
         // checks locally stored game index
         if (GameVars.gameData.gameIndex) {
             // double-checks if corresponding game concerns the player
-            const context = await gameContract.getContext(GameVars.gameData.gameIndex);
-            if (context.players.includes(playerAddress)) {
-                // there is a registered last game for the player, let's check it out
-                const isRegisteredGameUnfinished = await this.checkUnfinishedGameByIndex(
-                    onChange,
-                    chainName,
-                    updateCallback,
-                    GameVars.gameData.gameIndex
-                );
-                if (isRegisteredGameUnfinished) {
-                    // registered game is unfinished: stop here
-                    return true;
+            try {
+                const context = await gameContract.getContext(GameVars.gameData.gameIndex);
+                if (context.players.includes(playerAddress)) {
+                    // there is a registered last game for the player, let's check it out
+                    const isRegisteredGameUnfinished = await this.checkUnfinishedGameByIndex(
+                        onChange,
+                        chainName,
+                        updateCallback,
+                        GameVars.gameData.gameIndex
+                    );
+                    if (isRegisteredGameUnfinished) {
+                        // registered game is unfinished: stop here
+                        return true;
+                    }
                 }
+            } catch (error) {
+                // error retrieving current game: maybe contract has changed, log it and ignore
+                console.error(`Failed to retrieve current game from locally stored index ${GameVars.gameData.gameIndex}: ${error}`);
             }
         }
 

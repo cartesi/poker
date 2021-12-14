@@ -14,7 +14,7 @@ export class OnboardingMetamask extends AbstractOnboardingWeb3 {
     /**
      * Starts user onboarding using Web3
      */
-    public static async start(onChange) {
+    public static async start(onChange, checkOnboardingActive) {
         if (!this.metamaskOnboarding) {
             this.metamaskOnboarding = new MetaMaskOnboarding();
         }
@@ -33,19 +33,23 @@ export class OnboardingMetamask extends AbstractOnboardingWeb3 {
             // sets up hooks to update web3 when accounts or chain change
             this.metamask.on("accountsChanged", (newAccounts) => {
                 this.accounts = newAccounts;
-                this.update(onChange);
+                this.update(onChange, checkOnboardingActive);
             });
             this.metamask.on("chainChanged", () => {
-                this.update(onChange);
+                this.update(onChange, checkOnboardingActive);
             });
         }
-        this.update(onChange);
+        this.update(onChange, checkOnboardingActive);
     }
 
     /**
      * Main web3 update procedure
      */
-    private static async update(onChange) {
+    private static async update(onChange, checkOnboardingActive) {
+        if (!checkOnboardingActive()) {
+            // cancel update because onboarding is no longer active
+            return;
+        }
         try {
             // checks if metamask is installed
             if (!MetaMaskOnboarding.isMetaMaskInstalled()) {
@@ -88,7 +92,9 @@ export class OnboardingMetamask extends AbstractOnboardingWeb3 {
             await this.setSigner();
 
             // checks player account's status
-            super.checkAccountStatus(onChange, chainName, this.update.bind(this));
+            super.checkAccountStatus(onChange, chainName, () => {
+                this.update(onChange, checkOnboardingActive);
+            });
         } catch (error) {
             console.error(error);
             onChange({
@@ -120,7 +126,7 @@ export class OnboardingMetamask extends AbstractOnboardingWeb3 {
      * Connects to an Ethereum wallet
      * @param onChange
      */
-    private static async connectWallet(onChange) {
+    private static async connectWallet(onChange, checkOnboardingActive) {
         if (!this.metamask) {
             // ethereum not available
             onChange({
@@ -133,7 +139,7 @@ export class OnboardingMetamask extends AbstractOnboardingWeb3 {
         } else {
             // connects to ethereum wallet
             this.accounts = await this.metamask.request({ method: "eth_requestAccounts" });
-            this.update(onChange);
+            this.update(onChange, checkOnboardingActive);
         }
     }
 

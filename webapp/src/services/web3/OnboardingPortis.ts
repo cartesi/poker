@@ -11,7 +11,7 @@ export class OnboardingPortis extends AbstractOnboardingWeb3 {
     /**
      * Starts user onboarding using Web3
      */
-    public static async start(onChange) {
+    public static async start(onChange, checkOnboardingActive) {
         if (!this.portis) {
             this.portis = new Portis(GameConstants.PROVIDER_PORTIS_APPID, {
                 nodeUrl: GameConstants.CHAIN_ENDPOINTS[ServiceConfig.getChainId()],
@@ -22,25 +22,29 @@ export class OnboardingPortis extends AbstractOnboardingWeb3 {
         this.portis.onLogin(async (walletAddress, email, reputation) => {
             this.setSigner(walletAddress);
             this.isLogged = true;
-            this.update(onChange);
+            this.update(onChange, checkOnboardingActive);
         });
 
         this.portis.onActiveWalletChanged((walletAddress) => {
             this.setSigner(walletAddress);
-            this.update(onChange);
+            this.update(onChange, checkOnboardingActive);
         });
 
         this.portis.showPortis().then(() => {
-            this.update(onChange);
+            this.update(onChange, checkOnboardingActive);
         });
 
-        this.update(onChange);
+        this.update(onChange, checkOnboardingActive);
     }
 
     /**
      * Main web3 update procedure
      */
-    private static async update(onChange) {
+    private static async update(onChange, checkOnboardingActive) {
+        if (!checkOnboardingActive()) {
+            // cancel update because onboarding is no longer active
+            return;
+        }
         try {
             // While Portis is initializing
             if (this.isLogged == undefined) {
@@ -80,7 +84,9 @@ export class OnboardingPortis extends AbstractOnboardingWeb3 {
             }
 
             // checks player account's status
-            super.checkAccountStatus(onChange, chainName, this.update.bind(this));
+            super.checkAccountStatus(onChange, chainName, () => {
+                this.update(onChange, checkOnboardingActive);
+            });
         } catch (error) {
             console.error(error);
             onChange({
@@ -97,9 +103,9 @@ export class OnboardingPortis extends AbstractOnboardingWeb3 {
      * Connects to an Ethereum wallet
      * @param onChange
      */
-    private static async connectWallet(onChange) {
+    private static async connectWallet(onChange, checkOnboardingActive) {
         this.portis.showPortis().then(() => {
-            this.update(onChange);
+            this.update(onChange, checkOnboardingActive);
         });
     }
 

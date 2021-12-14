@@ -8,28 +8,28 @@ export class Onboarding {
     /**
      * Starts user onboarding
      */
-    public static start(onChange) {
+    public static start(onChange, checkOnboardingActive) {
         const impl = ServiceConfig.get(ServiceType.Transport);
         if (impl === ServiceImpl.Mock) {
             // mock onboarding
             OnboardingMock.start(onChange);
         } else if (impl == ServiceImpl.Web3) {
             // web3 onboarding
-            Onboarding.startWeb3Onboarding(onChange);
+            Onboarding.startWeb3Onboarding(onChange, checkOnboardingActive);
         } else {
             // unknown implementation configured
             throw `Unknown transport configuration '${impl}'!`;
         }
     }
 
-    private static startWeb3Onboarding(onChange) {
+    private static startWeb3Onboarding(onChange, checkOnboardingActive) {
         let provider = ServiceConfig.getWalletWeb3Provider();
         if (provider == WalletWeb3Provider.Portis) {
-            OnboardingPortis.start(onChange);
+            OnboardingPortis.start(onChange, checkOnboardingActive);
         } else if (provider == WalletWeb3Provider.Metamask) {
-            OnboardingMetamask.start(onChange);
+            OnboardingMetamask.start(onChange, checkOnboardingActive);
         } else if (provider == WalletWeb3Provider.Internal) {
-            OnboardingInternal.start(onChange);
+            OnboardingInternal.start(onChange, checkOnboardingActive);
         } else {
             throw new Error("Unsupported web3 provider.");
         }

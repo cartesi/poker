@@ -12,18 +12,22 @@ export class OnboardingInternal extends AbstractOnboardingWeb3 {
     /**
      * Starts user onboarding using Web3
      */
-    public static async start(onChange) {
-        this.update(onChange);
+    public static async start(onChange, checkOnboardingActive) {
+        this.update(onChange, checkOnboardingActive);
     }
 
     /**
      * Main web3 update procedure
      */
-    private static async update(onChange) {
+    private static async update(onChange, checkOnboardingActive) {
+        if (!checkOnboardingActive()) {
+            // cancel update because onboarding is no longer active
+            return;
+        }
         try {
             if (this.wallet == undefined) {
                 // wallet not initialized
-                this.connectWallet(onChange);
+                this.connectWallet(onChange, checkOnboardingActive);
                 onChange({
                     label: "Connecting to wallet...",
                     onclick: undefined,
@@ -36,7 +40,9 @@ export class OnboardingInternal extends AbstractOnboardingWeb3 {
 
             // checks player account's status
             const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
-            super.checkAccountStatus(onChange, chainName, this.update.bind(this));
+            super.checkAccountStatus(onChange, chainName, () => {
+                this.update(onChange, checkOnboardingActive);
+            });
         } catch (error) {
             console.error(error);
             onChange({
@@ -53,7 +59,7 @@ export class OnboardingInternal extends AbstractOnboardingWeb3 {
      * Connects to an Ethereum wallet
      * @param onChange
      */
-    private static async connectWallet(onChange) {
+    private static async connectWallet(onChange, checkOnboardingActive) {
         // TODO: ask user for password
         const password = this.password;
 
@@ -78,6 +84,6 @@ export class OnboardingInternal extends AbstractOnboardingWeb3 {
         ServiceConfig.setSigner(this.wallet);
         console.log(`Connected to internal wallet '${walletAddress}'`);
 
-        this.update(onChange);
+        this.update(onChange, checkOnboardingActive);
     }
 }

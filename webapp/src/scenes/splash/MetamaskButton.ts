@@ -53,7 +53,11 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
         this.text.setOrigin(0, .5);
         this.add(this.text);
 
-        Onboarding.start(this.onOnboardingChange.bind(this));
+        Onboarding.start(this.onOnboardingChange.bind(this), this.isActive.bind(this));
+    }
+
+    private isActive(): boolean {
+        return this.active;
     }
 
     private onOnboardingChange({label, onclick, loading, error, ready}) {
@@ -77,7 +81,7 @@ export class MetamaskButton extends Phaser.GameObjects.Container {
         if (onclick) {
             this.background.on("pointerup", () => {
                 AudioManager.playSound("btn_click");
-                onclick(this.onOnboardingChange.bind(this));
+                onclick(this.onOnboardingChange.bind(this), this.isActive.bind(this));
             }, this);
             this.img.visible = true;
         } else {
