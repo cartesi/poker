@@ -234,7 +234,7 @@ export class SplashScene extends Phaser.Scene {
         }
         Wallet.getAddress().then(addr => {
             this.walletAddressValue = addr;
-            this.walletAddressText.text = `${addr.substr(0, 6)}...${addr.substr(addr.length - 4)}`;
+            this.walletAddressText.text = `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
         });
         this.walletNetworkText.text = Wallet.getNetwork();
 
