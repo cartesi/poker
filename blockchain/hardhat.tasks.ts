@@ -379,6 +379,21 @@ task("challenge-game", "Challenges a game given its index")
         }
     });
 
+// CLAIM-TIMEOUT
+task("claim-timeout", "Claims a game has ended due to timeout")
+    .addOptionalParam("index", "The game index", 0, types.int)
+    .setAction(async ({ index }, hre) => {
+        const { ethers } = hre;
+
+        const game = await ethers.getContract("TurnBasedGame");
+        const tx = await game.claimTimeout(index);
+
+        console.log("");
+        console.log(
+            `Claimed timeout for game with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`
+        );
+    });
+
 // CLAIM-RESULT
 task("claim-result", "Claims a game has ended with a specified result")
     .addOptionalParam("index", "The game index", 0, types.int)
