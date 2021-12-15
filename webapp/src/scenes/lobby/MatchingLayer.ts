@@ -2,6 +2,7 @@ import { AudioManager } from "../../AudioManager";
 import { GameConstants } from "../../GameConstants";
 import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
+import { LobbyScene } from "./LobbyScene";
 
 export class MatchingLayer extends Phaser.GameObjects.Container {
 
@@ -229,6 +230,8 @@ export class MatchingLayer extends Phaser.GameObjects.Container {
             duration: 500,
             delay: 500
         });
+
+        LobbyScene.currentInstance.hideBack();
     }
 
     public setScalesAndPositions(): void {

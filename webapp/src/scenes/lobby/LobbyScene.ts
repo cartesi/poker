@@ -12,6 +12,7 @@ export class LobbyScene extends Phaser.Scene {
 
     private background: Phaser.GameObjects.Image;
     private backContainer: Phaser.GameObjects.Container;
+    private backButton: Phaser.GameObjects.Image;
     private topContainer: Phaser.GameObjects.Container;
     private matchingLayer: MatchingLayer;
 
@@ -37,19 +38,19 @@ export class LobbyScene extends Phaser.Scene {
         this.topContainer.setPosition(GameConstants.GAME_WIDTH / 2, 0);
         this.add.existing(this.topContainer);
 
-        let backButton = new Phaser.GameObjects.Image(this, 50, 50, "texture_atlas_1", "btn_back");
-        backButton.setInteractive();
-        backButton.on("pointerover", () => {
-            backButton.setScale(1.05);
+        this.backButton = new Phaser.GameObjects.Image(this, 50, 50, "texture_atlas_1", "btn_back");
+        this.backButton.setInteractive();
+        this.backButton.on("pointerover", () => {
+            this.backButton.setScale(1.05);
         }, this);
-        backButton.on("pointerout", () => {
-            backButton.setScale(1);
+        this.backButton.on("pointerout", () => {
+            this.backButton.setScale(1);
         }, this);
-        backButton.on("pointerup", () => {
+        this.backButton.on("pointerup", () => {
             AudioManager.playSound("btn_click");
             this.onBack();
         }, this);
-        this.backContainer.add(backButton);
+        this.backContainer.add(this.backButton);
 
         let title = new Phaser.GameObjects.Image(this, 0, 10, "texture_atlas_1", "logo_main");
         title.setOrigin(.5, 0);
@@ -99,6 +100,11 @@ export class LobbyScene extends Phaser.Scene {
         }
 
         this.matchingLayer.setScalesAndPositions();
+    }
+
+    public hideBack(): void {
+        this.backButton.disableInteractive();
+        this.backButton.setAlpha(0);
     }
 
     protected async onBack(): Promise<void> {
