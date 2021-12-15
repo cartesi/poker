@@ -17,6 +17,9 @@ describe("LobbyWeb3", function () {
     let pokerTokenContractAlice: PokerToken;
     let pokerTokenContractBob: PokerToken;
 
+    let lobbyWeb3Alice: LobbyWeb3;
+    let lobbyWeb3Bob: LobbyWeb3;
+
     this.timeout(60000);
 
     beforeEach(async () => {
@@ -34,10 +37,12 @@ describe("LobbyWeb3", function () {
         // approves spending of tokens
         await pokerTokenContractAlice.approve(TurnBasedGameLobbyJson.address, ethers.constants.MaxUint256);
         await pokerTokenContractBob.approve(TurnBasedGameLobbyJson.address, ethers.constants.MaxUint256);
+
+        lobbyWeb3Alice = new LobbyWeb3();
+        lobbyWeb3Bob = new LobbyWeb3();
     });
 
     it("should notify game ready when the correct number of players have joined", async () => {
-        console.log("STARTING TEST");
         const player1Info = { name: "Alice", avatar: 1 };
         const player2Info = { name: "Bob", avatar: 2 };
 
@@ -63,7 +68,7 @@ describe("LobbyWeb3", function () {
             gameReadyResolverPlayer1(true);
             console.log("gameReadyCallbackPlayer1 was called with index=" + index);
         };
-        LobbyWeb3.joinGame(player1Info, gameReadyCallbackPlayer1);
+        lobbyWeb3Alice.joinGame(player1Info, gameReadyCallbackPlayer1);
 
         // Player 2 joins the game
         TestWeb3Utils.setSigner(bobAddress);
@@ -72,7 +77,7 @@ describe("LobbyWeb3", function () {
             gameReadyResolverPlayer2(true);
             console.log("gameReadyCallbackPlayer2 was called with index=" + index);
         };
-        LobbyWeb3.joinGame(player2Info, gameReadyCallbackPlayer2);
+        lobbyWeb3Bob.joinGame(player2Info, gameReadyCallbackPlayer2);
 
         // Check if game ready callback was called for player 1
         await promiseIsGameReadyPlayer1.then((isGameReady) => {
@@ -97,11 +102,11 @@ describe("LobbyWeb3", function () {
         const tokenBalance = await WalletWeb3.getPokerTokens();
 
         // alice joins the game and locks funds
-        await LobbyWeb3.joinGame(playerInfo, () => {});
+        await lobbyWeb3Alice.joinGame(playerInfo, () => {});
         expect(await WalletWeb3.getPokerTokens()).to.eql(ethers.constants.Zero);
 
         // alice leaves the game queue and gets funds back
-        await LobbyWeb3.leaveQueue();
+        await lobbyWeb3Alice.leaveQueue();
         expect(await WalletWeb3.getPokerTokens()).to.eql(tokenBalance);
     });
 });

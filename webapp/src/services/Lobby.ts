@@ -17,7 +17,7 @@ export class Lobby {
             LobbyMock.joinGame(playerInfo, gameReadyCallback);
         } else if (impl == ServiceImpl.Web3) {
             // web3 lobby
-            LobbyWeb3.joinGame(playerInfo, gameReadyCallback);
+            LobbyWeb3.getInstance().joinGame(playerInfo, gameReadyCallback);
         } else {
             // unknown implementation configured
             throw `Unknown transport configuration '${impl}'!`;
@@ -33,7 +33,7 @@ export class Lobby {
             // mock lobby: nothing to do (no real queue to leave)
         } else if (impl == ServiceImpl.Web3) {
             // web3 lobby
-            await LobbyWeb3.leaveQueue();
+            await LobbyWeb3.getInstance().leaveQueue();
         } else {
             // unknown implementation configured
             throw `Unknown transport configuration '${impl}'!`;

@@ -13,7 +13,19 @@ import { Web3Utils } from "./Web3Utils";
 import { ErrorHandler } from "../ErrorHandler";
 
 export class LobbyWeb3 {
-    private static gameContextContract: TurnBasedGameContext;
+    private gameContextContract: TurnBasedGameContext;
+
+    /**
+     * Retrieves singleton instance
+     */
+    private static instance: LobbyWeb3;
+    public static getInstance(): LobbyWeb3 {
+        if (!this.instance) {
+            this.instance = new LobbyWeb3();
+        }
+        return this.instance;
+    }
+
     /**
      * Joins a new Texas Holdem game using Web3
      *
@@ -21,7 +33,7 @@ export class LobbyWeb3 {
      * @param playerInfo JSON object with descriptive information (name, avatar) about the player joining
      * @param gameReadyCallback callback to be called once game is ready to start, receiving two arguments: the new game's index and its full context (players involved, etc)
      */
-    public static async joinGame(playerInfo: Object, gameReadyCallback) {
+    public async joinGame(playerInfo: Object, gameReadyCallback) {
         // retrieves signer + chainId (e.g., from metamask)
         const signer = ServiceConfig.getSigner();
         const chainId = ServiceConfig.getChainId();
@@ -102,7 +114,7 @@ export class LobbyWeb3 {
     /**
      * Leaves Texas Holdem game queue
      */
-    public static async leaveQueue(): Promise<void> {
+    public async leaveQueue(): Promise<void> {
         // connects to TurnBasedGameLobby contract
         const signer = ServiceConfig.getSigner();
         const lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobbyJson.address, signer);

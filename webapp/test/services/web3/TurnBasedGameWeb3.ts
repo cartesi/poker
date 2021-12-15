@@ -18,6 +18,9 @@ describe("TurnBasedGameWeb3", function () {
     let turnBasedGameAlice: TurnBasedGameWeb3;
     let turnBasedGameBob: TurnBasedGameWeb3;
 
+    let lobbyWeb3Alice: LobbyWeb3;
+    let lobbyWeb3Bob: LobbyWeb3;
+
     const aliceAddress: string = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
     const bobAddress: string = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 
@@ -52,6 +55,9 @@ describe("TurnBasedGameWeb3", function () {
         // Setup for Bob
         bobFunds = await pokerTokenContractBob.balanceOf(bobAddress);
         await pokerTokenContractBob.approve(TurnBasedGameLobby.address, bobFunds);
+
+        lobbyWeb3Alice = new LobbyWeb3();
+        lobbyWeb3Bob = new LobbyWeb3();
     });
 
     it("should retrieve correct player and opponent indices", async () => {
@@ -61,9 +67,9 @@ describe("TurnBasedGameWeb3", function () {
             gameReadyPromiseResolver = resolve;
         });
         TestWeb3Utils.setSigner(aliceAddress);
-        await LobbyWeb3.joinGame(aliceInfo, () => {});
+        await lobbyWeb3Alice.joinGame(aliceInfo, () => {});
         TestWeb3Utils.setSigner(bobAddress);
-        await LobbyWeb3.joinGame(bobInfo, (index, context) => {
+        await lobbyWeb3Bob.joinGame(bobInfo, (index, context) => {
             gameReadyPromiseResolver(index);
         });
 
@@ -112,7 +118,7 @@ describe("TurnBasedGameWeb3", function () {
             gameReadyResolverPlayer1(true);
             console.log("gameReadyCallbackPlayer1 was called with index=" + index);
         };
-        await LobbyWeb3.joinGame(aliceInfo, aliceGameReadyCallback);
+        await lobbyWeb3Alice.joinGame(aliceInfo, aliceGameReadyCallback);
 
         // Player 2 joins the game
         TestWeb3Utils.setSigner(bobAddress);
@@ -120,7 +126,7 @@ describe("TurnBasedGameWeb3", function () {
             gameReadyResolverPlayer2(true);
             console.log("gameReadyCallbackPlayer2 was called with index=" + index);
         };
-        await LobbyWeb3.joinGame(bobInfo, bobGameReadyCallback);
+        await lobbyWeb3Bob.joinGame(bobInfo, bobGameReadyCallback);
 
         // Alice and Bob must receive the gameReady event
         // to be able to submit their turns
@@ -185,9 +191,9 @@ describe("TurnBasedGameWeb3", function () {
             gameReadyPromiseResolver = resolve;
         });
         TestWeb3Utils.setSigner(aliceAddress);
-        await LobbyWeb3.joinGame(aliceInfo, () => {});
+        await lobbyWeb3Alice.joinGame(aliceInfo, () => {});
         TestWeb3Utils.setSigner(bobAddress);
-        await LobbyWeb3.joinGame(bobInfo, (index, context) => {
+        await lobbyWeb3Bob.joinGame(bobInfo, (index, context) => {
             gameReadyPromiseResolver(index);
         });
 
@@ -253,9 +259,9 @@ describe("TurnBasedGameWeb3", function () {
             gameReadyPromiseResolver = resolve;
         });
         TestWeb3Utils.setSigner(aliceAddress);
-        await LobbyWeb3.joinGame(aliceInfo, () => {});
+        await lobbyWeb3Alice.joinGame(aliceInfo, () => {});
         TestWeb3Utils.setSigner(bobAddress);
-        await LobbyWeb3.joinGame(bobInfo, (index, context) => {
+        await lobbyWeb3Bob.joinGame(bobInfo, (index, context) => {
             gameReadyPromiseResolver(index);
         });
 
@@ -323,9 +329,9 @@ describe("TurnBasedGameWeb3", function () {
             gameReadyPromiseResolver = resolve;
         });
         TestWeb3Utils.setSigner(aliceAddress);
-        await LobbyWeb3.joinGame(aliceInfo, () => {});
+        await lobbyWeb3Alice.joinGame(aliceInfo, () => {});
         TestWeb3Utils.setSigner(bobAddress);
-        await LobbyWeb3.joinGame(bobInfo, (index, context) => {
+        await lobbyWeb3Bob.joinGame(bobInfo, (index, context) => {
             gameReadyPromiseResolver(index);
         });
 
