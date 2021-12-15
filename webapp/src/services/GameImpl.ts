@@ -107,6 +107,7 @@ export class GameImpl implements Game {
             try {
                 await this._createBet(EngineBetType.BET_FOLD);
                 resolve();
+                this.onEvent("Waiting for opponent...", EventType.DATA_WAIT);
             } catch (err) {
                 reject(err);
             }
@@ -131,7 +132,7 @@ export class GameImpl implements Game {
     }
 
     async challengeGame(msg: string) {
-        this.onEvent(`triggerVerification: ${msg}`, EventType.UPDATE_STATE);
+        this.onEvent(`${msg} detected: requesting verification!`, EventType.DATA_SEND);
         await this.turnBasedGame.challengeGame(msg);
         this.verificationState = VerificationState.STARTED;
     }
@@ -486,6 +487,7 @@ export class GameImpl implements Game {
             if (isFold || state.last_aggressor == this.playerId) {
                 let fundsShare = state.funds_share;
                 console.log(`### [Player ${this.playerId}] Claim Result ###`);
+                this.onEvent("Posting result...", EventType.DATA_SEND);
                 await this.turnBasedGame.claimResult(fundsShare);
             }
             return false;
@@ -549,6 +551,7 @@ export class GameImpl implements Game {
             this.challengeGame("Result mismatch");
         } else {
             console.log(`### [Player ${this.playerId}] Confirm result ###`);
+            this.onEvent("Confirming result...", EventType.DATA_SEND);
             await this.turnBasedGame.confirmResult();
         }
     }

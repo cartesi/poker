@@ -22,6 +22,8 @@ export class RoomScene extends Phaser.Scene {
     public verificationLayer: VerificationLayer;
     public shuffleCardsLayer: ShuffleCardsLayer;
 
+    private isShuffleCardsLayerActive = false;
+
     constructor() {
 
         super("RoomScene");
@@ -106,11 +108,13 @@ export class RoomScene extends Phaser.Scene {
 
     public showWaitingFirstCards(): void {
 
+        this.isShuffleCardsLayerActive = true;
         this.shuffleCardsLayer.show();
     }
 
     public hideWaitingFirstCards(): void {
 
+        this.isShuffleCardsLayerActive = false;
         this.shuffleCardsLayer.hide();
     }
 
@@ -128,6 +132,7 @@ export class RoomScene extends Phaser.Scene {
 
     public showBetButtons(): void {
 
+        this.hud.clearInfo();
         setTimeout(() => {
             this.hud.showBetButtons();
         }, 2000);
@@ -135,8 +140,12 @@ export class RoomScene extends Phaser.Scene {
 
     public onDataEvent(msg: string, type: EventType): void {
 
-        if (this.shuffleCardsLayer.visible) {
+        if (this.isShuffleCardsLayerActive) {
             this.shuffleCardsLayer.updateHeading(msg);
+        } else {
+            setTimeout(() => {
+                this.hud.updateInfo(msg);
+            }, 500);
         }
     }
 

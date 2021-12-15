@@ -3,6 +3,7 @@ import { GameConstants } from "./../../../GameConstants";
 import { GameVars } from "../../../GameVars";
 import { RoomManager } from "../RoomManager";
 import { ethers } from "ethers";
+import { InfoContainer } from "./InfoContainer";
 
 export class HUD extends Phaser.GameObjects.Container {
 
@@ -10,6 +11,7 @@ export class HUD extends Phaser.GameObjects.Container {
 
     private betsButtonsContainer: BetsButtonsContainer;
     private topContainer: Phaser.GameObjects.Container;
+    private infoContainer: InfoContainer;
 
     constructor(scene: Phaser.Scene) {
 
@@ -36,6 +38,11 @@ export class HUD extends Phaser.GameObjects.Container {
         this.betsButtonsContainer.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT);
         this.add(this.betsButtonsContainer);
 
+        this.infoContainer = new InfoContainer(this.scene);
+        this.infoContainer.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT - 50);
+        this.infoContainer.setAlpha(0);
+        this.add(this.infoContainer);
+
         this.setScalesAndPostions();
         
     }
@@ -46,13 +53,16 @@ export class HUD extends Phaser.GameObjects.Container {
             if (GameVars.scaleX > 1.2) {
                 this.topContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
                 this.betsButtonsContainer.setScale(1, 1 / GameVars.scaleX);
+                this.infoContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
             } else {
                 this.topContainer.setScale(GameVars.scaleX, 1);
                 this.betsButtonsContainer.setScale(GameVars.scaleX, 1);
+                this.infoContainer.setScale(GameVars.scaleX, 1);
             }
         } else {
             this.topContainer.setScale(1.2, GameVars.scaleY * 1.2);
             this.betsButtonsContainer.setScale(1.2, GameVars.scaleY * 1.2);
+            this.infoContainer.setScale(1.2, GameVars.scaleY * 1.2);
         }
 
         if (this.betsButtonsContainer.visible) {
@@ -63,6 +73,7 @@ export class HUD extends Phaser.GameObjects.Container {
     public removeBetButtons(): void {
 
         this.betsButtonsContainer.hide();
+        this.infoContainer.hide();
     }
 
     public showBetButtons(): void {
@@ -70,5 +81,14 @@ export class HUD extends Phaser.GameObjects.Container {
         GameVars.raiseValue = ethers.BigNumber.from(1);
         
         this.betsButtonsContainer.show();
+        this.infoContainer.hide();
     } 
+
+    public clearInfo() {
+        this.infoContainer.hide();
+    }
+
+    public updateInfo(msg: string) {
+        this.infoContainer.update(msg, true);
+    }
 }
