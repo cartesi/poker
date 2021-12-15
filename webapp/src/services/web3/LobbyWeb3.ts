@@ -107,6 +107,7 @@ export class LobbyWeb3 {
                 playerFunds,
                 encodedPlayerInfo
             );
+            await tx.wait();
             console.log(`Submitted join game request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
         });
     }
@@ -137,6 +138,7 @@ export class LobbyWeb3 {
                 GameConstants.MIN_FUNDS,
                 PokerToken.address
             );
+            await tx.wait();
             console.log(`Submitted leave queue request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
         });
 
