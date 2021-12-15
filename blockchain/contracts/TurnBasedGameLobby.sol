@@ -84,6 +84,52 @@ contract TurnBasedGameLobby {
         return queues[queueHash];
     }
 
+    /// @notice Allows a player to remove himself from a game queue
+    /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
+    /// @param _gameMetadata game-specific initial metadata/parameters
+    /// @param _gameValidators addresses of the validator nodes that will run a Descartes verification should it be needed
+    /// @param _gameTimeout global timeout for game activity in seconds, after which the game may be terminated (zero means there is no timeout limit)
+    /// @param _gameNumPlayers number of players in the game
+    /// @param _gameMinFunds minimum funds required to be staked in order to join the game
+    /// @param _gameERC20Address address for a ERC20 compatible token provider
+    function leaveQueue(
+        bytes32 _gameTemplateHash,
+        bytes memory _gameMetadata,
+        address[] memory _gameValidators,
+        uint256 _gameTimeout,
+        uint8 _gameNumPlayers,
+        uint256 _gameMinFunds,
+        address _gameERC20Address
+    ) public {
+        // builds hash for game specification
+        bytes32 queueHash =
+            keccak256(
+                abi.encodePacked(
+                    _gameTemplateHash,
+                    _gameMetadata,
+                    _gameValidators,
+                    _gameTimeout,
+                    _gameNumPlayers,
+                    _gameMinFunds,
+                    _gameERC20Address
+                )
+            );
+        // retrieves queued players for given game specification
+        QueuedPlayer[] storage queuedPlayers = queues[queueHash];
+
+        // removes player from the queue
+        for (uint256 i = 0; i < queuedPlayers.length; i++) {
+            if (queuedPlayers[i].addr == msg.sender) {
+                // found player: remove him and return funds
+                uint256 playerFunds = queuedPlayers[i].funds;
+                queuedPlayers[i] = queuedPlayers[queuedPlayers.length - 1];
+                queuedPlayers.pop();
+                returnFunds(IERC20(_gameERC20Address), msg.sender, playerFunds);                
+                break;
+            }
+        }
+    }    
+
     /// @notice Allows a player to join a game. People are queued up as they join and the game starts when enough people are available.
     /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
     /// @param _gameMetadata game-specific initial metadata/parameters
@@ -185,5 +231,17 @@ contract TurnBasedGameLobby {
         uint256 _playerFunds
     ) public {
         _tokenProvider.transferFrom(_playerAddress, address(this), _playerFunds);
+    }
+
+    /// @notice Return player tokens from the lobby contract to the given address
+    /// @param _tokenProvider ERC20 compatible token provider instance
+    /// @param _playerAddress address for the player whose tokens will be returned from the lobby account
+    /// @param _playerFunds amount to return to the player
+    function returnFunds(
+        IERC20 _tokenProvider,
+        address _playerAddress,
+        uint256 _playerFunds
+    ) public {
+        _tokenProvider.transfer(_playerAddress, _playerFunds);
     }
 }

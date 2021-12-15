@@ -107,8 +107,206 @@ describe("TurnBasedGameLobby", async () => {
         });
     });
 
+    // LEAVE QUEUE
+    describe("leaveQueue", async () => {
+        it("Should do nothing for an empty queue", async () => {
+            await lobbyContract.leaveQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                players.length,
+                minFunds,
+                pokerTokenContract.address
+            );
+            expect(
+                await lobbyContract.getQueue(
+                    gameTemplateHash,
+                    gameMetadata,
+                    validators,
+                    gameTimeout,
+                    players.length,
+                    minFunds,
+                    pokerTokenContract.address
+                )
+            ).to.eql([]);
+        });
+
+        it("Should remove player if in queue", async () => {
+            // player0 joins
+            await lobbyContract.joinGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                players.length,
+                minFunds,
+                pokerTokenContract.address,
+                minFunds,
+                playerInfos[0]
+            );
+            // player0 leaves
+            await lobbyContract.leaveQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                players.length,
+                minFunds,
+                pokerTokenContract.address
+            );
+            // queue should be empty
+            expect(
+                await lobbyContract.getQueue(
+                    gameTemplateHash,
+                    gameMetadata,
+                    validators,
+                    gameTimeout,
+                    players.length,
+                    minFunds,
+                    pokerTokenContract.address
+                )
+            ).to.eql([]);
+        });
+
+        it("Should remove player if in queue: 3 player game removing 1st player in queue", async () => {
+            // player0 joins
+            await lobbyContract.joinGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                3,
+                minFunds,
+                pokerTokenContract.address,
+                minFunds,
+                playerInfos[0]
+            );
+            // player1 joins
+            await lobbyContractPlayer1.joinGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                3,
+                minFunds,
+                pokerTokenContract.address,
+                minFunds,
+                playerInfos[1]
+            );
+            // player0 leaves
+            await lobbyContract.leaveQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                3,
+                minFunds,
+                pokerTokenContract.address
+            );
+            // retrieve queue and check that player1 is still there
+            const queuedPlayers = await lobbyContract.getQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                3,
+                minFunds,
+                pokerTokenContract.address
+            );
+            expect(queuedPlayers.length).to.eql(1);
+            expect(queuedPlayers[0].addr).to.eql(players[1]);
+        });
+
+        it("Should remove player if in queue: 3 player game removing 2nd player in queue", async () => {
+            // player0 joins
+            await lobbyContract.joinGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                3,
+                minFunds,
+                pokerTokenContract.address,
+                minFunds,
+                playerInfos[0]
+            );
+            // player1 joins
+            await lobbyContractPlayer1.joinGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                3,
+                minFunds,
+                pokerTokenContract.address,
+                minFunds,
+                playerInfos[1]
+            );
+            // player1 leaves
+            await lobbyContractPlayer1.leaveQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                3,
+                minFunds,
+                pokerTokenContract.address
+            );
+            // retrieve queue and check that player0 is still there
+            const queuedPlayers = await lobbyContract.getQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                3,
+                minFunds,
+                pokerTokenContract.address
+            );
+            expect(queuedPlayers.length).to.eql(1);
+            expect(queuedPlayers[0].addr).to.eql(players[0]);
+        });
+
+        it("Should do nothing if player is not in queue", async () => {
+            // player0 joins
+            await lobbyContract.joinGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                players.length,
+                minFunds,
+                pokerTokenContract.address,
+                minFunds,
+                playerInfos[0]
+            );
+            // player1 leaves
+            await lobbyContractPlayer1.leaveQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                players.length,
+                minFunds,
+                pokerTokenContract.address
+            );
+            // retrieve queue and check that player0 is still there
+            const queuedPlayers = await lobbyContract.getQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                players.length,
+                minFunds,
+                pokerTokenContract.address
+            );
+            expect(queuedPlayers.length).to.eql(1);
+            expect(queuedPlayers[0].addr).to.eql(players[0]);
+        });
+    });
+
     // JOIN GAME
-    describe("JoinGame", async () => {
+    describe("joinGame", async () => {
         it("Should not be allowed if player funds are less than the minimum required", async () => {
             await expect(
                 lobbyContract.joinGame(
@@ -127,7 +325,7 @@ describe("TurnBasedGameLobby", async () => {
 
         it("Should allow if player funds are greater or equal than the minimum required", async () => {
             await expect(
-                lobbyContractPlayer1.joinGame(
+                lobbyContract.joinGame(
                     gameTemplateHash,
                     gameMetadata,
                     validators,
@@ -136,13 +334,13 @@ describe("TurnBasedGameLobby", async () => {
                     minFunds,
                     pokerTokenContract.address,
                     minFunds,
-                    players[0]
+                    playerInfos[0]
                 )
             ).not.to.be.reverted;
         });
 
         it("Should not allow player to join game more than once", async () => {
-            await lobbyContractPlayer1.joinGame(
+            await lobbyContract.joinGame(
                 gameTemplateHash,
                 gameMetadata,
                 validators,
@@ -155,7 +353,7 @@ describe("TurnBasedGameLobby", async () => {
             );
 
             await expect(
-                lobbyContractPlayer1.joinGame(
+                lobbyContract.joinGame(
                     gameTemplateHash,
                     gameMetadata,
                     validators,
@@ -432,6 +630,41 @@ describe("TurnBasedGameLobby", async () => {
 
             expect(await pokerTokenContract.balanceOf(players[1])).to.equal(minFunds);
             expect(await pokerTokenContract.balanceOf(lobbyContract.address)).to.equal(2 * minFunds);
+        });
+
+        it("Should return player tokens when leaving a queue", async () => {
+            expect(await pokerTokenContract.balanceOf(lobbyContract.address)).to.equal(0);
+            expect(await pokerTokenContract.balanceOf(players[0])).to.equal(2 * minFunds);
+
+            // player 0 joins game and lobby will lock minFunds
+            await lobbyContract.joinGame(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                players.length,
+                minFunds,
+                pokerTokenContract.address,
+                playerFunds[0],
+                playerInfos[0]
+            );
+
+            expect(await pokerTokenContract.balanceOf(players[0])).to.equal(minFunds);
+            expect(await pokerTokenContract.balanceOf(lobbyContract.address)).to.equal(minFunds);
+
+            // player 0 leaves game and lobby should return funds
+            await lobbyContract.leaveQueue(
+                gameTemplateHash,
+                gameMetadata,
+                validators,
+                gameTimeout,
+                players.length,
+                minFunds,
+                pokerTokenContract.address
+            );
+
+            expect(await pokerTokenContract.balanceOf(lobbyContract.address)).to.equal(0);
+            expect(await pokerTokenContract.balanceOf(players[0])).to.equal(2 * minFunds);
         });
     });
 });
