@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
-import TurnBasedGame from "../../abis/TurnBasedGame.json";
-import TurnBasedGameContext from "../../abis/TurnBasedGameContext.json";
-import TurnBasedGameLobby from "../../abis/TurnBasedGameLobby.json";
+import TurnBasedGameJson from "../../abis/TurnBasedGame.json";
+import TurnBasedGameContextJson from "../../abis/TurnBasedGameContext.json";
+import TurnBasedGameLobbyJson from "../../abis/TurnBasedGameLobby.json";
 import PokerToken from "../../abis/PokerToken.json";
-import { TurnBasedGame__factory } from "../../types";
+import { TurnBasedGameContext, TurnBasedGame__factory } from "../../types";
 import { TurnBasedGameContext__factory } from "../../types";
 import { TurnBasedGameLobby__factory } from "../../types";
 import { PokerToken__factory } from "../../types";
@@ -13,8 +13,13 @@ import { Web3Utils } from "./Web3Utils";
 import { ErrorHandler } from "../ErrorHandler";
 
 export class LobbyWeb3 {
+    private static gameContextContract: TurnBasedGameContext;
     /**
      * Joins a new Texas Holdem game using Web3
+     *
+     * @param playerFunds funds being brought to the game
+     * @param playerInfo JSON object with descriptive information (name, avatar) about the player joining
+     * @param gameReadyCallback callback to be called once game is ready to start, receiving two arguments: the new game's index and its full context (players involved, etc)
      */
     public static async joinGame(playerInfo: Object, gameReadyCallback) {
         // retrieves signer + chainId (e.g., from metamask)
@@ -23,18 +28,20 @@ export class LobbyWeb3 {
 
         const playerAddress = await signer.getAddress();
 
-        // connects to the TurnBasedGame and TurnBasedGameLobby contracts
-        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
-        const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
-        const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContext.address, signer);
-        const lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobby.address, signer);
-        const gameContextContract = contextContract.attach(gameContract.address);
-
         // cancels any current event listening
-        gameContextContract.removeAllListeners();
+        if (this.gameContextContract) {
+            this.gameContextContract.removeAllListeners();
+        }
+
+        // connects to the TurnBasedGame, TurnBasedGameLobby and PokerToken contracts
+        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
+        const gameContract = TurnBasedGame__factory.connect(TurnBasedGameJson.address, signer);
+        const contextContract = TurnBasedGameContext__factory.connect(TurnBasedGameContextJson.address, signer);
+        const lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobbyJson.address, signer);
+        this.gameContextContract = contextContract.attach(gameContract.address);
 
         // listens to GameReady events indicating that a game has been created
-        gameContextContract.on("GameReady", (index, ctx) => {
+        this.gameContextContract.on("GameReady", (index, ctx) => {
             // checks if player is participating in the newly created game
             const playerIndex = ctx.players.indexOf(playerAddress);
             if (playerIndex == -1) {
@@ -59,7 +66,7 @@ export class LobbyWeb3 {
             }
 
             // cancels event listening and calls callback
-            gameContextContract.removeAllListeners();
+            this.gameContextContract.removeAllListeners();
             gameReadyCallback(index, context);
         });
 
@@ -90,5 +97,40 @@ export class LobbyWeb3 {
             );
             console.log(`Submitted join game request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
         });
+    }
+
+    /**
+     * Leaves Texas Holdem game queue
+     */
+    public static async leaveQueue(): Promise<void> {
+        // connects to TurnBasedGameLobby contract
+        const signer = ServiceConfig.getSigner();
+        const lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobbyJson.address, signer);
+
+        // retrieves validator addresses for the selected chain
+        const chainId = ServiceConfig.getChainId();
+        const validators = GameConstants.VALIDATORS[chainId];
+        if (!validators || !validators.length) {
+            console.error("No validators defined for the selected chain with ID " + chainId);
+        }
+
+        // leaves queue by calling Lobby smart contract
+        await ErrorHandler.execute("leaveQueue", async () => {
+            const tx = await lobbyContract.leaveQueue(
+                GameConstants.GAME_TEMPLATE_HASH,
+                GameConstants.GAME_METADATA,
+                validators,
+                GameConstants.TIMEOUT_SECONDS,
+                GameConstants.NUM_PLAYERS,
+                GameConstants.MIN_FUNDS,
+                PokerToken.address
+            );
+            console.log(`Submitted leave queue request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
+        });
+
+        // cancels any game event listening
+        if (this.gameContextContract) {
+            this.gameContextContract.removeAllListeners();
+        }
     }
 }

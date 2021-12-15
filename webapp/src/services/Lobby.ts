@@ -23,4 +23,20 @@ export class Lobby {
             throw `Unknown transport configuration '${impl}'!`;
         }
     }
+
+    /**
+     * Leaves Texas Holdem game queue
+     */
+    public static async leaveQueue(): Promise<void> {
+        const impl = ServiceConfig.get(ServiceType.Transport);
+        if (impl === ServiceImpl.Mock) {
+            // mock lobby: nothing to do (no real queue to leave)
+        } else if (impl == ServiceImpl.Web3) {
+            // web3 lobby
+            await LobbyWeb3.leaveQueue();
+        } else {
+            // unknown implementation configured
+            throw `Unknown transport configuration '${impl}'!`;
+        }
+    }
 }

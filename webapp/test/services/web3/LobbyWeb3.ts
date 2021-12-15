@@ -2,15 +2,20 @@ import { describe } from "mocha";
 import { expect } from "chai";
 import { GameConstants, ChainId } from "../../../src/GameConstants";
 import { ServiceConfig } from "../../../src/services/ServiceConfig";
-import { PokerToken__factory } from "../../../src/types";
-import PokerToken from "../../../src/abis/PokerToken.json";
-import TurnBasedGameLobby from "../../../src/abis/TurnBasedGameLobby.json";
+import { PokerToken, PokerToken__factory } from "../../../src/types";
+import PokerTokenJson from "../../../src/abis/PokerToken.json";
+import TurnBasedGameLobbyJson from "../../../src/abis/TurnBasedGameLobby.json";
 import { LobbyWeb3 } from "../../../src/services/web3/LobbyWeb3";
 import { TestWeb3Utils } from "./TestWeb3Utils";
+import { WalletWeb3 } from "../../../src/services/web3/WalletWeb3";
+import { ethers } from "ethers";
 
 describe("LobbyWeb3", function () {
     const aliceAddress: string = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
     const bobAddress: string = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
+
+    let pokerTokenContractAlice: PokerToken;
+    let pokerTokenContractBob: PokerToken;
 
     this.timeout(60000);
 
@@ -23,25 +28,22 @@ describe("LobbyWeb3", function () {
         TestWeb3Utils.setSigner(bobAddress);
         const bobSigner = ServiceConfig.getSigner();
 
-        const pokerTokenContractAlice = PokerToken__factory.connect(PokerToken.address, aliceSigner);
-        const pokerTokenContractBob = PokerToken__factory.connect(PokerToken.address, bobSigner);
+        pokerTokenContractAlice = PokerToken__factory.connect(PokerTokenJson.address, aliceSigner);
+        pokerTokenContractBob = PokerToken__factory.connect(PokerTokenJson.address, bobSigner);
 
-        // Mint tokens (Alice has minter role) for players
-        await pokerTokenContractAlice.mint(aliceAddress, GameConstants.MIN_FUNDS);
-        await pokerTokenContractAlice.mint(bobAddress, GameConstants.MIN_FUNDS);
-
-        // Setup for Alice
-        let aliceFunds = await pokerTokenContractAlice.balanceOf(aliceAddress);
-        await pokerTokenContractAlice.approve(TurnBasedGameLobby.address, aliceFunds);
-
-        // Setup for Bob
-        let bobFunds = await pokerTokenContractBob.balanceOf(bobAddress);
-        await pokerTokenContractBob.approve(TurnBasedGameLobby.address, bobFunds);
+        // approves spending of tokens
+        await pokerTokenContractAlice.approve(TurnBasedGameLobbyJson.address, ethers.constants.MaxUint256);
+        await pokerTokenContractBob.approve(TurnBasedGameLobbyJson.address, ethers.constants.MaxUint256);
     });
 
     it("should notify game ready when the correct number of players have joined", async () => {
+        console.log("STARTING TEST");
         const player1Info = { name: "Alice", avatar: 1 };
         const player2Info = { name: "Bob", avatar: 2 };
+
+        // mints tokens for the players to play (alice has minter role)
+        await pokerTokenContractAlice.mint(aliceAddress, GameConstants.MIN_FUNDS);
+        await pokerTokenContractAlice.mint(bobAddress, GameConstants.MIN_FUNDS);
 
         // Creates a promise that will only be resolved when gameReady callback for player 1 is called
         let gameReadyResolverPlayer1: (boolean) => void;
@@ -80,5 +82,26 @@ describe("LobbyWeb3", function () {
         await promiseIsGameReadyPlayer2.then((isGameReady) => {
             expect(isGameReady).to.be.true;
         });
+    });
+
+    it("should return player funds when leaving game queue", async () => {
+        const playerInfo = { name: "Alice", avatar: 1 };
+
+        // set signer as alice
+        TestWeb3Utils.setSigner(aliceAddress);
+
+        // mint tokens (alice has minter role)
+        await pokerTokenContractAlice.mint(aliceAddress, GameConstants.MIN_FUNDS);
+
+        // collects current player token balance
+        const tokenBalance = await WalletWeb3.getPokerTokens();
+
+        // alice joins the game and locks funds
+        await LobbyWeb3.joinGame(playerInfo, () => {});
+        expect(await WalletWeb3.getPokerTokens()).to.eql(ethers.constants.Zero);
+
+        // alice leaves the game queue and gets funds back
+        await LobbyWeb3.leaveQueue();
+        expect(await WalletWeb3.getPokerTokens()).to.eql(tokenBalance);
     });
 });

@@ -3,6 +3,7 @@ import { GameConstants } from "../../GameConstants";
 import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
 import { ErrorHandler } from "../../services/ErrorHandler";
+import { Lobby } from "../../services/Lobby";
 import { MatchingLayer } from "./MatchingLayer";
 
 export class LobbyScene extends Phaser.Scene {
@@ -46,7 +47,7 @@ export class LobbyScene extends Phaser.Scene {
         }, this);
         backButton.on("pointerup", () => {
             AudioManager.playSound("btn_click");
-            GameManager.enterSplashScene();
+            this.onBack();
         }, this);
         this.backContainer.add(backButton);
 
@@ -98,5 +99,10 @@ export class LobbyScene extends Phaser.Scene {
         }
 
         this.matchingLayer.setScalesAndPositions();
+    }
+
+    protected async onBack(): Promise<void> {
+        await Lobby.leaveQueue();
+        GameManager.enterSplashScene();
     }
 }
