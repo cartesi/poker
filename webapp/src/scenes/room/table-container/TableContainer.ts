@@ -22,7 +22,7 @@ export class TableContainer extends Phaser.GameObjects.Container {
         this.y = GameConstants.GAME_HEIGHT / 2;
 
         this.gradient = new Phaser.GameObjects.Image(this.scene, 0, 0, "bg");
-        this.gradient.setScale(1);
+        this.gradient.setScale(1.4);
         this.add(this.gradient);
 
         this.table = new Phaser.GameObjects.Image(this.scene, 0, 0, "texture_atlas_1", "table");
