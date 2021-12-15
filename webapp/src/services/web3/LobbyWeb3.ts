@@ -82,34 +82,37 @@ export class LobbyWeb3 {
             gameReadyCallback(index, context);
         });
 
-        // retrieves player's balance to see how much he will bring to the table
-        const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
+        // joins game if player is not already enqueued
+        if (!(await this.isEnqueued())) {
+            // retrieves player's balance to see how much he will bring to the table
+            const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
 
-        // retrieves validator addresses for the selected chain
-        const validators = GameConstants.VALIDATORS[chainId];
-        if (!validators || !validators.length) {
-            console.error("No validators defined for the selected chain with ID " + chainId);
+            // retrieves validator addresses for the selected chain
+            const validators = GameConstants.VALIDATORS[chainId];
+            if (!validators || !validators.length) {
+                console.error("No validators defined for the selected chain with ID " + chainId);
+            }
+
+            // Encode player infos
+            let encodedPlayerInfo = Web3Utils.toUint8Array(playerInfo);
+
+            // joins game by calling Lobby smart contract
+            await ErrorHandler.execute("joinGame", async () => {
+                const tx = await lobbyContract.joinGame(
+                    GameConstants.GAME_TEMPLATE_HASH,
+                    GameConstants.GAME_METADATA,
+                    validators,
+                    GameConstants.TIMEOUT_SECONDS,
+                    GameConstants.NUM_PLAYERS,
+                    GameConstants.MIN_FUNDS,
+                    PokerToken.address,
+                    playerFunds,
+                    encodedPlayerInfo
+                );
+                await tx.wait();
+                console.log(`Submitted join game request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
+            });
         }
-
-        // Encode player infos
-        let encodedPlayerInfo = Web3Utils.toUint8Array(playerInfo);
-
-        // joins game by calling Lobby smart contract
-        await ErrorHandler.execute("joinGame", async () => {
-            const tx = await lobbyContract.joinGame(
-                GameConstants.GAME_TEMPLATE_HASH,
-                GameConstants.GAME_METADATA,
-                validators,
-                GameConstants.TIMEOUT_SECONDS,
-                GameConstants.NUM_PLAYERS,
-                GameConstants.MIN_FUNDS,
-                PokerToken.address,
-                playerFunds,
-                encodedPlayerInfo
-            );
-            await tx.wait();
-            console.log(`Submitted join game request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
-        });
     }
 
     /**
@@ -146,5 +149,44 @@ export class LobbyWeb3 {
         if (this.gameContextContract) {
             this.gameContextContract.removeAllListeners();
         }
+    }
+
+    /*
+     * Checks if player is already enqueued waiting for another player to join a new Texas Holdem game
+     */
+    public async isEnqueued(): Promise<boolean> {
+        // connects to TurnBasedGameLobby contract
+        const signer = ServiceConfig.getSigner();
+        const playerAddress = await signer.getAddress();
+        const lobbyContract = TurnBasedGameLobby__factory.connect(TurnBasedGameLobbyJson.address, signer);
+
+        // retrieves validator addresses for the selected chain
+        const chainId = ServiceConfig.getChainId();
+        const validators = GameConstants.VALIDATORS[chainId];
+        if (!validators || !validators.length) {
+            console.error("No validators defined for the selected chain with ID " + chainId);
+        }
+
+        // retrieves current queue in the Lobby smart contract
+        let queuedPlayers;
+        await ErrorHandler.execute("getQueue", async () => {
+            queuedPlayers = await lobbyContract.getQueue(
+                GameConstants.GAME_TEMPLATE_HASH,
+                GameConstants.GAME_METADATA,
+                validators,
+                GameConstants.TIMEOUT_SECONDS,
+                GameConstants.NUM_PLAYERS,
+                GameConstants.MIN_FUNDS,
+                PokerToken.address
+            );
+        });
+
+        // checks if player is enqueued
+        for (let queuedPlayer of queuedPlayers) {
+            if (queuedPlayer.addr == playerAddress) {
+                return true;
+            }
+        }
+        return false;
     }
 }

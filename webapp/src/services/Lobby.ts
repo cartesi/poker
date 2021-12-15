@@ -39,4 +39,21 @@ export class Lobby {
             throw `Unknown transport configuration '${impl}'!`;
         }
     }
+
+    /**
+     * Checks if player is already enqueued waiting for another player to join a new Texas Holdem game
+     */
+    public static async isEnqueued(): Promise<boolean> {
+        const impl = ServiceConfig.get(ServiceType.Transport);
+        if (impl === ServiceImpl.Mock) {
+            // mock lobby: player is never enqueued
+            return false;
+        } else if (impl == ServiceImpl.Web3) {
+            // web3 lobby
+            return await LobbyWeb3.getInstance().isEnqueued();
+        } else {
+            // unknown implementation configured
+            throw `Unknown transport configuration '${impl}'!`;
+        }
+    }
 }

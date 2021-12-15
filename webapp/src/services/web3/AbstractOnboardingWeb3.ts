@@ -10,6 +10,7 @@ import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
 import { TurnBasedGameFactory } from "../TurnBasedGame";
 import { GameVars } from "../../GameVars";
+import { Lobby } from "../Lobby";
 
 export class AbstractOnboardingWeb3 {
     private static claimTimeoutInterval;
@@ -44,6 +45,11 @@ export class AbstractOnboardingWeb3 {
             error: false,
             ready: false,
         });
+
+        // checks if player is already enqueued in the lobby
+        if (await this.checkEnqueuedInLobby(onChange)) {
+            return;
+        }
 
         // sets up a listener to refresh the wallet when appropriate
         this.setupWalletTransferListeners(onChange, updateCallback);
@@ -93,6 +99,26 @@ export class AbstractOnboardingWeb3 {
     }
 
     /**
+     * Checks if the player is already enqueued in the Lobby
+     * @param onChange
+     * @returns
+     */
+    protected static async checkEnqueuedInLobby(onChange): Promise<boolean> {
+        if (await Lobby.isEnqueued()) {
+            onChange({
+                label: `You are already waiting for another player to join`,
+                onclick: undefined,
+                loading: false,
+                error: false,
+                ready: true,
+            });
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Checks if the player has an ongoing unfinished game, and if true attempts to end it by timeout
      * @param onChange
      * @param chainName
@@ -127,7 +153,9 @@ export class AbstractOnboardingWeb3 {
                 }
             } catch (error) {
                 // error retrieving current game: maybe contract has changed, log it and ignore
-                console.error(`Failed to retrieve current game from locally stored index ${GameVars.gameData.gameIndex}: ${error}`);
+                console.error(
+                    `Failed to retrieve current game from locally stored index ${GameVars.gameData.gameIndex}: ${error}`
+                );
             }
         }
 
