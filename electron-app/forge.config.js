@@ -1,5 +1,7 @@
 module.exports = {
-    packagerConfig: {},
+    packagerConfig: {
+        icon: "icons/icon_512",
+    },
     makers: [
         {
             name: "@electron-forge/maker-squirrel",
