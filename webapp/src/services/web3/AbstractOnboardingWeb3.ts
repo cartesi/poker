@@ -18,31 +18,6 @@ export class AbstractOnboardingWeb3 {
     private static pokerTokenContractWithListeners: PokerToken;
 
     /**
-     * Submits transaction to approve allowance for spending the user's tokens
-     * @param onChange
-     */
-    protected static async approve(onChange) {
-        onChange({
-            label: `Sending approval request...`,
-            onclick: undefined,
-            loading: true,
-            error: false,
-            ready: false,
-        });
-
-        // retrieves user address and contract
-        const signer = ServiceConfig.getSigner();
-        const pokerTokenContract = PokerToken__factory.connect(PokerTokenJson.address, signer);
-
-        // sends approve request: for simplicity, at the moment we're requesting infinite approval
-        await ErrorHandler.execute("approve", async () => {
-            const tx = await pokerTokenContract.approve(TurnBasedGameLobby.address, ethers.constants.MaxUint256);
-            console.log(`Submitted approve request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
-        });
-        this.checkAllowance(onChange, true);
-    }
-
-    /**
      * Once an account is connected, checks if conditions are appropriate for starting the game.
      * @param onChange
      * @param chainName
@@ -248,10 +223,23 @@ export class AbstractOnboardingWeb3 {
         const playerAddress = await signer.getAddress();
         const pokerTokenContract = PokerToken__factory.connect(PokerTokenJson.address, signer);
 
-        const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
-        if (playerFunds.lt(ethers.BigNumber.from(GameConstants.MIN_FUNDS))) {
+        // checks balance in POKER tokens
+        const tokenBalance = await pokerTokenContract.balanceOf(playerAddress);
+        if (tokenBalance.lt(ethers.BigNumber.from(GameConstants.MIN_FUNDS))) {
             onChange({
                 label: `Sorry, you need at least ${GameConstants.MIN_FUNDS} POKER tokens on ${chainName} to play`,
+                onclick: undefined,
+                loading: false,
+                error: true,
+                ready: false,
+            });
+            return false;
+        }
+        // checks balance in network funds (ETH/MATIC)
+        const balance = await signer.getBalance();
+        if (balance.eq(ethers.constants.Zero)) {
+            onChange({
+                label: `Sorry, you need some funds on ${chainName} to play`,
                 onclick: undefined,
                 loading: false,
                 error: true,
@@ -322,5 +310,30 @@ export class AbstractOnboardingWeb3 {
             });
             return true;
         }
+    }
+
+    /**
+     * Submits transaction to approve allowance for spending the user's tokens
+     * @param onChange
+     */
+    protected static async approve(onChange) {
+        onChange({
+            label: `Sending approval request...`,
+            onclick: undefined,
+            loading: true,
+            error: false,
+            ready: false,
+        });
+
+        // retrieves user address and contract
+        const signer = ServiceConfig.getSigner();
+        const pokerTokenContract = PokerToken__factory.connect(PokerTokenJson.address, signer);
+
+        // sends approve request: for simplicity, at the moment we're requesting infinite approval
+        await ErrorHandler.execute("approve", async () => {
+            const tx = await pokerTokenContract.approve(TurnBasedGameLobby.address, ethers.constants.MaxUint256);
+            console.log(`Submitted approve request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
+        });
+        this.checkAllowance(onChange, true);
     }
 }
