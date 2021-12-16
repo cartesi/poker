@@ -11,6 +11,7 @@ import { ServiceConfig } from "../ServiceConfig";
 import { TurnBasedGameFactory } from "../TurnBasedGame";
 import { GameVars } from "../../GameVars";
 import { Lobby } from "../Lobby";
+import { ErrorHandler } from "../ErrorHandler";
 
 export class AbstractOnboardingWeb3 {
     private static claimTimeoutInterval;
@@ -21,12 +22,23 @@ export class AbstractOnboardingWeb3 {
      * @param onChange
      */
     protected static async approve(onChange) {
+        onChange({
+            label: `Sending approval request...`,
+            onclick: undefined,
+            loading: true,
+            error: false,
+            ready: false,
+        });
+
         // retrieves user address and contract
         const signer = ServiceConfig.getSigner();
         const pokerTokenContract = PokerToken__factory.connect(PokerTokenJson.address, signer);
 
-        // for simplicity, at the moment we're requesting infinite approval
-        await pokerTokenContract.approve(TurnBasedGameLobby.address, ethers.constants.MaxUint256);
+        // sends approve request: for simplicity, at the moment we're requesting infinite approval
+        await ErrorHandler.execute("approve", async () => {
+            const tx = await pokerTokenContract.approve(TurnBasedGameLobby.address, ethers.constants.MaxUint256);
+            console.log(`Submitted approve request (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
+        });
         this.checkAllowance(onChange, true);
     }
 
@@ -277,7 +289,7 @@ export class AbstractOnboardingWeb3 {
                 // allowance approval has already been requested
                 // - indicate process is underway
                 onChange({
-                    label: `Approving allowance...`,
+                    label: `Waiting for approval...`,
                     onclick: undefined,
                     loading: true,
                     error: false,
