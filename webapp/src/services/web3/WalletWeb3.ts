@@ -2,6 +2,7 @@ import { BigNumber, ethers } from "ethers";
 import { ServiceConfig } from "../ServiceConfig";
 import { PokerToken__factory } from "../../types";
 import PokerToken from "../../abis/PokerToken.json";
+import { ErrorHandler } from "../ErrorHandler";
 
 export class WalletWeb3 {
     public static async getAddress() {
@@ -18,7 +19,11 @@ export class WalletWeb3 {
         if (!signer) {
             return ethers.constants.Zero;
         } else {
-            return await signer.getBalance();
+            let balance;
+            await ErrorHandler.execute("pokerTokenBalance", async () => {
+                balance = await signer.getBalance();
+            });
+            return balance;
         }
     }
 
@@ -29,7 +34,11 @@ export class WalletWeb3 {
         } else {
             const playerAddress = await signer.getAddress();
             const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, signer);
-            return await pokerTokenContract.balanceOf(playerAddress);
+            let tokenBalance;
+            await ErrorHandler.execute("pokerTokenBalance", async () => {
+                tokenBalance = await pokerTokenContract.balanceOf(playerAddress);
+            });
+            return tokenBalance;
         }
     }
 }

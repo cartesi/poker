@@ -12,6 +12,7 @@ import { TurnBasedGameFactory } from "../TurnBasedGame";
 import { GameVars } from "../../GameVars";
 import { Lobby } from "../Lobby";
 import { ErrorHandler } from "../ErrorHandler";
+import { Wallet } from "../Wallet";
 
 export class AbstractOnboardingWeb3 {
     private static claimTimeoutInterval;
@@ -125,7 +126,10 @@ export class AbstractOnboardingWeb3 {
         if (GameVars.gameData.gameIndex) {
             // double-checks if corresponding game concerns the player
             try {
-                const context = await gameContract.getContext(GameVars.gameData.gameIndex);
+                let context;
+                await ErrorHandler.execute("getContext", async () => {
+                    context = await gameContract.getContext(GameVars.gameData.gameIndex);
+                });
                 if (context.players.includes(playerAddress)) {
                     // there is a registered last game for the player, let's check it out
                     const isRegisteredGameUnfinished = await this.checkUnfinishedGameByIndex(
@@ -148,7 +152,10 @@ export class AbstractOnboardingWeb3 {
 
         // looks for a last game by fetching the latest turn submitted by the player (emits TurnOver event)
         const turnOverFilter = gameContextContract.filters.TurnOver(null, null, playerAddress, null);
-        const turnOverEvents = await gameContextContract.queryFilter(turnOverFilter);
+        let turnOverEvents;
+        await ErrorHandler.execute("queryTurnOver", async () => {
+            turnOverEvents = await gameContextContract.queryFilter(turnOverFilter);
+        });
         if (turnOverEvents.length > 0) {
             const lastGameIndex = turnOverEvents[turnOverEvents.length - 1].args._index;
             if (await this.checkUnfinishedGameByIndex(onChange, updateCallback, lastGameIndex)) {
@@ -176,7 +183,10 @@ export class AbstractOnboardingWeb3 {
 
         // checks if game is really over
         const gameOverFilter = gameContextContract.filters.GameOver(gameIndex, null);
-        const gameOverEvents = await gameContextContract.queryFilter(gameOverFilter);
+        let gameOverEvents;
+        await ErrorHandler.execute("queryGameOver", async () => {
+            gameOverEvents = await gameContextContract.queryFilter(gameOverFilter);
+        });
         if (gameOverEvents.length == 0) {
             // game is not over
             onChange({
@@ -214,13 +224,10 @@ export class AbstractOnboardingWeb3 {
 
     protected static async checkBalance(onChange): Promise<boolean> {
         // retrieves user address and contract
-        const signer = ServiceConfig.getSigner();
-        const playerAddress = await signer.getAddress();
-        const pokerTokenContract = PokerToken__factory.connect(PokerTokenJson.address, signer);
         const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
 
         // checks balance in POKER tokens
-        const tokenBalance = await pokerTokenContract.balanceOf(playerAddress);
+        const tokenBalance = await Wallet.getPokerTokens();
         if (tokenBalance.lt(ethers.BigNumber.from(GameConstants.MIN_FUNDS))) {
             onChange({
                 label: `Sorry, you need at least ${GameConstants.MIN_FUNDS} POKER tokens on ${chainName} to play`,
@@ -232,7 +239,7 @@ export class AbstractOnboardingWeb3 {
             return false;
         }
         // checks balance in network funds (ETH/MATIC)
-        const balance = await signer.getBalance();
+        const balance = await Wallet.getBalance();
         const chainCurrency = GameConstants.CHAIN_CURRENCIES[ServiceConfig.getChainId()];
         if (balance.eq(ethers.constants.Zero)) {
             onChange({
@@ -255,17 +262,21 @@ export class AbstractOnboardingWeb3 {
      * @param loading boolean indicating whether allowance approval has already been requested
      */
     protected static async checkAllowance(onChange, loading): Promise<boolean> {
+        const playerFunds = await Wallet.getPokerTokens();
+        if (playerFunds.lt(ethers.BigNumber.from(GameConstants.MIN_FUNDS))) {
+            return false;
+        }
+
         // retrieves user address and contract
         const signer = ServiceConfig.getSigner();
         const playerAddress = await signer.getAddress();
         const pokerTokenContract = PokerToken__factory.connect(PokerTokenJson.address, signer);
 
-        const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
-        const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
-
-        if (playerFunds.lt(ethers.BigNumber.from(GameConstants.MIN_FUNDS))) {
-            return false;
-        }
+        // retrieves allowance
+        let allowance;
+        await ErrorHandler.execute("allowance", async () => {
+            allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
+        });
 
         if (allowance.lt(playerFunds)) {
             // game is not allowed to use player's tokens
