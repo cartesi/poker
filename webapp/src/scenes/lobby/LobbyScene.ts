@@ -125,6 +125,7 @@ export class LobbyScene extends Phaser.Scene {
         this.backButton.disableInteractive();
         this.backButton.setAlpha(0.5);
         this.loading.visible = true;
+        AudioManager.stopMatching();
         await Lobby.leaveQueue();
         GameManager.enterSplashScene();
     }
