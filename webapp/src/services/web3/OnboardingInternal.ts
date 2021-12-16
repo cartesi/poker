@@ -39,8 +39,7 @@ export class OnboardingInternal extends AbstractOnboardingWeb3 {
             }
 
             // checks player account's status
-            const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
-            super.checkAccountStatus(onChange, chainName, () => {
+            super.checkAccountStatus(onChange, () => {
                 this.update(onChange, checkOnboardingActive);
             });
         } catch (error) {

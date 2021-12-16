@@ -84,7 +84,7 @@ export class OnboardingPortis extends AbstractOnboardingWeb3 {
             }
 
             // checks player account's status
-            super.checkAccountStatus(onChange, chainName, () => {
+            super.checkAccountStatus(onChange, () => {
                 this.update(onChange, checkOnboardingActive);
             });
         } catch (error) {

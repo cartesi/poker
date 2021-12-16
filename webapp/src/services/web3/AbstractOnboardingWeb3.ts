@@ -24,7 +24,7 @@ export class AbstractOnboardingWeb3 {
      * @param updateCallback
      * @returns
      */
-    protected static async checkAccountStatus(onChange, chainName, updateCallback) {
+    protected static async checkAccountStatus(onChange, updateCallback) {
         onChange({
             label: "Checking account status...",
             onclick: undefined,
@@ -42,12 +42,12 @@ export class AbstractOnboardingWeb3 {
         this.setupWalletTransferListeners(onChange, updateCallback);
 
         // checks if player has an unfinished ongoing game
-        if (await this.checkUnfinishedGame(onChange, chainName, updateCallback)) {
+        if (await this.checkUnfinishedGame(onChange, updateCallback)) {
             return;
         }
 
         // checks player's balance to see if he has enough tokens to play
-        if (!(await this.checkBalance(onChange, chainName))) {
+        if (!(await this.checkBalance(onChange))) {
             return;
         }
 
@@ -112,7 +112,7 @@ export class AbstractOnboardingWeb3 {
      * @param updateCallback
      * @returns
      */
-    protected static async checkUnfinishedGame(onChange, chainName, updateCallback): Promise<boolean> {
+    protected static async checkUnfinishedGame(onChange, updateCallback): Promise<boolean> {
         // retrieves user address and contracts
         const signer = ServiceConfig.getSigner();
         const playerAddress = await signer.getAddress();
@@ -129,7 +129,6 @@ export class AbstractOnboardingWeb3 {
                     // there is a registered last game for the player, let's check it out
                     const isRegisteredGameUnfinished = await this.checkUnfinishedGameByIndex(
                         onChange,
-                        chainName,
                         updateCallback,
                         GameVars.gameData.gameIndex
                     );
@@ -151,7 +150,7 @@ export class AbstractOnboardingWeb3 {
         const turnOverEvents = await gameContextContract.queryFilter(turnOverFilter);
         if (turnOverEvents.length > 0) {
             const lastGameIndex = turnOverEvents[turnOverEvents.length - 1].args._index;
-            if (await this.checkUnfinishedGameByIndex(onChange, chainName, updateCallback, lastGameIndex)) {
+            if (await this.checkUnfinishedGameByIndex(onChange, updateCallback, lastGameIndex)) {
                 // found an unfinished game, stop here
                 return true;
             }
@@ -167,12 +166,7 @@ export class AbstractOnboardingWeb3 {
      * @param gameIndex
      * @returns
      */
-    protected static async checkUnfinishedGameByIndex(
-        onChange,
-        chainName,
-        updateCallback,
-        gameIndex
-    ): Promise<boolean> {
+    protected static async checkUnfinishedGameByIndex(onChange, updateCallback, gameIndex): Promise<boolean> {
         // retrieves user address and contracts
         const signer = ServiceConfig.getSigner();
         const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
@@ -185,7 +179,7 @@ export class AbstractOnboardingWeb3 {
         if (gameOverEvents.length == 0) {
             // game is not over
             onChange({
-                label: `You have an ongoing game on ${chainName}: attempting to end it by timeout`,
+                label: `You have an ongoing game: please wait until it is ended by timeout`,
                 onclick: undefined,
                 loading: true,
                 error: false,
@@ -217,11 +211,12 @@ export class AbstractOnboardingWeb3 {
         return false;
     }
 
-    protected static async checkBalance(onChange, chainName): Promise<boolean> {
+    protected static async checkBalance(onChange): Promise<boolean> {
         // retrieves user address and contract
         const signer = ServiceConfig.getSigner();
         const playerAddress = await signer.getAddress();
         const pokerTokenContract = PokerToken__factory.connect(PokerTokenJson.address, signer);
+        const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
 
         // checks balance in POKER tokens
         const tokenBalance = await pokerTokenContract.balanceOf(playerAddress);
@@ -237,9 +232,10 @@ export class AbstractOnboardingWeb3 {
         }
         // checks balance in network funds (ETH/MATIC)
         const balance = await signer.getBalance();
+        const chainCurrency = GameConstants.CHAIN_CURRENCIES[ServiceConfig.getChainId()];
         if (balance.eq(ethers.constants.Zero)) {
             onChange({
-                label: `Sorry, you need some funds on ${chainName} to play`,
+                label: `Sorry, you need some ${chainCurrency} on ${chainName} to play`,
                 onclick: undefined,
                 loading: false,
                 error: true,
@@ -265,7 +261,6 @@ export class AbstractOnboardingWeb3 {
 
         const playerFunds = await pokerTokenContract.balanceOf(playerAddress);
         const allowance = await pokerTokenContract.allowance(playerAddress, TurnBasedGameLobby.address);
-        const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
 
         if (playerFunds.lt(ethers.BigNumber.from(GameConstants.MIN_FUNDS))) {
             return false;
@@ -290,7 +285,7 @@ export class AbstractOnboardingWeb3 {
             } else {
                 // indicate that allowance approval is required
                 onChange({
-                    label: `Approve allowance for POKER tokens on ${chainName}`,
+                    label: `Approve allowance for POKER tokens`,
                     onclick: this.approve.bind(this),
                     loading: false,
                     error: false,
@@ -302,7 +297,7 @@ export class AbstractOnboardingWeb3 {
             // game is allowed to use player's tokens
             // - indicate user's available tokens and that he's ready to play
             onChange({
-                label: `You have ${playerFunds.toNumber()} POKER tokens available on ${chainName}`,
+                label: `You have ${playerFunds.toNumber()} POKER tokens available to play`,
                 onclick: undefined,
                 loading: false,
                 error: false,

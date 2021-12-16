@@ -19,9 +19,15 @@ export class GameConstants {
     public static readonly SAVED_GAME_DATA_KEY = "cartesi-texas-hodlem";
 
     public static readonly CHAIN_NAMES = {
-        [ChainId.MATIC_TESTNET]: "Matic Testnet",
+        [ChainId.MATIC_TESTNET]: "Polygon Mumbai",
         [ChainId.LOCALHOST_HARDHAT]: "Local Network Hardhat",
         [ChainId.LOCALHOST]: "Local Network",
+    };
+
+    public static readonly CHAIN_CURRENCIES = {
+        [ChainId.MATIC_TESTNET]: "MATIC",
+        [ChainId.LOCALHOST_HARDHAT]: "ETH",
+        [ChainId.LOCALHOST]: "ETH",
     };
 
     public static readonly CHAIN_ENDPOINTS = {
