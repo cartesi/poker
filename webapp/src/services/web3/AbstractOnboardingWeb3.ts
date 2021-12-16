@@ -33,13 +33,13 @@ export class AbstractOnboardingWeb3 {
             ready: false,
         });
 
+        // sets up a listener to refresh the wallet when appropriate
+        this.setupWalletTransferListeners(onChange, updateCallback);
+
         // checks if player is already enqueued in the lobby
         if (await this.checkEnqueuedInLobby(onChange)) {
             return;
         }
-
-        // sets up a listener to refresh the wallet when appropriate
-        this.setupWalletTransferListeners(onChange, updateCallback);
 
         // checks if player has an unfinished ongoing game
         if (await this.checkUnfinishedGame(onChange, updateCallback)) {
@@ -93,12 +93,13 @@ export class AbstractOnboardingWeb3 {
     protected static async checkEnqueuedInLobby(onChange): Promise<boolean> {
         if (await Lobby.isEnqueued()) {
             onChange({
-                label: `You are already waiting for another player to join`,
+                label: `Canceling previous request to join a game...`,
                 onclick: undefined,
-                loading: false,
+                loading: true,
                 error: false,
-                ready: true,
+                ready: false,
             });
+            Lobby.leaveQueue();
             return true;
         } else {
             return false;
