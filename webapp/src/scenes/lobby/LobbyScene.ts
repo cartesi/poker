@@ -13,6 +13,7 @@ export class LobbyScene extends Phaser.Scene {
     private background: Phaser.GameObjects.Image;
     private backContainer: Phaser.GameObjects.Container;
     private backButton: Phaser.GameObjects.Image;
+    private loading: Phaser.GameObjects.Image;
     private topContainer: Phaser.GameObjects.Container;
     private matchingLayer: MatchingLayer;
 
@@ -51,6 +52,18 @@ export class LobbyScene extends Phaser.Scene {
             this.onBack();
         }, this);
         this.backContainer.add(this.backButton);
+
+        this.loading = new Phaser.GameObjects.Image(this, 50, 50, "texture_atlas_1", "loading");
+        this.loading.setScale(.5);
+        this.loading.visible = false;
+        this.tweens.add({
+            targets: this.loading,
+            angle: 360,
+            ease: Phaser.Math.Easing.Linear,
+            duration: 1000,
+            repeat: -1
+        });
+        this.backContainer.add(this.loading);
 
         let title = new Phaser.GameObjects.Image(this, 0, 10, "texture_atlas_1", "logo_main");
         title.setOrigin(.5, 0);
@@ -108,6 +121,10 @@ export class LobbyScene extends Phaser.Scene {
     }
 
     protected async onBack(): Promise<void> {
+        this.backButton.setScale(1);
+        this.backButton.disableInteractive();
+        this.backButton.setAlpha(0.5);
+        this.loading.visible = true;
         await Lobby.leaveQueue();
         GameManager.enterSplashScene();
     }
