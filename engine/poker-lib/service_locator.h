@@ -8,7 +8,7 @@
 namespace poker {
 
 class service_locator {
-    poker_lib_options* _opts;
+    poker_lib_options _opts;
     service_locator() {}
 
    public:
@@ -21,14 +21,15 @@ class service_locator {
     }
 
     static void load(poker_lib_options* opts) {
-        instance()._opts = opts;
+        instance()._opts = *opts;
     }
 
     i_participant* new_participant() {
-        if (_opts->encryption)
+        if (_opts.encryption) {
             return new participant();
-        else
-            return new unencrypted_participant(_opts->winner);
+        } else {
+            return new unencrypted_participant(_opts.winner);
+        }
     }
 };
 
