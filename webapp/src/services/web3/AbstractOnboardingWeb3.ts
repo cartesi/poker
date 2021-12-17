@@ -126,10 +126,7 @@ export class AbstractOnboardingWeb3 {
         if (GameVars.gameData.gameIndex) {
             // double-checks if corresponding game concerns the player
             try {
-                let context;
-                await ErrorHandler.execute("getContext", async () => {
-                    context = await gameContract.getContext(GameVars.gameData.gameIndex);
-                });
+                const context = await gameContract.getContext(GameVars.gameData.gameIndex);
                 if (context.players.includes(playerAddress)) {
                     // there is a registered last game for the player, let's check it out
                     const isRegisteredGameUnfinished = await this.checkUnfinishedGameByIndex(
