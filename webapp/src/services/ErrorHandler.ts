@@ -1,3 +1,8 @@
+import { ethers } from "ethers";
+import { GameConstants } from "../GameConstants";
+import { ServiceConfig } from "./ServiceConfig";
+import { Wallet } from "./Wallet";
+
 export class ErrorHandler {
     private static readonly DEFAULT_ATTEMPT_INTERVAL = 5000;
     private static attemptInterval = ErrorHandler.DEFAULT_ATTEMPT_INTERVAL;
@@ -45,8 +50,19 @@ export class ErrorHandler {
                 await exec();
                 delete this.executions[execIndex];
             } catch (error) {
-                console.log(`Error while executing '${title}' (exec index '${execIndex}'): ${JSON.stringify(error)}`);
-                ErrorHandler.onError(execIndex, title, error);
+                // checks balance to be see if that could be the reason for the error
+                const balance = parseFloat(ethers.utils.formatEther(await Wallet.getBalance()));
+                const currency = GameConstants.CHAIN_CURRENCIES[ServiceConfig.getChainId()];
+                const currencyLowValue = GameConstants.CHAIN_CURRENCIES_LOW_VALUE[ServiceConfig.getChainId()];
+                let lowFunds = "";
+                if (balance < currencyLowValue) {
+                    // balance is low: make sure we inform the user about it
+                    lowFunds = ` - ${currency} funds are low`;
+                }
+                console.log(
+                    `Error while executing '${title}'${lowFunds} (exec index '${execIndex}'): ${JSON.stringify(error)}`
+                );
+                ErrorHandler.onError(execIndex, title + lowFunds, error);
                 await new Promise((resolve) => setTimeout(resolve, ErrorHandler.getAttemptInterval()));
             }
         }
@@ -76,7 +92,7 @@ export class ErrorHandler {
     /**
      * Interrupts all current executions.
      */
-     public static interruptAll() {
+    public static interruptAll() {
         console.debug(`Interrupting error handling for ALL executions`);
         this.executions = {};
     }

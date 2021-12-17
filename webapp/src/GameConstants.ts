@@ -30,6 +30,12 @@ export class GameConstants {
         [ChainId.LOCALHOST]: "ETH",
     };
 
+    public static readonly CHAIN_CURRENCIES_LOW_VALUE = {
+        [ChainId.MATIC_TESTNET]: 0.001,
+        [ChainId.LOCALHOST_HARDHAT]: 0.001,
+        [ChainId.LOCALHOST]: 0.001,
+    };
+
     public static readonly CHAIN_ENDPOINTS = {
         [ChainId.MATIC_TESTNET]: "https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai",
         [ChainId.LOCALHOST_HARDHAT]: "http://localhost:8545",

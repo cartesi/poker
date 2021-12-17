@@ -20,7 +20,7 @@ export class WalletWeb3 {
             return ethers.constants.Zero;
         } else {
             let balance;
-            await ErrorHandler.execute("pokerTokenBalance", async () => {
+            await ErrorHandler.execute("balance", async () => {
                 balance = await signer.getBalance();
             });
             return balance;
