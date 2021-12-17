@@ -50,7 +50,7 @@ export class ErrorHandler {
                 await exec();
                 delete this.executions[execIndex];
             } catch (error) {
-                // checks balance to be see if that could be the reason for the error
+                // checks balance to see if that could be the reason for the error
                 const balance = parseFloat(ethers.utils.formatEther(await Wallet.getBalance()));
                 const currency = GameConstants.CHAIN_CURRENCIES[ServiceConfig.getChainId()];
                 const currencyLowValue = GameConstants.CHAIN_CURRENCIES_LOW_VALUE[ServiceConfig.getChainId()];
