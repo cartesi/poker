@@ -4,6 +4,7 @@ import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
 import { ErrorHandler } from "../../services/ErrorHandler";
 import { Lobby } from "../../services/Lobby";
+import { InfoContainer } from "../room/hud/InfoContainer";
 import { MatchingLayer } from "./MatchingLayer";
 
 export class LobbyScene extends Phaser.Scene {
@@ -16,6 +17,7 @@ export class LobbyScene extends Phaser.Scene {
     private loading: Phaser.GameObjects.Image;
     private topContainer: Phaser.GameObjects.Container;
     private matchingLayer: MatchingLayer;
+    private infoContainer: InfoContainer;
 
     constructor() {
 
@@ -75,19 +77,19 @@ export class LobbyScene extends Phaser.Scene {
         powered.setShadow(1, 1, "#000000", 5);
         this.topContainer.add(powered);
 
-        let errorText = new Phaser.GameObjects.Text(this, 200, 230, "", { fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF" });
-        errorText.setOrigin(.5, 0);
-        errorText.setShadow(1, 1, "#000000", 5);
-        this.topContainer.add(errorText);
-        ErrorHandler.setOnError((index: number, title: string, error: any) => {
-            if (errorText.active) {
-                errorText.setText(`Error executing ${title}`);
-                setTimeout(() => { if (errorText.active) { errorText.setText("") } }, ErrorHandler.getAttemptInterval());
-            }
-        });
-
         this.matchingLayer = new MatchingLayer(this);
         this.add.existing(this.matchingLayer);
+
+        this.infoContainer = new InfoContainer(this);
+        this.infoContainer.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT - 50);
+        this.infoContainer.hide();
+        this.add.existing(this.infoContainer);
+        ErrorHandler.setOnError((index: number, title: string, error: any) => {
+            if (this.infoContainer.active) {
+                this.infoContainer.update(`Error executing ${title}`, true);
+                setTimeout(() => { if (this.infoContainer.active) { this.infoContainer.hide() } }, ErrorHandler.getAttemptInterval());
+            }
+        });
 
         this.onOrientationChange();
     }
@@ -103,9 +105,11 @@ export class LobbyScene extends Phaser.Scene {
             if (GameVars.scaleX > 1.2) {
                 this.topContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
                 this.backContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
+                this.infoContainer.setScale((1 - (GameVars.scaleX - 1.2)) * GameVars.scaleX, 1 - (GameVars.scaleX - 1.2));
             } else {
                 this.topContainer.setScale(GameVars.scaleX, 1);
                 this.backContainer.setScale(GameVars.scaleX, 1);
+                this.infoContainer.setScale(GameVars.scaleX, 1);
             }
         } else {
             this.topContainer.setScale(1.2, GameVars.scaleY * 1.2);
@@ -126,7 +130,9 @@ export class LobbyScene extends Phaser.Scene {
         this.backButton.setAlpha(0.5);
         this.loading.visible = true;
         AudioManager.stopMatching();
-        await Lobby.leaveQueue();
+        if (await Lobby.isEnqueued()) {
+            await Lobby.leaveQueue();
+        }
         GameManager.enterSplashScene();
     }
 }

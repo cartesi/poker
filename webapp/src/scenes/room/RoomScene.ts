@@ -9,6 +9,7 @@ import { GameManager } from "../../GameManager";
 import { SettingsLayer } from "./SettingsLayer";
 import { ShuffleCardsLayer } from "./ShuffleCardsLayer";
 import { EventType, VerificationState } from '../../services/Game';
+import { ErrorHandler } from '../../services/ErrorHandler';
 
 export class RoomScene extends Phaser.Scene {
 
@@ -62,6 +63,13 @@ export class RoomScene extends Phaser.Scene {
             RoomManager.startRound();
         }, 2000);
 
+        ErrorHandler.setOnError((index: number, title: string, error: any) => {
+            if (this.hud.active) {
+                this.hud.updateInfo(`Error executing ${title}`);
+                setTimeout(() => { if (this.hud.active) { this.hud.clearInfo() } }, ErrorHandler.getAttemptInterval());
+            }
+        });
+        
         AudioManager.playMusic("soundtrack", 0.1);
     }
 

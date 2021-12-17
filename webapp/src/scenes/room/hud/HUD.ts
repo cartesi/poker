@@ -40,7 +40,7 @@ export class HUD extends Phaser.GameObjects.Container {
 
         this.infoContainer = new InfoContainer(this.scene);
         this.infoContainer.setPosition(GameConstants.GAME_WIDTH / 2, GameConstants.GAME_HEIGHT - 50);
-        this.infoContainer.setAlpha(0);
+        this.infoContainer.hide();
         this.add(this.infoContainer);
 
         this.setScalesAndPostions();

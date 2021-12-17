@@ -44,17 +44,6 @@ export class GUI extends Phaser.GameObjects.Container {
         this.cartesi.setShadow(1, 1, "#000000", 5);
         this.topContainer.add(this.cartesi);
 
-        let errorText = new Phaser.GameObjects.Text(this.scene, 295, 60, "", {fontFamily: "Oswald-Medium", fontSize: "20px", color: "#FFFFFF"});
-        errorText.setOrigin(0, .5);
-        errorText.setShadow(1, 1, "#000000", 5);
-        this.topContainer.add(errorText);
-        ErrorHandler.setOnError((index: number, title: string, error: any) => {
-            if (errorText.active) {
-                errorText.setText(`Error executing ${title}`);
-                setTimeout(() => { if (errorText.active) { errorText.setText("") }}, ErrorHandler.getAttemptInterval());
-            }
-        });
-        
         this.scene.tweens.add({
             targets: [title, this.cartesi],
             alpha: 1,
