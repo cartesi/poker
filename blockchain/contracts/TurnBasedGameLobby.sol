@@ -190,35 +190,72 @@ contract TurnBasedGameLobby {
             queuedPlayers.push(newPlayer);
         } else {
             // enough players are already queued: we can start a game
-            // - collects previously queued players
-            address[] memory players = new address[](_gameNumPlayers);
-            uint256[] memory playerFunds = new uint256[](_gameNumPlayers);
-            bytes[] memory playerInfos = new bytes[](_gameNumPlayers);
-            for (uint256 i = 0; i < _gameNumPlayers - 1; i++) {
-                players[i] = queuedPlayers[i].addr;
-                playerFunds[i] = queuedPlayers[i].funds;
-                playerInfos[i] = queuedPlayers[i].info;
-            }
-
-            // - adds new player
-            players[_gameNumPlayers - 1] = msg.sender;
-            playerFunds[_gameNumPlayers - 1] = _playerFunds;
-            playerInfos[_gameNumPlayers - 1] = _playerInfo;
-
-            // - starts game
-            turnBasedGame.startGame(
+            startGame(
                 _gameTemplateHash,
                 _gameMetadata,
                 _gameValidators,
                 _gameTimeout,
                 _gameERC20Address,
-                players,
-                playerFunds,
-                playerInfos
+                queuedPlayers,
+                _playerFunds,
+                _playerInfo
             );
             // clears up queue
             delete queues[queueHash];
         }
+    }
+
+    /// @notice Starts a game with the provided queuedPlayers + a new player who just joined.
+    /// @param _gameTemplateHash template hash for the Cartesi Machine computation that verifies the game (identifies the game computation/logic)
+    /// @param _gameMetadata game-specific initial metadata/parameters
+    /// @param _gameValidators addresses of the validator nodes that will run a Descartes verification should it be needed
+    /// @param _gameTimeout global timeout for game activity in seconds, after which the game may be terminated (zero means there is no timeout limit)
+    /// @param _gameERC20Address address for a ERC20 compatible token provider
+    /// @param _queuedPlayers an array of QueuedPlayer entries
+    /// @param _newPlayerFunds amount being staked by the new player who just joined the game
+    /// @param _newPlayerInfo game-specific information for the new player who just joined the game
+    function startGame(
+        bytes32 _gameTemplateHash,
+        bytes memory _gameMetadata,
+        address[] memory _gameValidators,
+        uint256 _gameTimeout,
+        address _gameERC20Address,
+        QueuedPlayer[] storage _queuedPlayers,
+        uint256 _newPlayerFunds,
+        bytes memory _newPlayerInfo
+    ) internal {
+        // creates arrays of player data
+        address[] memory players = new address[](_queuedPlayers.length + 1);
+        uint256[] memory playerFunds = new uint256[](_queuedPlayers.length + 1);
+        bytes[] memory playerInfos = new bytes[](_queuedPlayers.length + 1);
+
+        // collects new player + previously queued players in pseudo-random order
+        // obs: an alternative Lobby implementation for high-profile games could use a real VRF and charge appropriate fees for that
+        uint256 posNew = uint256(keccak256(abi.encodePacked(block.timestamp))) % (_queuedPlayers.length + 1);
+        players[posNew] = msg.sender;
+        playerFunds[posNew] = _newPlayerFunds;
+        playerInfos[posNew] = _newPlayerInfo;
+        for (uint256 i = 0; i < _queuedPlayers.length; i++) {
+            uint256 pos = i + uint256(keccak256(abi.encodePacked(block.timestamp))) % (_queuedPlayers.length - i);
+            if (pos >= posNew) {
+                pos = pos + 1;
+            }
+            players[pos] = _queuedPlayers[i].addr;
+            playerFunds[pos] = _queuedPlayers[i].funds;
+            playerInfos[pos] = _queuedPlayers[i].info;
+        }
+
+        // starts game
+        turnBasedGame.startGame(
+            _gameTemplateHash,
+            _gameMetadata,
+            _gameValidators,
+            _gameTimeout,
+            _gameERC20Address,
+            players,
+            playerFunds,
+            playerInfos
+        );
     }
 
     /// @notice Lock player tokens in the lobby contract until the game start
@@ -229,7 +266,7 @@ contract TurnBasedGameLobby {
         IERC20 _tokenProvider,
         address _playerAddress,
         uint256 _playerFunds
-    ) public {
+    ) internal {
         _tokenProvider.transferFrom(_playerAddress, address(this), _playerFunds);
     }
 
@@ -241,7 +278,7 @@ contract TurnBasedGameLobby {
         IERC20 _tokenProvider,
         address _playerAddress,
         uint256 _playerFunds
-    ) public {
+    ) internal {
         _tokenProvider.transfer(_playerAddress, _playerFunds);
     }
 }

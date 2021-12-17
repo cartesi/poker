@@ -12,7 +12,7 @@
 
 import { describe } from "mocha";
 import { expect, use } from "chai";
-import { deployments, ethers, getNamedAccounts } from "hardhat";
+import { deployments, ethers, getNamedAccounts, network } from "hardhat";
 import { MockContract, deployMockContract, solidity } from "ethereum-waffle";
 
 import { PokerToken } from "../src/types/PokerToken";
@@ -480,6 +480,10 @@ describe("TurnBasedGameLobby", async () => {
                 playerInfos[1]
             );
 
+            // sets next block timestamp to define player order (pseudo-randomization is time based)
+            // - in this case, player0 will come first
+            await network.provider.send("evm_setNextBlockTimestamp", [2524608001]);
+
             // mock now expecting to be called with these exact parameters
             await mockGameContract.mock.startGame
                 .withArgs(
@@ -531,6 +535,10 @@ describe("TurnBasedGameLobby", async () => {
                 pokerTokenContract.address
             );
             expect(queuedPlayers.length).to.eql(1);
+
+            // sets next block timestamp to define player order (pseudo-randomization is time based)
+            // - in this case, player1 will come first
+            await network.provider.send("evm_setNextBlockTimestamp", [2524608010]);
 
             // mock now expecting to be called with parameters for other game (player1 is the first player in this case)
             let playersOther = [players[1], players[0]];
@@ -599,19 +607,8 @@ describe("TurnBasedGameLobby", async () => {
             expect(await pokerTokenContract.balanceOf(players[0])).to.equal(minFunds);
             expect(await pokerTokenContract.balanceOf(lobbyContract.address)).to.equal(minFunds);
 
-            // mock now expecting to be called with these exact parameters
-            await mockGameContract.mock.startGame
-                .withArgs(
-                    gameTemplateHash,
-                    gameMetadata,
-                    validators,
-                    gameTimeout,
-                    pokerTokenContract.address,
-                    players,
-                    playerFunds,
-                    playerInfos
-                )
-                .returns(0);
+            // mock now expecting to be called
+            await mockGameContract.mock.startGame.returns(0);
 
             expect(await pokerTokenContract.balanceOf(players[1])).to.equal(2 * minFunds);
 
