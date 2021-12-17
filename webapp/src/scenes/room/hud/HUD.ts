@@ -3,7 +3,7 @@ import { GameConstants } from "./../../../GameConstants";
 import { GameVars } from "../../../GameVars";
 import { RoomManager } from "../RoomManager";
 import { ethers } from "ethers";
-import { InfoContainer } from "./InfoContainer";
+import { InfoContainer } from "../../InfoContainer";
 
 export class HUD extends Phaser.GameObjects.Container {
 

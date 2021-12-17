@@ -4,7 +4,7 @@ import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
 import { ErrorHandler } from "../../services/ErrorHandler";
 import { Lobby } from "../../services/Lobby";
-import { InfoContainer } from "../room/hud/InfoContainer";
+import { InfoContainer } from "../InfoContainer";
 import { MatchingLayer } from "./MatchingLayer";
 
 export class LobbyScene extends Phaser.Scene {
