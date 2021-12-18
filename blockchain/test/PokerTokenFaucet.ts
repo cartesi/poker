@@ -29,7 +29,6 @@ describe("PokerTokenFaucet", () => {
     let owner: Signer;
     let holder1: Signer;
     let holder2: Signer;
-    let TOKEN_AMOUNT;
 
     beforeEach(async () => {
         [owner, holder1, holder2] = await ethers.getSigners();
@@ -41,53 +40,123 @@ describe("PokerTokenFaucet", () => {
 
         const PokerTokenFaucet = await deployments.get("PokerTokenFaucet");
         pokerTokenFaucetContract = PokerTokenFaucet__factory.connect(PokerTokenFaucet.address, owner);
-
-        TOKEN_AMOUNT = await pokerTokenFaucetContract.TOKEN_AMOUNT();
     });
 
     it("Should provide tokens when requested", async () => {
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(ethers.BigNumber.from(0));
         expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(ethers.BigNumber.from(0));
 
-        await pokerTokenContract.mint(pokerTokenFaucetContract.address, 10 * TOKEN_AMOUNT);
+        const tokensAmount = await pokerTokenFaucetContract.getRequestTokensAmount();
+        await pokerTokenContract.mint(pokerTokenFaucetContract.address, tokensAmount.mul(10));
 
         // requests tokens for holder1
         await pokerTokenFaucetContract.connect(holder1).requestTokens(await holder1.getAddress());
-        expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(
-            ethers.BigNumber.from(TOKEN_AMOUNT)
-        );
-        expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(ethers.BigNumber.from(0));
+        expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(tokensAmount);
+        expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(ethers.constants.Zero);
 
         // requests tokens for holder2
         await pokerTokenFaucetContract.connect(holder2).requestTokens(await holder2.getAddress());
-        expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(
-            ethers.BigNumber.from(TOKEN_AMOUNT)
-        );
-        expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(
-            ethers.BigNumber.from(TOKEN_AMOUNT)
-        );
+        expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(tokensAmount);
+        expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(tokensAmount);
 
         // requests more tokens for holder2, this time using holder1 as signer
         await pokerTokenFaucetContract.connect(holder1).requestTokens(await holder2.getAddress());
-        expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(
-            ethers.BigNumber.from(TOKEN_AMOUNT)
+        expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(tokensAmount);
+        expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(tokensAmount.mul(2));
+    });
+
+    it("Should allow owner to set amount retrieved when requesting tokens", async () => {
+        const newAmount = ethers.BigNumber.from(500);
+
+        await expect(pokerTokenFaucetContract.connect(holder2).setRequestTokensAmount(newAmount)).to.be.revertedWith(
+            "Only faucet owner can set request amounts"
         );
-        expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(
-            ethers.BigNumber.from(2 * TOKEN_AMOUNT)
-        );
+
+        await expect(pokerTokenFaucetContract.setRequestTokensAmount(newAmount)).not.to.be.reverted;
+        expect(await pokerTokenFaucetContract.getRequestTokensAmount()).to.eql(newAmount);
+
+        // test if new amount is actually used
+        expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(ethers.constants.Zero);
+        await pokerTokenContract.mint(pokerTokenFaucetContract.address, newAmount);
+        await pokerTokenFaucetContract.connect(holder1).requestTokens(await holder1.getAddress());
+        expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(newAmount);
     });
 
     it("Should revert if faucet does not have enough tokens", async () => {
         // nothing in the faucet
         await expect(pokerTokenFaucetContract.requestTokens(await holder1.getAddress())).to.be.revertedWith(
-            "ERC20: transfer amount exceeds balance"
+            "Insufficient tokens in faucet"
         );
 
         // enough tokens for a single request
-        await pokerTokenContract.mint(pokerTokenFaucetContract.address, TOKEN_AMOUNT);
+        const tokensAmount = await pokerTokenFaucetContract.getRequestTokensAmount();
+        await pokerTokenContract.mint(pokerTokenFaucetContract.address, tokensAmount);
         await expect(pokerTokenFaucetContract.requestTokens(await holder1.getAddress())).not.to.be.reverted;
         await expect(pokerTokenFaucetContract.requestTokens(await holder1.getAddress())).to.be.revertedWith(
-            "ERC20: transfer amount exceeds balance"
+            "Insufficient tokens in faucet"
+        );
+    });
+
+    it("Should provide network funds (ETH) when requested", async () => {
+        // setup funds in faucet
+        const fundsAmount = await pokerTokenFaucetContract.getRequestFundsAmount();
+        await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: fundsAmount.mul(10) });
+        expect(await ethers.provider.getBalance(pokerTokenFaucetContract.address)).to.eql(fundsAmount.mul(10));
+
+        const balanceHolder1 = await holder1.getBalance();
+        const balanceHolder2 = await holder2.getBalance();
+
+        // requests funds for holder1
+        await pokerTokenFaucetContract.connect(holder1).requestFunds(await holder1.getAddress());
+        const balanceHolder1_step1 = await holder1.getBalance();
+        const balanceHolder2_step1 = await holder2.getBalance();
+        expect(balanceHolder1_step1.gt(balanceHolder1)).to.be.true;
+        expect(balanceHolder2_step1.eq(balanceHolder2)).to.be.true;
+
+        // requests funds for holder2
+        await pokerTokenFaucetContract.connect(holder2).requestFunds(await holder2.getAddress());
+        const balanceHolder1_step2 = await holder1.getBalance();
+        const balanceHolder2_step2 = await holder2.getBalance();
+        expect(balanceHolder1_step2.eq(balanceHolder1_step1)).to.be.true;
+        expect(balanceHolder2_step2.gt(balanceHolder2_step1)).to.be.true;
+
+        // requests more funds for holder2, this time using holder1 as signer
+        await pokerTokenFaucetContract.connect(holder1).requestFunds(await holder2.getAddress());
+        const balanceHolder1_step3 = await holder1.getBalance();
+        const balanceHolder2_step3 = await holder2.getBalance();
+        expect(balanceHolder1_step3.lt(balanceHolder1_step2)).to.be.true;
+        expect(balanceHolder2_step3.eq(balanceHolder2_step2.add(fundsAmount))).to.be.true;
+    });
+
+    it("Should allow owner to set amount retrieved when requesting network funds (ETH)", async () => {
+        const newAmount = ethers.utils.parseEther("1.3");
+
+        await expect(pokerTokenFaucetContract.connect(holder2).setRequestFundsAmount(newAmount)).to.be.revertedWith(
+            "Only faucet owner can set request amounts"
+        );
+
+        await expect(pokerTokenFaucetContract.setRequestFundsAmount(newAmount)).not.to.be.reverted;
+        expect(await pokerTokenFaucetContract.getRequestFundsAmount()).to.eql(newAmount);
+
+        // test if new amount is actually used
+        await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: newAmount });
+        const balanceHolder2 = await holder2.getBalance();
+        await pokerTokenFaucetContract.connect(holder1).requestFunds(await holder2.getAddress());
+        expect(await holder2.getBalance()).to.eql(balanceHolder2.add(newAmount));
+    });
+
+    it("Should revert if faucet does not have enough funds", async () => {
+        // nothing in the faucet
+        await expect(pokerTokenFaucetContract.requestFunds(await holder1.getAddress())).to.be.revertedWith(
+            "Insufficient funds in faucet"
+        );
+
+        // enough funds for a single request
+        const fundsAmount = await pokerTokenFaucetContract.getRequestFundsAmount();
+        await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: fundsAmount });
+        await expect(pokerTokenFaucetContract.requestFunds(await holder1.getAddress())).not.to.be.reverted;
+        await expect(pokerTokenFaucetContract.requestFunds(await holder1.getAddress())).to.be.revertedWith(
+            "Insufficient funds in faucet"
         );
     });
 });
