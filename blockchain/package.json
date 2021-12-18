@@ -1,6 +1,6 @@
 {
     "name": "@cartesi/poker-contracts",
-    "version": "0.4.0",
+    "version": "1.0.0",
     "description": "Contracts for Mental Poker game using Cartesi+Matic",
     "dependencies": {
         "@cartesi/descartes-sdk": "^1.2.1",
