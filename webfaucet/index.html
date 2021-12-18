@@ -5,35 +5,31 @@
     <h1>POKER Faucet</h1>
 
     <div style="display: flex; padding: 10pt">
-        <span>Network: </span>
-        <span id="network" />
-    </div>
-
-    <div style="display: flex; padding: 10pt">
-        <span>Address: </span>
-        <span id="address" />
-    </div>
-
-    <div style="display: flex; padding: 10pt">
-        <span>Wallet: </span>
-        <input type="radio" id="METAMASK" name="wallet" value="METAMASK">
-        <label for="METAMASK">MetaMask</label><br>
-        <input type="radio" id="PORTIS" name="wallet" value="PORTIS">
-        <label for="PORTIS">Portis</label><br>
-    </div>
-
-    <div style="display: flex; padding: 10pt">
         <span style="padding: 5pt 5pt 5pt 0pt">Target address: </span>
-        <input type="text" style="width: 250pt" id="target">
+        <input type="text" style="width: 255pt" id="target">
+    </div>
+
+    <div style="padding: 10pt">
+        <div style="display: flex">Balances:</div>
+        <ul>
+            <li style="padding-bottom: 5pt">
+                <span>MATIC: </span>
+                <span id="balanceMatic" />
+            </li>
+            <li>
+                <span>POKER: </span>
+                <span id="balancePoker" />
+            </li>
+
+        </ul>
     </div>
 
     <div style="display: flex; padding: 10pt">
-        <span>Balance: </span>
-        <span id="balance" />
+        <button id="requestButton">REQUEST TOKENS</button>
     </div>
 
     <div style="display: flex; padding: 10pt">
-        <button id="requestButton">Request</button>
+        <span id="message"/>
     </div>
 </body>
 
