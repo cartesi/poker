@@ -418,7 +418,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                         const isLowerStake =
                             (playerIndex === 0 && fundsPlayer0 < fundsPlayer1) ||
                             (playerIndex === 1 && fundsPlayer1 < fundsPlayer0);
-                        const playerAddress = await this.getPlayerAddress();
+                        const playerAddress = await self.getPlayerAddress();
                         const isEqualStakeAndNotAuthor =
                             fundsPlayer0.eq(fundsPlayer1) && !Web3Utils.compareAddresses(author, playerAddress);
                         if (isLowerStake || isEqualStakeAndNotAuthor) {
