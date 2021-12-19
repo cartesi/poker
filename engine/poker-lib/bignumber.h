@@ -23,6 +23,7 @@ public:
 
     operator unsigned long () const {  return mpz_get_ui(n); }
     operator unsigned int () const {  return (unsigned int)mpz_get_ui(n); }
+    operator long long unsigned int () const {  return (unsigned int)mpz_get_ui(n); }
     operator int () const {  return (int)mpz_get_ui(n); }
 
     int compare(const bignumber& other) const { return mpz_cmp(n, other.n); }

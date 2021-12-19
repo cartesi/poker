@@ -1,12 +1,15 @@
 #include <iostream>
 #include <stdio.h>
 #include "i_participant.h"
-#include "poker-lib-c-api.h"
 #include "poker-lib.h"
 #include "player.h"
 
+#ifdef WINDOWS
+  #define PAPI __declspec(dllexport)
+#endif
+#include "poker-lib-c-api.h"
 
-extern "C" PAPI_ERR papi_init(PAPI_BOOL encryption, PAPI_BOOL logging, PAPI_INT winner) {
+extern "C" PAPI PAPI_ERR papi_init(PAPI_BOOL encryption, PAPI_BOOL logging, PAPI_INT winner) {
   poker::poker_lib_options options;
   options.encryption = encryption;
   options.logging = logging;
@@ -15,17 +18,17 @@ extern "C" PAPI_ERR papi_init(PAPI_BOOL encryption, PAPI_BOOL logging, PAPI_INT 
   return PAPI_SUCCESS;
 }
 
-extern "C" PAPI_ERR papi_new_player(PAPI_INT player_id, PAPI_PLAYER* player) {
+extern "C" PAPI PAPI_ERR papi_new_player(PAPI_INT player_id, PAPI_PLAYER* player) {
   *player  = new poker::player(player_id);
   return PAPI_SUCCESS;
 }
 
-extern "C" PAPI_ERR papi_delete_player(PAPI_PLAYER player) {
+extern "C" PAPI PAPI_ERR papi_delete_player(PAPI_PLAYER player) {
   delete ((poker::player*)player);
   return PAPI_SUCCESS;
 }
 
-extern "C" PAPI_ERR papi_init_player(PAPI_PLAYER player, PAPI_MONEY alice_money, PAPI_MONEY bob_money, PAPI_MONEY big_blind) {
+extern "C" PAPI PAPI_ERR papi_init_player(PAPI_PLAYER player, PAPI_MONEY alice_money, PAPI_MONEY bob_money, PAPI_MONEY big_blind) {
   poker::player* p = (poker::player*)player;
   poker::money_t am, bm, bb;
   am.parse_string(alice_money);
@@ -35,7 +38,7 @@ extern "C" PAPI_ERR papi_init_player(PAPI_PLAYER player, PAPI_MONEY alice_money,
   return (PAPI_ERR)res;
 }
 
-extern "C" PAPI_ERR papi_create_handshake(PAPI_PLAYER player, PAPI_MESSAGE* msg_out, PAPI_INT* msg_out_len) {
+extern "C" PAPI PAPI_ERR papi_create_handshake(PAPI_PLAYER player, PAPI_MESSAGE* msg_out, PAPI_INT* msg_out_len) {
   poker::player* p = (poker::player*)player;
   *msg_out = NULL;
   *msg_out_len = 0;
@@ -52,13 +55,13 @@ extern "C" PAPI_ERR papi_create_handshake(PAPI_PLAYER player, PAPI_MESSAGE* msg_
   return (PAPI_ERR)res;
 }
 
-extern "C" PAPI_ERR papi_delete_message(PAPI_MESSAGE msg) {
+extern "C" PAPI PAPI_ERR papi_delete_message(PAPI_MESSAGE msg) {
   char *tmp = (char*)msg;
   delete [] tmp;
   return PAPI_SUCCESS;
 }
 
-extern "C" PAPI_ERR papi_process_handshake(PAPI_PLAYER player, PAPI_MESSAGE msg_in, PAPI_INT msg_in_len, PAPI_MESSAGE* msg_out, PAPI_INT* msg_out_len) {
+extern "C" PAPI PAPI_ERR papi_process_handshake(PAPI_PLAYER player, PAPI_MESSAGE msg_in, PAPI_INT msg_in_len, PAPI_MESSAGE* msg_out, PAPI_INT* msg_out_len) {
   std::string tmp;
   *msg_out_len = 0;
   *msg_out = NULL;
@@ -78,7 +81,7 @@ extern "C" PAPI_ERR papi_process_handshake(PAPI_PLAYER player, PAPI_MESSAGE msg_
   return (PAPI_ERR)res;
 }
 
-extern "C" PAPI_ERR papi_create_bet(PAPI_PLAYER player, PAPI_INT bet_type, PAPI_MONEY amt, PAPI_MESSAGE* msg_out, PAPI_INT* msg_out_len) {
+extern "C" PAPI PAPI_ERR papi_create_bet(PAPI_PLAYER player, PAPI_INT bet_type, PAPI_MONEY amt, PAPI_MESSAGE* msg_out, PAPI_INT* msg_out_len) {
   poker::player* p = (poker::player*)player;
   poker::money_t a;
   a.parse_string(amt);
@@ -99,7 +102,7 @@ extern "C" PAPI_ERR papi_create_bet(PAPI_PLAYER player, PAPI_INT bet_type, PAPI_
   return (PAPI_ERR)res;
 }
 
-extern "C" PAPI_ERR papi_process_bet(PAPI_PLAYER player, PAPI_MESSAGE msg_in, PAPI_INT msg_in_len, PAPI_MESSAGE* msg_out, PAPI_INT* msg_out_len, PAPI_INT* type, PAPI_STR amt, int amt_len) {
+extern "C" PAPI PAPI_ERR papi_process_bet(PAPI_PLAYER player, PAPI_MESSAGE msg_in, PAPI_INT msg_in_len, PAPI_MESSAGE* msg_out, PAPI_INT* msg_out_len, PAPI_INT* type, PAPI_STR amt, int amt_len) {
   poker::money_t am;
   poker::bet_type tp;
   std::string tmp;
@@ -128,7 +131,7 @@ extern "C" PAPI_ERR papi_process_bet(PAPI_PLAYER player, PAPI_MESSAGE msg_in, PA
   return (PAPI_ERR)res;
 }
 
-extern "C" PAPI_ERR papi_get_game_state(PAPI_PLAYER player, PAPI_STR json, PAPI_INT json_len) {
+extern "C" PAPI PAPI_ERR papi_get_game_state(PAPI_PLAYER player, PAPI_STR json, PAPI_INT json_len) {
   poker::player* p = (poker::player*)player;
   auto g = p->game();
   char extra_fields[100];
