@@ -23,7 +23,7 @@ describe("LobbyWeb3", function () {
     this.timeout(60000);
 
     beforeEach(async () => {
-        ServiceConfig.setChain(ChainId.LOCALHOST_HARDHAT);
+        ServiceConfig.setChainId(ChainId.LOCALHOST_HARDHAT);
 
         TestWeb3Utils.setSigner(aliceAddress);
         const aliceSigner = ServiceConfig.getSigner();

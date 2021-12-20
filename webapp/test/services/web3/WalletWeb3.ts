@@ -28,13 +28,13 @@ describe("WalletWeb3", function () {
     });
 
     it("should retrieve the correct network", async () => {
-        ServiceConfig.setChain(ChainId.LOCALHOST);
+        ServiceConfig.setChainId(ChainId.LOCALHOST);
         expect(Wallet.getNetwork()).to.equal(GameConstants.CHAIN_NAMES[ChainId.LOCALHOST]);
 
-        ServiceConfig.setChain(ChainId.LOCALHOST_HARDHAT);
+        ServiceConfig.setChainId(ChainId.LOCALHOST_HARDHAT);
         expect(Wallet.getNetwork()).to.equal(GameConstants.CHAIN_NAMES[ChainId.LOCALHOST_HARDHAT]);
 
-        ServiceConfig.setChain(ChainId.MATIC_TESTNET);
+        ServiceConfig.setChainId(ChainId.MATIC_TESTNET);
         expect(Wallet.getNetwork()).to.equal(GameConstants.CHAIN_NAMES[ChainId.MATIC_TESTNET]);
     });
 

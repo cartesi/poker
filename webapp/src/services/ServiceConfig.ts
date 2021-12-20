@@ -82,7 +82,7 @@ export class ServiceConfig {
         return this.walletWeb3Provider;
     }
 
-    public static setChain(chainId: ChainId) {
+    public static setChainId(chainId: ChainId) {
         this.chainId = chainId;
     }
 
