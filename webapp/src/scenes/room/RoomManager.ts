@@ -201,6 +201,7 @@ export class RoomManager {
             RoomManager.updateBoard();
             RoomManager.updateOpponentState();
         } catch (error) {
+            console.error(`${error} - ${JSON.stringify(error)}`);
             RoomManager.showBetButtons();
         }
     }
@@ -218,6 +219,7 @@ export class RoomManager {
             RoomManager.updateBoard();
             RoomManager.updateOpponentState();
         } catch (error) {
+            console.error(`${error} - ${JSON.stringify(error)}`);
             RoomManager.showBetButtons();
         }
     }
@@ -235,6 +237,7 @@ export class RoomManager {
             RoomManager.updateBoard();
             RoomManager.updateOpponentState();
         } catch (error) {
+            console.error(`${error} - ${JSON.stringify(error)}`);
             RoomManager.showBetButtons();
         }
     }
@@ -252,6 +255,7 @@ export class RoomManager {
             RoomManager.updateBoard();
             RoomManager.updateOpponentState();
         } catch (error) {
+            console.error(`${error} - ${JSON.stringify(error)}`);
             RoomManager.showBetButtons();
         }
     }
