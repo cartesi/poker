@@ -14,7 +14,7 @@ export class OnboardingPortis extends AbstractOnboardingWeb3 {
     public static async start(onChange, checkOnboardingActive) {
         if (!this.portis) {
             this.portis = new Portis(GameConstants.PROVIDER_PORTIS_APPID, {
-                nodeUrl: GameConstants.CHAIN_ENDPOINTS[ServiceConfig.getChainId()],
+                nodeUrl: ServiceConfig.getChainEndpoint(),
                 chainId: ServiceConfig.getChainId(),
             });
         }

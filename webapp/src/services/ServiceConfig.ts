@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { ChainId } from "../GameConstants";
+import { ChainId, GameConstants } from "../GameConstants";
 
 export enum ServiceType {
     Transport = "transport",
@@ -91,6 +91,20 @@ export class ServiceConfig {
             throw new Error("ChainId was not set.");
         }
         return this.chainId;
+    }
+
+    public static getChainEndpoint(): string {
+        if (!this.chainId) {
+            throw new Error("ChainId was not set.");
+        }
+        const endpoints = GameConstants.CHAIN_ENDPOINTS[this.chainId];
+        if (!endpoints || !endpoints.length) {
+            throw new Error(`No endpoints configured for chain id ${this.chainId}`);
+        }
+        const endpointRandomIndex = Math.floor(Math.random() * endpoints.length);
+        const endpoint = endpoints[endpointRandomIndex];
+        console.log(`Using RPC endpoint ${endpoint}`);
+        return endpoint;
     }
 
     public static getSigner() {

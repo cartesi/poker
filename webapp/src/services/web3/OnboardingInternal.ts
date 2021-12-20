@@ -74,7 +74,7 @@ export class OnboardingInternal extends AbstractOnboardingWeb3 {
         }
 
         // connects wallet to configured chain's JSON-RPC endpoint
-        const endpoint = GameConstants.CHAIN_ENDPOINTS[ServiceConfig.getChainId()];
+        const endpoint = ServiceConfig.getChainEndpoint();
         const provider = new ethers.providers.JsonRpcProvider(endpoint);
         this.wallet = this.wallet.connect(provider);
 
