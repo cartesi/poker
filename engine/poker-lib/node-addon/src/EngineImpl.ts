@@ -44,7 +44,7 @@ export class EngineImpl implements Engine {
     }
 
     process_handshake(message_in: Uint8Array): Promise<EngineResult> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             try {
                 const result = this.lib.processHandshake(this.player, message_in);
                 resolve({
@@ -52,7 +52,8 @@ export class EngineImpl implements Engine {
                     message_out: result.response,
                 });
             } catch (error) {
-                reject(error);
+                console.error(error);
+                resolve({ status: error.code });
             }
         });
     }
@@ -72,7 +73,7 @@ export class EngineImpl implements Engine {
     }
 
     process_bet(message_in: Uint8Array): Promise<EngineResult> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             try {
                 const result = this.lib.processBet(this.player, message_in);
                 resolve({
@@ -82,7 +83,8 @@ export class EngineImpl implements Engine {
                     amount: result.amount,
                 });
             } catch (error) {
-                reject(error);
+                console.error(error);
+                resolve({ status: error.code });
             }
         });
     }
@@ -107,12 +109,17 @@ export class EngineImpl implements Engine {
                 });
                 resolve(state);
             } catch (error) {
+                console.error(error);
                 reject(error);
             }
         });
     }
 
     on_game_over(): void {
-        this.lib.deletePlayer(this.player);
+        try {
+            this.lib.deletePlayer(this.player);
+        } catch (error) {
+            console.error(error);
+        }
     }
 }
