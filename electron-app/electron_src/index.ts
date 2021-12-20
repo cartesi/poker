@@ -15,7 +15,6 @@ const createWindow = (): void => {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
-            devTools: !app.isPackaged,
         },
     });
 
