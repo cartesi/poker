@@ -18,7 +18,8 @@ libtmcg: $(LIBNAME)
     autoconf && \
     ./configure CC=clang CXX=clang++ CFLAGS=$(CFLAGS) CXXFLAGS=$(CXXFLAGS) \
         --disable-doc --disable-tests  \
-        --prefix=$(PREFIX) --with-libgpg-error-prefix=$(PREFIX) --with-libgcrypt-prefix=$(PREFIX) && \
+        --prefix=$(PREFIX) --with-libgpg-error-prefix=$(PREFIX) --with-libgcrypt-prefix=$(PREFIX) \
+        --with-gmp=$(PREFIX) && \
     cp Makefile Makefile.original  && \
     sed -e 's:doc tests::' Makefile.original > Makefile  && \
     make && \
