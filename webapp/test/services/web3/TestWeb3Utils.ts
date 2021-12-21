@@ -6,7 +6,7 @@ export class TestWeb3Utils {
      * Sets the signer being used in the test environment
      * @param address
      */
-    public static setSigner(address: string) {
+    public static setSigner(address?: string) {
         const provider = new ethers.providers.JsonRpcProvider();
         const signer = provider.getSigner(address);
         ServiceConfig.setSigner(signer);

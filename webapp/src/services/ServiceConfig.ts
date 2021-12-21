@@ -30,6 +30,10 @@ export class ServiceConfig {
     // Wallet type to be used when onboarding
     private static walletWeb3Provider: WalletWeb3Provider;
 
+    // service configurations
+    private static defaultServiceImpl = { transport: ServiceImpl.Web3, engine: ServiceImpl.Real };
+    private static serviceImpl = {};
+
     /**
      * Retrieves the implementation configured for a specified service type
      *
@@ -37,21 +41,34 @@ export class ServiceConfig {
      * @returns the configured ServiceImpl, such as a mock, web3 or wasm implementation
      */
     public static get(type: ServiceType): ServiceImpl {
-        const defaultImpl = {};
-        defaultImpl[ServiceType.Transport] = ServiceImpl.Web3;
-        defaultImpl[ServiceType.Engine] = ServiceImpl.Real;
-
-        const searchParams = new URLSearchParams(window.location.search);
-        if (searchParams.has(type)) {
-            // returns explicit configuration for the service
-            return searchParams.get(type) as ServiceImpl;
-        } else if (searchParams.has(ServiceImpl.Mock)) {
-            // all services have been explicitly set to "mock"
-            return ServiceImpl.Mock;
-        } else {
-            // no specific configuration set: use service type's default implementation
-            return defaultImpl[type];
+        if (this.serviceImpl[type]) {
+            // service impl explicitly defined
+            return this.serviceImpl[type];
         }
+        try {
+            const searchParams = new URLSearchParams(window.location.search);
+            if (searchParams.has(type)) {
+                // returns explicit configuration for the service from the URL search params
+                return searchParams.get(type) as ServiceImpl;
+            } else if (searchParams.has(ServiceImpl.Mock)) {
+                // all services have been explicitly set to "mock" from the URL search params
+                return ServiceImpl.Mock;
+            }
+        } catch (error) {
+            // error retrieving search params (it is not available)
+        }
+        // no specific configuration set: use service type's default implementation
+        return this.defaultServiceImpl[type];
+    }
+
+    /**
+     * Explicitly defines the implementation to be used for a specified service type
+     *
+     * @param type a ServiceType, such as Transport (how communication is done) or Engine (how the game logic is implemented)
+     * @param impl a ServiceImpl, such as a mock, web3 or wasm implementation
+     */
+    public static set(type: ServiceType, impl: ServiceImpl) {
+        this.serviceImpl[type] = impl;
     }
 
     public static setWalletWeb3Provider(walletWeb3Provider: WalletWeb3Provider) {

@@ -8,7 +8,7 @@ export class WalletMock {
 
     public static getBalance(): BigNumber {
         // let's pretend the user has 10 ETH or MATIC on the Mock Network
-        return ethers.BigNumber.from(10);
+        return ethers.utils.parseEther("10");
     }
 
     public static getPokerTokens(): BigNumber {

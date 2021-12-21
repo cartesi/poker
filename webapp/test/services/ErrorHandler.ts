@@ -1,9 +1,14 @@
 import { describe } from "mocha";
 import { expect } from "chai";
 import { ErrorHandler } from "../../src/services/ErrorHandler";
+import { ServiceConfig, ServiceImpl, ServiceType } from "../../src/services/ServiceConfig";
 
 describe("ErrorHandler", function () {
     this.timeout(60000);
+
+    beforeEach(async () => {
+        ServiceConfig.set(ServiceType.Transport, ServiceImpl.Mock);
+    });
 
     it("Should have a default positive attempt interval", async () => {
         expect(ErrorHandler.getAttemptInterval()).to.be.gt(0);
@@ -110,7 +115,7 @@ describe("ErrorHandler", function () {
         expect(attempts1).to.equal(0);
         expect(attempts2).to.be.gt(0);
         expect(attempts3).to.be.gt(0);
-        
+
         ErrorHandler.interruptAll();
         attempts1 = 0;
         attempts2 = 0;
