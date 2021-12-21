@@ -31,7 +31,7 @@ std::string wrap(const std::string& data) {
     os.write((const char*)&hdr, sizeof(hdr));
     os.write(data.data(), data.size());
     for(; pads; pads--)
-      os.write("#", 1);
+      os.write("\0", 1);
 
     return os.str();
 }
