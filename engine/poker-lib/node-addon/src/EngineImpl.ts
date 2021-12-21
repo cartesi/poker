@@ -5,8 +5,7 @@ export class EngineImpl implements Engine {
     private player: any;
     private lib: any;
 
-    constructor(private player_id: number, lib_path: string = null) {
-        if (lib_path == null) lib_path = "../../assets/engine/pokerlib";
+    constructor(private player_id: number, lib_path: string = "../../assets/engine/pokerlib") {
         this.lib = require(lib_path);
     }
 
