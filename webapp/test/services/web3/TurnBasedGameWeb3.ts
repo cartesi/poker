@@ -104,7 +104,7 @@ describe("TurnBasedGameWeb3", function () {
         turnBasedGameBob.removeListeners();
     });
 
-    it("should allow a player to submit a turn, claim for a result and confirm the result", async () => {
+    it("should allow a player to submit a turn, claim a result, and confirm it", async () => {
         // Creates a promise that will only be resolved when gameReady callback for player 1 is called
         let gameReadyResolverPlayer1: (boolean) => void;
         const promiseIsGameReadyPlayer1: Promise<boolean> = new Promise<boolean>((resolve: (boolean) => void) => {
@@ -190,7 +190,7 @@ describe("TurnBasedGameWeb3", function () {
         turnBasedGameBob.removeListeners();
     });
 
-    it("should allow a player to submit a turn, claim for a result and confirm the result: turn with no specified nextPlayer", async () => {
+    it("should allow a player to submit a turn, claim a result, and confirm it: turn with no specified nextPlayer", async () => {
         // Players join the game
         let gameReadyPromiseResolver: (any) => void;
         const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {

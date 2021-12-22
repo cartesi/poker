@@ -197,11 +197,11 @@ export class AbstractOnboardingWeb3 {
             if (!AbstractOnboardingWeb3.claimTimeoutInterval) {
                 // we are not already attempting to end an unfinished game by timeout: let's do it
                 try {
-                    // continuously attempts to end game by timeout
+                    // continuously attempts to end game by timeout (once a minute)
                     const turnBasedGame = TurnBasedGameFactory.create(gameIndex);
                     AbstractOnboardingWeb3.claimTimeoutInterval = setInterval(async () => {
                         await turnBasedGame.claimTimeout();
-                    }, GameConstants.TIMEOUT_SECONDS * 1000);
+                    }, 60000);
                     await turnBasedGame.claimTimeout();
 
                     gameContract.on(gameOverFilter, () => {

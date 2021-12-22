@@ -273,10 +273,17 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     //
     async claimTimeout(): Promise<void> {
         await this.initWeb3();
-        // TODO: before submitting the timeout claim (and spending tx fees), we should:
-        // - check if the game is still active
-        // - check the game context to ensure there is indeed a timeout
         await ErrorHandler.execute("claimTimeout", async () => {
+            const isActive = await this.gameContract.isActive(this.gameIndex);
+            if (!isActive) {
+                // game is no longer active: ignore
+                return;
+            }
+            const context = await this.gameContract.getContext(this.gameIndex);
+            if (context.isDescartesInstantiated) {
+                // game is under verification: ignore
+                return;
+            }
             const tx = await this.gameContract.claimTimeout(this.gameIndex);
             console.log(
                 `Claimed opponent timeout for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
