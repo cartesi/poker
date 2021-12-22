@@ -12,6 +12,20 @@ module.exports = {
             appleIdPassword: process.env.APPLE_ID_PASSWORD,
         },
     },
+    publishers: [
+        {
+            name: "@electron-forge/publisher-github",
+            config: {
+                repository: {
+                    owner: "cartesi-corp",
+                    name: "poker",
+                },
+                draft: true,
+                prerelease: false,
+                authToken: process.env.GITHUB_TOKEN,
+            },
+        },
+    ],
     makers: [
         {
             name: "@electron-forge/maker-squirrel",
