@@ -11,6 +11,7 @@ import { ethers } from "ethers";
 import { VerificationState } from "../../../src/services/Game";
 import { TurnInfo } from "../../../src/services/TurnBasedGame";
 import { TestWeb3Utils } from "./TestWeb3Utils";
+import { Web3Utils } from "../../../src/services/web3/Web3Utils";
 
 describe("TurnBasedGameWeb3", function () {
     let gameIndex: ethers.BigNumber;
@@ -62,19 +63,24 @@ describe("TurnBasedGameWeb3", function () {
 
     it("should retrieve correct player and opponent indices", async () => {
         // Players join the game
-        let gameReadyPromiseResolver: (number) => void;
-        const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
+        let gameReadyPromiseResolver: (any) => void;
+        const gameReadyPromise = new Promise<[ethers.BigNumber, any]>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
         TestWeb3Utils.setSigner(aliceAddress);
         await lobbyWeb3Alice.joinGame(aliceInfo, () => {});
         TestWeb3Utils.setSigner(bobAddress);
         await lobbyWeb3Bob.joinGame(bobInfo, (index, context) => {
-            gameReadyPromiseResolver(index);
+            gameReadyPromiseResolver([index, context]);
         });
 
-        // retrieves gameIndex from GameReady event
-        let gameIndex: ethers.BigNumber = await Promise.resolve(gameReadyPromise);
+        // retrieves gameIndex and context from GameReady event
+        const [gameIndex, context] = await Promise.resolve(gameReadyPromise);
+
+        // collects player indices in the game
+        console.log(`Players: ${JSON.stringify(context.players)}`);
+        const aliceIndex = Web3Utils.compareAddresses(context.players[0], aliceAddress) ? 0 : 1;
+        const bobIndex = Web3Utils.compareAddresses(context.players[0], bobAddress) ? 0 : 1;
 
         // creates turnbasedgame instance for Alice
         TestWeb3Utils.setSigner(aliceAddress);
@@ -87,12 +93,12 @@ describe("TurnBasedGameWeb3", function () {
         await turnBasedGameBob.initWeb3();
 
         // tests getPlayerIndex
-        expect(await turnBasedGameAlice.getPlayerIndex(await turnBasedGameAlice.getGameContext())).to.equal(0);
-        expect(await turnBasedGameBob.getPlayerIndex(await turnBasedGameBob.getGameContext())).to.equal(1);
+        expect(await turnBasedGameAlice.getPlayerIndex(await turnBasedGameAlice.getGameContext())).to.equal(aliceIndex);
+        expect(await turnBasedGameBob.getPlayerIndex(await turnBasedGameBob.getGameContext())).to.equal(bobIndex);
 
         // tests getOpponentIndex
-        expect(await turnBasedGameAlice.getOpponentIndex(await turnBasedGameAlice.getGameContext())).to.equal(1);
-        expect(await turnBasedGameBob.getOpponentIndex(await turnBasedGameBob.getGameContext())).to.equal(0);
+        expect(await turnBasedGameAlice.getOpponentIndex(await turnBasedGameAlice.getGameContext())).to.equal(bobIndex);
+        expect(await turnBasedGameBob.getOpponentIndex(await turnBasedGameBob.getGameContext())).to.equal(aliceIndex);
 
         turnBasedGameAlice.removeListeners();
         turnBasedGameBob.removeListeners();
@@ -186,7 +192,7 @@ describe("TurnBasedGameWeb3", function () {
 
     it("should allow a player to submit a turn, claim for a result and confirm the result: turn with no specified nextPlayer", async () => {
         // Players join the game
-        let gameReadyPromiseResolver: (number) => void;
+        let gameReadyPromiseResolver: (any) => void;
         const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
@@ -247,14 +253,9 @@ describe("TurnBasedGameWeb3", function () {
         turnBasedGameBob.removeListeners();
     });
 
-    it("should allow a player to claim timeout and end game when enough time has elapsed", async () => {
-        // collects alice and bob balances in POKER tokens
-        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, ServiceConfig.getSigner());
-        const aliceBalance = await pokerTokenContract.balanceOf(aliceAddress);
-        const bobBalance = await pokerTokenContract.balanceOf(bobAddress);
-
+    it("should allow a player to submit a turn and opponent to receive it even if he started listening afterwards", async () => {
         // Players join the game
-        let gameReadyPromiseResolver: (number) => void;
+        let gameReadyPromiseResolver: (any) => void;
         const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });
@@ -267,6 +268,61 @@ describe("TurnBasedGameWeb3", function () {
 
         // retrieves gameIndex from GameReady event
         let gameIndex: ethers.BigNumber = await Promise.resolve(gameReadyPromise);
+
+        // creates TurnBasedGame instance for Alice (listeners turned off)
+        TestWeb3Utils.setSigner(aliceAddress);
+        turnBasedGameAlice = new TurnBasedGameWeb3(gameIndex);
+        await turnBasedGameAlice.initWeb3();
+
+        // alice submit a turn
+        let aliceData: Uint8Array = new Uint8Array([10, 20, 0, 0, 0, 0, 0, 0]);
+        let aliceTurnInfo: TurnInfo = { data: aliceData, nextPlayer: -1, playerStake: ethers.BigNumber.from(10) };
+        await turnBasedGameAlice.submitTurn(aliceTurnInfo);
+
+        // submits another random transaction just to create a new block and ensure TurnOver event is not in the latest block
+        await turnBasedGameAlice.claimTimeout();
+
+        // create turnbasedgame instance for Bob
+        TestWeb3Utils.setSigner(bobAddress);
+        turnBasedGameBob = new TurnBasedGameWeb3(gameIndex);
+        await turnBasedGameBob.initWeb3();
+
+        // set up callback for Bob to receive Alice's turn
+        let turnOverPromise: Promise<any> = turnBasedGameBob.receiveTurnOver();
+        await turnOverPromise.then((turnInfo) => {
+            expect(turnInfo).to.be.eql(aliceTurnInfo);
+        });
+
+        // Remove listeners
+        turnBasedGameAlice.removeListeners();
+        turnBasedGameBob.removeListeners();
+    });
+
+    it("should allow a player to claim timeout and end game when enough time has elapsed", async () => {
+        // collects alice and bob balances in POKER tokens
+        const pokerTokenContract = PokerToken__factory.connect(PokerToken.address, ServiceConfig.getSigner());
+        const aliceBalance = await pokerTokenContract.balanceOf(aliceAddress);
+        const bobBalance = await pokerTokenContract.balanceOf(bobAddress);
+
+        // Players join the game
+        let gameReadyPromiseResolver: (any) => void;
+        const gameReadyPromise = new Promise<[ethers.BigNumber, any]>((resolve) => {
+            gameReadyPromiseResolver = resolve;
+        });
+        TestWeb3Utils.setSigner(aliceAddress);
+        await lobbyWeb3Alice.joinGame(aliceInfo, () => {});
+        TestWeb3Utils.setSigner(bobAddress);
+        await lobbyWeb3Bob.joinGame(bobInfo, (index, context) => {
+            gameReadyPromiseResolver([index, context]);
+        });
+
+        // retrieves gameIndex and context from GameReady event
+        const [gameIndex, context] = await Promise.resolve(gameReadyPromise);
+
+        // collects player indices in the game
+        console.log(`Players: ${JSON.stringify(context.players)}`);
+        const aliceIndex = Web3Utils.compareAddresses(context.players[0], aliceAddress) ? 0 : 1;
+        const bobIndex = Web3Utils.compareAddresses(context.players[0], bobAddress) ? 0 : 1;
 
         // creates TurnBasedGame instance for Alice (listeners turned off)
         TestWeb3Utils.setSigner(aliceAddress);
@@ -285,13 +341,13 @@ describe("TurnBasedGameWeb3", function () {
         // alice submits a turn
         let aliceData = new Uint8Array([10, 20, 0, 0, 0, 0, 0, 0]);
         let alicePlayerStake = ethers.BigNumber.from(1);
-        let aliceTurnInfo = { data: aliceData, nextPlayer: 1, playerStake: alicePlayerStake };
+        let aliceTurnInfo = { data: aliceData, nextPlayer: bobIndex, playerStake: alicePlayerStake };
         await turnBasedGameAlice.submitTurn(aliceTurnInfo);
 
         // bob submits a turn
         let bobData = new Uint8Array([10, 20, 30, 0, 0, 0, 0, 0]);
         let bobPlayerStake = ethers.BigNumber.from(2);
-        let bobTurnInfo = { data: bobData, nextPlayer: 0, playerStake: bobPlayerStake };
+        let bobTurnInfo = { data: bobData, nextPlayer: aliceIndex, playerStake: bobPlayerStake };
         await turnBasedGameBob.submitTurn(bobTurnInfo);
 
         // fast-forwards network time so that a timeout can be claimed (alice's fault)
@@ -304,12 +360,12 @@ describe("TurnBasedGameWeb3", function () {
         const result = await Promise.resolve(gameOverPromise);
         expect(result.length).to.equal(2);
         console.log(`Result: [${result[0].toString()}, ${result[1].toString()}]`);
-        expect(result[0]).to.eql(aliceBalance.sub(alicePlayerStake));
-        expect(result[1]).to.eql(bobBalance.add(alicePlayerStake));
+        expect(result[aliceIndex]).to.eql(aliceBalance.sub(alicePlayerStake));
+        expect(result[bobIndex]).to.eql(bobBalance.add(alicePlayerStake));
 
         // check if player balances reflect the result
-        expect(await pokerTokenContract.balanceOf(aliceAddress)).to.eql(result[0]);
-        expect(await pokerTokenContract.balanceOf(bobAddress)).to.eql(result[1]);
+        expect(await pokerTokenContract.balanceOf(aliceAddress)).to.eql(result[aliceIndex]);
+        expect(await pokerTokenContract.balanceOf(bobAddress)).to.eql(result[bobIndex]);
 
         // Remove listeners
         turnBasedGameAlice.removeListeners();
@@ -324,7 +380,7 @@ describe("TurnBasedGameWeb3", function () {
         const bobBalance = await pokerTokenContract.balanceOf(bobAddress);
 
         // Players join the game
-        let gameReadyPromiseResolver: (number) => void;
+        let gameReadyPromiseResolver: (any) => void;
         const gameReadyPromise = new Promise<ethers.BigNumber>((resolve) => {
             gameReadyPromiseResolver = resolve;
         });

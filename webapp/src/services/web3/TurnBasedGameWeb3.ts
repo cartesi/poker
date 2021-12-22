@@ -28,6 +28,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     gameContract: TurnBasedGameContract;
     gameContextContract: any;
 
+    latestTurnIndex: number;
     turnInfoQueue: Array<any>;
     onTurnOverReceivedResolvers: Array<(any) => any>;
 
@@ -128,13 +129,20 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     }
     async onTurnOver(gameIndex, turnIndex, author, turn) {
         await this.initWeb3();
+        turnIndex = BigNumber.from(turnIndex).toNumber();
+        if (this.latestTurnIndex !== undefined && turnIndex < this.latestTurnIndex) {
+            // turn has already been processed: ignore it
+            console.log(
+                `Ignoring turn '${turnIndex}' because it has already been processed (lastTurnIndex = '${this.latestTurnIndex}')`
+            );
+            return;
+        }
+        this.latestTurnIndex = turnIndex;
         const player = await this.getPlayerAddress();
         if (turn.player == player) {
             // turn sent by this player himself: ignore it
             return;
         }
-
-        // TODO: check turnIndex sequence?
 
         console.log(`Received turn '${turnIndex}' for game '${this.gameIndex}'`);
 
@@ -164,6 +172,17 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     async receiveTurnOver() {
         return new Promise<TurnInfo>(async (resolve) => {
             await this.initWeb3();
+            // checks for TurnOver events that may have been missed
+            await ErrorHandler.execute("checkTurnOverEvents", async () => {
+                const context = await this.gameContract.getContext(this.gameIndex);
+                if (context.turns && context.turns.length) {
+                    const startingPoint = this.latestTurnIndex === undefined ? 0 : this.latestTurnIndex + 1;
+                    for (let i = startingPoint; i < context.turns.length; i++) {
+                        const turn = context.turns[i];
+                        await this.onTurnOver(this.gameIndex, i, turn.player, turn);
+                    }
+                }
+            });
             this.onTurnOverReceivedResolvers.push(resolve);
             this.dispatchTurn();
         });
@@ -254,7 +273,9 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     //
     async claimTimeout(): Promise<void> {
         await this.initWeb3();
-        // TODO: before submitting the timeout claim (and spending tx fees), we could check the game context to ensure there is indeed a timeout
+        // TODO: before submitting the timeout claim (and spending tx fees), we should:
+        // - check if the game is still active
+        // - check the game context to ensure there is indeed a timeout
         await ErrorHandler.execute("claimTimeout", async () => {
             const tx = await this.gameContract.claimTimeout(this.gameIndex);
             console.log(
