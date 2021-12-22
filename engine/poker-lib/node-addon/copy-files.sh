@@ -16,6 +16,13 @@ cp ./src/*.ts ${INSTALL_DIR}
 cp ./build/Release/pokerlib.node ${INSTALL_DIR}
 cp ${LIB_DIR}/*${DLLEXT}* ${INSTALL_DIR}
 
+if [ `uname -s` == Linux ]; then
+    echo "Setting Linux RUNPATH..."
+    patchelf --set-rpath '$ORIGIN' ${INSTALL_DIR}/pokerlib.node
+    patchelf --set-rpath '$ORIGIN' ${INSTALL_DIR}/libpoker.so 
+    patchelf --set-rpath '$ORIGIN' ${INSTALL_DIR}/libTMCG.so
+fi
+
 if [ `uname -s` == Darwin ]; then
     echo "Patching mac-o references"
 
@@ -97,4 +104,4 @@ if [ `uname -s` == Darwin ]; then
       -id @loader_path/libgcrypt.20.dylib \
        -change ${LIB_DIR}/libgpg-error.0.dylib @loader_path/libgpg-error.0.dylib \
        ${INSTALL_DIR}/libgcrypt.20.dylib
-  fi
+fi

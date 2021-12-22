@@ -11,7 +11,7 @@ RUN apt-get update --allow-insecure-repositories && \
     apt-get install -y --allow-unauthenticated vim  && \
     apt-get install -y --allow-unauthenticated telnet && \
     apt-get install -y --allow-unauthenticated lzip && \
-    apt-get install -y --allow-unauthenticated cmake
+    apt-get install -y --allow-unauthenticated cmake patchelf
 
 RUN cd ~ && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash && \
