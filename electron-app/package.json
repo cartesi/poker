@@ -20,7 +20,7 @@
         "prepare": "run-s distclean src:copy webapp:copy entrypoint:copy",
         "wasm:engine:copy": "copyfiles -f \"../engine/platforms/wasm/build/poker-lib/*.ts\" src/services/engine && copyfiles -f \"../engine/platforms/wasm/build/lib/poker-lib-wasm.*\" dist/assets/engine",
         "wasm:prepare": "run-s prepare entrypoint:fix wasm:engine:copy",
-        "linux:engine:copy": "mkdirp dist && copyfiles -f \"../engine/platforms/x64/build/poker-lib/*.ts\" src/services/engine && copyfiles -f \"../engine/platforms/x64/build/poker-lib/pokerlib.node\" dist/assets/engine && copyfiles -f \"../engine/platforms/x64/build/poker-lib/*.so\" dist/assets/engine",
+        "linux:engine:copy": "mkdirp dist && copyfiles -f \"../engine/platforms/x64/build/poker-lib/*.ts\" src/services/engine && copyfiles -f \"../engine/platforms/x64/build/poker-lib/pokerlib.node\" dist/assets/engine && copyfiles -f \"../engine/platforms/x64/build/poker-lib/*.so*\" dist/assets/engine",
         "linux:prepare": "run-s prepare entrypoint:fix linux:engine:copy",
         "macos:engine:copy": "copyfiles -f \"../engine/poker-lib/node-addon/src/*.ts\" src/services/engine && copyfiles -f \"./lib/darwin_x64/*\" dist/assets/engine",
         "macos:prepare": "run-s prepare entrypoint:fix macos:engine:copy",
