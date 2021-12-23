@@ -1,7 +1,7 @@
 {
     "name": "@cartesi/poker-webapp",
     "version": "1.0.1",
-    "description": "Cartesi Poker Web Application",
+    "description": "Cartesi Texas HODL’em",
     "author": "Milton Jonathan <milton.jonathan@cartesi.io>",
     "license": "Apache-2.0",
     "bugs": {
