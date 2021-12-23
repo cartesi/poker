@@ -1,6 +1,6 @@
 {
     "name": "@cartesi/verifier-chess",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Chess TurnBasedGame Verifier",
     "dependencies": {
         "bignumber.js": "^9.0.1",

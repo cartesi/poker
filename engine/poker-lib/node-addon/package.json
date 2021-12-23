@@ -1,21 +1,21 @@
 {
-  "name": "poker-node-addon",
-  "version": "1.0.0",
-  "scripts": {
-    "build": "node_modules/.bin/node-gyp rebuild --target=13.1.9 --arch=x64 --dist-url=https://electronjs.org/headers && yarn run build-enums && yarn copy-files",
-    "build-enums": "node ./build-enums.js",
-    "test": "node_modules/.bin/mocha --timeout=3600000 -r ts-node/register tests/*.test.ts",
-    "copy-files": "./copy-files.sh"
-  },
-  "devDependencies": {
-    "@types/chai": "^4.2.21",
-    "@types/mocha": "^9.0.0",
-    "@types/node": "^16.7.6",
-    "chai": "^4.3.4",
-    "mocha": "^9.1.1",
-    "ts-node": "^10.2.1",
-    "typescript": "4.2.4",
-    "ethers": "^5.1.0",
-    "node-gyp": "^8.2.0"
-  }
+    "name": "poker-node-addon",
+    "version": "1.0.1",
+    "scripts": {
+        "build": "node_modules/.bin/node-gyp rebuild --target=13.1.9 --arch=x64 --dist-url=https://electronjs.org/headers && yarn run build-enums && yarn copy-files",
+        "build-enums": "node ./build-enums.js",
+        "test": "node_modules/.bin/mocha --timeout=3600000 -r ts-node/register tests/*.test.ts",
+        "copy-files": "./copy-files.sh"
+    },
+    "devDependencies": {
+        "@types/chai": "^4.2.21",
+        "@types/mocha": "^9.0.0",
+        "@types/node": "^16.7.6",
+        "chai": "^4.3.4",
+        "mocha": "^9.1.1",
+        "ts-node": "^10.2.1",
+        "typescript": "4.2.4",
+        "ethers": "^5.1.0",
+        "node-gyp": "^8.2.0"
+    }
 }
