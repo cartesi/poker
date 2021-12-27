@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from "electron";
 import * as path from "path";
+require('update-electron-app')()
 
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch("disable-software-rasterizer");
