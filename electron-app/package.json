@@ -1,6 +1,5 @@
 {
     "name": "@cartesi/electron-app",
-    "productName": "cartesi-texas-hodlem",
     "version": "1.0.1",
     "description": "Cartesi Texas HODL'em",
     "main": "dist/index.js",
