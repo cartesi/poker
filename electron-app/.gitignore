@@ -95,3 +95,4 @@ src/
 textures/
 types/
 yarn.lock
+.package.json.bkp

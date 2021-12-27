@@ -86,6 +86,9 @@ $ yarn make
 Please ignore the log message `WARNING: Skipping the packaging step, this could result in an out of date build` shown during the process.
 It is due to the fact that the `make` script runs `electron-forge` with `--skip-package` activated and runs the `package` script explicitily to make sure all dependencies are ready before making any distributable.
 
+**Note:**
+In order to create `.deb` packages, the name attribute in `package.json` must meet [`MakeDebConfig` requirements](https://js.electronforge.io/maker/deb/interfaces/makerdebconfigoptions.html#name). That's why it's changed before the `make` script starts and is restored after `make` is complete.
+
 The resulting files should be available under directory `out/make/`.
 The actual file names will depend on the platform being used to build the application and the target format.
 
