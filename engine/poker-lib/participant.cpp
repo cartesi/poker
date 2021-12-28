@@ -58,12 +58,18 @@ game_error participant::create_group(blob& group) {
 game_error participant::load_group(blob& group) {
     libtmcg_guard patch_ltmcg(this);
     _tmcg = new SchindelhauerTMCG(64, _num_participants, 6 /* bits for 52 cards*/);
-    _vtmf = new BarnettSmartVTMF_dlog(group.in());
-    if (!_vtmf->CheckGroup()) {
-        logger << "*** ERROR BarnettSmartVTMF_dlog\n";
-        return TMC_CHECK_GROUP;
+
+    try {
+        _vtmf = new BarnettSmartVTMF_dlog(group.in());
+        if (!_vtmf->CheckGroup()) {
+            logger << "*** ERROR BarnettSmartVTMF_dlog\n";
+            return TMC_CHECK_GROUP;
+        }
+        return SUCCESS;
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << '\n';
+        return TMC_RUNTIME_EXCEPTION;
     }
-    return SUCCESS;
 }
 
 game_error participant::generate_key(blob& key) {
@@ -77,11 +83,16 @@ game_error participant::generate_key(blob& key) {
 game_error participant::load_their_key(blob& key) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "load_their_key " << std::endl;
-    if (!_vtmf->KeyGenerationProtocol_UpdateKey(key.in())) {
-        logger << "*** their public key was not correctly generated!" << std::endl;
-        return TMC_KEYGENERATIONPROTOCOL_UPDATEKEY;
+    try {
+        if (!_vtmf->KeyGenerationProtocol_UpdateKey(key.in())) {
+            logger << "*** their public key was not correctly generated!" << std::endl;
+            return TMC_KEYGENERATIONPROTOCOL_UPDATEKEY;
+        }
+        return SUCCESS;
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << '\n';
+        return TMC_RUNTIME_EXCEPTION;
     }
-    return SUCCESS;
 }
 
 game_error participant::finalize_key_generation() {
@@ -106,10 +117,15 @@ game_error participant::create_vsshe_group(blob& group) {
 game_error participant::load_vsshe_group(blob& group) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "load_vsshe_group" << std::endl;
-    _vsshe = new GrothVSSHE(DECK_SIZE, group.in());
-    if (!_vsshe->CheckGroup()) {
-        logger << _pfx << "*** VRHE instance was not correctly generated!" << std::endl;
-        return TMC_VSSHE_CHECKGROUP;
+    try {
+        _vsshe = new GrothVSSHE(DECK_SIZE, group.in());
+        if (!_vsshe->CheckGroup()) {
+            logger << _pfx << "*** VRHE instance was not correctly generated!" << std::endl;
+            return TMC_VSSHE_CHECKGROUP;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << '\n';
+        return TMC_RUNTIME_EXCEPTION;
     }
 
     if (mpz_cmp(_vtmf->h, _vsshe->com->h)) {
@@ -167,12 +183,17 @@ game_error participant::load_stack(blob& mixed_stack, blob& mixed_stack_proof) {
         logger << "shuffle: read or parse error" << std::endl;
         return TMCG_READ_STACK;
     }
-    if (!_tmcg->TMCG_VerifyStackEquality_Groth_noninteractive(_stack, s2, _vtmf, _vsshe, mixed_stack_proof.in())) {
-        logger << "*** shuffle: verification failed" << std::endl;
-        return TMC_VERIFYSTACKEQUALITY;
+    try {
+        if (!_tmcg->TMCG_VerifyStackEquality_Groth_noninteractive(_stack, s2, _vtmf, _vsshe, mixed_stack_proof.in())) {
+            logger << "*** shuffle: verification failed" << std::endl;
+            return TMC_VERIFYSTACKEQUALITY;
+        }
+        _stack = s2;
+        return SUCCESS;
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << '\n';
+        return TMC_RUNTIME_EXCEPTION;
     }
-    _stack = s2;
-    return SUCCESS;
 }
 
 game_error participant::take_cards_from_stack(int count) {
@@ -206,12 +227,17 @@ game_error participant::self_card_secret(int card_index) {
 game_error participant::verify_card_secret(int card_index, blob& their_proof) {
     libtmcg_guard patch_ltmcg(this);
     logger << _pfx << "verify_card_secret(" << card_index << ")" << std::endl;
-    blob dummy;  // not used b/c this is non-interactive proof
-    if (!_tmcg->TMCG_VerifyCardSecret(_cards[card_index], _vtmf, their_proof.in(), dummy.out())) {
-        logger << "*** [verify_card_secret] Card " << card_index << " verification failed!" << std::endl;
-        return TMC_VERIFYCARDSECRET;
+    try {
+        blob dummy;  // not used b/c this is non-interactive proof
+        if (!_tmcg->TMCG_VerifyCardSecret(_cards[card_index], _vtmf, their_proof.in(), dummy.out())) {
+            logger << "*** [verify_card_secret] Card " << card_index << " verification failed!" << std::endl;
+            return TMC_VERIFYCARDSECRET;
+        }
+        return SUCCESS;
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << '\n';
+        return TMC_RUNTIME_EXCEPTION;
     }
-    return SUCCESS;
 }
 
 game_error participant::open_card(int card_index) {
