@@ -28,7 +28,8 @@ After preparing the application, run the application using one of the following 
 As an example, in order to prepare and execute the application on localhost using a MacOS engine, do as follows:
 
 ```shell
-$ yarn macos:prepare && yarn start
+$ yarn macos:prepare
+$ yarn start
 ```
 
 ## Packaging
@@ -39,10 +40,11 @@ We have used Electron Forge scaffolding features to [perfom that](https://www.el
 Before packaging the application, choose what engine wil be used, as explained above.
 Then execute the actual packaging.
 
-As an example, in order to package an application with a MacOS engine, do as follows:
+As an example, in order to package an application with a Windows engine, do as follows:
 
 ```shell
-$ yarn macos:prepare && yarn package
+$ yarn windows:prepare
+$ yarn package
 ```
 
 The application contents are going to be available under directory `out/`.
