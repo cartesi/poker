@@ -5,6 +5,8 @@
 #include "game-playback.h"
 #include "test-util.h"
 #include "poker-lib.h"
+#include "service_locator.h"
+#include "compression.h"
 
 using namespace poker;
 using namespace poker::cards;
@@ -312,11 +314,90 @@ void test_next_msg_author() {
     assert_eql(NONE, alice.game().next_msg_author);
 }
 
+int test_invalid_messages() {
+    // Creates honest players
+    player alice1(ALICE);
+    player alice2(ALICE);
+    player alice3(ALICE);
+    player alice4(ALICE);
+    assert_eql(SUCCESS, alice1.init(100, 300, 10));
+    assert_eql(SUCCESS, alice2.init(100, 300, 10));
+    assert_eql(SUCCESS, alice3.init(100, 300, 10));
+    assert_eql(SUCCESS, alice4.init(100, 300, 10));
+
+    player bob1(BOB);
+    player bob2(BOB);
+    player bob3(BOB);
+    player bob4(BOB);
+    assert_eql(SUCCESS, bob1.init(100, 300, 10));
+    assert_eql(SUCCESS, bob2.init(100, 300, 10));
+    assert_eql(SUCCESS, bob3.init(100, 300, 10));
+    assert_eql(SUCCESS, bob4.init(100, 300, 10));
+
+    // Creates dishonest players. They'll create messages with incorrect/missing data.
+    poker_lib_options opts;
+    opts.encryption = false;
+    service_locator::load(&opts);
+
+    player cheating_alice(ALICE);
+    assert_eql(SUCCESS, cheating_alice.init(100, 300, 10));
+    player cheating_bob(BOB);
+    assert_eql(SUCCESS, cheating_bob.init(100, 300, 10));
+
+    // Messages exchanged during game
+    std::map<int, std::string> msg;  
+
+    // First handshake message: VTMF group + Alice Key (handle_vtmf)
+    assert_eql(SUCCESS, cheating_alice.create_handshake(msg[0]));
+    assert_eql(PRR_CREATE_VTMF, bob1.process_handshake(msg[0], msg[1]));
+
+    // Second handshake message: Bob Key (handle_vtmf_response)
+    assert_eql(SUCCESS, alice1.create_handshake(msg[0]));
+    assert_eql(CONTINUED, cheating_bob.process_handshake(msg[0], msg[1]));
+    assert_eql(ERR_LOAD_BOB_KEY, alice1.process_handshake(msg[1], msg[2]));
+
+    // Third handshake message: VSSHE + Alice Stack (handle_vsshe)
+    assert_eql(SUCCESS, alice2.create_handshake(msg[0]));
+    assert_eql(CONTINUED, bob2.process_handshake(msg[0], msg[1]));
+    assert_eql(CONTINUED, cheating_alice.process_handshake(msg[1], msg[2]));
+    assert_eql(TMC_RUNTIME_EXCEPTION, bob2.process_handshake(msg[2], msg[3]));
+
+    // Fourth handshake message: Final Stack + Alice Private Cards (handle_vsshe_response)
+    assert_eql(SUCCESS, alice3.create_handshake(msg[0]));
+    assert_eql(CONTINUED, bob3.process_handshake(msg[0], msg[1]));
+    assert_eql(CONTINUED, alice3.process_handshake(msg[1], msg[2]));
+    // Create empty message by hand as cheating_bob can't load a valid stack
+    std::ostringstream oss;
+    msg_vsshe_response vsshe_response;
+    vsshe_response.player_id = BOB;
+    vsshe_response.write(oss);
+    auto ostr = oss.str();
+    compress_and_wrap(ostr, msg[3]);
+    assert_eql(PRR_LOAD_STACK, alice3.process_handshake(msg[3], msg[4]));
+    
+    // Fifth handshake message: Bob Private Cards (handle_bob_private_cards)
+    assert_eql(SUCCESS, alice4.create_handshake(msg[0]));
+    assert_eql(CONTINUED, bob4.process_handshake(msg[0], msg[1]));
+    assert_eql(CONTINUED, alice4.process_handshake(msg[1], msg[2]));
+    assert_eql(CONTINUED, bob4.process_handshake(msg[2], msg[3]));
+    // Create empty message by hand
+    std::ostringstream oss2;
+    msg_bob_private_cards bob_private_cards;
+    bob_private_cards.player_id = ALICE;
+    bob_private_cards.write(oss2);
+    auto ostr2 = oss2.str();
+    compress_and_wrap(ostr2, msg[4]);
+    assert_eql(ERR_OPEN_PRIVATE_VERIFY_ALICE_SECRET, bob4.process_handshake(msg[4], msg[5]));
+
+    return 0;
+}
+
 int main(int argc, char** argv) {
     init_poker_lib();
     test_the_happy_path();
     test_fold();
     test_next_msg_author();
+    test_invalid_messages();
     std::cout << "---- SUCCESS - " TEST_SUITE_NAME << std::endl;
     return 0;
 }
