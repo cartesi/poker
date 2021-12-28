@@ -44,6 +44,7 @@
         "make": "run-s package && electron-forge make --skip-package",
         "postmake": "move-file .package.json.bkp package.json",
         "publish": "electron-forge publish",
+        "macos:publish": "yarn macos:prepare && tsc && yarn run publish",
         "lint": "eslint --ext .ts ."
     },
     "keywords": [],
