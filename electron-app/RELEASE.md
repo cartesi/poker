@@ -31,7 +31,7 @@ These two environment variables should contain a valid Apple ID and an app-speci
 If everything is configured properly, to create a MacOS release all you need to do is run:
 
 ```shell
-yarn macos:publish
+yarn publish
 ```
 
 This will create, code-sign and notarize a `.app` and generate a `.dmg` installer which will be attached to the Github Release.
