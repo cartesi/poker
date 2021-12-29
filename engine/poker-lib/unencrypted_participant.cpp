@@ -111,7 +111,13 @@ game_error unencrypted_participant::load_stack(blob& mixed_stack, blob& mixed_st
     split_cards(mixed_stack.str(), delimiter, cards);
     int idx = 0;
     for (auto& card : cards) {
-        _stack[idx++] = std::stoi(card);
+        std::cout << "card - " << card << '\n';
+        try {
+            _stack[idx++] = std::stoi(card);
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << '\n';
+            return PRR_LOAD_STACK;
+        }
     }
 
     return SUCCESS;
