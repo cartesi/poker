@@ -94,8 +94,8 @@ The actual file names will depend on the platform being used to build the applic
 
 The available targets are:
 
-- `deb` (only available on Linux): creates a Debian package and make it available under `out/make/deb/`. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/deb) for usage;
-- `dmg` (only available on MacOS): creates a MacOS installer and make it available under `out/make/`. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/dmg) for usage;
-- `rpm` (only available on Linux): creates a RedHat-based package and make it available under `out/make/rpm/`. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/rpm) for usage;
+- `deb` (only available on Linux): creates a Debian package. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/deb) for usage;
+- `dmg` (only available on MacOS): creates a MacOS installer. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/dmg) for usage;
+- `rpm` (only available on Linux): creates a RedHat-based package. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/rpm) for usage;
 - `squirrel.windows` (only available on Windows and MacOS MacOS): creates a Windows installer. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/squirrel.windows) for usage;
-- `zip`: creates a zip package and make it available under `out/make/zip/`.
+- `zip`: creates a zip package.
