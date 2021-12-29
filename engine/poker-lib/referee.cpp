@@ -43,7 +43,7 @@ game_error referee::step_vtmf_group(blob& g) {
     return SUCCESS;
 }
 
-game_error referee::step_load_keys(blob& bob_key, blob& alice_key, /* out */ blob& eve_key) {
+game_error referee::step_load_keys(blob& alice_key, blob& bob_key, /* out */ blob& eve_key) {
     logger << "step_load_keys..." << std::endl;
     if (_g.error) return ERR_GAME_OVER;
     if (_step != game_step::LOAD_KEYS)
