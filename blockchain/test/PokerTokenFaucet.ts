@@ -42,6 +42,19 @@ describe("PokerTokenFaucet", () => {
         pokerTokenFaucetContract = PokerTokenFaucet__factory.connect(PokerTokenFaucet.address, owner);
     });
 
+    it("Should only allow owner to request tokens", async () => {
+        const tokensAmount = await pokerTokenFaucetContract.getRequestTokensAmount();
+        await pokerTokenContract.mint(pokerTokenFaucetContract.address, tokensAmount.mul(10));
+
+        await expect(
+            pokerTokenFaucetContract.connect(holder1).requestTokens(await holder1.getAddress())
+        ).to.be.revertedWith("Only faucet owner can call method");
+        await expect(
+            pokerTokenFaucetContract.connect(holder2).requestTokens(await holder1.getAddress())
+        ).to.be.revertedWith("Only faucet owner can call method");
+        await expect(pokerTokenFaucetContract.requestTokens(await holder1.getAddress())).not.to.be.reverted;
+    });
+
     it("Should provide tokens when requested", async () => {
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(ethers.BigNumber.from(0));
         expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(ethers.BigNumber.from(0));
@@ -50,17 +63,17 @@ describe("PokerTokenFaucet", () => {
         await pokerTokenContract.mint(pokerTokenFaucetContract.address, tokensAmount.mul(10));
 
         // requests tokens for holder1
-        await pokerTokenFaucetContract.connect(holder1).requestTokens(await holder1.getAddress());
+        await pokerTokenFaucetContract.requestTokens(await holder1.getAddress());
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(tokensAmount);
         expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(ethers.constants.Zero);
 
         // requests tokens for holder2
-        await pokerTokenFaucetContract.connect(holder2).requestTokens(await holder2.getAddress());
+        await pokerTokenFaucetContract.requestTokens(await holder2.getAddress());
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(tokensAmount);
         expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(tokensAmount);
 
-        // requests more tokens for holder2, this time using holder1 as signer
-        await pokerTokenFaucetContract.connect(holder1).requestTokens(await holder2.getAddress());
+        // requests more tokens for holder2
+        await pokerTokenFaucetContract.requestTokens(await holder2.getAddress());
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(tokensAmount);
         expect(await pokerTokenContract.balanceOf(await holder2.getAddress())).to.eql(tokensAmount.mul(2));
     });
@@ -69,7 +82,7 @@ describe("PokerTokenFaucet", () => {
         const newAmount = ethers.BigNumber.from(500);
 
         await expect(pokerTokenFaucetContract.connect(holder2).setRequestTokensAmount(newAmount)).to.be.revertedWith(
-            "Only faucet owner can set request amounts"
+            "Only faucet owner can call method"
         );
 
         await expect(pokerTokenFaucetContract.setRequestTokensAmount(newAmount)).not.to.be.reverted;
@@ -78,7 +91,7 @@ describe("PokerTokenFaucet", () => {
         // test if new amount is actually used
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(ethers.constants.Zero);
         await pokerTokenContract.mint(pokerTokenFaucetContract.address, newAmount);
-        await pokerTokenFaucetContract.connect(holder1).requestTokens(await holder1.getAddress());
+        await pokerTokenFaucetContract.requestTokens(await holder1.getAddress());
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(newAmount);
     });
 
@@ -97,6 +110,19 @@ describe("PokerTokenFaucet", () => {
         );
     });
 
+    it("Should only allow owner to request network funds (ETH)", async () => {
+        const fundsAmount = await pokerTokenFaucetContract.getRequestFundsAmount();
+        await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: fundsAmount.mul(10) });
+
+        await expect(
+            pokerTokenFaucetContract.connect(holder1).requestFunds(await holder1.getAddress())
+        ).to.be.revertedWith("Only faucet owner can call method");
+        await expect(
+            pokerTokenFaucetContract.connect(holder2).requestFunds(await holder1.getAddress())
+        ).to.be.revertedWith("Only faucet owner can call method");
+        await expect(pokerTokenFaucetContract.requestFunds(await holder1.getAddress())).not.to.be.reverted;
+    });
+
     it("Should provide network funds (ETH) when requested", async () => {
         // setup funds in faucet
         const fundsAmount = await pokerTokenFaucetContract.getRequestFundsAmount();
@@ -107,24 +133,24 @@ describe("PokerTokenFaucet", () => {
         const balanceHolder2 = await holder2.getBalance();
 
         // requests funds for holder1
-        await pokerTokenFaucetContract.connect(holder1).requestFunds(await holder1.getAddress());
+        await pokerTokenFaucetContract.requestFunds(await holder1.getAddress());
         const balanceHolder1_step1 = await holder1.getBalance();
         const balanceHolder2_step1 = await holder2.getBalance();
-        expect(balanceHolder1_step1.gt(balanceHolder1)).to.be.true;
+        expect(balanceHolder1_step1.eq(balanceHolder1.add(fundsAmount))).to.be.true;
         expect(balanceHolder2_step1.eq(balanceHolder2)).to.be.true;
 
         // requests funds for holder2
-        await pokerTokenFaucetContract.connect(holder2).requestFunds(await holder2.getAddress());
+        await pokerTokenFaucetContract.requestFunds(await holder2.getAddress());
         const balanceHolder1_step2 = await holder1.getBalance();
         const balanceHolder2_step2 = await holder2.getBalance();
         expect(balanceHolder1_step2.eq(balanceHolder1_step1)).to.be.true;
-        expect(balanceHolder2_step2.gt(balanceHolder2_step1)).to.be.true;
+        expect(balanceHolder2_step2.eq(balanceHolder2_step1.add(fundsAmount))).to.be.true;
 
-        // requests more funds for holder2, this time using holder1 as signer
-        await pokerTokenFaucetContract.connect(holder1).requestFunds(await holder2.getAddress());
+        // requests more funds for holder2
+        await pokerTokenFaucetContract.requestFunds(await holder2.getAddress());
         const balanceHolder1_step3 = await holder1.getBalance();
         const balanceHolder2_step3 = await holder2.getBalance();
-        expect(balanceHolder1_step3.lt(balanceHolder1_step2)).to.be.true;
+        expect(balanceHolder1_step3.eq(balanceHolder1_step2)).to.be.true;
         expect(balanceHolder2_step3.eq(balanceHolder2_step2.add(fundsAmount))).to.be.true;
     });
 
@@ -132,7 +158,7 @@ describe("PokerTokenFaucet", () => {
         const newAmount = ethers.utils.parseEther("1.3");
 
         await expect(pokerTokenFaucetContract.connect(holder2).setRequestFundsAmount(newAmount)).to.be.revertedWith(
-            "Only faucet owner can set request amounts"
+            "Only faucet owner can call method"
         );
 
         await expect(pokerTokenFaucetContract.setRequestFundsAmount(newAmount)).not.to.be.reverted;
@@ -141,7 +167,7 @@ describe("PokerTokenFaucet", () => {
         // test if new amount is actually used
         await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: newAmount });
         const balanceHolder2 = await holder2.getBalance();
-        await pokerTokenFaucetContract.connect(holder1).requestFunds(await holder2.getAddress());
+        await pokerTokenFaucetContract.requestFunds(await holder2.getAddress());
         expect(await holder2.getBalance()).to.eql(balanceHolder2.add(newAmount));
     });
 
@@ -158,5 +184,126 @@ describe("PokerTokenFaucet", () => {
         await expect(pokerTokenFaucetContract.requestFunds(await holder1.getAddress())).to.be.revertedWith(
             "Insufficient funds in faucet"
         );
+    });
+
+    it("Should only allow owner to set suspended state", async () => {
+        // should not be suspended when started
+        expect(await pokerTokenFaucetContract.isSuspended()).to.be.false;
+        await expect(pokerTokenFaucetContract.connect(holder1).setSuspended(true)).to.be.revertedWith(
+            "Only faucet owner can call method"
+        );
+        await expect(pokerTokenFaucetContract.setSuspended(true)).not.to.be.reverted;
+        await pokerTokenFaucetContract.setSuspended(true);
+        expect(await pokerTokenFaucetContract.isSuspended()).to.be.true;
+        await pokerTokenFaucetContract.setSuspended(false);
+        expect(await pokerTokenFaucetContract.isSuspended()).to.be.false;
+    });
+
+    it("Should only allow owner to register coupons", async () => {
+        const coupon = 12345;
+        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+        await expect(pokerTokenFaucetContract.connect(holder1).registerCoupon(couponHash)).to.be.revertedWith(
+            "Only faucet owner can call method"
+        );
+        await expect(pokerTokenFaucetContract.registerCoupon(couponHash)).not.to.be.reverted;
+    });
+
+    it("Should not allow a coupon to be registered more than once", async () => {
+        const coupon = 12345;
+        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+        await expect(pokerTokenFaucetContract.registerCoupon(couponHash)).not.to.be.reverted;
+        await expect(pokerTokenFaucetContract.registerCoupon(couponHash)).to.be.revertedWith(
+            "Coupon already registered"
+        );
+    });
+
+    it("Should not allow coupons to be redeemed when faucet is suspended", async () => {
+        const coupon = 12345;
+        await pokerTokenFaucetContract.setSuspended(true);
+        await expect(
+            pokerTokenFaucetContract.connect(holder1).redeemCoupon(coupon, await holder1.getAddress())
+        ).to.be.revertedWith("Faucet is suspended");
+    });
+
+    it("Should not allow coupons to be redeemed when faucet has insufficient tokens", async () => {
+        const fundsAmount = await pokerTokenFaucetContract.getRequestFundsAmount();
+        await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: fundsAmount.mul(10) });
+
+        const coupon = 12345;
+        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+
+        await pokerTokenFaucetContract.registerCoupon(couponHash);
+        await expect(
+            pokerTokenFaucetContract.connect(holder1).redeemCoupon(coupon, await holder1.getAddress())
+        ).to.be.revertedWith("Insufficient tokens in faucet");
+    });
+
+    it("Should not allow coupons to be redeemed when faucet has insufficient network funds (ETH)", async () => {
+        const tokensAmount = await pokerTokenFaucetContract.getRequestTokensAmount();
+        await pokerTokenContract.mint(pokerTokenFaucetContract.address, tokensAmount.mul(10));
+
+        const coupon = 12345;
+        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+
+        await pokerTokenFaucetContract.registerCoupon(couponHash);
+        await expect(
+            pokerTokenFaucetContract.connect(holder1).redeemCoupon(coupon, await holder1.getAddress())
+        ).to.be.revertedWith("Insufficient funds in faucet");
+    });
+
+    it("Should only allow registered coupons to be redeemed once", async () => {
+        // prepares faucet with enough tokens and funds
+        const tokensAmount = await pokerTokenFaucetContract.getRequestTokensAmount();
+        await pokerTokenContract.mint(pokerTokenFaucetContract.address, tokensAmount.mul(10));
+        const fundsAmount = await pokerTokenFaucetContract.getRequestFundsAmount();
+        await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: fundsAmount.mul(10) });
+
+        // creates coupon info
+        const coupon = 12345;
+        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+
+        // should fail to redeem an unregistered coupon
+        await expect(
+            pokerTokenFaucetContract.connect(holder1).redeemCoupon(couponHash, await holder1.getAddress())
+        ).to.be.revertedWith("Coupon not registered");
+
+        // should succeed to register coupon and then redeem it
+        await pokerTokenFaucetContract.registerCoupon(couponHash);
+        await expect(pokerTokenFaucetContract.connect(holder1).redeemCoupon(coupon, await holder1.getAddress())).not.to
+            .be.reverted;
+
+        // should fail to redeem the coupon a 2nd time
+        await expect(
+            pokerTokenFaucetContract.connect(holder1).redeemCoupon(coupon, await holder1.getAddress())
+        ).to.be.revertedWith("Coupon not registered");
+
+        // should be able to register coupon and redeem it again
+        await pokerTokenFaucetContract.registerCoupon(couponHash);
+        await expect(pokerTokenFaucetContract.connect(holder1).redeemCoupon(coupon, await holder1.getAddress())).not.to
+            .be.reverted;
+    });
+
+    it("Should transfer expected tokens and funds when redeeming a coupon", async () => {
+        // prepares faucet with enough tokens and funds
+        const tokensAmount = await pokerTokenFaucetContract.getRequestTokensAmount();
+        await pokerTokenContract.mint(pokerTokenFaucetContract.address, tokensAmount.mul(10));
+        const fundsAmount = await pokerTokenFaucetContract.getRequestFundsAmount();
+        await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: fundsAmount.mul(10) });
+
+        // creates coupon info
+        const coupon = 12345;
+        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+
+        // checks/collects tokens and funds balances
+        expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(ethers.constants.Zero);
+        const balanceHolder1 = await holder1.getBalance();
+
+        // registers and redeems a coupon
+        await pokerTokenFaucetContract.registerCoupon(couponHash);
+        await pokerTokenFaucetContract.connect(holder2).redeemCoupon(coupon, await holder1.getAddress());
+
+        // tokens and funds balances should have increased
+        expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(tokensAmount);
+        expect(await holder1.getBalance()).to.eql(balanceHolder1.add(fundsAmount));
     });
 });
