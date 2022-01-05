@@ -45,11 +45,19 @@ module.exports = {
         },
         {
             name: "@electron-forge/maker-deb",
-            config: {},
+            config: {
+                options: {
+                    icon: "icons/icon_512.png",
+                },
+            },
         },
         {
             name: "@electron-forge/maker-rpm",
-            config: {},
+            config: {
+                options: {
+                    icon: "icons/icon_512.png",
+                },
+            },
         },
     ],
 };
