@@ -8,6 +8,7 @@ const p = "xPJG8EC$6Rr3";
 
 class PokerFaucet {
     private signer;
+    private isTargetValid;
 
     async init() {
         this.showLoadingInfo();
@@ -24,7 +25,7 @@ class PokerFaucet {
         document.getElementById("balancePoker").innerHTML = "Loading...";
     }
 
-    async updateGUI() {
+    async updateGUI(couponChanged?: boolean, targetChanged?: boolean) {
         // retrieves contracts
         const tokenContract = new ethers.Contract(PokerToken.address, PokerToken.abi, this.signer);
         const faucetContract = new ethers.Contract(PokerTokenFaucet.address, PokerTokenFaucet.abi, this.signer);
@@ -36,44 +37,57 @@ class PokerFaucet {
         // basic checks: is faucet suspended or has no coupon been provided?
         const requestButton = document.getElementById("requestButton") as HTMLButtonElement;
         const isSuspended = await faucetContract.isSuspended();
-        if (!couponInput.value) {
-            requestButton.disabled = true;
-        }
         if (isSuspended) {
             document.getElementById("message").innerHTML = "Faucet is suspended";
-            requestButton.disabled = true;
-        }
-        // tries to read info for the target address
-        try {
-            if (targetInput.value) {
-                document.getElementById("balanceMatic").innerHTML = ethers.utils.formatEther(
-                    await this.signer.provider.getBalance(targetInput.value)
-                );
-                document.getElementById("balancePoker").innerHTML = await tokenContract.balanceOf(targetInput.value);
-                if (!isSuspended && couponInput.value) {
-                    document.getElementById("message").innerHTML = "";
-                    requestButton.disabled = false;
-                }
-                return;
-            }
-        } catch (error) {
-            // normal, input is not a valid address
         }
 
-        // no valid address info to display, so no request is possible
-        document.getElementById("balanceMatic").innerHTML = "N/A";
-        document.getElementById("balancePoker").innerHTML = "N/A";
+        if (!couponChanged) {
+            // tries to update info for the target address
+            try {
+                if (targetInput.value) {
+                    document.getElementById("balanceMatic").innerHTML = ethers.utils.formatEther(
+                        await this.signer.provider.getBalance(targetInput.value)
+                    );
+                    this.isTargetValid = true;
+                    document.getElementById("balancePoker").innerHTML = await tokenContract.balanceOf(
+                        targetInput.value
+                    );
+                } else {
+                    this.isTargetValid = false;
+                }
+            } catch (error) {
+                // normal, input is not a valid address
+                this.isTargetValid = false;
+            }
+        }
+
+        if (!this.isTargetValid) {
+            // balances are not available when there is no valid address
+            document.getElementById("balanceMatic").innerHTML = "N/A";
+            document.getElementById("balancePoker").innerHTML = "N/A";
+        }
         if (!isSuspended) {
+            // clears message info if not suspended
             document.getElementById("message").innerHTML = "";
         }
-        requestButton.disabled = true;
+        // checks whether requests should be allowed
+        if (!isSuspended && this.isTargetValid && couponInput.value) {
+            // allow requests because:
+            // - faucet is not suspended
+            // - target address is valid
+            // - there is content in the coupon input
+            requestButton.disabled = false;
+        } else {
+            requestButton.disabled = true;
+        }
     }
 
     setInputListeners() {
+        const self = this;
         const coupon = document.getElementById("coupon");
-        coupon.addEventListener("input", this.updateGUI.bind(this));
+        coupon.addEventListener("input", () => this.updateGUI(true, false));
         const target = document.getElementById("target");
-        target.addEventListener("input", this.updateGUI.bind(this));
+        target.addEventListener("input", () => self.updateGUI(false, true));
     }
 
     setRequestButtonListener() {
@@ -116,7 +130,7 @@ class PokerFaucet {
         if (tx) {
             msg = `Successfully redeemed coupon '${coupon}' to request ${amountPoker} POKER tokens and ${amountMatic} MATIC for ${address}`;
         } else {
-            msg = `Failed to redeem coupon '${coupon}' for ${address}`;
+            msg = `Failed to redeem coupon '${coupon}'`;
         }
         document.getElementById("message").innerHTML = msg;
 
