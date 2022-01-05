@@ -11,7 +11,7 @@ class PokerFaucet {
 
     async init() {
         this.showLoadingInfo();
-        this.setTargetInputListener();
+        this.setInputListeners();
         this.setRequestButtonListener();
 
         this.signer = await this.getSigner();
@@ -25,29 +25,55 @@ class PokerFaucet {
     }
 
     async updateGUI() {
+        // retrieves contracts
         const tokenContract = new ethers.Contract(PokerToken.address, PokerToken.abi, this.signer);
+        const faucetContract = new ethers.Contract(PokerTokenFaucet.address, PokerTokenFaucet.abi, this.signer);
+
+        // retrieves current input values
+        const couponInput = <HTMLInputElement>document.getElementById("coupon");
         const targetInput = <HTMLInputElement>document.getElementById("target");
+
+        // basic checks: is faucet suspended or has no coupon been provided?
         const requestButton = document.getElementById("requestButton") as HTMLButtonElement;
+        const isSuspended = await faucetContract.isSuspended();
+        if (!couponInput.value) {
+            requestButton.disabled = true;
+        }
+        if (isSuspended) {
+            document.getElementById("message").innerHTML = "Faucet is suspended";
+            requestButton.disabled = true;
+        }
+        // tries to read info for the target address
         try {
             if (targetInput.value) {
                 document.getElementById("balanceMatic").innerHTML = ethers.utils.formatEther(
                     await this.signer.provider.getBalance(targetInput.value)
                 );
                 document.getElementById("balancePoker").innerHTML = await tokenContract.balanceOf(targetInput.value);
-                requestButton.disabled = false;
+                if (!isSuspended && couponInput.value) {
+                    document.getElementById("message").innerHTML = "";
+                    requestButton.disabled = false;
+                }
                 return;
             }
         } catch (error) {
             // normal, input is not a valid address
         }
+
+        // no valid address info to display, so no request is possible
         document.getElementById("balanceMatic").innerHTML = "N/A";
         document.getElementById("balancePoker").innerHTML = "N/A";
+        if (!isSuspended) {
+            document.getElementById("message").innerHTML = "";
+        }
         requestButton.disabled = true;
     }
 
-    setTargetInputListener() {
-        const input = document.getElementById("target");
-        input.addEventListener("input", this.updateGUI.bind(this));
+    setInputListeners() {
+        const coupon = document.getElementById("coupon");
+        coupon.addEventListener("input", this.updateGUI.bind(this));
+        const target = document.getElementById("target");
+        target.addEventListener("input", this.updateGUI.bind(this));
     }
 
     setRequestButtonListener() {
@@ -66,55 +92,39 @@ class PokerFaucet {
     }
 
     async request() {
+        const coupon = (<HTMLInputElement>document.getElementById("coupon")).value;
         const address = (<HTMLInputElement>document.getElementById("target")).value;
 
         const faucetContract = new ethers.Contract(PokerTokenFaucet.address, PokerTokenFaucet.abi, this.signer);
 
         this.showLoadingInfo();
 
-        // request MATIC tokens
+        // redeems coupon
         let amountMatic;
-        let txMatic;
+        let amountPoker;
+        let tx;
         try {
             amountMatic = ethers.utils.formatEther(await faucetContract.getRequestFundsAmount());
-            txMatic = await faucetContract.requestFunds(address);
-        } catch (error) {
-            console.error(`Failed to request MATIC: ${JSON.stringify(error)}`);
-        }
-
-        // request POKER tokens
-        let amountPoker;
-        let txPoker;
-        try {
             amountPoker = await faucetContract.getRequestTokensAmount();
-            txPoker = await faucetContract.requestTokens(address);
+            tx = await faucetContract.redeemCoupon(coupon, address);
         } catch (error) {
-            console.error(`Failed to request POKER: ${JSON.stringify(error)}`);
+            console.error(`Failed to redeem coupon: ${JSON.stringify(error)}`);
         }
 
-        // inform user of request results
+        // informs user of request results
         let msg;
-        if (txMatic && txPoker) {
-            msg = `Successfully requested ${amountPoker} POKER tokens and ${amountMatic} MATIC for ${address}`;
-        } else if (txMatic) {
-            msg = `Successfully requested ${amountMatic} MATIC for ${address} (failed to request POKER tokens)`;
-        } else if (txPoker) {
-            msg = `Successfully requested ${amountPoker} POKER tokens for ${address} (failed to request MATIC)`;
+        if (tx) {
+            msg = `Successfully redeemed coupon '${coupon}' to request ${amountPoker} POKER tokens and ${amountMatic} MATIC for ${address}`;
         } else {
-            msg = `Failed to request POKER and MATIC for ${address}`;
+            msg = `Failed to redeem coupon '${coupon}' for ${address}`;
         }
-
         document.getElementById("message").innerHTML = msg;
 
-        if (txMatic) {
-            await txMatic.wait();
+        // waits for transaction to go through before updating the GUI
+        if (tx) {
+            await tx.wait();
         }
-        if (txPoker) {
-            await txPoker.wait();
-        }
-
         await this.updateGUI();
-        document.getElementById("message").innerHTML = "";
     }
 }
 
