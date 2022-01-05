@@ -30,6 +30,7 @@ module.exports = {
         {
             name: "@electron-forge/maker-squirrel",
             config: {
+                authors: "Cartesi Foundation Ltd.",
                 name: "cartesi-texas-hodlem",
             },
         },
@@ -47,7 +48,10 @@ module.exports = {
             name: "@electron-forge/maker-deb",
             config: {
                 options: {
+                    categories: ["Game"],
+                    homepage: "https://cartesi.io/",
                     icon: "icons/icon_512.png",
+                    maintainer: "Cartesi Foundation Ltd.",
                 },
             },
         },
@@ -55,7 +59,10 @@ module.exports = {
             name: "@electron-forge/maker-rpm",
             config: {
                 options: {
+                    categories: ["Game"],
+                    homepage: "https://cartesi.io/",
                     icon: "icons/icon_512.png",
+                    maintainer: "Cartesi Foundation Ltd.",
                 },
             },
         },
