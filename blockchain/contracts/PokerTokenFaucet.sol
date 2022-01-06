@@ -37,7 +37,7 @@ contract PokerTokenFaucet {
     bool suspended;
 
     // event emitted when a coupon is redeemed
-    event CouponRedeemed(uint256 indexed _coupon, address indexed _address, uint256 _tokensAmount, uint256 _fundsAmount);
+    event CouponRedeemed(string indexed _coupon, address indexed _address, uint256 _tokensAmount, uint256 _fundsAmount);
 
     receive() external payable {
     }
@@ -53,7 +53,7 @@ contract PokerTokenFaucet {
     /// @notice Redeems a coupon
     /// @param _coupon coupon value, whose hash must have been previously registered by calling registerCoupon
     /// @param _address address to transfer tokens to
-    function redeemCoupon(uint256 _coupon, address payable _address) public {
+    function redeemCoupon(string memory _coupon, address payable _address) public {
         require(suspended == false, "Faucet is suspended");
 
         // checks if coupon is valid

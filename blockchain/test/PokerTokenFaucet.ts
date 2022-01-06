@@ -200,8 +200,8 @@ describe("PokerTokenFaucet", () => {
     });
 
     it("Should only allow owner to register coupons", async () => {
-        const coupon = 12345;
-        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+        const coupon = "xyz";
+        const couponHash = ethers.utils.solidityKeccak256(["string"], [coupon]);
         await expect(pokerTokenFaucetContract.connect(holder1).registerCoupon(couponHash)).to.be.revertedWith(
             "Only faucet owner can call method"
         );
@@ -209,8 +209,8 @@ describe("PokerTokenFaucet", () => {
     });
 
     it("Should not allow a coupon to be registered more than once", async () => {
-        const coupon = 12345;
-        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+        const coupon = "xyz";
+        const couponHash = ethers.utils.solidityKeccak256(["string"], [coupon]);
         await expect(pokerTokenFaucetContract.registerCoupon(couponHash)).not.to.be.reverted;
         await expect(pokerTokenFaucetContract.registerCoupon(couponHash)).to.be.revertedWith(
             "Coupon already registered"
@@ -218,7 +218,7 @@ describe("PokerTokenFaucet", () => {
     });
 
     it("Should not allow coupons to be redeemed when faucet is suspended", async () => {
-        const coupon = 12345;
+        const coupon = "xyz";
         await pokerTokenFaucetContract.setSuspended(true);
         await expect(
             pokerTokenFaucetContract.connect(holder1).redeemCoupon(coupon, await holder1.getAddress())
@@ -229,8 +229,8 @@ describe("PokerTokenFaucet", () => {
         const fundsAmount = await pokerTokenFaucetContract.getRequestFundsAmount();
         await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: fundsAmount.mul(10) });
 
-        const coupon = 12345;
-        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+        const coupon = "xyz";
+        const couponHash = ethers.utils.solidityKeccak256(["string"], [coupon]);
 
         await pokerTokenFaucetContract.registerCoupon(couponHash);
         await expect(
@@ -242,8 +242,8 @@ describe("PokerTokenFaucet", () => {
         const tokensAmount = await pokerTokenFaucetContract.getRequestTokensAmount();
         await pokerTokenContract.mint(pokerTokenFaucetContract.address, tokensAmount.mul(10));
 
-        const coupon = 12345;
-        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+        const coupon = "xyz";
+        const couponHash = ethers.utils.solidityKeccak256(["string"], [coupon]);
 
         await pokerTokenFaucetContract.registerCoupon(couponHash);
         await expect(
@@ -259,8 +259,8 @@ describe("PokerTokenFaucet", () => {
         await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: fundsAmount.mul(10) });
 
         // creates coupon info
-        const coupon = 12345;
-        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+        const coupon = "xyz";
+        const couponHash = ethers.utils.solidityKeccak256(["string"], [coupon]);
 
         // should fail to redeem an unregistered coupon
         await expect(
@@ -291,8 +291,8 @@ describe("PokerTokenFaucet", () => {
         await holder1.sendTransaction({ to: pokerTokenFaucetContract.address, value: fundsAmount.mul(10) });
 
         // creates coupon info
-        const coupon = 12345;
-        const couponHash = ethers.utils.solidityKeccak256(["uint256"], [coupon]);
+        const coupon = "xyz";
+        const couponHash = ethers.utils.solidityKeccak256(["string"], [coupon]);
 
         // checks/collects tokens and funds balances
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(ethers.constants.Zero);
