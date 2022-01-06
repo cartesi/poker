@@ -30,8 +30,8 @@ class game_generator {
     std::string raw_turn_metadata;
     std::string raw_verification_info;
     std::string raw_turn_data;
-    // turns: tuple(sender, msg)
-    std::vector<std::tuple<int, std::string>> turns;
+    // turns: tuple(sender, msg, next_sender, sender_stake)
+    std::vector<std::tuple<int, std::string, int, money_t>> turns;
 
     game_generator() : alice_money(200), bob_money(100), big_blind(10), last_aggressor(-1) {
         alice_addr.parse_string("8000000000000000000000000000000000000000000000000000000000000001", 16);

@@ -85,8 +85,9 @@ void test_compute_result() {
         SUCCESS, // playback_result,
         ALICE, // last_player_id,
         verification_info_t{
-            alice_addr, ALICE, // challenger
-            0, 0,              // claimer
+            alice_addr, ALICE, // challenger, addr
+            0, // challenge time
+            0, 0, 0,              // claimer, addr,  claim_time
             claimed_funds_t{ 110, 190 }
         },
         player_infos_t{player_info_t{ alice_addr, 100}, 
@@ -107,7 +108,8 @@ void test_compute_result() {
         ALICE, // last_player_id,
         verification_info_t{
             bob_addr, BOB, // challenger
-            0, 0,              // claimer
+            0, 
+            0, 0, 0,       // claimer
             claimed_funds_t{ 110, 190 }
         },
         player_infos_t{player_info_t{ alice_addr, 100}, 
@@ -128,12 +130,14 @@ void test_compute_result() {
         ALICE, // last_player_id,
         verification_info_t{
             bob_addr, BOB,      // challenger
-            alice_addr, ALICE,  // claimer
+            0,
+            alice_addr, ALICE, 0,  // claimer
             claimed_funds_t{ 110, 190 }
         },
         player_infos_t{player_info_t{ alice_addr, 100}, 
                        player_info_t{ bob_addr,   200} }
     ));
+
     assert_eql(RULE_CLAIM_IS_TRUE, applied_rule);
     assert_eql(bignumber(300), out_results[ALICE]);
     assert_eql(bignumber(0), out_results[BOB]);    
@@ -148,8 +152,8 @@ void test_compute_result() {
         SUCCESS, // playback_result,
         ALICE, // last_player_id,
         verification_info_t{
-            bob_addr, BOB,      // challenger
-            alice_addr, ALICE,  // claimer
+            bob_addr, BOB, 0,      // challenger
+            alice_addr, ALICE, 0,  // claimer
             claimed_funds_t{ 22, 111 }
         },
         player_infos_t{player_info_t{ alice_addr, 100}, 
@@ -169,8 +173,8 @@ void test_compute_result() {
         SUCCESS, // playback_result,
         BOB, // last_player_id,
         verification_info_t{
-            alice_addr, ALICE, // challenger
-            0, 0,              // claimer
+            alice_addr, ALICE, 0, // challenger
+            0, 0, 0,              // claimer
             claimed_funds_t{ 0, 0 }
         },
         player_infos_t{player_info_t{ alice_addr, 100}, 
@@ -190,8 +194,8 @@ void test_compute_result() {
         GRR_BET_ALREADY_HIGHER, // playback_result - some error
         BOB, // last_player_id,
         verification_info_t{
-            alice_addr, ALICE, // challenger
-            0, 0,              // claimer
+            alice_addr, ALICE, 0,// challenger
+            0, 0, 0,             // claimer
             claimed_funds_t{ 0, 0 }
         },
         player_infos_t{player_info_t{ alice_addr, 100}, 

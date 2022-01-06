@@ -28,9 +28,24 @@ game_error verifier::verify() {
 
     game_playback vcr;
     std::istringstream is(_turn_data);
-    auto plbk_res = vcr.playback(is);
-    _g = vcr.game();
+    auto meta = _turn_metadata.begin();
+    auto expected_player_id = find_player_id(meta->player_address);
 
+    auto plbk_res = vcr.playback(is, [&](message* msg) { 
+      logger << "Visiting msg " << (int)msg->type() << " sender=" << msg->player_id << " expected=" << expected_player_id << std::endl;
+      if (meta == _turn_metadata.end()) {
+        logger << "meta == _turn_metadata.end()" << std::endl;
+      }
+      if (msg->player_id != expected_player_id) {
+        logger << "msg->player_id != expected_player_id" << std::endl;
+      }
+      ++;
+      if (meta != _turn_metadata.end())
+        expected_player_id = find_player_id(meta->next_player_address);
+      return SUCCESS;
+    });
+
+    _g = vcr.game();
     res = compute_result(_results,      // output
                          _applied_rule, // output
                          _g,       
@@ -111,6 +126,7 @@ game_error verifier::compute_result(verification_results_t& results,
 
 void verifier::punish(int player, verification_results_t& funds) {
     auto honest = opponent_id(player);
+    logger << "punish " << player << " honest " << honest << std::endl;
     funds[honest] += funds[player];
     funds[player] = 0;
 }
@@ -129,13 +145,13 @@ game_error verifier::write_result(std::ostream& out) {
 
 game_error verifier::load_inputs() {
     game_error res;
-    if ((res=load_player_info(_in_player_info)))
+    if ((res = load_player_info(_in_player_info)))
         return res;
-    if ((res=load_turn_metadata(_in_turn_metadata)))
+    if ((res = load_turn_metadata(_in_turn_metadata)))
         return res;
-    if ((res=load_verification_info(_in_verification_info)))
+    if ((res = load_verification_info(_in_verification_info)))
         return res;
-    if ((res=load_turn_data(_in_turn_data)))
+    if ((res = load_turn_data(_in_turn_data)))
         return res;
     return SUCCESS;
 }
@@ -144,7 +160,7 @@ game_error verifier::load_player_info(std::istream& in) {
     game_error res;
     bignumber nplayers;
     logger << "load_player_info...\n";
-    if ((res=nplayers.read_binary_be(in, 4)))
+    if ((res = nplayers.read_binary_be(in, 4)))
         return res;
     logger << "nplayers = " << (int)nplayers << std::endl;
 
@@ -152,7 +168,6 @@ game_error verifier::load_player_info(std::istream& in) {
         return VRF_INVALID_PLAYER_COUNT;
 
     for(int i=0; i < (int)nplayers; i++) {
-        skip(in, 12);
         if ((res=_player_infos[i].address.read_binary_be(in, 20)))
             return res;
         logger << "_player_infos[i].address = " << _player_infos[i].address.to_string(16) << std::endl;
@@ -175,18 +190,27 @@ game_error verifier::load_turn_metadata(std::istream& in) {
     _turn_metadata.resize(count);
 
     for(int i=0; i < (int)count; i++) {
-        skip(in, 12);
         if ((res=_turn_metadata[i].player_address.read_binary_be(in, 20)))
             return res;
         logger << "_turn_metadata[i].player_address = " << _turn_metadata[i].player_address.to_string(16) << std::endl;
     }
     for(int i=0; i < (int)count; i++) {
-        if ((res=_turn_metadata[i].timestamp.read_binary_be(in, 32)))
+        if ((res=_turn_metadata[i].next_player_address.read_binary_be(in, 20)))
+            return res;
+        logger << "_turn_metadata[i].next_player_address = " << _turn_metadata[i].next_player_address.to_string(16) << std::endl;
+    }
+    for(int i=0; i < (int)count; i++) {
+        if ((res=_turn_metadata[i].player_stake.read_binary_be(in, 32)))
+            return res;
+        logger << "_turn_metadata[i].player_stake = " << _turn_metadata[i].player_stake.to_string(10) << std::endl;
+    }
+    for(int i=0; i < (int)count; i++) {
+        if ((res=_turn_metadata[i].timestamp.read_binary_be(in, 4)))
             return res;
         logger << "_turn_metadata[i].timestamp = " << _turn_metadata[i].timestamp.to_string(16) << std::endl;
     }
     for(int i=0; i < (int)count; i++) {
-        if ((_turn_metadata[i].size.read_binary_be(in, 32)))
+        if ((_turn_metadata[i].size.read_binary_be(in, 4)))
             return res;
         logger << "_turn_metadata[i].size = " << _turn_metadata[i].size.to_string() << std::endl;
     }
@@ -199,15 +223,25 @@ game_error verifier::load_verification_info(std::istream& in) {
 
     if ((res=_verification_info.challenger_addr.read_binary_be(in, 20)))
         return res;
+    logger << "_verification_info.challenger_addr=" << _verification_info.challenger_addr.to_string(16) << std::endl;
 
     if (-1 == (_verification_info.challenger_id = find_player_id(_verification_info.challenger_addr)))
         return VRF_PLAYER_ADDRESS_NOT_FOUND;
+
+    if ((res=_verification_info.challenge_timestamp.read_binary_be(in, 4)))
+        return res;
+    logger << "_verification_info.challenge_timestamp=" << _verification_info.challenge_timestamp.to_string() << std::endl;
+
 
     if ((res=_verification_info.claimer_addr.read_binary_be(in, 20)))
         return res;
 
     if (_verification_info.claimer_addr != bignumber(0)) {
         _verification_info.claimer_id = find_player_id(_verification_info.claimer_addr);
+
+        if ((res=_verification_info.claim_timestamp.read_binary_be(in, 4)))
+            return res;
+
         for(int i=0; i < _verification_info.claimed_funds.size(); i++) {
             if ((res =_verification_info.claimed_funds[i].read_binary_be(in, 32)))
                 return res;
@@ -230,7 +264,7 @@ game_error verifier::load_turn_data(std::istream& in) {
     for(int i=0; i<_turn_metadata.size(); i++) {
         int size = _turn_metadata[i].size;
         std::string b;
-        if ((res=read_exactly(in, size, b)))
+        if ((res = read_exactly(in, size, b)))
             return res;
         _turn_data += b;
     }

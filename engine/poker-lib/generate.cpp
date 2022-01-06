@@ -6,7 +6,7 @@
 
 using namespace poker;
 
-void save_turns(const char* dir, std::vector<std::tuple<int, std::string>>& turns) {
+void save_turns(const char* dir, std::vector<std::tuple<int, std::string, int, money_t>>& turns) {
     for (int i = 0; i < turns.size(); i++) {
         auto player = std::get<0>(turns[i]);
         auto data = std::get<1>(turns[i]);

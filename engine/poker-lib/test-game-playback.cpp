@@ -20,7 +20,15 @@ void test_the_happy_path() {
     std::istringstream is(gen.raw_turn_data);
     std::cout << "  -> size = " << gen.raw_turn_data.size() << "\n";
     game_playback vcr;
-    assert_eql(SUCCESS, vcr.playback(is));
+
+    size_t visited_count = 0;
+    auto visitor = [&](message* msg) {
+      visited_count += 1;
+      return SUCCESS;
+    };
+    assert_eql(SUCCESS, vcr.playback(is, visitor));
+    assert_eql(gen.turns.size(), visited_count);
+    
     auto& vg = vcr.game();
 
     assert_eql(g.winner, vg.winner);

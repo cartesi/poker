@@ -44,6 +44,7 @@ int main(int argc, char**argv) {
         std::cout << std::endl << ver.game().to_json() << std::endl;
         return (int)res;
     }
+    std::cout << std::endl;
 
     for(auto&& r: ver.results())
         std::cout << r.to_string() << " ";

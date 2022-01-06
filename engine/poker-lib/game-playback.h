@@ -4,6 +4,7 @@
 #include <istream>
 #include <vector>
 #include <memory>
+#include <functional>
 #include "common.h"
 #include "codec.h"
 #include "referee.h"
@@ -23,9 +24,10 @@ class game_playback {
 public:
     game_playback();
     virtual ~game_playback();
-    game_error playback(std::istream& logfile);
+    game_error playback(std::istream& logfile, std::function<game_error(message*)> visitor = NULL);
     game_state& game() { return _r.game(); }
     int last_player_id() { return _last_player_id; }
+
 private:
     game_error handle_vtmf(msg_vtmf* msg); 
     game_error handle_vtmf_response(msg_vtmf_response* msg);

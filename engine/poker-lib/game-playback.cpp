@@ -9,16 +9,22 @@ game_playback::game_playback() : _last_player_id(-1) {
 game_playback:: ~game_playback() {
 }
 
-game_error game_playback::playback(std::istream& logfile) {
+game_error game_playback::playback(std::istream& logfile, std::function<game_error(message*)> visitor) {
     game_error res;
     logger << "*** game playback...\n";
     std::string serialized_msg;
     while(SUCCESS == (res=unwrap_and_decompress_next(logfile, serialized_msg))) {
         message* msg = NULL;
         std::istringstream is(serialized_msg);
-        if ((res=message::decode(is, &msg)))
+        if ((res = message::decode(is, &msg)))
             return res;
         logger << "*** " << msg->to_string() << std::endl;
+
+        if (visitor && (res = visitor(msg))) {
+        logger << "*** visitor returned error " << res  << std::endl;
+          return res;
+        }
+
         switch(msg->type()) {
             case MSG_VTMF:
                 res = handle_vtmf((msg_vtmf*)msg);

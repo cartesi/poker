@@ -33,6 +33,8 @@ typedef std::array<player_info_t, NUM_PLAYERS> player_infos_t;
 
 struct turn_metadata_t {
     bignumber player_address;
+    bignumber next_player_address;
+    bignumber player_stake;
     bignumber timestamp;
     bignumber size;
 };
@@ -42,8 +44,10 @@ typedef std::array<bignumber, NUM_PLAYERS> claimed_funds_t;
 struct verification_info_t {
     bignumber challenger_addr;
     int challenger_id;
+    bignumber challenge_timestamp;
     bignumber claimer_addr;
     int claimer_id;
+    bignumber claim_timestamp;
     claimed_funds_t claimed_funds;
 };
 
@@ -102,14 +106,6 @@ private:
     game_error load_verification_info(std::istream& in);
     game_error load_turn_data(std::istream& in);
     game_error write_result(std::ostream& out);
-
-    /*
-    void set_player_info(const player_infos_t& player_info) { _player_info = player_info; }
-    void set_turn_metadata(const std::vector<turn_metadata_t>& turn_metadata) { _turn_metadata = turn_metadata; }
-    void set_verification_info(const verification_info_t& verification_info) { _verification_info = verification_info; }
-    void set_turn_data(const std::string& turn_data) { _turn_data = turn_data; }
-    void set_game_state(const game_state& g) { _g = g; }
-    */
 
     int find_player_id(bignumber& address);
 };
