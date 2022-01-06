@@ -36,6 +36,9 @@ contract PokerTokenFaucet {
     // flag indicating whether the faucet is suspended or not
     bool suspended;
 
+    // event emitted when a coupon is redeemed
+    event CouponRedeemed(uint256 indexed _coupon, address indexed _address, uint256 _tokensAmount, uint256 _fundsAmount);
+
     receive() external payable {
     }
 
@@ -67,6 +70,9 @@ contract PokerTokenFaucet {
 
         // marks coupon as used
         registeredCoupons[couponHash] = false;
+
+        // emits event logging that coupon was redeemeed
+        emit CouponRedeemed(_coupon, _address, requestTokensAmount, requestFundsAmount);
     }
 
     /// @notice Registers a new coupon using its hash

@@ -283,7 +283,7 @@ describe("PokerTokenFaucet", () => {
             .be.reverted;
     });
 
-    it("Should transfer expected tokens and funds when redeeming a coupon", async () => {
+    it("Should transfer expected tokens and funds and emit event when redeeming a coupon", async () => {
         // prepares faucet with enough tokens and funds
         const tokensAmount = await pokerTokenFaucetContract.getRequestTokensAmount();
         await pokerTokenContract.mint(pokerTokenFaucetContract.address, tokensAmount.mul(10));
@@ -300,7 +300,9 @@ describe("PokerTokenFaucet", () => {
 
         // registers and redeems a coupon
         await pokerTokenFaucetContract.registerCoupon(couponHash);
-        await pokerTokenFaucetContract.connect(holder2).redeemCoupon(coupon, await holder1.getAddress());
+        await expect(pokerTokenFaucetContract.connect(holder2).redeemCoupon(coupon, await holder1.getAddress()))
+            .to.emit(pokerTokenFaucetContract, "CouponRedeemed")
+            .withArgs(coupon, await holder1.getAddress(), tokensAmount, fundsAmount);
 
         // tokens and funds balances should have increased
         expect(await pokerTokenContract.balanceOf(await holder1.getAddress())).to.eql(tokensAmount);
