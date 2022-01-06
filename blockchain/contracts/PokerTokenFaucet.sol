@@ -60,11 +60,11 @@ contract PokerTokenFaucet {
         bytes32 couponHash = keccak256(abi.encodePacked(_coupon));
         require(registeredCoupons[couponHash] == true, "Coupon not registered");
         
-        // ensures faucet has enough tokens nad funds
+        // ensures faucet has enough tokens and funds
         require(tokenInstance.balanceOf(address(this)) >= requestTokensAmount, "Insufficient tokens in faucet");
         require(address(this).balance >= requestFundsAmount, "Insufficient funds in faucet");
 
-        // transfers tokens nad funds
+        // transfers tokens and funds
         tokenInstance.transfer(_address, requestTokensAmount);
         _address.transfer(requestFundsAmount);
 
