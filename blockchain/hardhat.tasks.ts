@@ -509,3 +509,33 @@ task("apply-result", "Applies the result of a game verified by Descartes")
             }
         }
     });
+
+
+// GENERATE-COUPONS
+task("generate-coupons", "Generates coupons for requesting tokens and funds from the PokerTokenFaucet")
+    .addOptionalParam("count", "The number of coupons to generate", 1, types.int)
+    .addOptionalParam("length", "The length in characters of each coupon", 10, types.int)
+    .setAction(async ({ count, length }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves faucet contract
+        const faucet = await ethers.getContract("PokerTokenFaucet");
+
+        console.log("");
+        console.log(`Generating ${count} PokerTokenFaucet coupons...\n`);
+
+        for (let i = 0; i < count; i++) {
+            let coupon = "";
+            for (let l = 0; l < length; l++) {
+                const letterIndex = Math.floor(Math.random()*26);
+                coupon += String.fromCharCode(65 + letterIndex);
+            }
+            const couponHash = ethers.utils.solidityKeccak256(["string"], [coupon]);
+    
+            const tx = await faucet.registerCoupon(couponHash);
+            await tx.wait();
+
+            console.log(`Registered coupon: ${coupon}`);
+        }
+        console.log("");
+    });
