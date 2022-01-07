@@ -8,11 +8,11 @@ import { TurnBasedGame__factory } from "../../types";
 import { TurnBasedGameContext__factory } from "../../types";
 import { GameConstants } from "../../GameConstants";
 import { ServiceConfig } from "../ServiceConfig";
-import { TurnBasedGameFactory } from "../TurnBasedGame";
 import { GameVars } from "../../GameVars";
 import { Lobby } from "../Lobby";
 import { ErrorHandler } from "../ErrorHandler";
 import { Wallet } from "../Wallet";
+import { TurnBasedGameWeb3 } from "./TurnBasedGameWeb3";
 
 export class AbstractOnboardingWeb3 {
     private static claimTimeoutInterval;
@@ -132,7 +132,8 @@ export class AbstractOnboardingWeb3 {
                     const isRegisteredGameUnfinished = await this.checkUnfinishedGameByIndex(
                         onChange,
                         updateCallback,
-                        GameVars.gameData.gameIndex
+                        GameVars.gameData.gameIndex,
+                        context
                     );
                     if (isRegisteredGameUnfinished) {
                         // registered game is unfinished: stop here
@@ -166,12 +167,17 @@ export class AbstractOnboardingWeb3 {
     /**
      * Checks if a specific game is unfinished, and if true attempts to end it by timeout
      * @param onChange
-     * @param chainName
      * @param updateCallback
      * @param gameIndex
+     * @param gameContext
      * @returns
      */
-    protected static async checkUnfinishedGameByIndex(onChange, updateCallback, gameIndex): Promise<boolean> {
+    protected static async checkUnfinishedGameByIndex(
+        onChange,
+        updateCallback,
+        gameIndex,
+        gameContext?
+    ): Promise<boolean> {
         // retrieves user address and contracts
         const signer = ServiceConfig.getSigner();
         const gameContract = TurnBasedGame__factory.connect(TurnBasedGame.address, signer);
@@ -179,39 +185,64 @@ export class AbstractOnboardingWeb3 {
         const gameContextContract = contextContract.attach(gameContract.address);
 
         // checks if game is really over
-        const gameOverFilter = gameContextContract.filters.GameOver(gameIndex, null);
-        let gameOverEvents;
-        await ErrorHandler.execute("queryGameOver", async () => {
-            gameOverEvents = await gameContextContract.queryFilter(gameOverFilter);
+        let isActive;
+        await ErrorHandler.execute("queryGameActive", async () => {
+            isActive = await gameContract.isActive(gameIndex);
         });
-        if (gameOverEvents.length == 0) {
+        if (isActive == true) {
             // game is not over
-            onChange({
-                label: `You have an ongoing game: please wait until it is ended by timeout`,
-                onclick: undefined,
-                loading: true,
-                error: false,
-                ready: false,
-            });
+            const turnBasedGame = new TurnBasedGameWeb3(gameIndex);
+            if (!gameContext) {
+                await ErrorHandler.execute("getGameContext", async () => {
+                    gameContext = await gameContract.getContext(GameVars.gameData.gameIndex);
+                });
+            }
+            if (gameContext.isDescartesInstantiated == true) {
+                // game is under verification
+                onChange({
+                    label: `You have a game under verification: please wait until it completes`,
+                    onclick: undefined,
+                    loading: true,
+                    error: false,
+                    ready: false,
+                });
+                // attempts to apply verification result
+                if (!(await turnBasedGame.applyVerificationResult())) {
+                    // could not apply result: either verification is ongoing, or has failed
+                    // - calls TurnBasedGameWeb3 method to set up verification handling
+                    await turnBasedGame.onGameChallenged(gameIndex, gameContext.descartesIndex);
+                    // - tries to challenge game again in case previous verification has already failed (this will do nothing if verification is ongoing)
+                    await turnBasedGame.challengeGame("Previous verification failed");
+                }
+            } else {
+                // game is ongoing and not under verification: try to end it by timeout
+                onChange({
+                    label: `You have an ongoing game: please wait until it is ended by timeout`,
+                    onclick: undefined,
+                    loading: true,
+                    error: false,
+                    ready: false,
+                });
 
-            if (!AbstractOnboardingWeb3.claimTimeoutInterval) {
-                // we are not already attempting to end an unfinished game by timeout: let's do it
-                try {
-                    // continuously attempts to end game by timeout (once a minute)
-                    const turnBasedGame = TurnBasedGameFactory.create(gameIndex);
-                    AbstractOnboardingWeb3.claimTimeoutInterval = setInterval(async () => {
+                if (!AbstractOnboardingWeb3.claimTimeoutInterval) {
+                    // we are not already attempting to end an unfinished game by timeout: let's do it
+                    try {
+                        // continuously attempts to end game by timeout (once every minute)
+                        AbstractOnboardingWeb3.claimTimeoutInterval = setInterval(async () => {
+                            await turnBasedGame.claimTimeout();
+                        }, 60000);
                         await turnBasedGame.claimTimeout();
-                    }, 60000);
-                    await turnBasedGame.claimTimeout();
 
-                    gameContract.on(gameOverFilter, () => {
-                        // game is finally over: clear interval and update status
-                        clearInterval(AbstractOnboardingWeb3.claimTimeoutInterval);
-                        AbstractOnboardingWeb3.claimTimeoutInterval = undefined;
-                        updateCallback(onChange);
-                    });
-                } catch (error) {
-                    console.error(error);
+                        const gameOverFilter = gameContextContract.filters.GameOver(gameIndex, null);
+                        gameContract.on(gameOverFilter, () => {
+                            // game is finally over: clear interval and update status
+                            clearInterval(AbstractOnboardingWeb3.claimTimeoutInterval);
+                            AbstractOnboardingWeb3.claimTimeoutInterval = undefined;
+                            updateCallback(onChange);
+                        });
+                    } catch (error) {
+                        console.error(error);
+                    }
                 }
             }
             return true;

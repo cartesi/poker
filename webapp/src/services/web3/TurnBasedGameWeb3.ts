@@ -293,16 +293,30 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     async challengeGame(msg: string): Promise<void> {
         await this.initWeb3();
         await ErrorHandler.execute("challengeGame", async () => {
+            const isActive = await this.gameContract.isActive(this.gameIndex);
+            if (!isActive) {
+                // game is no longer active: ignore
+                return;
+            }
+            const context = await this.gameContract.getContext(this.gameIndex);
+            if (context.isDescartesInstantiated) {
+                // game verification has already been requested: check the current Descartes state
+                const state = await this.descartesContract.getCurrentState(context.descartesIndex);
+                if (!this.hasDescartesFinishedInError(state)) {
+                    // Descartes has not finished with an error: ignore new challenge request
+                    return;
+                }
+            }
             const tx = await this.gameContract.challengeGame(this.gameIndex, msg);
             console.log(`Challenged game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`);
         });
     }
-    onGameChallenged(gameIndex, descartesIndex, author, message) {
+    onGameChallenged(gameIndex: BigNumber, descartesIndex: BigNumber, author?: string, message?: string) {
         console.log(
             `Received 'GameChallenged' event for game '${gameIndex}' from '${author}' with message '${message}', triggering Descartes computation '${descartesIndex}'`
         );
         if (this.onGameChallengeReceived) {
-            this.onGameChallengeReceived(gameIndex);
+            this.onGameChallengeReceived(message);
         }
 
         // turns off previous listeners for Descartes events, if there were any
@@ -311,7 +325,7 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         }
 
         // builds listeners for Descartes events targeting this specific challenge
-        this.descartesListeners = this.buildDescartesListeners(descartesIndex, author, message);
+        this.descartesListeners = this.buildDescartesListeners(descartesIndex, message);
 
         // sets up listeners on Descartes contract
         for (let eventName in this.descartesListeners) {
@@ -339,17 +353,34 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
             this.onVerificationUpdate = resolve;
         });
     }
-    async applyVerificationResult(): Promise<any> {
+    async applyVerificationResult(): Promise<boolean> {
+        let executed = false;
         await this.initWeb3();
         await ErrorHandler.execute("applyVerificationResult", async () => {
+            const isActive = await this.gameContract.isActive(this.gameIndex);
+            if (!isActive) {
+                // game is no longer active: ignore
+                return;
+            }
+            const context = await this.gameContract.getContext(this.gameIndex);
+            if (context.isDescartesInstantiated) {
+                // game verification was indeed requested: check the current Descartes state
+                const state = await this.descartesContract.getCurrentState(context.descartesIndex);
+                if (!this.hasDescartesFinishedSuccessfully(state)) {
+                    // Descartes has not finished successfully yet: ignore apply verification request
+                    return;
+                }
+            }
             const tx = await this.gameContract.applyVerificationResult(this.gameIndex);
             console.log(
                 `Applying verification result for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
             );
+            executed = true;
         });
+        return executed;
     }
 
-    buildDescartesListeners(descartesIndex: BigNumber, author: string, message: string): object {
+    buildDescartesListeners(descartesIndex: BigNumber, message?: string): object {
         const self = this;
         const listeners = {};
 
@@ -392,62 +423,16 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         listeners["DescartesFinished"] = async function (descartesIndexEvent: BigNumber, state: string) {
             if (descartesIndexEvent.eq(descartesIndex)) {
                 console.log(`Received 'DescartesFinished' event for Descartes computation '${descartesIndex}'`);
-                const stateStr = ethers.utils.toUtf8String(state);
                 let verificationState: VerificationState;
-                if (
-                    stateStr.startsWith("ConsensusResult") ||
-                    stateStr.startsWith("ClaimerWon") ||
-                    stateStr.startsWith("ChallengerWon")
-                ) {
-                    // result successfully computed: apply it if this user has the most funds at stake (i.e., if this is the party most interested in applying the result)
+                if (self.hasDescartesFinishedSuccessfully(state)) {
+                    // result successfully computed: apply it
                     verificationState = VerificationState.ENDED;
-                    let shouldApplyResult = true;
-                    try {
-                        let result;
-                        await ErrorHandler.execute("getDescartesResult", async () => {
-                            result = await self.descartesContract.getResult(descartesIndex);
-                        });
-                        const fundsShare = ethers.utils.arrayify(result[3]);
-                        const fundsPlayer0 = BigNumber.from(fundsShare.slice(0, 32));
-                        const fundsPlayer1 = BigNumber.from(fundsShare.slice(32, 64));
-                        console.log(
-                            `Retrieved result from Descartes computation '${descartesIndex}': fundsShare = [${fundsPlayer0.toString()}, ${fundsPlayer1.toString()}]`
-                        );
-                        const context = await self.getGameContext();
-                        const playerIndex = await self.getPlayerIndex(context);
-                        const isLowerStake =
-                            (playerIndex === 0 && fundsPlayer0 < fundsPlayer1) ||
-                            (playerIndex === 1 && fundsPlayer1 < fundsPlayer0);
-                        const playerAddress = await self.getPlayerAddress();
-                        const isEqualStakeAndNotAuthor =
-                            fundsPlayer0.eq(fundsPlayer1) && !Web3Utils.compareAddresses(author, playerAddress);
-                        if (isLowerStake || isEqualStakeAndNotAuthor) {
-                            // let the opponent apply the result
-                            // - either this player has a lower stake locked in the game result, or stakes are equal and player is not the challenge author
-                            console.log(
-                                `Will NOT apply verification result: isLowerStake=${isLowerStake}, isEqualStakeAndNotAuthor=${isEqualStakeAndNotAuthor}`
-                            );
-                            shouldApplyResult = false;
-                        } else {
-                            console.log(
-                                `Will apply verification result: isLowerStake=${isLowerStake}, isEqualStakeAndNotAuthor=${isEqualStakeAndNotAuthor}`
-                            );
-                        }
-                    } catch (error) {
-                        console.error(
-                            `Error retrieving verification result from Descartes: will attempt to apply result anyway - ${error}`
-                        );
-                    }
-                    if (shouldApplyResult) {
-                        self.applyVerificationResult();
-                    }
+                    await self.applyVerificationResult();
                 } else {
-                    // error computing result: try again if this is the author
+                    // error computing result: try again
                     verificationState = VerificationState.ERROR;
-                    const signer = await ServiceConfig.getSigner().getAddress();
-                    if (Web3Utils.compareAddresses(signer, author)) {
-                        self.challengeGame(`Verification failed with state ${stateStr}`);
-                    }
+                    const stateStr = ethers.utils.toUtf8String(state);
+                    await self.challengeGame(`Verification failed with state ${stateStr}`);
                 }
                 if (self.onVerificationUpdate) {
                     self.onVerificationUpdate([verificationState, message]);
@@ -474,6 +459,40 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
      */
     async getOpponentIndex(context: any): Promise<number> {
         return (await this.isSignerPlayer0(context)) ? 1 : 0;
+    }
+
+    /**
+     * Returns whether a given Descartes state indicates that it has finished successfully
+     * @returns true if Descartes has finished successfully, false otherwise
+     */
+    private hasDescartesFinishedSuccessfully(state: string): boolean {
+        const stateStr = ethers.utils.toUtf8String(state);
+        if (
+            stateStr.startsWith("ConsensusResult") ||
+            stateStr.startsWith("ClaimerWon") ||
+            stateStr.startsWith("ChallengerWon")
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns whether a given Descartes state indicates that it has finished in error
+     * @returns true if Descartes has finished successfully, false otherwise
+     */
+     private hasDescartesFinishedInError(state: string): boolean {
+        const stateStr = ethers.utils.toUtf8String(state);
+        if (
+            stateStr.startsWith("ClaimerMissedDeadline") ||
+            stateStr.startsWith("ProviderMissedDeadline") ||
+            stateStr.startsWith("Unrecognized state")
+        ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
