@@ -363,7 +363,10 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
                 return;
             }
             const context = await this.gameContract.getContext(this.gameIndex);
-            if (context.isDescartesInstantiated) {
+            if (!context.isDescartesInstantiated) {
+                // game verification has not been requested: ignore because there is nothing to be applied
+                return;
+            } else {
                 // game verification was indeed requested: check the current Descartes state
                 const state = await this.descartesContract.getCurrentState(context.descartesIndex);
                 if (!this.hasDescartesFinishedSuccessfully(state)) {
