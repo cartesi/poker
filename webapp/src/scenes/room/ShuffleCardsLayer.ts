@@ -57,12 +57,16 @@ export class ShuffleCardsLayer extends Phaser.GameObjects.Container {
 
     public updateHeading(text: string) {
         setTimeout(() => {
-            this.titleText.setText(text);
+            if (this.scene && this.titleText) {
+                this.titleText.setText(text);
+            }
         }, 300);
     }
 
     public hide(): void {
-
+        if (!this.scene) {
+            return;
+        }
         this.scene.tweens.add({
             targets: this,
             alpha: 0,
