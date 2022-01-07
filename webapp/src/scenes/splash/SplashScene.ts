@@ -5,6 +5,7 @@ import { GameManager } from "../../GameManager";
 import { GameVars } from "../../GameVars";
 import { Wallet } from '../../services/Wallet';
 import { ethers } from 'ethers';
+import { ServiceConfig } from '../../services/ServiceConfig';
 
 export class SplashScene extends Phaser.Scene {
 
@@ -18,6 +19,7 @@ export class SplashScene extends Phaser.Scene {
 
     private walletAddressText: Phaser.GameObjects.Text;
     private walletNetworkText: Phaser.GameObjects.Text;
+    private balanceLabel: Phaser.GameObjects.Text;
     private balanceText: Phaser.GameObjects.Text;
     private pokerTokensText: Phaser.GameObjects.Text;
     private walletAddressValue: string;
@@ -63,13 +65,13 @@ export class SplashScene extends Phaser.Scene {
 
         let walletAddressLabel = new Phaser.GameObjects.Text(this, walletInfoBg.getLeftCenter().x + 10, 50, "Address:", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
         let walletNetworkLabel = new Phaser.GameObjects.Text(this, walletAddressLabel.x, walletAddressLabel.y + 35, "Network:", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        let balanceLabel = new Phaser.GameObjects.Text(this, walletNetworkLabel.x, walletNetworkLabel.y + 35, "Balance MATIC:", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        let pokerTokensLabel = new Phaser.GameObjects.Text(this, balanceLabel.x, balanceLabel.y + 35, "Balance POKER:", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        this.balanceLabel = new Phaser.GameObjects.Text(this, walletNetworkLabel.x, walletNetworkLabel.y + 35, `Balance ${ServiceConfig.getChainCurrency()}:`, { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        let pokerTokensLabel = new Phaser.GameObjects.Text(this, this.balanceLabel.x, this.balanceLabel.y + 35, "Balance POKER:", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
 
 
         this.walletAddressText = new Phaser.GameObjects.Text(this, walletInfoBg.getRightCenter().x - 35, walletAddressLabel.y, "Loading...", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff", align: "center" });
         this.walletNetworkText = new Phaser.GameObjects.Text(this, walletInfoBg.getRightCenter().x - 10, walletNetworkLabel.y, "Loading...", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
-        this.balanceText = new Phaser.GameObjects.Text(this, walletInfoBg.getRightCenter().x - 10, balanceLabel.y, "Loading...", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
+        this.balanceText = new Phaser.GameObjects.Text(this, walletInfoBg.getRightCenter().x - 10, this.balanceLabel.y, "Loading...", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
         this.pokerTokensText = new Phaser.GameObjects.Text(this, walletInfoBg.getRightCenter().x - 10, pokerTokensLabel.y, "Loading...", { fontFamily: "Oswald-Medium", fontSize: "22px", color: "#ffffff" });
         this.walletAddressText.setOrigin(1, 0);
         this.walletNetworkText.setOrigin(1, 0);
@@ -103,7 +105,7 @@ export class SplashScene extends Phaser.Scene {
             walletAddressLabel,
             walletNetworkLabel,
             pokerTokensLabel,
-            balanceLabel,
+            this.balanceLabel,
             this.walletAddressText,
             this.walletNetworkText,
             this.balanceText,
@@ -238,6 +240,7 @@ export class SplashScene extends Phaser.Scene {
         });
         this.walletNetworkText.text = Wallet.getNetwork();
 
+        this.balanceLabel.text = `Balance ${ServiceConfig.getChainCurrency()}:`;
         Wallet.getBalance().then(balance => {
             this.balanceText.text = parseFloat(ethers.utils.formatEther(balance)).toFixed(4);
         });

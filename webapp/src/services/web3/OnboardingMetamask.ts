@@ -76,7 +76,7 @@ export class OnboardingMetamask extends AbstractOnboardingWeb3 {
             this.metamaskOnboarding.stopOnboarding();
 
             // checks if the connected wallet's network is known/supported
-            const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
+            const chainName = ServiceConfig.getChainName();
             if (!chainName) {
                 onChange({
                     label: "Unsupported network",
@@ -150,6 +150,7 @@ export class OnboardingMetamask extends AbstractOnboardingWeb3 {
         const web3Provider = new ethers.providers.Web3Provider(this.metamask);
         const signer = web3Provider.getSigner();
         ServiceConfig.setSigner(signer);
+        ServiceConfig.setChainId(this.metamask.chainId);
         console.log(`Connected to account '${await signer.getAddress()}' via Metamask`);
     }
 }

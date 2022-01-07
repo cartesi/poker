@@ -252,7 +252,7 @@ export class AbstractOnboardingWeb3 {
 
     protected static async checkBalance(onChange): Promise<boolean> {
         // retrieves user address and contract
-        const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
+        const chainName = ServiceConfig.getChainName();
 
         // checks balance in POKER tokens
         const tokenBalance = await Wallet.getPokerTokens();
@@ -268,7 +268,7 @@ export class AbstractOnboardingWeb3 {
         }
         // checks balance in network funds (ETH/MATIC)
         const balance = await Wallet.getBalance();
-        const chainCurrency = GameConstants.CHAIN_CURRENCIES[ServiceConfig.getChainId()];
+        const chainCurrency = ServiceConfig.getChainCurrency();
         if (balance.eq(ethers.constants.Zero)) {
             onChange({
                 label: `Sorry, you need some ${chainCurrency} on ${chainName} to play`,

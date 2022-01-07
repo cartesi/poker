@@ -28,7 +28,7 @@ export class Wallet {
      * @return a network name as a string
      */
     public static getNetwork(): string {
-        return GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
+        return ServiceConfig.getChainName();
     }
 
     /**

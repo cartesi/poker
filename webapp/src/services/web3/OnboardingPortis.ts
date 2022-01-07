@@ -71,7 +71,7 @@ export class OnboardingPortis extends AbstractOnboardingWeb3 {
             }
 
             // checks if the connected wallet's network is known/supported
-            const chainName = GameConstants.CHAIN_NAMES[ServiceConfig.getChainId()];
+            const chainName = ServiceConfig.getChainName();
             if (!chainName) {
                 onChange({
                     label: "Unsupported network",

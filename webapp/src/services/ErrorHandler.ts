@@ -52,8 +52,8 @@ export class ErrorHandler {
             } catch (error) {
                 // checks balance to see if that could be the reason for the error
                 const balance = parseFloat(ethers.utils.formatEther(await Wallet.getBalance()));
-                const currency = GameConstants.CHAIN_CURRENCIES[ServiceConfig.getChainId()];
-                const currencyLowValue = GameConstants.CHAIN_CURRENCIES_LOW_VALUE[ServiceConfig.getChainId()];
+                const currency = ServiceConfig.getChainCurrency();
+                const currencyLowValue = ServiceConfig.getChainCurrencyLowValue();
                 let lowFunds = "";
                 if (balance < currencyLowValue) {
                     // balance is low: make sure we inform the user about it

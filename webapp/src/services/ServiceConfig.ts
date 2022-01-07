@@ -110,6 +110,18 @@ export class ServiceConfig {
         return this.chainId;
     }
 
+    public static getChainName(): string {
+        return GameConstants.CHAIN_NAMES[this.chainId];
+    }
+
+    public static getChainCurrency(): string {
+        return GameConstants.CHAIN_CURRENCIES[this.chainId];
+    }
+
+    public static getChainCurrencyLowValue(): number {
+        return GameConstants.CHAIN_CURRENCIES_LOW_VALUE[this.chainId];
+    }
+
     public static getChainEndpoint(): string {
         if (!this.chainId) {
             throw new Error("ChainId was not set.");
