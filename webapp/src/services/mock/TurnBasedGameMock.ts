@@ -24,9 +24,18 @@ export class TurnBasedGameMock implements TurnBasedGame {
     challengerIndex: number;
     verificationState: VerificationState;
 
+    interrupted: boolean;
+
     constructor(private gameIndex, private playerIndex: number) {
         this.turnInfoQueue = [];
         this.onTurnOverReceivedResolvers = [];
+    }
+
+    /**
+     * Sets the interrupted flag to true
+     */
+    async interrupt() {
+        this.interrupted = true;
     }
 
     connect(other: TurnBasedGameMock) {
@@ -36,6 +45,9 @@ export class TurnBasedGameMock implements TurnBasedGame {
 
     // turn submission
     submitTurn(info: TurnInfo): Promise<TurnInfo> {
+        if (this.interrupted) {
+            return;
+        }
         return new Promise((resolve, reject) => {
             if (this.confirmedResult !== undefined) {
                 // game has ended: no longer accepts submissions
@@ -98,6 +110,9 @@ export class TurnBasedGameMock implements TurnBasedGame {
         }, 10);
     }
     claimResult(claimedResult: any): Promise<void> {
+        if (this.interrupted) {
+            return;
+        }
         return new Promise(async (resolve) => {
             this.claimedResult = claimedResult;
             resolve();
@@ -120,6 +135,9 @@ export class TurnBasedGameMock implements TurnBasedGame {
         }
     }
     confirmResult(): Promise<void> {
+        if (this.interrupted) {
+            return;
+        }
         return new Promise<void>((resolve) => {
             resolve();
             this._onGameEnd(this.claimedResult);
@@ -192,6 +210,9 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
 
     claimTimeout(): Promise<void> {
+        if (this.interrupted) {
+            return;
+        }
         return new Promise<void>((resolve) => {
             resolve();
             const result = this._computeResultTimeout();
@@ -201,6 +222,9 @@ export class TurnBasedGameMock implements TurnBasedGame {
     }
 
     challengeGame(msg: string): Promise<void> {
+        if (this.interrupted) {
+            return;
+        }
         return new Promise<void>((resolve) => {
             resolve();
             this._onGameChallenged(this.gameIndex, msg, this.playerIndex);

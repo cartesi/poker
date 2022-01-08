@@ -137,6 +137,10 @@ export class GameImpl implements Game {
         this.verificationState = VerificationState.STARTED;
     }
 
+    async interrupt() {
+        this.turnBasedGame.interrupt();
+    }
+
     cheat: {
         switchCards: (card1: Card, card2: Card) => any;
         toggleCardCooperation: () => any;
@@ -363,7 +367,7 @@ export class GameImpl implements Game {
             const message_in = turnInfo.data;
             result = await this.engine.process_handshake(message_in);
 
-            let hasMessageOut = (result.message_out) && result.message_out.length > 0;
+            let hasMessageOut = result.message_out && result.message_out.length > 0;
             // after processing opponent's turnInfo message, checks if it is consistent
             await this._checkOpponentTurnInfo(turnInfo, hasMessageOut);
             // after processing turn, checks if engine produced an error
@@ -381,7 +385,7 @@ export class GameImpl implements Game {
 
     private async _computeHandshakeProgress(eventType: EventType): Promise<string> {
         const state = (await this.engine.game_state()).step;
-        let percentage = (state/9)*100;
+        let percentage = (state / 9) * 100;
         if (eventType === EventType.DATA_SEND) {
             percentage -= 5;
         }
@@ -409,7 +413,7 @@ export class GameImpl implements Game {
             const message_in = turnInfo.data;
             result = await this.engine.process_bet(message_in);
 
-            let hasMessageOut = (result.message_out) && result.message_out.length > 0;
+            let hasMessageOut = result.message_out && result.message_out.length > 0;
             // after processing opponent's turnInfo message, checks if it is consistent
             await this._checkOpponentTurnInfo(turnInfo, hasMessageOut);
             // after processing turn, checks if engine produced an error
@@ -581,7 +585,7 @@ export class GameImpl implements Game {
     private _gameChallengeReceived(reason: string) {
         this.onEvent(`GameChallenged received: ${reason}`, EventType.UPDATE_STATE);
         this.verificationState = VerificationState.STARTED;
-		this.turnBasedGame.receiveGameChallenged().then((reason: string) => this._gameChallengeReceived(reason));
+        this.turnBasedGame.receiveGameChallenged().then((reason: string) => this._gameChallengeReceived(reason));
     }
 
     private _verificationUpdateReceived(state: VerificationState, message: string) {

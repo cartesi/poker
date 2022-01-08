@@ -86,6 +86,7 @@ export interface Game {
 
     claimTimeout(): Promise<void>;
     challengeGame(msg: string): Promise<void>;
+    interrupt(): Promise<void>;
 
     cheat: {
         switchCards: (card1: Card, card2: Card) => any;

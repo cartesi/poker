@@ -2,6 +2,7 @@ import { GameManager } from './../../GameManager';
 import { AudioManager } from './../../AudioManager';
 import { GameVars } from "./../../GameVars";
 import { GameConstants } from "./../../GameConstants";
+import { RoomManager } from './RoomManager';
 
 export class SettingsLayer extends Phaser.GameObjects.Container {
 
@@ -207,6 +208,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
     public onClickReset(): void {
 
+        RoomManager.quit()
         GameManager.enterLobbyScene();
 
         AudioManager.playSound("btn_click");
@@ -268,6 +270,7 @@ export class SettingsLayer extends Phaser.GameObjects.Container {
 
     public onClickExit(): void {
 
+        RoomManager.quit()
         GameManager.enterSplashScene();
     }
 

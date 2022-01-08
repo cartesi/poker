@@ -16,6 +16,15 @@ export class RoomManager {
         GameVars.raiseValue = ethers.BigNumber.from(1);
     }
 
+    public static quit(): void {
+
+        if (this.game) {
+            console.log("Interrupting RoomManager game...");
+            this.game.interrupt();
+            this.game = undefined;
+        }
+    }
+
     public static startRound(): void {
 
         if (GameVars.playerFunds.lt(2)) {

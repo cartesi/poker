@@ -173,6 +173,10 @@ export class GameMock implements Game {
         await this.turnBasedGame.challengeGame(msg);
     }
 
+    async interrupt() {
+        this.turnBasedGame.interrupt();
+    }
+
     // Methods that maliciously alter game state on purpose
     cheat = {
         didSwitchCards: false,

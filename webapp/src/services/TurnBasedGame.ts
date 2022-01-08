@@ -26,6 +26,8 @@ export interface TurnBasedGame {
     challengeGame(msg: string): Promise<void>;
     receiveGameChallenged(): Promise<string>;
     receiveVerificationUpdate(): Promise<[VerificationState, string]>;
+
+    interrupt(): Promise<void>;
 }
 
 export class TurnBasedGameFactory {

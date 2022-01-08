@@ -40,9 +40,18 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     onGameChallengeReceived: (msg: string) => any;
     onVerificationUpdate: (update: [VerificationState, string]) => any;
 
+    interrupted: boolean;
+
     constructor(private gameIndex: BigNumber) {
         this.turnInfoQueue = [];
         this.onTurnOverReceivedResolvers = [];
+    }
+
+    /**
+     * Sets the interrupted flag to true
+     */
+    async interrupt() {
+        this.interrupted = true;
     }
 
     /**
@@ -101,8 +110,10 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
 
     // TURN SUBMISSION
     async submitTurn(info: TurnInfo): Promise<TurnInfo> {
+        if (this.interrupted) {
+            return;
+        }
         await this.initWeb3();
-
         await ErrorHandler.execute("submitTurn", async () => {
             const context = await this.gameContract.getContext(this.gameIndex);
             const turnIndex = context.turns.length;
@@ -218,6 +229,9 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     // CLAIM RESULT HANDLING
     //
     async claimResult(claimedResult: any): Promise<void> {
+        if (this.interrupted) {
+            return;
+        }
         this.claimedResult = claimedResult;
         await this.initWeb3();
 
@@ -249,6 +263,9 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     // CONFIRM RESULT AND GAME END HANDLING
     //
     async confirmResult(): Promise<void> {
+        if (this.interrupted) {
+            return;
+        }
         await this.initWeb3();
         await ErrorHandler.execute("confirmResult", async () => {
             const tx = await this.gameContract.confirmResult(this.gameIndex);
@@ -272,6 +289,9 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
     // CHALLENGE AND VERIFICATION
     //
     async claimTimeout(): Promise<void> {
+        if (this.interrupted) {
+            return;
+        }
         await this.initWeb3();
         await ErrorHandler.execute("claimTimeout", async () => {
             const isActive = await this.gameContract.isActive(this.gameIndex);
@@ -291,6 +311,9 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         });
     }
     async challengeGame(msg: string): Promise<void> {
+        if (this.interrupted) {
+            return;
+        }
         await this.initWeb3();
         await ErrorHandler.execute("challengeGame", async () => {
             const isActive = await this.gameContract.isActive(this.gameIndex);
@@ -354,6 +377,9 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         });
     }
     async applyVerificationResult(): Promise<boolean> {
+        if (this.interrupted) {
+            return;
+        }
         let executed = false;
         await this.initWeb3();
         await ErrorHandler.execute("applyVerificationResult", async () => {
