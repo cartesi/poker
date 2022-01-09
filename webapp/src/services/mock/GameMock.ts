@@ -151,6 +151,7 @@ export class GameMock implements Game {
     async fold() {
         await this._submitTurn("FOLD", this.opponentIndex, this.playerBets, "Sending fold...");
         this._computeResultPlayerFold();
+        this.onEvent("Waiting result...", EventType.DATA_WAIT);
     }
 
     async raise(amount: BigNumber) {
@@ -297,7 +298,9 @@ export class GameMock implements Game {
 
     private async _receiveTurnOver(eventMsg: string): Promise<TurnInfo> {
         this.onEvent(eventMsg, EventType.DATA_WAIT);
-        return await this.turnBasedGame.receiveTurnOver();
+        const turnInfo = await this.turnBasedGame.receiveTurnOver();
+        this.onEvent(eventMsg, EventType.DATA_RECEIVED);
+        return turnInfo;
     }
 
     _decodeTurnData(dataBytesPadded: Uint8Array): any {
@@ -510,7 +513,9 @@ export class GameMock implements Game {
                 this.onEvent(`Showing cards to opponent...`);
                 await this._sendPrivateCards("Sending card proofs...", this.playerIndex);
                 // submits computed result
+                this.onEvent("Posting result...", EventType.DATA_SEND);
                 await this.turnBasedGame.claimResult(this.result.fundsShare);
+                this.onEvent("Waiting confirmation...", EventType.DATA_WAIT);
             } else {
                 // player lost: folds without revealing his cards
                 await this.fold();
@@ -519,6 +524,7 @@ export class GameMock implements Game {
     }
 
     async _resultReceived(opponentResult: Array<BigNumber>) {
+        this.onEvent("Result claimed", EventType.DATA_RECEIVED);
         if (!this.result) {
             this._computeResult();
         }
@@ -527,6 +533,7 @@ export class GameMock implements Game {
             await this._triggerVerification("Result mismatch");
         } else {
             // everything ok: sends confirmation
+            this.onEvent("Confirming result...", EventType.DATA_SEND);
             await this.turnBasedGame.confirmResult();
         }
     }
@@ -584,7 +591,9 @@ export class GameMock implements Game {
             // opponent gave up
             this.onBetsReceived(BetType.FOLD, 0);
             this._computeResultOpponentFold();
+            this.onEvent("Posting result...", EventType.DATA_SEND);
             await this.turnBasedGame.claimResult(this.result.fundsShare);
+            this.onEvent("Waiting confirmation...", EventType.DATA_WAIT);
             return;
         }
 
