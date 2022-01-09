@@ -7,6 +7,7 @@ export class Timer extends Phaser.GameObjects.Container {
     private timeout: number;
     private interval: NodeJS.Timeout;
     private tween: Phaser.Tweens.Tween;
+    private animating: boolean;
 
     constructor(scene: Phaser.Scene, private isPlayer: boolean) {
 
@@ -28,25 +29,39 @@ export class Timer extends Phaser.GameObjects.Container {
 
     public show(): void {
 
+        if (this.animating) {
+            console.log(`Animation underway: will wait a little and try to show again`);
+            setTimeout(this.show.bind(this), 700);
+            return;
+        }
         if (this.alpha === 0) {
             this.scene.tweens.add({
                 targets: this,
                 alpha: 1,
                 ease: Phaser.Math.Easing.Cubic.Out,
                 duration: 500
-            }); 
+            });
+            this.animating = true;
+            setTimeout(() => this.animating = false, 700);
         }
     }
 
     public hide(): void {
 
+        if (this.animating) {
+            console.log(`Animation underway: will wait a little and try to hide again`);
+            setTimeout(this.hide.bind(this), 700);
+            return;
+        }
         if (this.alpha === 1) {
             this.scene.tweens.add({
                 targets: this,
                 alpha: 0,
                 ease: Phaser.Math.Easing.Cubic.Out,
                 duration: 500
-            }); 
+            });
+            this.animating = true;
+            setTimeout(() => this.animating = false, 700);
         }
     }
 

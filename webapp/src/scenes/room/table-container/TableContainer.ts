@@ -137,6 +137,11 @@ export class TableContainer extends Phaser.GameObjects.Container {
 
     public removePlayerTimer(): void {
 
-        this.player.removePlayerTimer();
+        this.player.removeTimer();
+    }
+
+    public removeOpponentTimer(): void {
+
+        this.opponent.removeTimer();
     }
 }

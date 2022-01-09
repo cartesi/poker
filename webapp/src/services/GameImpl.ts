@@ -339,7 +339,9 @@ export class GameImpl implements Game {
 
     private async _receiveTurnOver(eventMsg: string): Promise<TurnInfo> {
         this.onEvent(eventMsg, EventType.DATA_WAIT);
-        return await this.turnBasedGame.receiveTurnOver();
+        const turnInfo = await this.turnBasedGame.receiveTurnOver();
+        this.onEvent(eventMsg, EventType.DATA_RECEIVED);
+        return turnInfo;
     }
 
     private async _createHandshake(): Promise<TurnInfo> {
@@ -489,6 +491,9 @@ export class GameImpl implements Game {
                 console.log(`### [Player ${this.playerId}] Claim Result ###`);
                 this.onEvent("Posting result...", EventType.DATA_SEND);
                 await this.turnBasedGame.claimResult(fundsShare);
+                this.onEvent("Waiting confirmation...", EventType.DATA_WAIT);
+            } else {
+                this.onEvent("Waiting result...", EventType.DATA_WAIT);
             }
             return false;
         } else {
@@ -542,6 +547,7 @@ export class GameImpl implements Game {
 
     private async _onResultClaimed(opponentResult: BigNumber[]) {
         console.log(`### [Player ${this.playerId}] On result claimed ###`);
+        this.onEvent("Result claimed", EventType.DATA_RECEIVED);
         const result = await this.getResult();
         if (
             !result.fundsShare[this.playerId].eq(opponentResult[this.playerId]) ||

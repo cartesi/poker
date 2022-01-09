@@ -78,6 +78,15 @@ export class RoomScene extends Phaser.Scene {
         this.tableContainer.initTimer(value, isPlayer);
     }
 
+    public removeTimer(isPlayer: boolean): void {
+
+        if (isPlayer) {
+            this.tableContainer.removePlayerTimer();
+        } else {
+            this.tableContainer.removeOpponentTimer();
+        }
+    }
+
     public showSettingsMenu(): void {
 
         this.settingsLayer.show();

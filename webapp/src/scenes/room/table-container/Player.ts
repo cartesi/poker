@@ -338,14 +338,12 @@ export class Player extends Phaser.GameObjects.Container {
         AudioManager.playSound("cards_in");
     }
 
-    public removePlayerTimer(): void {
+    public removeTimer(): void {
 
         this.timer.pause();
     }
 
     public endOpponentTurn(): void {
-
-        this.timer.pause();
 
         this.scene.tweens.add({
             targets: this.cards[0],

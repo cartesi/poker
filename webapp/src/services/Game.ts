@@ -58,6 +58,7 @@ export enum EventType {
     UPDATE_STATE = "UPDATE STATE",
     DATA_SEND = "DATA SEND",
     DATA_WAIT = "DATA WAIT",
+    DATA_RECEIVED = "DATA RECEIVED",
     LOG = "LOG",
 }
 

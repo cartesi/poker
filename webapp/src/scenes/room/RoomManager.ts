@@ -50,7 +50,6 @@ export class RoomManager {
             setTimeout(() => {
                 RoomScene.currentInstance.distributeFirstCards();
                 RoomScene.currentInstance.updateBoard();
-                RoomManager.updateOpponentState();
             }, 1000);
         }).catch(error => {
             console.error(`${error} - ${JSON.stringify(error)}`);
@@ -97,10 +96,24 @@ export class RoomManager {
             // state update
             console.log(`${type}: ${msg}`);
             RoomManager.updateBoard();
-        } else if (type === EventType.DATA_SEND || type === EventType.DATA_WAIT) {
-            // data event (submit or receive)
+        } else if (type === EventType.DATA_SEND) {
+            // sending data
             console.log(`${type}: ${msg}`);
             RoomScene.currentInstance.onDataEvent(msg, type);
+        } else if (type === EventType.DATA_WAIT) {
+            // waiting for opponent to send data
+            console.log(`${type}: ${msg}`);
+            RoomScene.currentInstance.onDataEvent(msg, type);
+            RoomManager.updateOpponentState();
+            // inits timeout timer for opponent
+            // - timer is given an added safety margin to account for the time between a turn submission and it being perceived
+            RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS + GameConstants.TIMEOUT_SAFETY_MARGIN_SECONDS, false);
+        } else if (type === EventType.DATA_RECEIVED) {
+            // received data from opponent
+            console.log(`${type}: ${msg}`);
+            RoomManager.updateOpponentState();
+            // removes timeout timer for opponent
+            RoomScene.currentInstance.removeTimer(false);
         } else {
             // general event logging
             console.log(`${EventType.LOG}: ${msg}`);
@@ -197,9 +210,7 @@ export class RoomManager {
         try {
             await RoomManager.game.call();
             RoomManager.showBet(BetType.CALL, GameVars.playerIndex);
-    
             RoomManager.updateBoard();
-            RoomManager.updateOpponentState();
         } catch (error) {
             console.error(`${error} - ${JSON.stringify(error)}`);
             RoomManager.showBetButtons();
@@ -215,9 +226,7 @@ export class RoomManager {
         try {
             await RoomManager.game.check();
             RoomManager.showBet(BetType.CHECK, GameVars.playerIndex);
-    
             RoomManager.updateBoard();
-            RoomManager.updateOpponentState();
         } catch (error) {
             console.error(`${error} - ${JSON.stringify(error)}`);
             RoomManager.showBetButtons();
@@ -233,9 +242,7 @@ export class RoomManager {
         try {
             await RoomManager.game.fold();
             RoomManager.showBet(BetType.FOLD, GameVars.playerIndex);
-    
             RoomManager.updateBoard();
-            RoomManager.updateOpponentState();
         } catch (error) {
             console.error(`${error} - ${JSON.stringify(error)}`);
             RoomManager.showBetButtons();
@@ -251,9 +258,7 @@ export class RoomManager {
         try {
             await RoomManager.game.raise(value);
             RoomManager.showBet(BetType.RAISE, GameVars.playerIndex);
-    
             RoomManager.updateBoard();
-            RoomManager.updateOpponentState();
         } catch (error) {
             console.error(`${error} - ${JSON.stringify(error)}`);
             RoomManager.showBetButtons();
@@ -277,8 +282,6 @@ export class RoomManager {
         } else {
             this.updateOpponentStateTimeout = setTimeout(async () => {
                 RoomScene.currentInstance.startOpponentTurn();
-                // opponent's timer is given an added safety margin to account for the time between a turn submission and it being perceived
-                RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS + GameConstants.TIMEOUT_SAFETY_MARGIN_SECONDS, false);
             }, 2000);
         }
     }
@@ -360,7 +363,6 @@ export class RoomManager {
             return;
         }
         RoomManager.updateBoard();
-        RoomManager.updateOpponentState();
         RoomManager.showBetButtons();
         RoomManager.initTimer(GameConstants.TIMEOUT_SECONDS, true);
     }
@@ -381,7 +383,6 @@ export class RoomManager {
         console.log(`Bets received: type=${betType} ; amount=${amount}`);
         RoomManager.showBet(betType, GameVars.opponentIndex);
         RoomManager.updateBoard();
-        RoomManager.updateOpponentState();
     }
 
     private static async onEnd(): Promise<void> {
@@ -390,6 +391,7 @@ export class RoomManager {
             return;
         }
         RoomScene.currentInstance.hideWaitingFirstCards();
+        RoomScene.currentInstance.removeTimer(false);
         RoomManager.removeBetButtons();
         RoomManager.updateOpponentState();
         let endData = await RoomManager.game.getResult();
