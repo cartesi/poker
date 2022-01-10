@@ -556,3 +556,42 @@ task("generate-coupons", "Generates coupons for requesting tokens and funds from
         }
         console.log("");
     });
+
+// DUMP-GAME
+task("dump-game", "Generate a dump of a game based on its index")
+    .addOptionalParam("index", "The game index", 0, types.int)
+    .setAction(async ({ index }, hre) => {
+        const { ethers } = hre;
+
+        const game = await ethers.getContract("TurnBasedGame");
+        const logger = await ethers.getContract("Logger");
+
+        console.log(`Retrieving events for game '${index}'\n`);
+        const ctxContract = await ethers.getContract("TurnBasedGameContext");
+        const ctx = await ctxContract.attach(game.address);
+
+        // Filter TurnOver events
+        const filter = ctx.filters.TurnOver(index, null, null, null);
+        const events = await ctx.queryFilter(filter);
+
+        if (events && events.length) {
+            console.log(events.length + " TurnOver events found.\n");
+            console.log("Saving events...\n");
+            for (let i = 0; i < events.length; i++) {
+                let dataBytes8 = [];
+                for (let index of events[i].args._turn.dataLogIndices) {
+                    const filter = logger.filters.MerkleRootCalculatedFromData(index);
+                    const logEvents = await logger.queryFilter(filter);
+                    for (let event of logEvents) {
+                        dataBytes8 = dataBytes8.concat(event.args._data);
+                    }
+                }
+
+                const data = ethers.utils.concat(dataBytes8);
+                const fileName = "game_" + index + "_event_" + i + ".blob";
+                fs.writeFileSync(fileName, data);
+                console.log("Event #" + i + " (length: " + data.length + " bytes) saved to " + fileName);
+            }
+        }
+        console.log("All game events have saved successfully\n");
+    });
