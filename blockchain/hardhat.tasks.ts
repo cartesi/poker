@@ -24,7 +24,7 @@ task("mint-token", "Mint token for a given address")
     });
 
 // APPROVE-SPENDING
-// Note for when spenderaddress is contract: We should call the contract that will transferFrom 
+// Note for when spenderaddress is contract: We should call the contract that will transferFrom
 // the holder account from the holder account.
 // holder account calls -> spender contract -> spender contract transfer from holder account to any target account
 task("approve-spending", "Approve an account to spend tokens on behalf of other")
@@ -49,8 +49,6 @@ task("approve-spending", "Approve an account to spend tokens on behalf of other"
 
         console.log("");
     });
-
-
 
 // SHOW-BALANCES
 task("show-balance", "Show token balance for a given address")
@@ -95,7 +93,16 @@ task("start-game", "Starts a TurnBasedGame instance")
 
         await pokerToken.mint(alice, 200);
         await pokerToken.approve(game.address, 200);
-        const tx = await game.startGame(gameTemplateHash, gameMetadata, validators, gameTimeout, pokerToken.address, players, playerfunds, playerinfos);
+        const tx = await game.startGame(
+            gameTemplateHash,
+            gameMetadata,
+            validators,
+            gameTimeout,
+            pokerToken.address,
+            players,
+            playerfunds,
+            playerinfos
+        );
 
         const events = (await tx.wait()).events;
         const gameReadyEvent = getEvent("GameReady", contextLibrary, events);
@@ -118,80 +125,88 @@ task("join-game", "Registers player in the lobby in order to join a game")
     .addOptionalParam("player", "Name of the account joining the game", "alice")
     .addOptionalParam("playerfunds", "The amount being staked by the player joining the game", 100, types.int)
     .addOptionalParam("playerinfo", "Additional information for the player joining the game", "0x", types.string)
-    .setAction(async ({ hash, metadata, validators, timeout, numplayers, minfunds, player, playerfunds, playerinfo }, hre) => {
-        const { ethers } = hre;
+    .setAction(
+        async ({ hash, metadata, validators, timeout, numplayers, minfunds, player, playerfunds, playerinfo }, hre) => {
+            const { ethers } = hre;
 
-        const accounts = await hre.getNamedAccounts();
+            const accounts = await hre.getNamedAccounts();
 
-        // retrieves validators according to their account names
-        const validatorAddresses = validators.map((name) => accounts[name]);
+            // retrieves validators according to their account names
+            const validatorAddresses = validators.map((name) => accounts[name]);
 
-        // retrieves account from configured named accounts, according to player's name
-        const playerAccount = accounts[player];
+            // retrieves account from configured named accounts, according to player's name
+            const playerAccount = accounts[player];
 
+            // retrieves lobby contract with signer configured for the specified account
+            // - this means that any transaction submitted will be on behalf of that specified account
+            const lobby = await ethers.getContract("TurnBasedGameLobby", playerAccount);
+            const contextLib = await ethers.getContract("TurnBasedGameContext");
 
-        // retrieves lobby contract with signer configured for the specified account
-        // - this means that any transaction submitted will be on behalf of that specified account
-        const lobby = await ethers.getContract("TurnBasedGameLobby", playerAccount);
-        const contextLib = await ethers.getContract("TurnBasedGameContext");
+            // deploy PokerToken contract
+            const pokerToken = await ethers.getContract("PokerToken");
+            // mint tokens for player
+            await pokerToken.mint(playerAccount, playerfunds);
+            // approve lobby to spent tokens on behalf of the player
+            const playerPokerToken = await ethers.getContract("PokerToken", playerAccount);
+            await playerPokerToken.approve(lobby.address, playerfunds);
 
+            // retrieve game contract just to check GameReady event
+            const game = await ethers.getContract("TurnBasedGame");
 
-        // deploy PokerToken contract
-        const pokerToken = await ethers.getContract("PokerToken");
-        // mint tokens for player
-        await pokerToken.mint(playerAccount, playerfunds);
-        // approve lobby to spent tokens on behalf of the player
-        const playerPokerToken = await ethers.getContract("PokerToken", playerAccount);
-        await playerPokerToken.approve(lobby.address, playerfunds);
+            // submits transaction to the lobby contract to join a game
+            let tx = await lobby.joinGame(
+                hash,
+                metadata,
+                validatorAddresses,
+                timeout,
+                numplayers,
+                minfunds,
+                pokerToken.address,
+                playerfunds,
+                playerinfo
+            );
 
+            // retrieves transaction's emitted events to report outcome
+            const events = (await tx.wait()).events;
 
-        // retrieve game contract just to check GameReady event
-        const game = await ethers.getContract("TurnBasedGame");
-
-
-        // submits transaction to the lobby contract to join a game
-        let tx = await lobby.joinGame(
-            hash,
-            metadata,
-            validatorAddresses,
-            timeout,
-            numplayers,
-            minfunds,
-            pokerToken.address,
-            playerfunds,
-            playerinfo
-        );
-
-        // retrieves transaction's emitted events to report outcome
-        const events = (await tx.wait()).events;
-
-        for (let event of events) {
-            if (event.address == game.address) {
-                // a GameReady event is emitted by TurnBasedGame if a game starts
-                // - parse event using contextLib because It's there where the event is emitted
-                const gameReadyEvent = contextLib.interface.parseLog(event);
-                const index = gameReadyEvent.args._index;
-                console.log(`\nGame started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`);
-                return;
+            for (let event of events) {
+                if (event.address == game.address) {
+                    // a GameReady event is emitted by TurnBasedGame if a game starts
+                    // - parse event using contextLib because It's there where the event is emitted
+                    const gameReadyEvent = contextLib.interface.parseLog(event);
+                    const index = gameReadyEvent.args._index;
+                    console.log(
+                        `\nGame started with index '${index}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})\n`
+                    );
+                    return;
+                }
+                // Other events (transferring tokens from player to lobby contract) will be ignored in this task
             }
-            // Other events (transferring tokens from player to lobby contract) will be ignored in this task
-        }
 
-        // print queue situation if game is not ready yet
-        const queue = await lobby.getQueue(hash, metadata, validatorAddresses, timeout, numplayers, minfunds, pokerToken.address);
-        console.log(`\nPlayer '${player}' enqueued. Current queue is:`);
-        if (queue && queue.length) {
-            for (let i = 0; i < queue.length; i++) {
-                player = queue[i];
-                console.log(`- player ${i}`);
-                console.log(`  - address: ${player.addr}`);
-                console.log(`  - funds: ${player.funds}`);
-                console.log(`  - info: ${player.info} ('${ethers.utils.toUtf8String(player.info)}')`);
+            // print queue situation if game is not ready yet
+            const queue = await lobby.getQueue(
+                hash,
+                metadata,
+                validatorAddresses,
+                timeout,
+                numplayers,
+                minfunds,
+                pokerToken.address
+            );
+            console.log(`\nPlayer '${player}' enqueued. Current queue is:`);
+            if (queue && queue.length) {
+                for (let i = 0; i < queue.length; i++) {
+                    player = queue[i];
+                    console.log(`- player ${i}`);
+                    console.log(`  - address: ${player.addr}`);
+                    console.log(`  - funds: ${player.funds}`);
+                    console.log(`  - info: ${player.info} ('${ethers.utils.toUtf8String(player.info)}')`);
+                }
             }
-        }
 
-        console.log("");
-    });
+            console.log("");
+        }
+    );
 
 // GET-CONTEXT
 task("get-context", "Retrieves a TurnBasedGame context given its index")
@@ -217,12 +232,14 @@ task("get-context", "Retrieves a TurnBasedGame context given its index")
         console.log(`players: ${ret.players}`);
         console.log(`playerFunds: ${ret.playerFunds}`);
         console.log(`playerInfos: ${ret.playerInfos}`);
-        const startTimestampStr = new Date(ret.startTimestamp.toNumber()*1000).toISOString();
+        const startTimestampStr = new Date(ret.startTimestamp.toNumber() * 1000).toISOString();
         console.log(`startTimestamp: ${ret.startTimestamp} (${startTimestampStr})`);
         console.log(`isDescartesInstantiated: ${ret.isDescartesInstantiated}`);
         console.log(`descartesIndex: ${ret.descartesIndex}`);
         console.log(`claimer: ${ret.claimer}`);
-        const claimTimestampStr = ret.claimTimestamp.toNumber() ? new Date(ret.claimTimestamp.toNumber()*1000).toISOString() : "N/A";
+        const claimTimestampStr = ret.claimTimestamp.toNumber()
+            ? new Date(ret.claimTimestamp.toNumber() * 1000).toISOString()
+            : "N/A";
         console.log(`claimTimestamp: ${ret.claimTimestamp} (${claimTimestampStr})`);
         console.log(`claimedFundsShare: ${ret.claimedFundsShare}`);
         console.log(`claimAgreementMask: ${ret.claimAgreementMask}`);
@@ -275,24 +292,14 @@ task("submit-turn", "Submits a game turn for a given player")
         undefined,
         types.string
     )
-    .addOptionalParam(
-        "playerstake",
-        "Player funds at stake after the turn",
-        0,
-        types.int
-    )
+    .addOptionalParam("playerstake", "Player funds at stake after the turn", 0, types.int)
     .addOptionalParam(
         "data",
         "Turn data to submit, which must be an array of 64-bit words",
         "0x00000000000000010000000000000002",
         types.string
     )
-    .addOptionalParam(
-        "datastr",
-        "Turn data to submit as an UTF-8 string",
-        undefined,
-        types.string
-    )
+    .addOptionalParam("datastr", "Turn data to submit as an UTF-8 string", undefined, types.string)
     .addOptionalParam(
         "datafile",
         "File containing turn data to submit, whose content must be a JSON array of 64-bit words",
@@ -304,7 +311,9 @@ task("submit-turn", "Submits a game turn for a given player")
 
         // retrieves accounts from configured named accounts, according to players' names
         const playerAccount = (await hre.getNamedAccounts())[player];
-        const nextPlayerAccount = (nextplayer ? (await hre.getNamedAccounts())[nextplayer] : ethers.constants.AddressZero);
+        const nextPlayerAccount = nextplayer
+            ? (await hre.getNamedAccounts())[nextplayer]
+            : ethers.constants.AddressZero;
 
         // retrieves game contracts with signer configured for the specified account
         // - this means that any transaction submitted will be on behalf of that specified account
@@ -411,7 +420,8 @@ task("claim-result", "Claims a game has ended with a specified result")
 
         console.log("");
         console.log(
-            `Result '${JSON.stringify(result)}' claimed by '${player}' for game with index '${index}' (tx: ${tx.hash
+            `Result '${JSON.stringify(result)}' claimed by '${player}' for game with index '${index}' (tx: ${
+                tx.hash
             } ; blocknumber: ${tx.blockNumber})\n`
         );
     });
@@ -444,7 +454,8 @@ task("confirm-result", "Confirms a game result that was previously claimed")
                 const result = gameOverEvent.args._fundsShare;
                 const resultPrintable = result.map((v) => v.toNumber());
                 console.log(
-                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${tx.hash
+                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${
+                        tx.hash
                     } ; blocknumber: ${tx.blockNumber})\n`
                 );
                 break;
@@ -466,19 +477,25 @@ task("wait-verification", "Waits for a game to be verified by Descartes")
         const descartesIndex = context.descartesIndex;
 
         console.log("");
-        console.log(`Waiting for verification result for game with index '${index}' to be computed by Descartes under computation index '${descartesIndex}'...\n`);
+        console.log(
+            `Waiting for verification result for game with index '${index}' to be computed by Descartes under computation index '${descartesIndex}'...\n`
+        );
 
         const state: string = await new Promise((resolve) => {
             descartes.on("DescartesFinished", (descartesIndexFinished, state) => {
                 if (descartesIndexFinished.eq(descartesIndex)) {
                     resolve(state);
                 }
-            })
+            });
         });
 
-        console.log(`Game verification with Descartes index ${descartesIndex} finished with state '${ethers.utils.toUtf8String(state)}'\n`);
+        console.log(
+            `Game verification with Descartes index ${descartesIndex} finished with state '${ethers.utils.toUtf8String(
+                state
+            )}'\n`
+        );
     });
-    
+
 // APPLY-RESULT
 task("apply-result", "Applies the result of a game verified by Descartes")
     .addOptionalParam("index", "The game index", 0, types.int)
@@ -502,14 +519,14 @@ task("apply-result", "Applies the result of a game verified by Descartes")
                 const result = gameOverEvent.args._fundsShare;
                 const resultPrintable = result.map((v) => v.toNumber());
                 console.log(
-                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${tx.hash
+                    `Game '${index}' ended with result '${JSON.stringify(resultPrintable)}' (tx: ${
+                        tx.hash
                     } ; blocknumber: ${tx.blockNumber})\n`
                 );
                 return resultPrintable;
             }
         }
     });
-
 
 // GENERATE-COUPONS
 task("generate-coupons", "Generates coupons for requesting tokens and funds from the PokerTokenFaucet")
@@ -527,11 +544,11 @@ task("generate-coupons", "Generates coupons for requesting tokens and funds from
         for (let i = 0; i < count; i++) {
             let coupon = "";
             for (let l = 0; l < length; l++) {
-                const letterIndex = Math.floor(Math.random()*26);
+                const letterIndex = Math.floor(Math.random() * 26);
                 coupon += String.fromCharCode(65 + letterIndex);
             }
             const couponHash = ethers.utils.solidityKeccak256(["string"], [coupon]);
-    
+
             const tx = await faucet.registerCoupon(couponHash);
             await tx.wait();
 
