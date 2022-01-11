@@ -4,48 +4,53 @@
 
 namespace poker {
 
+void game_generator::push_turn(const char* label, int player, const std::string& msg, int next_player, const money_t& stake) {
+  logger << "push turn  #" << turns.size() << " " << label << ": player="  << player << " next_player=" << next_player << std::endl;
+  turns.push_back({player, msg, next_player, stake});
+}
+
 game_error game_generator::generate() {
     game_error res;
-
     std::array<player,2> players{ player(ALICE), player(BOB) };
+    int p, np; // player next player
+    std::string msg1, msg2;
+    money_t stake;
 
     for (auto& p : players)
         if ((res = p.init(alice_money, bob_money, big_blind)))
             return res;
 
     // Handshake
-    std::string msg1, msg2;
-    std::array<game_error, 2> r = {CONTINUED, CONTINUED};
-    int p = ALICE;  // current player
-    int np = players[p].game().next_msg_author; // next player
-    money_t stake = players[p].game().players[p].bets;
-    if ((res = players[p].create_handshake(msg1)))
-        return res;
-    turns.push_back({p, msg1, np, stake});
-    do {
-        p = opponent_id(p);
-        if (r[p] == CONTINUED) {
-            msg2.clear();
-            logger << "\nHANDSHAKE " << p << "\n";
-            r[p] = players[p].process_handshake(msg1, msg2);
-            if (msg2.size()) {
-                np = players[p].game().next_msg_author;
-                stake = players[p].game().players[p].bets;
-                turns.push_back({p, msg2, np, stake});
-                msg1 = msg2;
-            }
-        }
-    } while (r[ALICE] == CONTINUED || r[BOB] == CONTINUED);
-    if (r[ALICE] != SUCCESS)
-        return r[ALICE];
-    if (r[BOB] != SUCCESS)
-        return r[BOB];
+    stake = players[ALICE].game().players[ALICE].bets;
+    if ((res = players[ALICE].create_handshake(msg1)))
+      return res;
+    push_turn("create_handshake", ALICE, msg1, BOB, stake);
+      
+    std::array<game_error, 2> r = { CONTINUED, CONTINUED };
+    p = BOB;
+    while (msg1.size()) {
+      logger << "\nHANDSHAKE p=" << p << std::endl;
+      stake = players[p].game().players[p].bets;
+      msg2.clear();
+      r[p] = players[p].process_handshake(msg1, msg2);
+      if (r[p] != SUCCESS && r[p] != CONTINUED)
+        return r[p];
+      if (msg2.size()) {
+        push_turn("handshake", p, msg2, players[p].game().next_msg_author, stake);
+      }
+
+      p = opponent_id(p);
+      msg1 = msg2;
+    }
+
+    if (p != ALICE)
+      return PLB_BAD_HANDSHAKE;
 
     // bets
     auto t = BET_CALL;
     auto amount = 0;
     auto did_raise = false;
-    p = players[ALICE].game().current_player;
+    //p = players[ALICE].game().current_player;
     while (!players[ALICE].game_over() && !players[BOB].game_over()) {
         if (!players[p].game_over()) {
             r = {CONTINUED, CONTINUED};
@@ -65,24 +70,23 @@ game_error game_generator::generate() {
                     t = BET_CHECK;
                 }
             }
-            np = players[p].game().next_msg_author;
             stake = players[p].game().players[p].bets;
             r[p] = players[p].create_bet(t, amount, msg1);
             logger << "\n== " << p << " CREATE BET: " << r[p] << "\n";
             if (r[p] != SUCCESS && r[p] != CONTINUED)
                 return r[p];
+            push_turn("create_bet", p, msg1, players[p].game().next_msg_author, stake);
             t = BET_CHECK;
-            turns.push_back({p, msg1, np, stake});
+
             do {
                 p = opponent_id(p);
                 if (r[p] == CONTINUED) {
                     msg2.clear();
-                    np = players[p].game().next_msg_author;
                     stake = players[p].game().players[p].bets;
                     r[p] = players[p].process_bet(msg1, msg2);
                     logger << "\n== " << p << " PROCESS BET: " << r[p] << "\n";
                     if (msg2.size()) {
-                        turns.push_back({p, msg2, np, stake});
+                        push_turn("process_bet", p, msg2, players[p].game().next_msg_author, stake);
                         msg1 = msg2;
                     }
                 }
@@ -104,10 +108,8 @@ game_error game_generator::generate() {
     
     // generate turn data
     raw_turn_data.clear();
-    for(auto&& m: turns) {
-        logger << "turn: sender=" << std::get<0>(m) << " next_sender=" << std::get<2>(m) << std::endl;
+    for(auto&& m: turns)
         raw_turn_data += std::get<1>(m);
-    }
 
     // generate turn meta-data
     std::ostringstream os;

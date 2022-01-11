@@ -13,21 +13,24 @@ referee::~referee() {
     delete _eve;
 }
 
+void referee::init_game_state(game_state& g, money_t alice_money, money_t bob_money, money_t big_blind) {
+  g.players[ALICE].total_funds = alice_money;
+  g.players[ALICE].bets = big_blind/((money_t)2);
+  g.players[BOB].total_funds = bob_money;
+  g.players[BOB].bets = big_blind;
+  g.big_blind = big_blind;
+}
+
 game_error referee::step_init_game(money_t alice_money, money_t bob_money, money_t big_blind) {
     if (_g.error)
         return ERR_GAME_OVER;
     if (_step != game_step::INIT_GAME)
         return (_g.error = ERR_INVALID_MOVE);
 
-    _g.players[ALICE].total_funds = alice_money;
-    _g.players[ALICE].bets = big_blind/((money_t)2);
-    _g.players[BOB].total_funds = bob_money;
-    _g.players[BOB].bets = big_blind;
-    _g.big_blind = big_blind;
+    init_game_state(_g, alice_money, bob_money, big_blind);
 
     _step = game_step::VTMF_GROUP;
     return SUCCESS;
-
 }
 
 game_error referee::step_vtmf_group(blob& g) {

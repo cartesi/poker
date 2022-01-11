@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include "verifier.h"
+#include "referee.h"
 #include "compression.h"
 #include "game-playback.h"
 
@@ -30,27 +31,41 @@ game_error verifier::verify() {
     std::istringstream is(_turn_data);
     auto meta = _turn_metadata.begin();
     auto expected_player_id = find_player_id(meta->player_address);
+    auto player_id = -1; // sender of the last processed message
 
-    auto plbk_res = vcr.playback(is, [&](message* msg) { 
-      logger << "Visiting msg " << (int)msg->type() << " sender=" << msg->player_id << " expected=" << expected_player_id << std::endl;
-      if (meta == _turn_metadata.end()) {
-        logger << "meta == _turn_metadata.end()" << std::endl;
+    // playback all turns
+    auto playback_res = vcr.playback(is, [&](message* msg) {
+      player_id = msg->player_id;
+      if (player_id != expected_player_id)
+        return VRF_TURN_PLAYER_MISMATCH;
+
+      if (meta == _turn_metadata.end())
+        return VRF_TURN_METADATA_MISSING;
+
+      if (msg->type() == MSG_VTMF) {
+        // 1st message sent by ALICE, initialize game
+        msg_vtmf* vtmf = (msg_vtmf*)msg;
+        referee::init_game_state(vcr.game(), vtmf->alice_money, vtmf->bob_money, vtmf->big_blind);
       }
-      if (msg->player_id != expected_player_id) {
-        logger << "msg->player_id != expected_player_id" << std::endl;
-      }
-      ++;
-      if (meta != _turn_metadata.end())
-        expected_player_id = find_player_id(meta->next_player_address);
+
+      if (meta->player_stake != vcr.game().players[player_id].bets)
+        return VRF_STAKE_MISMATCH;
+
+      expected_player_id = find_player_id(meta->next_player_address);
+      meta++;
       return SUCCESS;
     });
+
+    if (meta != _turn_metadata.end())
+      playback_res = VRF_TURN_METADATA_NOT_CONSUMED;
 
     _g = vcr.game();
     res = compute_result(_results,      // output
                          _applied_rule, // output
-                         _g,       
-                         plbk_res,
-                         vcr.last_player_id(),
+                         _g,
+                         playback_res,
+                         player_id,
+                         expected_player_id,
                          _verification_info,
                          _player_infos);
 
@@ -82,11 +97,33 @@ game_error verifier::compute_result(verification_results_t& results,
                                     const game_state& g,
                                     game_error playback_result,
                                     int last_player_id,
+                                    int expected_player_id,
                                     const verification_info_t& ver_info,
                                     const player_infos_t& player_infos)
 {
     results = { player_infos[0].funds, player_infos[1].funds };
     rule = RULE_UNKNOWN;
+
+    // message sender is not the expected player
+    if (playback_result == VRF_TURN_PLAYER_MISMATCH) {
+      rule = RULE_TURN_PLAYER_MISMATCH;
+      punish(last_player_id, results);
+      return SUCCESS;
+    }
+
+    // computed stake different from the amount reported in turn metadata
+    if (playback_result == VRF_STAKE_MISMATCH) {
+    rule = RULE_STAKE_MISMATCH;
+    punish(last_player_id, results);
+    return SUCCESS;
+  }
+
+    // There is no metadata for this turn
+    if (playback_result == VRF_TURN_METADATA_MISSING) {
+      rule = RULE_TURN_METADATA_MISSING;
+      punish(last_player_id, results);
+      return SUCCESS;
+    }
 
     // If an error arises, punish the player whose move was illegal.
     if (playback_result != SUCCESS) {
@@ -192,27 +229,27 @@ game_error verifier::load_turn_metadata(std::istream& in) {
     for(int i=0; i < (int)count; i++) {
         if ((res=_turn_metadata[i].player_address.read_binary_be(in, 20)))
             return res;
-        logger << "_turn_metadata[i].player_address = " << _turn_metadata[i].player_address.to_string(16) << std::endl;
+        logger << "_turn_metadata[" << i << "].player_address = " << _turn_metadata[i].player_address.to_string(16) << std::endl;
     }
     for(int i=0; i < (int)count; i++) {
         if ((res=_turn_metadata[i].next_player_address.read_binary_be(in, 20)))
             return res;
-        logger << "_turn_metadata[i].next_player_address = " << _turn_metadata[i].next_player_address.to_string(16) << std::endl;
+        logger << "_turn_metadata[" << i << "].next_player_address = " << _turn_metadata[i].next_player_address.to_string(16) << std::endl;
     }
     for(int i=0; i < (int)count; i++) {
         if ((res=_turn_metadata[i].player_stake.read_binary_be(in, 32)))
             return res;
-        logger << "_turn_metadata[i].player_stake = " << _turn_metadata[i].player_stake.to_string(10) << std::endl;
+        logger << "_turn_metadata[" << i << "].player_stake = " << _turn_metadata[i].player_stake.to_string(10) << std::endl;
     }
     for(int i=0; i < (int)count; i++) {
         if ((res=_turn_metadata[i].timestamp.read_binary_be(in, 4)))
             return res;
-        logger << "_turn_metadata[i].timestamp = " << _turn_metadata[i].timestamp.to_string(16) << std::endl;
+        logger << "_turn_metadata[" << i << "].timestamp = " << _turn_metadata[i].timestamp.to_string(16) << std::endl;
     }
     for(int i=0; i < (int)count; i++) {
         if ((_turn_metadata[i].size.read_binary_be(in, 4)))
             return res;
-        logger << "_turn_metadata[i].size = " << _turn_metadata[i].size.to_string() << std::endl;
+        logger << "_turn_metadata[" << i << "].size = " << _turn_metadata[i].size.to_string() << std::endl;
     }
     return SUCCESS;
 }

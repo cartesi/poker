@@ -23,6 +23,9 @@ enum verification_rule {
   RULE_NO_CLAIMER,
   RULE_CLAIM_IS_FALSE,
   RULE_CLAIM_IS_TRUE,
+  RULE_TURN_PLAYER_MISMATCH,
+  RULE_STAKE_MISMATCH,
+  RULE_TURN_METADATA_MISSING
 };
 
 struct player_info_t {
@@ -94,6 +97,7 @@ public:
                               const game_state& g,                          // game state after playback
                               game_error playback_result,                   // return value of game_playback.playback()
                               int last_player_id,                           // sender of last msg played back
+                              int expected_player_id,                       // expected sender of last msg played back
                               const verification_info_t& verification_info, // decoded info
                               const player_infos_t& player_infos);           // decoded info
 

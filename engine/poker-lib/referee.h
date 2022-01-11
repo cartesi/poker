@@ -45,7 +45,9 @@ public:
     game_error open_public_cards(game_step step, blob& alice_proof, blob bob_proof);
     game_error open_private_cards(int player_id, blob& alice_proofs, blob& bob_proofs);
 
-private:
+    static void init_game_state(game_state& g, money_t alice_money, money_t bob_money, money_t big_blind);
+
+  private:
     game_error compute_bet(bet_type type, money_t& amt, game_step next_step);
     game_error open_public_cards(blob& alice_proofs, blob& bob_proofs, int first_card_index, int card_count);
     game_error decide_winner();

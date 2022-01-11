@@ -41,6 +41,9 @@ class game_generator {
     }
 
     game_error generate();
+
+  private:
+    void push_turn(const char* label, int player, const std::string& msg, int next_player, const money_t& stake);
 };
 
 }  // namespace poker

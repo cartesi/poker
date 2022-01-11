@@ -84,6 +84,7 @@ void test_compute_result() {
         make_game(SUCCESS, ALICE, /* results: */ 110, 190),
         SUCCESS, // playback_result,
         ALICE, // last_player_id,
+        ALICE, // expected player id
         verification_info_t{
             alice_addr, ALICE, // challenger, addr
             0, // challenge time
@@ -106,6 +107,7 @@ void test_compute_result() {
         make_game(SUCCESS, ALICE, /* results: */ 110, 190),
         SUCCESS, // playback_result,
         ALICE, // last_player_id,
+        ALICE,  // expected player id
         verification_info_t{
             bob_addr, BOB, // challenger
             0, 
@@ -127,7 +129,8 @@ void test_compute_result() {
         applied_rule,
         make_game(SUCCESS, ALICE, /* results: */ 110, 190),
         SUCCESS, // playback_result,
-        ALICE, // last_player_id,
+        ALICE,  // last_player_id,
+        ALICE,  // expected player id
         verification_info_t{
             bob_addr, BOB,      // challenger
             0,
@@ -151,6 +154,7 @@ void test_compute_result() {
         make_game(SUCCESS, ALICE, /* results: */ 110, 190),
         SUCCESS, // playback_result,
         ALICE, // last_player_id,
+        ALICE,  // expected player id
         verification_info_t{
             bob_addr, BOB, 0,      // challenger
             alice_addr, ALICE, 0,  // claimer
@@ -171,10 +175,11 @@ void test_compute_result() {
         applied_rule,
         make_game(SUCCESS, /* no winner (not game over) */ -1, 0, 0),
         SUCCESS, // playback_result,
-        BOB, // last_player_id,
+        BOB,  // last_player_id,
+        BOB,  // expected player id
         verification_info_t{
             alice_addr, ALICE, 0, // challenger
-            0, 0, 0,              // claimer
+            0, 0, 0,              // claimer            
             claimed_funds_t{ 0, 0 }
         },
         player_infos_t{player_info_t{ alice_addr, 100}, 
@@ -193,6 +198,7 @@ void test_compute_result() {
         make_game(SUCCESS, /* no winner (not game over) */ -1, 0, 0),
         GRR_BET_ALREADY_HIGHER, // playback_result - some error
         BOB, // last_player_id,
+        BOB,  // expected player id
         verification_info_t{
             alice_addr, ALICE, 0,// challenger
             0, 0, 0,             // claimer
@@ -206,7 +212,72 @@ void test_compute_result() {
     assert_eql(bignumber(0), out_results[BOB]);    
 
 
-}
+    // 7 -- turn author (ALICE) disagrees with metadata
+    out_results = {0, 0};
+    applied_rule = RULE_UNKNOWN;
+    assert_eql(SUCCESS, verifier::compute_result(
+        out_results,
+        applied_rule,
+        make_game(SUCCESS, /* no winner (not game over) */ -1, 0, 0),
+        VRF_TURN_PLAYER_MISMATCH, // playback_result
+        BOB,   // last_player_id,
+        ALICE, // expected player id
+        verification_info_t{
+            alice_addr, ALICE, 0,// challenger
+            0, 0, 0,             // claimer
+            claimed_funds_t{ 0, 0 }
+        },
+        player_infos_t{player_info_t{ alice_addr, 100}, 
+                       player_info_t{ bob_addr,   200} }
+    ));
+    assert_eql(RULE_TURN_PLAYER_MISMATCH, applied_rule);
+    assert_eql(bignumber(300), out_results[ALICE]);
+    assert_eql(bignumber(0), out_results[BOB]);    
+
+    // 8 -- turn stake disagrees with metadata
+    out_results = {0, 0};
+    applied_rule = RULE_UNKNOWN;
+    assert_eql(SUCCESS, verifier::compute_result(
+        out_results,
+        applied_rule,
+        make_game(SUCCESS, /* no winner (not game over) */ -1, 0, 0),
+        VRF_STAKE_MISMATCH, // playback_result
+        ALICE,   // last_player_id,
+        BOB,     // expected player id
+        verification_info_t{
+            alice_addr, ALICE, 0,// challenger
+            0, 0, 0,             // claimer
+            claimed_funds_t{ 0, 0 }
+        },
+        player_infos_t{player_info_t{ alice_addr, 100}, 
+                       player_info_t{ bob_addr,   200} }
+    ));
+    assert_eql(RULE_STAKE_MISMATCH, applied_rule);
+    assert_eql(bignumber(300), out_results[BOB]);
+    assert_eql(bignumber(0), out_results[ALICE]);
+
+    // 9 - there is no metadata available for the current turn
+    out_results = {0, 0};
+    applied_rule = RULE_UNKNOWN;
+    assert_eql(SUCCESS, verifier::compute_result(
+        out_results,
+        applied_rule,
+        make_game(SUCCESS, /* no winner (not game over) */ -1, 0, 0),
+        VRF_TURN_METADATA_MISSING, // playback_result
+        ALICE,   // last_player_id,
+        BOB,     // expected player id
+        verification_info_t{
+            alice_addr, ALICE, 0,// challenger
+            0, 0, 0,             // claimer
+            claimed_funds_t{ 0, 0 }
+        },
+        player_infos_t{player_info_t{ alice_addr, 100}, 
+                       player_info_t{ bob_addr,   200} }
+    ));
+    assert_eql(RULE_TURN_METADATA_MISSING, applied_rule);
+    assert_eql(bignumber(300), out_results[BOB]);
+    assert_eql(bignumber(0), out_results[ALICE]);
+  }
 
 int main(int argc, char** argv) {
     init_poker_lib();
