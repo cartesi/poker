@@ -94,6 +94,8 @@ export class RoomManager {
             RoomManager.showVerificationLayer(msg);
         }
         RoomScene.currentInstance.updateVerificationLayer(state);
+        RoomScene.currentInstance.hideWaitingFirstCards();
+        RoomScene.currentInstance.removeTimer(false);
     }
 
     public static onEvent(msg: string, type: EventType): void {

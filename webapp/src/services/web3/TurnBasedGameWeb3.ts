@@ -115,7 +115,16 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         }
         await this.initWeb3();
         await ErrorHandler.execute("submitTurn", async () => {
+            const isActive = await this.gameContract.isActive(this.gameIndex);
+            if (!isActive) {
+                // game is no longer active: ignore
+                return;
+            }
             const context = await this.gameContract.getContext(this.gameIndex);
+            if (context.isDescartesInstantiated) {
+                // game is under verification: ignore
+                return;
+            }
             const turnIndex = context.turns.length;
             // defines nextPlayer address
             // - if nextPlayer index is valid, uses corresponding player's address
@@ -236,6 +245,16 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         await this.initWeb3();
 
         await ErrorHandler.execute("claimResult", async () => {
+            const isActive = await this.gameContract.isActive(this.gameIndex);
+            if (!isActive) {
+                // game is no longer active: ignore
+                return;
+            }
+            const context = await this.gameContract.getContext(this.gameIndex);
+            if (context.isDescartesInstantiated) {
+                // game is under verification: ignore
+                return;
+            }
             const tx = await this.gameContract.claimResult(this.gameIndex, claimedResult);
             console.log(
                 `Result was claimed for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
@@ -268,6 +287,16 @@ export class TurnBasedGameWeb3 implements TurnBasedGame {
         }
         await this.initWeb3();
         await ErrorHandler.execute("confirmResult", async () => {
+            const isActive = await this.gameContract.isActive(this.gameIndex);
+            if (!isActive) {
+                // game is no longer active: ignore
+                return;
+            }
+            const context = await this.gameContract.getContext(this.gameIndex);
+            if (context.isDescartesInstantiated) {
+                // game is under verification: ignore
+                return;
+            }
             const tx = await this.gameContract.confirmResult(this.gameIndex);
             console.log(
                 `Result was confirmed for game '${this.gameIndex}' (tx: ${tx.hash} ; blocknumber: ${tx.blockNumber})`
