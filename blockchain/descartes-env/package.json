@@ -1,7 +1,7 @@
 {
     "name": "@cartesi/descartes-env-poker",
     "description": "Poker Descartes Environment for local development",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "dependencies": {
         "@cartesi/descartes-sdk": "^1.2.1"
     },

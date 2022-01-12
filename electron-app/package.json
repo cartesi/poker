@@ -1,7 +1,7 @@
 {
     "name": "@cartesi/electron-app",
     "productName": "cartesi-texas-hodlem",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Cartesi Texas HODL'em",
     "repository": "https://github.com/cartesi-corp/poker",
     "main": "dist/index.js",
