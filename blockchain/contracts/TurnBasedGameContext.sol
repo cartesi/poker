@@ -442,11 +442,6 @@ library TurnBasedGameContext {
         // transfer funds according to result, and burn remaining funds
         resolveFunds(_context, fundsToBurn, _fundsShare);
 
-        // deactivates game to prevent further interaction with it
-        delete _context.players;
-        delete _context.playerFunds;
-        delete _context.turns;
-
         // emit event for end of game
         emit GameOver(_index, _fundsShare);
     }
