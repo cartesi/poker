@@ -50,7 +50,7 @@ game_error game_generator::generate() {
     auto t = BET_CALL;
     auto amount = 0;
     auto did_raise = false;
-    //p = players[ALICE].game().current_player;
+
     while (!players[ALICE].game_over() && !players[BOB].game_over()) {
         if (!players[p].game_over()) {
             r = {CONTINUED, CONTINUED};
