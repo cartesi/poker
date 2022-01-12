@@ -9,9 +9,12 @@ using namespace poker;
 void save_turns(const char* dir, std::vector<std::tuple<int, std::string, int, money_t>>& turns) {
     for (int i = 0; i < turns.size(); i++) {
         auto player = std::get<0>(turns[i]);
+        auto next_platyer = std::get<2>(turns[i]);
+        auto stake  = std::get<3>(turns[i]).to_string();
         auto data = std::get<1>(turns[i]);
         char path[1024];
-        snprintf(path, sizeof(path), "%s/turn-%02d-%01d.raw", dir, i, player);
+        
+        snprintf(path, sizeof(path), "%s/turn-%02d-%01d-%01d-%s.raw", dir, i, player, next_platyer, stake.c_str());
         FILE* fp = fopen(path, "wb");
         if (!fp) {
             std::cerr << "Error creating " << path << std::endl;

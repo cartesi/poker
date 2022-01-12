@@ -155,8 +155,8 @@ game_error game_generator::generate() {
     os = std::ostringstream();
     bignumber tmp = 2;
     tmp.write_binary_be(os, 4);
-    alice_addr.write_binary_be(os, 20);
-    bob_addr.write_binary_be(os, 20);
+    alice_addr.write_binary_be(os, 32);
+    bob_addr.write_binary_be(os, 32);
     alice_money.write_binary_be(os, 32);
     bob_money.write_binary_be(os, 32);
     raw_player_info = os.str();

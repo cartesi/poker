@@ -35,7 +35,7 @@ It sends to the contract a complete set of game turns previously saved in files 
 async function main() {
   const engineDir = `${__dirname}/../../engine`;
   const gameDir = `${engineDir}/platforms/.xfer`;
-  const files = fs.readdirSync(gameDir).filter(s => s.match(/turn-\d+-\d.raw/) ).sort();  
+  const files = fs.readdirSync(gameDir).filter(s => s.match(/turn-\d+-\d-\d-\d+.raw/) ).sort();  
   
   const machineDir = `${__dirname}/../descartes-env/machines`;
   const machineHash = "0x" + fs.readdirSync(machineDir).slice(-1)[0];
@@ -47,13 +47,18 @@ async function main() {
     
   for(let i=0; i<files.length; i++) {
     const f = files[i];
-    const p = f.match(/turn-\d+-(\d).raw/)[1];
+    const m = f.match(/turn-\d+-(\d)-(\d)-(\d+).raw/)
+    const p = m[1];
+    const np = m[2];
+    const playerstake = Number(m[3])
+
     const player = players[p];
+    const nextplayer = players[np];
     const turnFile = `${gameDir}/${f}`;
     const bytes = fs.readFileSync(turnFile);
     const data = "0x" + bytes.toJSON().data.map(d => ("0"+Number(d).toString(16)).slice(-2).toUpperCase()).join("");
     console.log(`=== ${player} == submit turn ${f} ==== ${data.length}`);
-    await hre.run("submit-turn", { index, player, data });
+    await hre.run("submit-turn", { index, player, nextplayer, playerstake, data });
   }
 
   await hre.run("claim-result",   { index, player: "bob", result: [90,110] });

@@ -205,7 +205,7 @@ game_error verifier::load_player_info(std::istream& in) {
         return VRF_INVALID_PLAYER_COUNT;
 
     for(int i=0; i < (int)nplayers; i++) {
-        if ((res=_player_infos[i].address.read_binary_be(in, 20)))
+        if ((res=_player_infos[i].address.read_binary_be(in, 32)))
             return res;
         logger << "_player_infos[i].address = " << _player_infos[i].address.to_string(16) << std::endl;
     }
@@ -288,8 +288,9 @@ game_error verifier::load_verification_info(std::istream& in) {
 }
 
 int verifier::find_player_id(bignumber& address) {
-    for(int i=0; i<_player_infos.size(); i++)
-        if (address == _player_infos[i].address)
+    
+    for(int i=0; i<_player_infos.size(); i++) 
+        if (((unsigned long)address) == ((unsigned  long)_player_infos[i].address))
             return i;
     return -1;
 }
