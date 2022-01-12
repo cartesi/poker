@@ -3,7 +3,7 @@ import * as fs from "fs";
 
 import { getEvent } from "./test/EventUtil";
 
-const defaultGameTemplateHash = "0xe0a48889a480a63147341e87411fb7c8981c759eb245fd53afb317b527915c93";
+const defaultGameTemplateHash = "0x160bab456d22ffa5964e25064a928861816cfc724f5c30b583a0993917b1ddeb";
 
 // MINT-TOKEN
 task("mint-token", "Mint token for a given address")
