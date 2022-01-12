@@ -1300,10 +1300,10 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.2.1-solc-0.7.tgz#067a60918b935d4733208edb3d7e35cd1d51026b"
   integrity sha512-VfKZE9L2HNaZVBR7l5yHbRmap3EiVw9F5iVXRRDdgfnA9vQ1yFanrs0VYmdo2VIXC+EsI9wPPYZY9Ic7/qDBdw==
 
-"@openzeppelin/contracts@^3.0.0":
-  version "3.4.2"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.4.2.tgz#d81f786fda2871d1eb8a8c5a73e455753ba53527"
-  integrity sha512-z0zMCjyhhp4y7XKAcDAi3Vgms4T2PstwBdahiO0+9NaGICQKjynK3wduSRplTgk4LXmoO1yfDGO5RbjKYxtuxA==
+"@openzeppelin/contracts@^4.4.1":
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.4.1.tgz#3382db2cd83ab565ed9626765e7da92944b45de8"
+  integrity sha512-o+pHCf/yMLSlV5MkDQEzEQL402i6SoRnktru+0rdSxVEFZcTzzGhZCAtZjUFyKGazMSv1TilzMg+RbED1N8XHQ==
 
 "@portis/web3@^4.0.5", "@portis/web3@^4.0.6":
   version "4.0.6"
