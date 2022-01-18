@@ -557,6 +557,32 @@ task("generate-coupons", "Generates coupons for requesting tokens and funds from
         console.log("");
     });
 
+// LIST-COUPONS
+task("list-coupons", "Lists coupons redeemed from the PokerTokenFaucet")
+    .setAction(async ({ count, length }, hre) => {
+        const { ethers } = hre;
+
+        // retrieves faucet contract
+        const faucet = await ethers.getContract("PokerTokenFaucet");
+
+        console.log("");
+        console.log(`Listing redeemed coupons...\n`);
+
+        const filter = faucet.filters.CouponRedeemed();
+        const events = await faucet.queryFilter(filter);
+
+        for (let event of events) {
+            const block = await ethers.provider.getBlock(event.blockNumber);
+            const date = new Date(block.timestamp * 1000);
+            const address = event.args._address;
+            // TODO: fix redeemCoupon method to ensure coupon data is included in the event! (coupon param should be calldata?)
+            const tx = await event.getTransaction();
+            const coupon = ethers.utils.toUtf8String('0x' + tx.data.slice(202, 222));
+            console.log(`${coupon}: ${address} (${date.toISOString()})`);
+        }
+        console.log("");
+    });
+
 // DUMP-GAME
 task("dump-game", "Generate a dump of a game based on its index")
     .addOptionalParam("index", "The game index", 0, types.int)
