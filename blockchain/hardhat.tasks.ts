@@ -582,6 +582,32 @@ task("list-coupons", "Lists coupons redeemed from the PokerTokenFaucet").setActi
     console.log("");
 });
 
+// LIST-GAMES
+task("list-games", "Lists games that were started on the given network").setAction(async ({}, hre) => {
+    const { ethers } = hre;
+
+    console.log(`Retrieving games...\n`);
+    const game = await ethers.getContract("TurnBasedGame");
+    const ctxContract = await ethers.getContract("TurnBasedGameContext");
+    const ctx = await ctxContract.attach(game.address);
+
+    // Filter GameReady events
+    const filter = ctx.filters.GameReady();
+    const events = await ctx.queryFilter(filter);
+
+    if (events && events.length) {
+        console.log(events.length + " TurnOver events found.\n");
+        console.log("Saving events...\n");
+        for (let event of events) {
+            const index = event.args._index.toNumber();
+            const context = event.args._context;
+            const date = new Date(context.startTimestamp.toNumber() * 1000);
+            console.log(`Game ${index} - started: ${date.toISOString()} - players: ${JSON.stringify(context.players)}`);
+        }
+    }
+    console.log("");
+});
+
 // DUMP-GAME
 task("dump-game", "Generate a dump of a game based on its index")
     .addOptionalParam("index", "The game index", 0, types.int)
