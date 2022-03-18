@@ -18,7 +18,7 @@ const config: HardhatUserConfig = {
             timeout: 400000
         },
         matic_testnet: {
-            url: "https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai",
+            url: "https://speedy-nodes-nyc.moralis.io/0655b0318e637f5543432f7c/polygon/mumbai",
             chainId: 80001,
             gas: 9500000,
             accounts: mnemonic ? { mnemonic } : undefined,
