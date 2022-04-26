@@ -7,8 +7,8 @@ services:
       MNEMONIC: ${MNEMONIC}
       ACCOUNT_INDEX: 0
       RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=info
-      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
-      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
+      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/1f4b67fd09ba3781b0289868/polygon/mumbai
+      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/1f4b67fd09ba3781b0289868/polygon/mumbai
       ETHEREUM_HOST: speedy-nodes-nyc.moralis.io
       ETHEREUM_PORT: 443
       ETHEREUM_NETWORK: matic_testnet
@@ -39,8 +39,8 @@ services:
     environment:
       MNEMONIC: ${MNEMONIC}
       ACCOUNT_INDEX: 0
-      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
-      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
+      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/1f4b67fd09ba3781b0289868/polygon/mumbai
+      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/1f4b67fd09ba3781b0289868/polygon/mumbai
     networks:
       ethereum: {}
       alice:
@@ -77,8 +77,8 @@ services:
       MNEMONIC: ${MNEMONIC}
       ACCOUNT_INDEX: 1
       RUST_LOG: dispatcher=info,transaction=info,configuration=trace,utils=trace,state=info,descartes=info
-      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
-      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
+      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/1f4b67fd09ba3781b0289868/polygon/mumbai
+      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/1f4b67fd09ba3781b0289868/polygon/mumbai
       ETHEREUM_HOST: speedy-nodes-nyc.moralis.io
       ETHEREUM_PORT: 443
       ETHEREUM_NETWORK: matic_testnet
@@ -109,8 +109,8 @@ services:
     environment:
       MNEMONIC: ${MNEMONIC}
       ACCOUNT_INDEX: 1
-      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
-      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/f7fb44b9b8ea14ccde8210c5/polygon/mumbai
+      WEB3_PROVIDER_URI: https://speedy-nodes-nyc.moralis.io/1f4b67fd09ba3781b0289868/polygon/mumbai
+      DEPLOYMENT_SEMAPHORE: https://speedy-nodes-nyc.moralis.io/1f4b67fd09ba3781b0289868/polygon/mumbai
     networks:
       ethereum: {}
       bob:
