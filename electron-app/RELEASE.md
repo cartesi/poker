@@ -19,8 +19,8 @@ No matter the host OS, the machine generating the release must be configured wit
 
 Some files and environment variables are needed:
 
-1. A `Developer ID Application` certificate
-It needs to be on the machine's default keychain. Should be handled with care, as this is highly sensitive data.
+1. A `Developer ID Application` certificate and its corresponding private key.
+They need to be on the machine's default keychain and should be handled with care, as this is highly sensitive data.
 2. `APPLE_ID` and `APPLE_ID_PASSWORD`
 These two environment variables should contain a valid Apple ID and an app-specific password (instructions on how to generate one [here](https://support.apple.com/en-us/HT204397)). They're used during the code-signing/notarization process.
 
@@ -45,6 +45,10 @@ source=Unnotarized Developer ID
 ```
 
 Fret not: this failure is expected. The notarization check happens before notarization actually takes place and is [probably](https://developer.apple.com/forums/thread/697306) old code that needs to be updated.
+
+The notarization step will be performed by Apple themselves.
+After the process finishes, you should receive an email notifying that _Your Mac software was successfully notarized_.
+Then it should be ready for distribution.
 
 ### Windows
 

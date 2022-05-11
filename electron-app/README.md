@@ -63,7 +63,7 @@ $ ./out/cartesi-texas-hodlem-darwin-x64/cartesi-texas-hodlem.app/Contents/MacOS/
 The available mock modes may also be activated via the executable.
 In order to do it, simply execute the binary passing either `mock` or `transport_mock` as an argument.
 
-Examnle:
+Example:
 
 ```shell
 $ ./out/cartesi-texas-hodlem-darwin-x64/cartesi-texas-hodlem.app/Contents/MacOS/cartesi-texas-hodlem mock
@@ -92,3 +92,8 @@ The available targets are:
 - `rpm` (only available on Linux): creates a RedHat-based package. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/rpm) for usage;
 - `squirrel.windows` (only available on Windows and MacOS MacOS): creates a Windows installer. Check [Electron Forge documentation](https://www.electronforge.io/config/makers/squirrel.windows) for usage;
 - `zip`: creates a zip package.
+
+## Publishing Signed Bundles
+
+As of now, only MacOS bundles can be signed before distribution.
+For more details, refer to the [Release instructions](./RELEASE.md).
