@@ -1,6 +1,6 @@
 {
     "name": "@cartesi/poker-webapp",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Cartesi Texas HODL’em",
     "author": "Milton Jonathan <milton.jonathan@cartesi.io>",
     "license": "Apache-2.0",
