@@ -51,8 +51,8 @@ services:
 
   alice_logger:
     image: cartesi/logger-server:0.7.3
-    command: [ "-c", "/opt/cartesi/share/blockchain/deployments/localhost/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
-    # command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/goerli/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
+    command: [ "-c", "/opt/cartesi/share/blockchain/deployments/localhost/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive", "-b", "0"]
+    # command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/goerli/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive", "-b", "0"]
     volumes:
       # remove deployments mapping to use supported testnets' deployment info
       - ./deployments:/opt/cartesi/share/blockchain/deployments:ro
@@ -126,8 +126,8 @@ services:
 
   bob_logger:
     image: cartesi/logger-server:0.7.3
-    command: [ "-c", "/opt/cartesi/share/blockchain/deployments/localhost/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
-    # command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/goerli/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
+    command: [ "-c", "/opt/cartesi/share/blockchain/deployments/localhost/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive", "-b", "0"]
+    # command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/goerli/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive", "-b", "0"]
     volumes:
       # remove deployments mapping to use supported testnets' deployment info
       - ./deployments:/opt/cartesi/share/blockchain/deployments:ro

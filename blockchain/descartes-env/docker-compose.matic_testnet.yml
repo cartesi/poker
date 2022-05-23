@@ -33,7 +33,7 @@ services:
 
   alice_logger:
     image: cartesi/logger-server:0.7.3
-    command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
+    command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive", "-b", "0"]
     volumes:
       - ./alice_data:/opt/cartesi/srv/descartes/flashdrive
     environment:
@@ -103,7 +103,7 @@ services:
 
   bob_logger:
     image: cartesi/logger-server:0.7.3
-    command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive"]
+    command: [ "-c", "/opt/cartesi/share/blockchain/node_modules/@cartesi/logger/deployments/matic_testnet/Logger.json", "-d", "/opt/cartesi/srv/descartes/flashdrive", "-b", "0"]
     volumes:
       - ./bob_data:/opt/cartesi/srv/descartes/flashdrive
     environment:
